@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 320" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="30" y="26" font-family="Inter" font-size="14" font-weight="700" fill="#0f172a">Контур предиктивного управления (Closed-Loop Receding Horizon Pipeline)</text>
+  <!-- Pipeline Blocks -->
+  <g transform="translate(40, 50)">
+    <rect x="0" y="0" width="130" height="60" rx="6" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/>
+    <text x="65" y="26" font-family="Inter" font-size="11" font-weight="700" fill="#0369a1" text-anchor="middle">SLAM / EKF</text>
+    <text x="65" y="44" font-family="JetBrains Mono" font-size="9.5" fill="#0284c7" text-anchor="middle">Состояние x_k</text>
+  </g>
+  <path d="M170,80 L215,80" stroke="#0284c7" stroke-width="2.5"/>
+  <polygon points="212,76 220,80 212,84" fill="#0284c7"/>
+  <g transform="translate(220, 40)">
+    <rect x="0" y="0" width="220" height="80" rx="6" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+    <text x="110" y="22" font-family="Inter" font-size="12" font-weight="700" fill="#15803d" text-anchor="middle">QP / SQP Солвер (acados)</text>
+    <text x="110" y="42" font-family="JetBrains Mono" font-size="9" fill="#166534" text-anchor="middle">min &#931; (x-x_ref)ᵀQ(x-x_ref) + uᵀRu</text>
+    <text x="110" y="60" font-family="JetBrains Mono" font-size="9" fill="#166534" text-anchor="middle">ограничения: u &#8712; U, x &#8712; X_free</text>
+  </g>
+  <path d="M440,80 L485,80" stroke="#16a34a" stroke-width="2.5"/>
+  <polygon points="482,76 490,80 482,84" fill="#16a34a"/>
+  <g transform="translate(490, 50)">
+    <rect x="0" y="0" width="160" height="60" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
+    <text x="80" y="26" font-family="Inter" font-size="11" font-weight="700" fill="#92400e" text-anchor="middle">Исполнение u_0*</text>
+    <text x="80" y="44" font-family="JetBrains Mono" font-size="9.5" fill="#b45309" text-anchor="middle">(только 1-й шаг)</text>
+  </g>
+  <!-- Robot & Environment feedback -->
+  <path d="M570,110 L570,175 L105,175 L105,110" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4 2" fill="none"/>
+  <polygon points="101,118 105,110 109,118" fill="#94a3b8"/>
+  <text x="300" y="165" font-family="Inter" font-size="11" fill="#64748b" text-anchor="middle">Физический отклик шасси: x(t + &#916;t) с учетом трения и возмущений</text>
+  <!-- Timing card below -->
+  <g transform="translate(40, 205)">
+    <rect width="610" height="90" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="15" y="22" font-family="Inter" font-size="12" font-weight="700" fill="#0f172a">Хронометраж такта RTI (Real-Time Iteration) на 50 Гц (бюджет 20 мс):</text>
+    <g transform="translate(15, 40)">
+      <rect x="0" y="0" width="420" height="18" rx="3" fill="#e0f2fe"/>
+      <text x="10" y="13" font-family="Inter" font-size="10" fill="#0369a1">Preparation Phase (фоновая линеаризация): 12–15 мс</text>
+      <rect x="425" y="0" width="130" height="18" rx="3" fill="#dcfce7"/>
+      <text x="435" y="13" font-family="Inter" font-size="10" font-weight="700" fill="#15803d">Feedback QP: &lt; 1 мс</text>
+      <text x="0" y="38" font-family="Inter" font-size="11" fill="#475569">Гарантирует отсутствие задержек в управлении рулевой рейкой и тягой.</text>
+    </g>
+  </g>
+</svg>

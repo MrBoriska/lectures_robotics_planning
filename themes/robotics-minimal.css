@@ -26,55 +26,69 @@
   --card-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.06);
 }
 
-/* Slide Base */
+/* Slide Base - Optimised for 16:9 (1280x720) without overflow */
 section {
   font-family: var(--font-sans);
   background-color: var(--bg-primary);
   color: var(--text-main);
-  padding: 44px 56px;
-  font-size: 26px;
-  line-height: 1.5;
+  padding: 30px 48px;
+  font-size: 21px;
+  line-height: 1.42;
   letter-spacing: -0.01em;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+  width: 1280px;
+  height: 720px;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* Slide Header & Footer */
 header {
   font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   color: var(--text-light);
   border-bottom: 1px solid var(--border-subtle);
-  padding-bottom: 8px;
-  margin-bottom: 20px;
+  padding-bottom: 6px;
+  margin-bottom: 12px;
 }
 
 footer {
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-light);
   border-top: 1px solid var(--border-subtle);
-  padding-top: 8px;
+  padding-top: 6px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
+/* Pagination indicator styling */
+section::after {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-light);
+  right: 48px;
+  bottom: 16px;
+}
+
 /* Typography */
 h1 {
-  font-size: 42px;
+  font-size: 38px;
   font-weight: 700;
   color: var(--text-main);
   letter-spacing: -0.025em;
   margin-top: 0;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 h1 strong, h2 strong, h3 strong {
@@ -83,36 +97,43 @@ h1 strong, h2 strong, h3 strong {
 }
 
 h2 {
-  font-size: 32px;
+  font-size: 27px;
   font-weight: 600;
   color: var(--text-main);
   margin-top: 0;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
   border-bottom: 2px solid var(--border-subtle);
-  padding-bottom: 8px;
+  padding-bottom: 6px;
 }
 
 h3 {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 600;
   color: var(--text-muted);
   margin-top: 0;
-  margin-bottom: 14px;
+  margin-bottom: 6px;
+}
+
+h4 {
+  font-size: 17px;
+  font-weight: 600;
+  margin-top: 0;
+  margin-bottom: 4px;
 }
 
 p {
   margin-top: 0;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
 }
 
 ul, ol {
   margin-top: 0;
-  margin-bottom: 16px;
-  padding-left: 28px;
+  margin-bottom: 8px;
+  padding-left: 24px;
 }
 
 li {
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 li::marker {
@@ -136,7 +157,7 @@ code {
   font-size: 0.88em;
   background-color: #f1f5f9;
   color: #0369a1;
-  padding: 2px 6px;
+  padding: 2px 5px;
   border-radius: 4px;
   border: 1px solid #e2e8f0;
 }
@@ -144,34 +165,38 @@ code {
 pre {
   background-color: #0b0f19 !important;
   border-radius: 8px;
-  padding: 16px 20px !important;
+  padding: 12px 16px !important;
   box-shadow: var(--card-shadow);
   border: 1px solid #1e293b;
-  margin: 12px 0 18px 0;
+  margin: 8px 0 12px 0;
 }
 
 pre code {
   background: transparent;
   color: #e2e8f0;
   border: none;
-  font-size: 20px;
-  line-height: 1.45;
+  font-size: 17px;
+  line-height: 1.4;
   padding: 0;
 }
 
 /* Math (KaTeX / MathJax) */
-.katex, .MathJax {
-  font-size: 1.05em;
+.katex {
+  font-size: 1.0em;
   color: #0f172a;
+}
+
+.katex-display {
+  margin: 6px 0 !important;
 }
 
 /* Cards & Layout Containers */
 .card {
   background: var(--bg-secondary);
   border: 1px solid var(--border-subtle);
-  border-radius: 10px;
-  padding: 18px 22px;
-  margin-bottom: 16px;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 10px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 
@@ -193,23 +218,23 @@ pre code {
   border-left: 4px solid var(--accent-success);
 }
 
-.card h3, .card-accent h3, .card-alert h3 {
+.card h3, .card-accent h3, .card-alert h3, .card-success h3 {
   margin-top: 0;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 /* Grid System */
 .grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  gap: 16px;
   align-items: start;
 }
 
 .grid-3 {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 18px;
+  gap: 14px;
   align-items: start;
 }
 
@@ -222,13 +247,13 @@ pre code {
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 14px;
+  gap: 5px;
+  font-size: 12px;
   font-weight: 600;
-  padding: 3px 10px;
+  padding: 2px 8px;
   border-radius: 9999px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   vertical-align: middle;
 }
 
@@ -267,19 +292,39 @@ pre code {
 .formula-box {
   background: #ffffff;
   border: 1px solid var(--border-subtle);
-  border-radius: 8px;
-  padding: 16px 24px;
+  border-radius: 6px;
+  padding: 8px 14px;
   text-align: center;
   box-shadow: var(--card-shadow);
-  margin: 14px 0;
+  margin: 8px 0;
+}
+
+/* Diagram container */
+.diagram-box {
+  background: #ffffff;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  margin: 6px 0 10px 0;
+}
+
+.diagram-box img, .diagram-box svg {
+  max-width: 100%;
+  max-height: 210px;
+  height: auto;
+  object-fit: contain;
 }
 
 /* Interactive Widget Containers */
 .interactive-container {
   width: 100%;
-  height: 480px;
+  height: 440px;
   border: 1px solid var(--border-subtle);
-  border-radius: 10px;
+  border-radius: 8px;
   overflow: hidden;
   box-shadow: var(--card-shadow);
   background: #ffffff;
@@ -289,14 +334,14 @@ pre code {
 }
 
 .interactive-header {
-  height: 36px;
+  height: 32px;
   background: #0f172a;
   color: #94a3b8;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
-  font-size: 13px;
+  padding: 0 14px;
+  font-size: 12px;
   font-family: var(--font-mono);
 }
 
@@ -325,8 +370,8 @@ pre code {
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 21px;
-  margin: 16px 0;
+  font-size: 18px;
+  margin: 10px 0;
 }
 
 th {
@@ -334,12 +379,12 @@ th {
   color: #0f172a;
   font-weight: 600;
   text-align: left;
-  padding: 10px 14px;
+  padding: 8px 12px;
   border-bottom: 2px solid var(--border-subtle);
 }
 
 td {
-  padding: 10px 14px;
+  padding: 8px 12px;
   border-bottom: 1px solid var(--border-subtle);
 }
 
@@ -351,21 +396,21 @@ tr:nth-child(even) td {
 section.lead {
   justify-content: center;
   text-align: left;
-  padding: 60px 80px;
+  padding: 50px 70px;
 }
 
 section.lead h1 {
-  font-size: 50px;
+  font-size: 46px;
   line-height: 1.15;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 section.lead h2 {
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 400;
   color: var(--text-muted);
   border-bottom: none;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
   padding-bottom: 0;
 }
 
@@ -388,6 +433,10 @@ section.invert header, section.invert footer {
   border-color: #1e293b;
 }
 
+section.invert section::after {
+  color: #64748b;
+}
+
 section.invert .card {
   background: #111827;
   border-color: #1f2937;
@@ -406,7 +455,12 @@ section.invert .formula-box {
   color: #f8fafc;
 }
 
-section.invert .katex, section.invert .MathJax {
+section.invert .diagram-box {
+  background: #111827;
+  border-color: #1f2937;
+}
+
+section.invert .katex {
   color: #f8fafc;
 }
 
@@ -427,9 +481,39 @@ section.invert tr:nth-child(even) td {
 /* Utility classes */
 .text-center { text-align: center; }
 .text-muted { color: var(--text-muted); }
-.text-sm { font-size: 20px; }
-.text-xs { font-size: 16px; }
+.text-sm { font-size: 18px; }
+.text-xs { font-size: 14px; }
+.mt-1 { margin-top: 4px; }
 .mt-2 { margin-top: 8px; }
+.mt-3 { margin-top: 12px; }
 .mt-4 { margin-top: 16px; }
+.gap-2 { gap: 8px; }
 .gap-4 { gap: 16px; }
 .flex-1 { flex: 1; }
+
+/* Print & PDF Export Rules */
+@media print {
+  section {
+    overflow: hidden !important;
+    page-break-inside: avoid !important;
+    page-break-after: always !important;
+  }
+  .interactive-frame {
+    display: none !important;
+  }
+  .interactive-container {
+    height: 300px !important;
+    background: #f8fafc !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: 2px dashed #cbd5e1 !important;
+  }
+  .interactive-container::after {
+    content: "⚡ [Интерактивная HTML5 симуляция доступна в браузере]";
+    display: block;
+    font-size: 17px;
+    color: #0284c7;
+    font-weight: 600;
+  }
+}

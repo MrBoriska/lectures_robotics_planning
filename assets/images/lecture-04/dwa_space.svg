@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 320" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="30" y="26" font-family="Inter" font-size="14" font-weight="700" fill="#0f172a">Dynamic Window Approach (DWA): Поиск в пространстве (v, ω)</text>
+  <g transform="translate(40, 50)">
+    <!-- Axes v and omega -->
+    <line x1="20" y1="120" x2="280" y2="120" stroke="#94a3b8" stroke-width="1.5"/>
+    <line x1="40" y1="20" x2="40" y2="220" stroke="#94a3b8" stroke-width="1.5"/>
+    <text x="270" y="140" font-family="JetBrains Mono" font-size="12" fill="#475569">v (м/с)</text>
+    <text x="15" y="25" font-family="JetBrains Mono" font-size="12" fill="#475569">ω (рад/с)</text>
+
+    <!-- Vs: Hardware Limits -->
+    <rect x="40" y="40" width="220" height="160" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5"/>
+    <text x="200" y="55" font-family="Inter" font-size="11" fill="#64748b">Vs (пределы шасси)</text>
+
+    <!-- Vd: Dynamic Window -->
+    <rect x="100" y="80" width="100" height="80" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+    <text x="105" y="98" font-family="Inter" font-size="11" font-weight="600" fill="#0369a1">Vd (окно ускорений τ)</text>
+
+    <!-- Va: Admissible velocities (obstacle parabolic bound) -->
+    <path d="M40,20 Q160,50 180,120 Q160,190 40,220 Z" fill="#fee2e2" opacity="0.4"/>
+    <path d="M40,20 Q160,50 180,120 Q160,190 40,220" stroke="#ef4444" stroke-width="2" fill="none"/>
+    <text x="70" y="195" font-family="Inter" font-size="11" fill="#dc2626">Зона столкновения</text>
+
+    <!-- Optimal velocity sample -->
+    <circle cx="165" cy="105" r="6" fill="#16a34a"/>
+    <text x="175" y="110" font-family="Inter" font-size="12" font-weight="700" fill="#16a34a">(v*, ω*)</text>
+  </g>
+  <g transform="translate(360, 60)">
+    <rect width="300" height="190" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="15" y="26" font-family="Inter" font-size="13" font-weight="700" fill="#0f172a">Пересечение 3-х пространств:</text>
+    <text x="15" y="52" font-family="JetBrains Mono" font-size="12" fill="#0284c7">Vr = Vs ∩ Vd ∩ Va</text>
+    <g transform="translate(15, 75)">
+      <text x="0" y="0" font-family="Inter" font-size="11.5" fill="#334155">• Vs: конструктивные скорости шасси</text>
+      <text x="0" y="22" font-family="Inter" font-size="11.5" fill="#334155">• Vd: скорости за квант времени τ</text>
+      <text x="0" y="44" font-family="Inter" font-size="11.5" fill="#334155">• Va: скорости безопасного торможения</text>
+      <text x="0" y="66" font-family="Inter" font-size="11.5" font-weight="600" fill="#16a34a">• Выбор максимума функции G(v, ω)</text>
+      <text x="0" y="86" font-family="Inter" font-size="11" fill="#64748b">  G = α·heading + β·dist + γ·vel</text>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 320" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="30" y="26" font-family="Inter" font-size="14" font-weight="700" fill="#0f172a">Кривые Ридса-Шеппа: Маневры с реверсом (Cusp) и сравнение с Дубинсом</text>
+  <g transform="translate(40, 50)">
+    <rect width="280" height="150" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="15" y="22" font-family="Inter" font-size="12" font-weight="700" fill="#dc2626">1. Автомобиль Дубинса (Только вперед v = +1)</text>
+    <path d="M40,120 C40,40 180,40 240,110" stroke="#dc2626" stroke-width="2.5" fill="none"/>
+    <circle cx="40" cy="120" r="5" fill="#16a34a"/><circle cx="240" cy="110" r="5" fill="#2563eb"/>
+    <text x="15" y="140" font-family="Inter" font-size="10.5" fill="#64748b">Вынужден делать огромную петлю RSR: L = 14.8 м</text>
+  </g>
+  <g transform="translate(360, 50)">
+    <rect width="290" height="150" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="15" y="22" font-family="Inter" font-size="12" font-weight="700" fill="#16a34a">2. Ридс-Шепп (Вперед и назад v &#8712; {-1, +1})</text>
+    <path d="M40,120 A30,30 0 0,0 85,90" stroke="#16a34a" stroke-width="3" fill="none"/>
+    <path d="M85,90 A30,30 0 0,1 160,110" stroke="#2563eb" stroke-width="3" stroke-dasharray="4 2" fill="none"/>
+    <circle cx="85" cy="90" r="4" fill="#d97706"/>
+    <text x="88" y="80" font-family="Inter" font-size="10" font-weight="700" fill="#d97706">Точка смены хода (Cusp |)</text>
+    <circle cx="40" cy="120" r="5" fill="#16a34a"/><circle cx="160" cy="110" r="5" fill="#2563eb"/>
+    <text x="15" y="140" font-family="Inter" font-size="10.5" fill="#15803d">Маневр C|C (вперед + назад): L = 4.2 м (-70% пути!)</text>
+  </g>
+  <g transform="translate(40, 215)">
+    <rect width="610" height="85" rx="6" fill="#f0f9ff" stroke="#bae6fd"/>
+    <text x="15" y="20" font-family="Inter" font-size="12" font-weight="700" fill="#0369a1">9 канонических семейств Ридса-Шеппа (46 оптимальных слов):</text>
+    <text x="15" y="40" font-family="JetBrains Mono" font-size="11" fill="#0284c7">C|C|C,  C|CC,  CC|C,  CC|CC,  C|C_&#960;/2 C,  CSC,  C|CSC,  CSC|C,  C|CS|C</text>
+    <text x="15" y="65" font-family="Inter" font-size="11" fill="#475569">• Смена хода | соответствует остановке и переключению передачи на реверс.</text>
+  </g>
+</svg>

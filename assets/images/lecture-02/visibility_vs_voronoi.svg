@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 320" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+  <g transform="translate(30, 25)">
+    <text x="0" y="0" font-family="Inter" font-size="14" font-weight="700" fill="#0f172a">Граф видимости (Visibility Graph)</text>
+    <polygon points="50,60 110,40 90,110 40,100" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5"/>
+    <polygon points="180,90 250,70 240,140 170,130" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5"/>
+    <line x1="20" y1="140" x2="40" y2="100" stroke="#94a3b8" stroke-width="1" stroke-dasharray="2 2"/>
+    <line x1="20" y1="140" x2="90" y2="110" stroke="#94a3b8" stroke-width="1" stroke-dasharray="2 2"/>
+    <line x1="110" y1="40" x2="180" y2="90" stroke="#94a3b8" stroke-width="1" stroke-dasharray="2 2"/>
+    <line x1="90" y1="110" x2="170" y2="130" stroke="#94a3b8" stroke-width="1" stroke-dasharray="2 2"/>
+    <path d="M20,140 L40,100 L110,40 L250,70 L280,130" stroke="#2563eb" stroke-width="3" fill="none"/>
+    <circle cx="20" cy="140" r="4" fill="#16a34a"/>
+    <circle cx="280" cy="130" r="4" fill="#dc2626"/>
+    <text x="0" y="210" font-family="Inter" font-size="12" font-weight="600" fill="#1e40af">✓ Минимальная длина пути</text>
+    <text x="0" y="230" font-family="Inter" font-size="11" fill="#dc2626">✗ Прижимается вплотную к углам (риск коллизии!)</text>
+  </g>
+  <line x1="350" y1="20" x2="350" y2="300" stroke="#e2e8f0" stroke-width="2"/>
+  <g transform="translate(380, 25)">
+    <text x="0" y="0" font-family="Inter" font-size="14" font-weight="700" fill="#0f172a">Диаграмма Вороного (Voronoi / GVD)</text>
+    <polygon points="50,60 110,40 90,110 40,100" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5"/>
+    <polygon points="180,90 250,70 240,140 170,130" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5"/>
+    <path d="M20,70 Q140,95 140,20 M140,95 Q140,150 140,200 M140,95 Q210,110 280,40 M140,150 Q210,160 280,200" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3" fill="none"/>
+    <path d="M20,140 Q80,145 140,150 Q175,155 240,180 L280,130" stroke="#059669" stroke-width="3" fill="none"/>
+    <circle cx="20" cy="140" r="4" fill="#16a34a"/>
+    <circle cx="280" cy="130" r="4" fill="#dc2626"/>
+    <text x="0" y="210" font-family="Inter" font-size="12" font-weight="600" fill="#047857">✓ Максимальный запас безопасности (клиренс)</text>
+    <text x="0" y="230" font-family="Inter" font-size="11" fill="#64748b">✗ Неоптимален по длине (удлинение на 15–30%)</text>
+  </g>
+</svg>

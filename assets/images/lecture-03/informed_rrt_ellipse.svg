@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 320" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="30" y="26" font-family="Inter" font-size="14" font-weight="700" fill="#0f172a">Informed RRT*: Сжатие пространства выборки в гиперэллипсоид</text>
+  <g transform="translate(30, 45)">
+    <!-- Ellipse and foci -->
+    <ellipse cx="190" cy="120" rx="160" ry="85" fill="#f0f9ff" stroke="#0284c7" stroke-width="2" stroke-dasharray="6 3"/>
+    <!-- Start and Goal -->
+    <circle cx="90" cy="120" r="7" fill="#16a34a"/>
+    <text x="65" y="145" font-family="Inter" font-size="11" font-weight="700" fill="#15803d">x_start</text>
+    <circle cx="290" cy="120" r="7" fill="#dc2626"/>
+    <text x="275" y="145" font-family="Inter" font-size="11" font-weight="700" fill="#b91c1c">x_goal</text>
+    <line x1="90" y1="120" x2="290" y2="120" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <text x="165" y="112" font-family="JetBrains Mono" font-size="10" fill="#64748b">c_min = ||x_start - x_goal||</text>
+    <!-- Current Best Path -->
+    <path d="M90,120 Q140,80 190,105 T290,120" stroke="#2563eb" stroke-width="2.5" fill="none"/>
+    <text x="150" y="80" font-family="JetBrains Mono" font-size="10" font-weight="600" fill="#1d4ed8">c_best (текущий путь)</text>
+    <!-- Accepted samples inside -->
+    <circle cx="160" cy="70" r="3.5" fill="#16a34a"/><circle cx="220" cy="140" r="3.5" fill="#16a34a"/>
+    <circle cx="120" cy="100" r="3.5" fill="#16a34a"/><circle cx="250" cy="90" r="3.5" fill="#16a34a"/>
+    <text x="140" y="170" font-family="Inter" font-size="10" font-weight="600" fill="#16a34a">✓ Сэмплы внутри эллипсоида</text>
+    <!-- Rejected samples outside -->
+    <text x="20" y="35" font-family="Inter" font-size="12" fill="#ef4444" font-weight="700">✕</text>
+    <text x="320" y="30" font-family="Inter" font-size="12" fill="#ef4444" font-weight="700">✕</text>
+    <text x="340" y="180" font-family="Inter" font-size="12" fill="#ef4444" font-weight="700">✕</text>
+    <text x="30" y="190" font-family="Inter" font-size="10" fill="#dc2626">✕ Отсекаются (длина &gt; c_best)</text>
+    <!-- Dimensions -->
+    <line x1="30" y1="210" x2="350" y2="210" stroke="#0284c7" stroke-width="1.5"/>
+    <text x="140" y="225" font-family="JetBrains Mono" font-size="10" fill="#0284c7">Главная ось = c_best</text>
+  </g>
+  <g transform="translate(410, 45)">
+    <rect width="260" height="230" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="15" y="24" font-family="Inter" font-size="13" font-weight="700" fill="#0f172a">Математика сжатия:</text>
+    <g transform="translate(15, 45)">
+      <text x="0" y="0" font-family="JetBrains Mono" font-size="10.5" fill="#0284c7">C_inf = {x | ||x-x_s|| + ||x-x_g|| &#8804; c_best}</text>
+      <text x="0" y="24" font-family="Inter" font-size="11" fill="#334155">• Фокусы: x_start и x_goal</text>
+      <text x="0" y="44" font-family="Inter" font-size="11" fill="#334155">• Полуоси: a = c_best / 2</text>
+      <text x="0" y="64" font-family="Inter" font-size="11" fill="#334155">  b = &#8730;(c_best² - c_min²) / 2</text>
+      <text x="0" y="88" font-family="Inter" font-size="11" fill="#334155">• При каждом улучшении пути:</text>
+      <text x="0" y="106" font-family="Inter" font-size="11" font-weight="600" fill="#16a34a">  c_best &#8595; &#8658; эллипсоид сжимается!</text>
+      <rect x="0" y="122" width="230" height="48" rx="4" fill="#f0fdf4" stroke="#bbf7d0"/>
+      <text x="8" y="140" font-family="Inter" font-size="10.5" font-weight="700" fill="#166534">Вычислительный эффект:</text>
+      <text x="8" y="158" font-family="Inter" font-size="10" fill="#166534">Сходимость к оптимуму в 10–50 раз быстрее</text>
+    </g>
+  </g>
+</svg>

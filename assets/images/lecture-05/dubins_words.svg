@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 320" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="30" y="28" font-family="Inter" font-size="14" font-weight="700" fill="#0f172a">6 канонических слов автомобиля Дубинса (LaValle гл. 15): LSL, RSR, LSR, RSL, LRL, RLR</text>
+  <g transform="translate(40, 50)">
+    <rect width="190" height="110" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="15" y="20" font-family="Inter" font-size="13" font-weight="700" fill="#0284c7">1. Слово LSL</text>
+    <circle cx="50" cy="70" r="25" stroke="#94a3b8" stroke-width="1" stroke-dasharray="2 2" fill="none"/>
+    <circle cx="140" cy="70" r="25" stroke="#94a3b8" stroke-width="1" stroke-dasharray="2 2" fill="none"/>
+    <path d="M40,90 A25,25 0 0,1 50,45 L140,45 A25,25 0 0,1 160,85" stroke="#2563eb" stroke-width="2.5" fill="none"/>
+    <circle cx="40" cy="90" r="3" fill="#16a34a"/>
+    <circle cx="160" cy="85" r="3" fill="#dc2626"/>
+    <text x="15" y="100" font-family="Inter" font-size="11" fill="#475569">Поворот L → Прямо S → L</text>
+  </g>
+  <g transform="translate(255, 50)">
+    <rect width="190" height="110" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="15" y="20" font-family="Inter" font-size="13" font-weight="700" fill="#0284c7">2. Слово LSR</text>
+    <circle cx="50" cy="75" r="22" stroke="#94a3b8" stroke-width="1" stroke-dasharray="2 2" fill="none"/>
+    <circle cx="140" cy="65" r="22" stroke="#94a3b8" stroke-width="1" stroke-dasharray="2 2" fill="none"/>
+    <path d="M40,93 A22,22 0 0,1 63,55 L125,83 A22,22 0 0,0 155,50" stroke="#059669" stroke-width="2.5" fill="none"/>
+    <circle cx="40" cy="93" r="3" fill="#16a34a"/>
+    <circle cx="155" cy="50" r="3" fill="#dc2626"/>
+    <text x="15" y="100" font-family="Inter" font-size="11" fill="#475569">Внутренняя касательная</text>
+  </g>
+  <g transform="translate(470, 50)">
+    <rect width="190" height="110" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="15" y="20" font-family="Inter" font-size="13" font-weight="700" fill="#0284c7">3. Слово LRL (без S)</text>
+    <path d="M35,80 A20,20 0 0,1 65,55 A20,20 0 0,0 115,55 A20,20 0 0,1 145,80" stroke="#7c3aed" stroke-width="2.5" fill="none"/>
+    <circle cx="35" cy="80" r="3" fill="#16a34a"/>
+    <circle cx="145" cy="80" r="3" fill="#dc2626"/>
+    <text x="15" y="100" font-family="Inter" font-size="11" fill="#475569">При близких целях (S = ∅)</text>
+  </g>
+  <g transform="translate(40, 180)">
+    <rect width="620" height="110" rx="6" fill="#f0f9ff" stroke="#bae6fd"/>
+    <text x="20" y="28" font-family="Inter" font-size="13" font-weight="700" fill="#0369a1">Аналитическая теорема Суссмана и Танга (Sussmann &amp; Tang, 1991):</text>
+    <text x="20" y="52" font-family="Inter" font-size="12" fill="#475569">• Из принципа максимума Понтрягина следует: оптимальное управление u(t) ∈ {-1, 0, +1} (Bang-Bang).</text>
+    <text x="20" y="72" font-family="Inter" font-size="12" fill="#475569">• Кратчайший путь между любыми позами в SE(2) состоит максимум из 3 участков окружностей и прямой.</text>
+    <text x="20" y="92" font-family="JetBrains Mono" font-size="12" fill="#0284c7">Время аналитического расчета: t &lt; 0.5 микросекунды (идеально для Hybrid A* и RRT*)</text>
+  </g>
+</svg>

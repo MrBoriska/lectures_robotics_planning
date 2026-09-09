@@ -8,6 +8,7 @@ const DIST_DIR = join(ROOT_DIR, 'dist');
 const LECTURES_DIR = join(ROOT_DIR, 'lectures');
 const THEMES_DIR = join(ROOT_DIR, 'themes');
 const WIDGETS_DIR = join(ROOT_DIR, 'widgets');
+const ASSETS_DIR = join(ROOT_DIR, 'assets');
 
 const args = process.argv.slice(2);
 const buildPdf = args.includes('--pdf');
@@ -21,13 +22,18 @@ if (!existsSync(DIST_DIR)) {
   mkdirSync(DIST_DIR, { recursive: true });
 }
 
-// 1. Copy themes & widgets
-console.log('🎨 [Assets] Копирование тем оформления и интерактивных виджетов...');
+// 1. Copy themes, widgets & assets
+console.log('🎨 [Assets] Копирование тем оформления, интерактивных виджетов и иллюстраций...');
 mkdirSync(join(DIST_DIR, 'themes'), { recursive: true });
 cpSync(THEMES_DIR, join(DIST_DIR, 'themes'), { recursive: true });
 
 mkdirSync(join(DIST_DIR, 'widgets'), { recursive: true });
 cpSync(WIDGETS_DIR, join(DIST_DIR, 'widgets'), { recursive: true });
+
+if (existsSync(ASSETS_DIR)) {
+  mkdirSync(join(DIST_DIR, 'assets'), { recursive: true });
+  cpSync(ASSETS_DIR, join(DIST_DIR, 'assets'), { recursive: true });
+}
 
 // 2. Discover lectures
 const lectureDirs = readdirSync(LECTURES_DIR, { withFileTypes: true })
@@ -65,7 +71,7 @@ for (const dirName of lectureDirs) {
   if (buildPdf) {
     console.log(`📄 [Marp] Экспорт ${dirName} в PDF...`);
     try {
-      const marpCommandPdf = `npx marp "${mdFile}" --config-file "${join(ROOT_DIR, 'marp.config.mjs')}" --pdf --allow-local-files -o "${outPdfPath}"`;
+      const marpCommandPdf = `npx marp "${mdFile}" --config-file "${join(ROOT_DIR, 'marp.config.mjs')}" --pdf --pdf-outlines --allow-local-files -o "${outPdfPath}"`;
       execSync(marpCommandPdf, { stdio: 'inherit', env: { ...process.env, MARP_NO_SANDBOX: 'true' } });
     } catch (err) {
       console.warn(`⚠️ [Marp PDF Warning] Не удалось экспортировать PDF для ${dirName}:`, err.message);

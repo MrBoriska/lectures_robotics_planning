@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 320" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="30" y="26" font-family="Inter" font-size="14" font-weight="700" fill="#0f172a">Timed Elastic Band (TEB): Траектория как деформируемая упругая лента</text>
+  <g transform="translate(40, 50)">
+    <!-- Band Path -->
+    <path d="M30,170 Q100,165 150,110 T260,60" stroke="#0284c7" stroke-width="3" fill="none"/>
+    <!-- Obstacle -->
+    <circle cx="110" cy="80" r="30" fill="#fee2e2" stroke="#ef4444" stroke-width="2"/>
+    <text x="92" y="84" font-family="Inter" font-size="11" font-weight="700" fill="#dc2626">Преграда</text>
+    <!-- Repulsive force arrows from obstacle to band -->
+    <line x1="125" y1="102" x2="145" y2="122" stroke="#dc2626" stroke-width="2" marker-end="url(#arrow)"/>
+    <text x="140" y="140" font-family="JetBrains Mono" font-size="9" fill="#dc2626">F_rep</text>
+    <!-- Nodes (Poses) -->
+    <g transform="translate(30, 170)">
+      <circle cx="0" cy="0" r="6" fill="#16a34a"/>
+      <text x="-15" y="18" font-family="Inter" font-size="10" font-weight="700" fill="#15803d">s_0</text>
+    </g>
+    <g transform="translate(90, 155)">
+      <circle cx="0" cy="0" r="6" fill="#0284c7"/>
+      <line x1="0" y1="0" x2="12" y2="-7" stroke="#ffffff" stroke-width="2"/>
+      <text x="-5" y="20" font-family="Inter" font-size="10" font-weight="600" fill="#0369a1">s_1</text>
+      <text x="25" y="-5" font-family="JetBrains Mono" font-size="9" fill="#7c3aed">&#916;T_1</text>
+    </g>
+    <g transform="translate(160, 105)">
+      <circle cx="0" cy="0" r="6" fill="#0284c7"/>
+      <line x1="0" y1="0" x2="14" y2="-6" stroke="#ffffff" stroke-width="2"/>
+      <text x="10" y="18" font-family="Inter" font-size="10" font-weight="600" fill="#0369a1">s_2</text>
+      <text x="25" y="-5" font-family="JetBrains Mono" font-size="9" fill="#7c3aed">&#916;T_2</text>
+    </g>
+    <g transform="translate(260, 60)">
+      <circle cx="0" cy="0" r="6" fill="#dc2626"/>
+      <text x="10" y="5" font-family="Inter" font-size="10" font-weight="700" fill="#b91c1c">s_goal</text>
+    </g>
+    <!-- Tension forces -->
+    <path d="M40,165 L80,157" stroke="#10b981" stroke-width="1.5" stroke-dasharray="2 2"/>
+    <text x="10" y="220" font-family="Inter" font-size="11" fill="#475569">Упругое сжатие времени (&#916;T &#8595;) vs отталкивание от стен</text>
+  </g>
+  <g transform="translate(360, 50)">
+    <rect width="300" height="230" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="15" y="24" font-family="Inter" font-size="13" font-weight="700" fill="#0f172a">Оптимизация на фактор-графе (g2o):</text>
+    <g transform="translate(15, 45)">
+      <text x="0" y="0" font-family="JetBrains Mono" font-size="10.5" fill="#0284c7">B = {s_0, &#916;T_0, s_1, &#916;T_1, ..., s_n}</text>
+      <text x="0" y="24" font-family="Inter" font-size="11" fill="#334155">• Позы s_i = (x_i, y_i, &#952;_i) в SE(2)</text>
+      <text x="0" y="44" font-family="Inter" font-size="11" fill="#334155">• Временные интервалы &#916;T_i &gt; 0</text>
+      <text x="0" y="68" font-family="Inter" font-size="11" font-weight="600" fill="#0f172a">Штрафные функции в графе:</text>
+      <text x="0" y="88" font-family="Inter" font-size="10.5" fill="#334155">  1. Быстродействие: &#931; (&#916;T_i)²</text>
+      <text x="0" y="106" font-family="Inter" font-size="10.5" fill="#334155">  2. Безопасность: f_obs(s_i) &#8594; 0</text>
+      <text x="0" y="124" font-family="Inter" font-size="10.5" fill="#334155">  3. Кинематика: v &#8804; v_max, a &#8804; a_max, &#969; &#8804; &#969;_max</text>
+      <rect x="0" y="136" width="270" height="36" rx="4" fill="#f0f9ff" stroke="#bae6fd"/>
+      <text x="8" y="152" font-family="Inter" font-size="10" font-weight="600" fill="#0369a1">Решается за 5–15 мс методом Левенберга-Марквардта</text>
+    </g>
+  </g>
+</svg>

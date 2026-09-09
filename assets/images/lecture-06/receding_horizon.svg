@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 320" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="30" y="28" font-family="Inter" font-size="14" font-weight="700" fill="#0f172a">Принцип скользящего горизонта MPC (Receding Horizon Principle)</text>
+  <g transform="translate(40, 50)">
+    <text x="0" y="15" font-family="Inter" font-size="12" font-weight="700" fill="#0f172a">Такт k: Оптимизация на окне N шагов</text>
+    <line x1="0" y1="50" x2="600" y2="50" stroke="#cbd5e1" stroke-width="2"/>
+    <path d="M0,50 L120,50" stroke="#94a3b8" stroke-width="3"/>
+    <circle cx="120" cy="50" r="6" fill="#0284c7"/>
+    <text x="105" y="75" font-family="JetBrains Mono" font-size="12" fill="#0284c7">t_k (x_k)</text>
+    <rect x="120" y="30" width="360" height="40" rx="4" fill="#e0f2fe" stroke="#38bdf8" stroke-dasharray="4 2"/>
+    <path d="M120,50 Q240,10 480,50" stroke="#0284c7" stroke-width="2.5" fill="none"/>
+    <circle cx="480" cy="50" r="5" fill="#0284c7" fill-opacity="0.5"/>
+    <text x="440" y="85" font-family="JetBrains Mono" font-size="12" fill="#0284c7">t_{k+N}</text>
+    <text x="220" y="25" font-family="Inter" font-size="12" font-weight="700" fill="#0369a1">Горизонт прогноза N шагов</text>
+    <path d="M120,50 L160,42" stroke="#16a34a" stroke-width="4"/>
+    <circle cx="160" cy="42" r="5" fill="#16a34a"/>
+    <text x="125" y="95" font-family="Inter" font-size="12" font-weight="700" fill="#16a34a">Исполняется ТОЛЬКО u_0*</text>
+  </g>
+  <g transform="translate(40, 175)">
+    <text x="0" y="15" font-family="Inter" font-size="12" font-weight="700" fill="#0f172a">Такт k+1: Сдвиг окна на Δt вперед и новый замер от SLAM</text>
+    <line x1="0" y1="50" x2="600" y2="50" stroke="#cbd5e1" stroke-width="2"/>
+    <path d="M0,50 L160,50" stroke="#94a3b8" stroke-width="3"/>
+    <circle cx="160" cy="50" r="6" fill="#16a34a"/>
+    <text x="135" y="75" font-family="JetBrains Mono" font-size="12" fill="#16a34a">t_{k+1}</text>
+    <rect x="160" y="30" width="360" height="40" rx="4" fill="#dcfce7" stroke="#4ade80" stroke-dasharray="4 2"/>
+    <path d="M160,50 Q280,15 520,50" stroke="#16a34a" stroke-width="2.5" fill="none"/>
+    <circle cx="520" cy="50" r="5" fill="#16a34a" fill-opacity="0.5"/>
+    <text x="480" y="85" font-family="JetBrains Mono" font-size="12" fill="#16a34a">t_{k+1+N}</text>
+    <text x="250" y="25" font-family="Inter" font-size="12" font-weight="700" fill="#15803d">Сдвинутый горизонт N</text>
+    <rect x="0" y="95" width="600" height="30" rx="4" fill="#f8fafc" stroke="#e2e8f0"/>
+    <text x="15" y="115" font-family="Inter" font-size="12" fill="#475569">✓ Естественная обратная связь: компенсирует проскальзывание колес и задержки датчиков</text>
+  </g>
+</svg>
