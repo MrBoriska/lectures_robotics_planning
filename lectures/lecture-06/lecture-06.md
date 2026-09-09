@@ -13,12 +13,50 @@ math: mathjax
 <!-- _footer: "" -->
 
 # **Планирование движений мобильных роботов**
-## Лекция 06: Предиктивное управление (Model Predictive Control)
+## Лекция 06: Предиктивное управление (Model Predictive Control — MPC)
 
 <div class="mt-4">
   <span class="badge badge-blue">⏱️ 90 минут</span>
-  <span class="badge badge-green">Современное управление</span>
-  <span class="badge badge-purple">Receding Horizon • QP / SQP • CasADi</span>
+  <span class="badge badge-green">Предиктивное управление</span>
+  <span class="badge badge-purple">Receding Horizon • Dense vs Sparse QP • NMPC • CBF • acados</span>
+</div>
+
+---
+
+<!-- _header: "Лекция 06 | Введение и мотивация" -->
+
+## Чему посвящена эта лекция? <span class="badge badge-blue">Предиктивный горизонт</span>
+
+<div class="grid-2 mt-2">
+
+<div class="card card-accent">
+  <h3>🎯 Слияние планирования и стабилизации</h3>
+  <p class="text-sm">
+    В классической архитектуре планировщик строит траекторию, а ПИД- или LQR-регулятор слепо пытается её отслеживать. Но когда перед роботом возникает жесткое физическое ограничение (предел тяги, стена, скользкий поворот), слепой регулятор терпит аварию.
+  </p>
+  <p class="text-sm">
+    Эта лекция посвящена <strong>Model Predictive Control (MPC)</strong>: передовой парадигме, которая непрерывно решает задачу оптимального управления в скользящем окне времени, прямо учитывая пределы приводов и препятствия.
+  </p>
+</div>
+
+<div class="card">
+  <h3>🔍 Ключевые вопросы лекции</h3>
+  <ul class="text-sm">
+    <li><strong>Принцип скользящего горизонта:</strong> Почему решается оптимизация на $N$ шагов вперед, но выполняется только $u_0^*$?</li>
+    <li><strong>Вычислительная архитектура:</strong> Плотная (Dense) vs разреженная (Sparse) квадратичная программа (QP) и сложность $\mathcal{O}(N)$.</li>
+    <li><strong>Математические гарантии:</strong> Терминальные множества $\mathcal{X}_f$, функции Ляпунова и рекурсивная допустимость.</li>
+    <li><strong>Нелинейный MPC (NMPC):</strong> Кинематика велосипеда, координаты Френе и обход препятствий через коридоры (SFC) и функции барьеров (<strong>CBF</strong>).</li>
+    <li><strong>Инженерия реального времени:</strong> Схема <strong>Real-Time Iteration (RTI)</strong> в солвере <code>acados</code> для работы на 50 Гц.</li>
+  </ul>
+</div>
+
+</div>
+
+<div class="card card-success mt-2">
+  <h3 style="margin-bottom: 4px;">💡 Чему вы научитесь за эти 90 минут</h3>
+  <p class="text-sm" style="margin-bottom: 0;">
+    Формулировать задачи Linear MPC и NMPC для колесных платформ, строить матрицы квадратичного программирования для солверов OSQP/qPOASES, вводить барьерные функции безопасности (CBF) и интегрировать суб-миллисекундные MPC-солверы в бортовой стек мобильного робота.
+  </p>
 </div>
 
 ---
@@ -30,53 +68,59 @@ math: mathjax
 <div class="grid-2 mt-4">
 
 <div class="card card-accent">
-  <h3>Блок 1: Концепция и линейный MPC (45 мин)</h3>
+  <h3>Часть 1: Концепция и Linear MPC (45 мин)</h3>
   <ul>
-    <li><strong>00–15 мин:</strong> Принцип скользящего горизонта (Receding Horizon) и архитектура MPC.</li>
-    <li><strong>15–30 мин:</strong> Формулировка дискретной оптимизации: горизонт $N$, матрицы весов $Q, R$, ограничения.</li>
-    <li><strong>30–45 мин:</strong> Сведение задачи к квадратичному программированию (Quadratic Programming — QP).</li>
+    <li><strong>00–12 мин:</strong> Парадигма скользящего горизонта (Receding Horizon Principle): оптимизация, применение первого шага, сдвиг.</li>
+    <li><strong>12–25 мин:</strong> Дискретный Linear MPC: матрицы состояний $(A, B)$, весовые матрицы $(Q, R, R_\Delta)$, штраф за дергание управления.</li>
+    <li><strong>25–37 мин:</strong> Структура задачи: Dense QP ($\mathcal{O}(N^3)$) vs Sparse QP ($\mathcal{O}(N)$), KKT-условия и солвер <code>OSQP</code>.</li>
+    <li><strong>37–45 мин:</strong> Теория устойчивости MPC: терминальная стоимость $P$ (DARE) и терминальное инвариантное множество $\mathcal{X}_f$.</li>
   </ul>
 </div>
 
 <div class="card card-accent">
-  <h3>Блок 2: NMPC и препятствия (45 мин)</h3>
+  <h3>Часть 2: NMPC, Препятствия и Солверы (45 мин)</h3>
   <ul>
-    <li><strong>45–60 мин:</strong> Нелинейный MPC (NMPC) для кинематической модели велосипеда и дифференциального шасси.</li>
-    <li><strong>60–75 мин:</strong> Включение препятствий: функции барьеров (Control Barrier Functions) и выпуклые коридоры.</li>
-    <li><strong>75–85 мин:</strong> Схема Real-Time Iteration (RTI), солверы (acados, CasADi, OSQP) и задержки в контуре.</li>
-    <li><strong>85–90 мин:</strong> Итоги, контрольные вопросы и Q&A.</li>
+    <li><strong>45–58 мин:</strong> Нелинейный MPC (NMPC): кинематическая модель велосипеда, координаты Френе (Tracking vs Contour Error).</li>
+    <li><strong>58–70 мин:</strong> Препятствия в MPC: выпуклые безопасные коридоры (Safe Flight Corridors) и Control Barrier Functions (CBF).</li>
+    <li><strong>70–82 мин:</strong> Реализация в реальном времени: схема <strong>Real-Time Iteration (RTI)</strong>, солверы <code>acados</code> и <code>CasADi</code>.</li>
+    <li><strong>82–90 мин:</strong> Инженерные приемы: слак-переменные (мягкие ограничения), задержки в контуре, контрольные вопросы и Q&A.</li>
   </ul>
 </div>
 
 </div>
 
+<!--
+Примечание для лектора:
+MPC сегодня — фактический стандарт для беспилотных автомобилей, шагающих роботов (Boston Dynamics, ANYbotics) и складских AGV. Объясните слушателям баланс между теоретической строгостью (устойчивость по Ляпунову) и численной скоростью (RTI scheme).
+-->
+
 ---
 
-## 1. Принцип скользящего горизонта (Receding Horizon) <span class="badge badge-time">00–15 мин</span>
+## 1. Парадигма скользящего горизонта (Receding Horizon) <span class="badge badge-time">00–12 мин</span>
 
 <div class="grid-2">
 
 <div class="col">
-  <p><strong>Model Predictive Control (MPC)</strong> объединяет планирование траектории и стабилизирующее управление в единый процесс, выполняемый на каждом цикле управления:</p>
+  <p><strong>Model Predictive Control (MPC)</strong> решает задачу оптимального управления во временном окне длиной $N$ тактов дискретизации $\Delta t$ на каждом шаге контура управления:</p>
 
   <div class="card">
-    <h3>Циклический алгоритм MPC:</h3>
-    <ol>
-      <li><strong>Измерение:</strong> оцениваем текущее состояние $x_k = x(t_k)$ робота через EKF / SLAM.</li>
-      <li><strong>Прогноз и оптимизация:</strong> решаем задачу оптимального управления на горизонте прогноза $N$: $\{u_k, u_{k+1}, \dots, u_{k+N-1}\}$.</li>
-      <li><strong>Применение:</strong> подаем на приводы <em>только первое воздействие</em> $u^*(t) = u_k$.</li>
-      <li><strong>Сдвиг:</strong> сдвигаем временное окно на шаг вперед $\Delta t$ и повторяем с пункта 1.</li>
+    <h3>Четырехшаговый цикл MPC:</h3>
+    <ol class="text-sm">
+      <li><strong>Оценка состояния:</strong> получаем текущий вектор $x_k = x(t_k)$ (из фильтра EKF / SLAM).</li>
+      <li><strong>Оптимизация на горизонте $N$:</strong> находим оптимальную последовательность управлений $\mathbf{U}^* = \{u_0^*, u_1^*, \dots, u_{N-1}^*\}$.</li>
+      <li><strong>Исполнение первого шага:</strong> подаем на приводы <em>только</em> первое управление: $u(t) = u_0^*$.</li>
+      <li><strong>Сдвиг горизонта (Recede):</strong> сдвигаем окно на один шаг вперед: $t_{k+1} = t_k + \Delta t$ и повторяем процедуру!</li>
     </ol>
   </div>
 </div>
 
 <div class="col">
   <div class="card card-accent">
-    <h3>В чем преимущество перед LQR и PID?</h3>
-    <ul>
-      <li><strong>Явный учет жестких ограничений:</strong> пределы углов колес $|\delta| \le \delta_{max}$, токи моторов $|u| \le u_{max}$, стены и препятствия.</li>
-      <li><strong>Взгляд в будущее:</strong> робот начинает плавно притормаживать перед поворотом <em>заранее</em>, а не по факту ошибки.</li>
-      <li><strong>Компенсация возмущений:</strong> перерасчет на каждом шаге естественным образом компенсирует скольжение и неточности модели.</li>
+    <h3>Почему MPC превосходит PID и LQR?</h3>
+    <ul class="text-sm">
+      <li><strong>Явный учет жестких неравенств:</strong> физические пределы углов руления $|\delta| \le \delta_{max}$, токов моторов $|I| \le I_{max}$ и границ стен.</li>
+      <li><strong>Упреждающее поведение (Feedforward Foresight):</strong> робот начинает плавно притормаживать перед закрытым поворотом <em>заранее</em>, а не после вылета с траектории.</li>
+      <li><strong>Естественная обратная связь:</strong> пересчет на каждом такте компенсирует проскальзывание колес, ветер и неточности матмодели.</li>
     </ul>
   </div>
 </div>
@@ -85,34 +129,43 @@ math: mathjax
 
 ---
 
-## 2. Математическая постановка Linear MPC <span class="badge badge-time">15–30 мин</span>
+## 2. Дискретный Linear MPC: Математическая модель <span class="badge badge-time">12–25 мин</span>
 
 <div class="grid-2">
 
 <div class="col">
-  <p>Дискретная линейная модель системы и целевая функция на горизонте $N$:</p>
-
-  <div class="formula-box">
+  <p>Рассматривается линейная дискретная система с шагом $\Delta t$:</p>
+  <div class="formula-box text-sm">
     $$x_{k+1} = A x_k + B u_k$$
-    $$\min_{u_0, \dots, u_{N-1}} J = \sum_{k=0}^{N-1} \left( x_k^T Q x_k + u_k^T R u_k + \Delta u_k^T R_\Delta \Delta u_k \right) + x_N^T P x_N$$
   </div>
 
-  <ul>
-    <li>$Q \ge 0$ — штраф за отклонение от желаемой траектории.</li>
-    <li>$R > 0$ — штраф за величину управляющего воздействия.</li>
-    <li>$R_\Delta$ — штраф за рывок (smoothness / rate of change): $\Delta u_k = u_k - u_{k-1}$.</li>
-    <li>$P$ — терминальный штраф из уравнения Риккати.</li>
-  </ul>
+  <div class="card">
+    <h3>Квадратичный функционал стоимости:</h3>
+    <div class="formula-box text-sm">
+      $$J = \sum_{k=0}^{N-1} \left( x_k^T Q x_k + u_k^T R u_k + \Delta u_k^T R_\Delta \Delta u_k \right) + x_N^T P x_N$$
+    </div>
+    <ul class="text-sm">
+      <li>$Q \succeq 0$ — штраф за отклонение от опорной точки.</li>
+      <li>$R \succ 0$ — штраф за расход энергии / амплитуду управляющих воздействий.</li>
+      <li>$R_\Delta \succ 0$ — штраф за скорость изменения управления $\Delta u_k = u_k - u_{k-1}$ (устраняет рывки моторов и механический износ).</li>
+      <li>$P \succ 0$ — терминальная стоимость на конце горизонта $N$.</li>
+    </ul>
+  </div>
 </div>
 
 <div class="col">
-  <div class="card card-alert">
-    <h3>Ограничения (Constraints):</h3>
-    <p>Все ограничения формулируются в виде политопов:</p>
-    $$u_{min} \le u_k \le u_{max}$$
-    $$\Delta u_{min} \le u_k - u_{k-1} \le \Delta u_{max}$$
-    $$x_{min} \le x_k \le x_{max}$$
-    <p class="text-sm">Если ограничения совместны, задача решается детерминированно за микросекунды.</p>
+  <div class="card card-accent">
+    <h3>Множество допустимых ограничений:</h3>
+    <div class="formula-box text-sm">
+      $$\begin{aligned}
+      u_{min} &\le u_k \le u_{max} && \text{(пределы приводов)} \\
+      \Delta u_{min} &\le u_k - u_{k-1} \le \Delta u_{max} && \text{(ограничение рывка / slew-rate)} \\
+      x_{min} &\le x_k \le x_{max} && \text{(безопасные зоны состояния)}
+      \end{aligned}$$
+    </div>
+    <div class="card-alert text-sm mt-2">
+      <strong>Ключевая особенность:</strong> Если на шаге $k$ решения, удовлетворяющего всем жестким ограничениям, не существует — оптимизатор выдает ошибку (Infeasible), и робот рискует потерять управление!
+    </div>
   </div>
 </div>
 
@@ -120,30 +173,33 @@ math: mathjax
 
 ---
 
-## 3. Сведение к задаче Quadratic Programming (QP) <span class="badge badge-time">30–45 мин</span>
+## 3. Структура задачи: Dense QP vs Sparse QP <span class="badge badge-time">25–37 мин</span>
 
 <div class="grid-2">
 
 <div class="col">
-  <p>Выражая будущие состояния через начальное $x_0$ и вектор управлений $U = (u_0^T, u_1^T, \dots, u_{N-1}^T)^T$:</p>
-  $$X = \mathcal{S}_x x_0 + \mathcal{S}_u U$$
-  
-  <p>Подстановка в критерий $J$ сводит задачу к <strong>каноническому квадратичному программированию (QP)</strong>:</p>
-
-  <div class="formula-box">
-    $$\min_{U} \frac{1}{2} U^T H U + g^T U$$
-    $$\text{s.t.} \quad A_{in} U \le b_{in}$$
+  <div class="card card-alert">
+    <h3>Плотная форма (Dense / Condensed QP):</h3>
+    <p class="text-sm">Состояния выражаются через начальное $x_0$ и вектор управлений $\mathbf{U} = [u_0^T, \dots, u_{N-1}^T]^T$:</p>
+    $$x_k = A^k x_0 + \sum_{j=0}^{k-1} A^{k-1-j} B u_j$$
+    <ul class="text-sm">
+      <li>Оптимизация только по $\mathbf{U} \in \mathbb{R}^{m N}$.</li>
+      <li>Матрица Гессиана $H_{dense}$ <strong>полностью заполнена (плотная)</strong>.</li>
+      <li>Сложность факторизации: $\mathcal{O}(m^3 N^3)$.</li>
+      <li>Эффективно <em>только</em> для коротких горизонтов ($N \le 10$).</li>
+    </ul>
   </div>
 </div>
 
 <div class="col">
   <div class="card card-success">
-    <h3>Свойства матрицы Гессиана $H$:</h3>
-    <ul>
-      <li>$H = \mathcal{S}_u^T \bar{Q} \mathcal{S}_u + \bar{R}$.</li>
-      <li>Если $R > 0$, матрица $H$ строго <strong>симметрична и положительно определена ($H \succ 0$)</strong>.</li>
-      <li>Критерий строго выпуклый $\implies$ любой локальный минимум является <em>глобальным оптимумом</em>!</li>
-      <li>Современные решатели (OSQP, qpOASES, DAQP) находят решение за $< 1$ мс на процессоре микроконтроллера.</li>
+    <h3>Разреженная форма (Sparse QP):</h3>
+    <p class="text-sm">И состояния $\mathbf{X}$, и управления $\mathbf{U}$ остаются переменными оптимизации. Динамика задается как равенства $x_{k+1} - A x_k - B u_k = 0$:</p>
+    $$\min_{\mathbf{X}, \mathbf{U}} \frac{1}{2} \mathbf{Z}^T \mathbf{H} \mathbf{Z} \quad \text{при } \mathbf{A}_{eq} \mathbf{Z} = \mathbf{b}_{eq}, \;\; \mathbf{C} \mathbf{Z} \le \mathbf{d}$$
+    <ul class="text-sm">
+      <li>Гессиан $\mathbf{H}$ и матрица $\mathbf{A}_{eq}$ имеют <strong>блочно-диагональную структуру</strong>!</li>
+      <li>Солверы на методе расщепления операторов (<code>OSQP</code>) или Riccati-факторизации решают задачу со сложностью <strong>$\mathcal{O}(N)$</strong>!</li>
+      <li>Масштабируется до горизонтов $N = 100$ и более.</li>
     </ul>
   </div>
 </div>
@@ -152,29 +208,34 @@ math: mathjax
 
 ---
 
-## 4. Нелинейный MPC (NMPC) для мобильных роботов <span class="badge badge-time">45–65 мин</span>
+## 4. Гарантии устойчивости и рекурсивная допустимость <span class="badge badge-time">37–48 мин</span>
 
 <div class="grid-2">
 
 <div class="col">
   <div class="card card-accent">
-    <h3>Кинематическая модель велосипеда (Bicycle Model):</h3>
-    $$\begin{pmatrix} \dot{x} \\ \dot{y} \\ \dot{\psi} \\ \dot{v} \end{pmatrix} = \begin{pmatrix} v \cos(\psi + \beta) \\ v \sin(\psi + \beta) \\ \frac{v}{L} \tan(\delta) \cos\beta \\ a \end{pmatrix}, \quad \beta = \arctan\left(\frac{l_r}{L}\tan\delta\right)$$
-    <ul>
-      <li>Управление: продольное ускорение $a$ и угол поворота передних колес $\delta$.</li>
-      <li>Система существенно <strong>нелинейна</strong> из-за тригонометрических связей.</li>
-    </ul>
+    <h3>Проблема конечного горизонта:</h3>
+    <p class="text-sm">Поскольку горизонт $N$ конечен, оптимальное управление на интервале $[0, N]$ <strong>не гарантирует</strong> асимптотическую устойчивость всей замкнутой бесконечной системы!</p>
+    <p class="text-sm">Робот может развить максимальную скорость к концу горизонта и физически не успеть затормозить перед стеной на шаге $N+1$.</p>
+  </div>
+
+  <div class="card">
+    <h3>Рекурсивная допустимость (Recursive Feasibility):</h3>
+    <p class="text-sm">Если задача имела допустимое решение в момент времени $t$, то гарантируется, что она будет иметь решение и в момент $t + \Delta t$.</p>
   </div>
 </div>
 
 <div class="col">
-  <div class="card">
-    <h3>Решение в реальном времени: Real-Time Iteration (RTI)</h3>
-    <ul>
-      <li><strong>Sequential Quadratic Programming (SQP):</strong> на каждом шаге нелинейная динамика линеаризуется вокруг текущей траектории, решаясь как цепочка QP.</li>
-      <li><strong>RTI Scheme (Diehl et al.):</strong> за цикл управления выполняется всего <em>одна</em> итерация SQP, разделенная на фазу подготовки (Preparation phase) и фазу быстрой обратной связи (Feedback phase).</li>
-      <li>Инструменты генерации кода C/C++: <strong>acados</strong>, <strong>CasADi</strong>.</li>
-    </ul>
+  <div class="card card-success">
+    <h3>Теорема устойчивости (Mayne et al., 2000):</h3>
+    <p class="text-sm">Система с MPC асимптотически устойчива по Ляпунову, если:</p>
+    <ol class="text-sm">
+      <li><strong>Терминальная стоимость $P$:</strong> матрица $P$ удовлетворяет дискретному алгебраическому уравнению Риккати (DARE) для локального LQR-регулятора $u = K_f x$.</li>
+      <li><strong>Терминальное инвариантное множество $\mathcal{X}_f$:</strong> в конце горизонта $x_N \in \mathcal{X}_f$, где $\mathcal{X}_f$ является контрольно-инвариантным множеством:
+        $$(A + B K_f) \mathcal{X}_f \subseteq \mathcal{X}_f \subseteq \mathcal{X}_{free}$$
+      </li>
+    </ol>
+    <p class="text-sm">Тогда оптимальная функция стоимости $V^*(x)$ выступает строгой <strong>функцией Ляпунова</strong>: $V^*(x_{k+1}) - V^*(x_k) \le -x_k^T Q x_k < 0$.</p>
   </div>
 </div>
 
@@ -182,31 +243,102 @@ math: mathjax
 
 ---
 
-## 5. Препятствия в MPC: Выпуклые коридоры и барьеры <span class="badge badge-time">65–85 мин</span>
+## 5. Нелинейный MPC (NMPC) для мобильных роботов <span class="badge badge-time">48–60 мин</span>
 
 <div class="grid-2">
 
 <div class="col">
-  <div class="card card-alert">
-    <h3>Проблема невыпуклости препятствий:</h3>
-    <p>Условие избежания коллизии с круглым препятствием радиуса $R_{obs}$:</p>
-    $$\|p_k - p_{obs}\|^2 \ge (R_{rob} + R_{obs})^2$$
-    <ul>
-      <li>Знак $\ge$ делает допустимое множество невыпуклым!</li>
-      <li>Прямая подача такого ограничения в солвер порождает множество локальных минимумов.</li>
+  <div class="card">
+    <h3>Кинематическая модель велосипеда (Bicycle Model):</h3>
+    $$\begin{aligned}
+    \dot{x} &= v \cos(\psi + \beta) \\
+    \dot{y} &= v \sin(\psi + \beta) \\
+    \dot{\psi} &= \frac{v}{l_r} \sin\beta, \quad \beta = \arctan\left(\frac{l_r}{l_f + l_r} \tan\delta\right) \\
+    \dot{v} &= a
+    \end{aligned}$$
+    <p class="text-sm">где $\delta$ — угол поворота передних колес, $a$ — продольное ускорение, $\beta$ — угол увода центра масс.</p>
+  </div>
+</div>
+
+<div class="col">
+  <div class="card card-accent">
+    <h3>Координаты Френе (Contouring MPC):</h3>
+    <p class="text-sm">Вместо глобальных координат $(x, y)$ состояние проецируется на осевую линию пути $\mathbf{p}(s)$:</p>
+    <ul class="text-sm">
+      <li>$s$ — пройденная дуговая координата вдоль пути.</li>
+      <li>$e_l$ — боковая ошибка отклонения от пути (Lag Error).</li>
+      <li>$e_c$ — ошибка контура (Contour Error).</li>
+    </ul>
+    <div class="formula-box text-sm">
+      $$J = \sum_{k=0}^{N-1} \Big( w_c e_c^2(k) + w_l e_l^2(k) - w_s v_s(k) \Big)$$
+    </div>
+    <div class="card-success text-sm">
+      <strong>Эффект:</strong> Слагаемое $-w_s v_s$ поощряет робота мчаться вперед по пути, а $w_c, w_l$ не дают ему срезать повороты и вылетать с трассы.
+    </div>
+  </div>
+</div>
+
+</div>
+
+---
+
+## 6. Препятствия в MPC: Выпуклые коридоры и CBF <span class="badge badge-time">58–70 мин</span>
+
+<div class="grid-2">
+
+<div class="col">
+  <div class="card">
+    <h3>Safe Flight Corridors (SFC — Выпуклые коридоры):</h3>
+    <p class="text-sm">Свободное пространство $\mathcal{C}_{free}$ невыпукло. Но вдоль глобального пути можно построить цепочку пересекающихся <strong>выпуклых политопов</strong>:</p>
+    $$\mathcal{P}_k = \{ x \in \mathbb{R}^2 \mid \mathbf{A}_k x \le \mathbf{b}_k \}$$
+    <ul class="text-sm">
+      <li>Нелинейные препятствия заменяются набором линейных неравенств $\mathbf{A}_k x_k \le \mathbf{b}_k$.</li>
+      <li>Задача сохраняет выпуклость (QP) и решается за доли миллисекунды!</li>
     </ul>
   </div>
 </div>
 
 <div class="col">
-  <div class="card card-success">
-    <h3>Инженерные решения в MPC:</h3>
-    <ol>
-      <li><strong>Безопасные коридоры полета/движения (Safe Flight Corridors — SFC):</strong>
-        Глобальный путь декомпозируется на пересекающиеся выпуклые многогранники (Convex Polytopes) $A_i p_k \le b_i$. Внутри каждого политопа ограничение выпукло!</li>
-      <li><strong>Control Barrier Functions (CBF):</strong>
-        Мягкие или жесткие барьерные ограничения, гарантирующие прямое невыходное множество (Forward Invariance) безопасной зоны.</li>
+  <div class="card card-accent">
+    <h3>Control Barrier Functions (Дискретные CBF):</h3>
+    <p class="text-sm">Определим безопасное множество $\mathcal{S} = \{x \mid h(x) \ge 0\}$, где $h(x) = \|x - p_{obs}\|^2 - r_{safe}^2$.</p>
+    <p class="text-sm">Условие дискретной барьерной функции гарантирует инвариантность безопасности множества $\mathcal{S}$:</p>
+    <div class="formula-box text-sm">
+      $$\Delta h(x_k, u_k) = h(x_{k+1}) - h(x_k) \ge -\gamma h(x_k), \quad 0 < \gamma \le 1$$
+    </div>
+    <div class="card-success text-sm">
+      <strong>Преимущество:</strong> CBF добавляется в квадратичную программу как простое линейное ограничение на $u_k$, обеспечивая 100% математическую гарантию нестолкновения!
+    </div>
+  </div>
+</div>
+
+</div>
+
+---
+
+## 7. Real-Time Iteration (RTI) и стек солверов <span class="badge badge-time">70–82 мин</span>
+
+<div class="grid-2">
+
+<div class="col">
+  <div class="card card-accent">
+    <h3>Схема Real-Time Iteration (Diehl et al.):</h3>
+    <p class="text-sm">Полное решение нелинейной программы (NMPC) методом SQP требует десятков итераций Ньютона (неприемлемо для 50 Гц). Схема RTI разделяет такт на две фазы:</p>
+    <ol class="text-sm">
+      <li><strong>Preparation Phase (Фоновая фаза, 80% времени):</strong> интеграция динамики, линеаризация нелинейной модели, расчет матриц KKT-системы <em>до прихода нового замера</em>.</li>
+      <li><strong>Feedback Phase (Мгновенная фаза, < 1 мс):</strong> пришел свежий замер $x_0$ от SLAM $\rightarrow$ решение <strong>ровно одной</strong> задачи QP $\rightarrow$ выдача $u_0^*$ на моторы!</li>
     </ol>
+  </div>
+</div>
+
+<div class="col">
+  <div class="card">
+    <h3>Индустриальный стек солверов MPC (2026):</h3>
+    <ul class="text-sm">
+      <li><strong><code>acados</code>:</strong> высокопроизводительный генератор C-кода для NMPC (HPIPM QP-солвер, BLASFEO линейная алгебра). Время цикла: <strong>0.5–2 мс</strong> на ARM Cortex / NVIDIA Jetson.</li>
+      <li><strong><code>CasADi</code>:</strong> символьный инструмент автоматического дифференцирования (C++/Python). Идеален для прототипирования сложных моделей.</li>
+      <li><strong><code>OSQP</code>:</strong> операторное расщепление (ADMM) для разреженных Linear QP. Нечувствителен к вырождению ограничений.</li>
+    </ul>
   </div>
 </div>
 
@@ -217,29 +349,31 @@ math: mathjax
 <!-- _class: invert -->
 <!-- _header: "Лекция 06 | Итоги и вопросы" -->
 
-## Резюме лекции и контрольные вопросы <span class="badge badge-time">85–90 мин</span>
+## Резюме лекции и контрольные вопросы <span class="badge badge-time">82–90 мин</span>
 
 <div class="grid-2">
 
 <div class="card">
   <h3>Главные выводы:</h3>
-  <ol>
-    <li>MPC объединяет планирование траектории и замкнутое управление с явным учетом физических ограничений.</li>
-    <li>Принцип скользящего горизонта обеспечивает естественную компенсацию внешних возмущений и динамических препятствий.</li>
-    <li>Линейный MPC сводится к строго выпуклой задаче QP, решаемой за доли миллисекунды.</li>
-    <li>Для нелинейных платформ связка NMPC + RTI (acados) является де-факто стандартом в беспилотных автомобилях и AMR.</li>
+  <ol class="text-sm">
+    <li><strong>MPC</strong> объединяет прогнозирование динамики, оптимизацию функционала и соблюдение физических ограничений в скользящем окне.</li>
+    <li><strong>Sparse QP</strong> формулировка масштабируется линейно $\mathcal{O}(N)$, вытесняя медленный Dense QP.</li>
+    <li><strong>Устойчивость по Ляпунову</strong> строго гарантируется выбором терминального веса Риккати $P$ и инвариантного множества $\mathcal{X}_f$.</li>
+    <li><strong>Выпуклые коридоры (SFC)</strong> и <strong>Control Barrier Functions (CBF)</strong> переводят обход нелинейных препятствий в быстрые QP-ограничения.</li>
+    <li><strong>Схема RTI (acados)</strong> обеспечивает расчет NMPC на частотах 50–100 Гц на бортовых контроллерах.</li>
   </ol>
 </div>
 
 <div class="card card-accent">
-  <h3>Контрольные вопросы:</h3>
-  <ul>
-    <li>Почему в MPC на реальном шасси применяется только первое вычисленное управляющее воздействие $u_k$, а остальные отбрасываются?</li>
-    <li>Что произойдет с задачей QP в MPC при возникновении взаимно противоречивых ограничений (infeasibility)?</li>
-    <li>В чем разница между задачами Trajectory Tracking (отслеживание траектории во времени) и Path Following (следование по геометрическому пути)?</li>
+  <h3>Контрольные вопросы для самопроверки:</h3>
+  <ul class="text-sm">
+    <li>Почему в MPC исполняется только первое вычисленное управление $u_0^*$, а не весь найденный профиль?</li>
+    <li>В чем вычислительная разница между плотной (Dense) и разреженной (Sparse) постановкой QP в MPC?</li>
+    <li>Зачем в целевую функцию включают штраф за скорость изменения управления $\Delta u_k^T R_\Delta \Delta u_k$?</li>
+    <li>Как схема Real-Time Iteration (RTI) позволяет запускать нелинейный MPC на частотах 100 Гц?</li>
   </ul>
   <div class="mt-4 text-center">
-    <span class="badge badge-blue">Следующая лекция: Учёт ограничений в алгоритмах планирования</span>
+    <span class="badge badge-blue">Следующая лекция: Учёт ограничений (Неголономность, Скобки Ли, TOPP)</span>
   </div>
 </div>
 
