@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Интерактивный A* / Dijkstra Grid Search</title>
+  <link rel="stylesheet" href="../common/widget-base.css">
+  <style>
+    .legend {
+      display: flex;
+      gap: 12px;
+      font-size: 11px;
+      color: var(--text-muted);
+      align-items: center;
+    }
+    .legend-box {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      display: inline-block;
+    }
+    .c-start { background: #10b981; }
+    .c-goal { background: #ef4444; }
+    .c-open { background: #f59e0b; }
+    .c-closed { background: #0284c7; }
+    .c-path { background: #38bdf8; }
+    .c-wall { background: #334155; }
+  </style>
+</head>
+<body>
+  <div class="widget-layout">
+    <div class="toolbar">
+      <select id="algoSelect" class="select-control">
+        <option value="astar-euclidean">A* (Эвклид)</option>
+        <option value="astar-manhattan">A* (Манхэттен)</option>
+        <option value="dijkstra">Дейкстра (h = 0)</option>
+      </select>
+
+      <button id="btnStep" class="btn">▶ Шаг</button>
+      <button id="btnRun" class="btn btn-primary">⚡ Запуск</button>
+      <button id="btnReset" class="btn">🔄 Сброс пути</button>
+      <button id="btnClear" class="btn">🧹 Очистить поле</button>
+
+      <select id="presetSelect" class="select-control">
+        <option value="">Карта по умолчанию</option>
+        <option value="maze">Лабиринт</option>
+        <option value="utrap">U-ловушка</option>
+        <option value="pillars">Колонны (W-room)</option>
+      </select>
+
+      <div class="slider-group">
+        <span>Скорость:</span>
+        <input type="range" id="speedSlider" min="5" max="100" value="50">
+      </div>
+
+      <div class="legend">
+        <span><i class="legend-box c-start"></i> Старт</span>
+        <span><i class="legend-box c-goal"></i> Цель</span>
+        <span><i class="legend-box c-open"></i> Open</span>
+        <span><i class="legend-box c-closed"></i> Closed</span>
+        <span><i class="legend-box c-path"></i> Путь</span>
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat-item">Шаги: <span id="statSteps">0</span></div>
+        <div class="stat-item">Посещено: <span id="statVisited">0</span></div>
+        <div class="stat-item">Длина пути: <span id="statCost">-</span></div>
+      </div>
+    </div>
+
+    <div class="canvas-container">
+      <canvas id="gridCanvas"></canvas>
+      <div class="overlay-hint">ЛКМ: рисовать стены | Перетаскивание: Старт / Цель</div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gridCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const COLS = 32;
+    const ROWS = 18;
+    let cellSize = 20;
+
+    let grid = [];
+    let start = { x: 3, y: 9 };
+    let goal = { x: 28, y: 9 };
+
+    let openSet = [];
+    let closedSet = new Set();
+    let cameFrom = new Map();
+    let gScore = new Map();
+    let fScore = new Map();
+
+    let isRunning = false;
+    let isFinished = false;
+    let timerId = null;
+    let stepsCount = 0;
+    let path = [];
+
+    let isMouseDown = false;
+    let dragTarget = null; // 'start', 'goal', 'wall', 'erase'
+
+    function key(x, y) { return `${x},${y}`; }
+    function parseKey(k) { const [x, y] = k.split(',').map(Number); return { x, y }; }
+
+    function initGrid() {
+      grid = [];
+      for (let y = 0; y < ROWS; y++) {
+        grid[y] = [];
+        for (let x = 0; x < COLS; x++) {
+          grid[y][x] = 0; // 0 = empty, 1 = wall
+        }
+      }
+      resetSearch();
+    }
+
+    function resetSearch() {
+      if (timerId) clearInterval(timerId);
+      isRunning = false;
+      isFinished = false;
+      document.getElementById('btnRun').textContent = '⚡ Запуск';
+      document.getElementById('btnRun').className = 'btn btn-primary';
+
+      openSet = [start];
+      closedSet = new Set();
+      cameFrom = new Map();
+      gScore = new Map();
+      fScore = new Map();
+      path = [];
+      stepsCount = 0;
+
+      const startK = key(start.x, start.y);
+      gScore.set(startK, 0);
+      fScore.set(startK, heuristic(start, goal));
+
+      updateStats();
+      draw();
+    }
+
+    function heuristic(a, b) {
+      const algo = document.getElementById('algoSelect').value;
+      const dx = Math.abs(a.x - b.x);
+      const dy = Math.abs(a.y - b.y);
+      if (algo === 'dijkstra') return 0;
+      if (algo === 'astar-manhattan') return dx + dy;
+      return Math.hypot(dx, dy); // Euclidean
+    }
+
+    function resizeCanvas() {
+      const container = canvas.parentElement;
+      canvas.width = container.clientWidth;
+      canvas.height = container.clientHeight;
+      cellSize = Math.min(canvas.width / COLS, canvas.height / ROWS);
+      draw();
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+
+    function step() {
+      if (isFinished || openSet.length === 0) {
+        if (openSet.length === 0 && !isFinished) {
+          isFinished = true;
+          if (timerId) clearInterval(timerId);
+          isRunning = false;
+          document.getElementById('btnRun').textContent = '⚡ Запуск';
+        }
+        return false;
+      }
+
+      stepsCount++;
+
+      // Find node in openSet with lowest fScore
+      let bestIdx = 0;
+      let bestF = Infinity;
+      for (let i = 0; i < openSet.length; i++) {
+        const node = openSet[i];
+        const f = fScore.get(key(node.x, node.y)) ?? Infinity;
+        if (f < bestF) {
+          bestF = f;
+          bestIdx = i;
+        }
+      }
+
+      const current = openSet.splice(bestIdx, 1)[0];
+      const currentK = key(current.x, current.y);
+      closedSet.add(currentK);
+
+      if (current.x === goal.x && current.y === goal.y) {
+        reconstructPath();
+        isFinished = true;
+        if (timerId) clearInterval(timerId);
+        isRunning = false;
+        document.getElementById('btnRun').textContent = '⚡ Запуск';
+        updateStats();
+        draw();
+        return false;
+      }
+
+      // 8-connected neighbors (ortho & diagonal)
+      const neighbors = [
+        { x: current.x + 1, y: current.y, cost: 1.0 },
+        { x: current.x - 1, y: current.y, cost: 1.0 },
+        { x: current.x, y: current.y + 1, cost: 1.0 },
+        { x: current.x, y: current.y - 1, cost: 1.0 },
+        { x: current.x + 1, y: current.y + 1, cost: Math.SQRT2 },
+        { x: current.x - 1, y: current.y + 1, cost: Math.SQRT2 },
+        { x: current.x + 1, y: current.y - 1, cost: Math.SQRT2 },
+        { x: current.x - 1, y: current.y - 1, cost: Math.SQRT2 }
+      ];
+
+      for (const n of neighbors) {
+        if (n.x < 0 || n.x >= COLS || n.y < 0 || n.y >= ROWS) continue;
+        if (grid[n.y][n.x] === 1) continue;
+        const nK = key(n.x, n.y);
+        if (closedSet.has(nK)) continue;
+
+        // Diagonal corner-cutting check
+        if (n.x !== current.x && n.y !== current.y) {
+          if (grid[current.y][n.x] === 1 && grid[n.y][current.x] === 1) continue;
+        }
+
+        const tentativeG = (gScore.get(currentK) ?? Infinity) + n.cost;
+        const currentG = gScore.get(nK) ?? Infinity;
+
+        if (tentativeG < currentG) {
+          cameFrom.set(nK, current);
+          gScore.set(nK, tentativeG);
+          fScore.set(nK, tentativeG + heuristic(n, goal));
+
+          if (!openSet.some(node => node.x === n.x && node.y === n.y)) {
+            openSet.push({ x: n.x, y: n.y });
+          }
+        }
+      }
+
+      updateStats();
+      draw();
+      return true;
+    }
+
+    function reconstructPath() {
+      path = [];
+      let curr = goal;
+      let currK = key(curr.x, curr.y);
+      while (cameFrom.has(currK)) {
+        path.push(curr);
+        curr = cameFrom.get(currK);
+        currK = key(curr.x, curr.y);
+      }
+      path.push(start);
+      path.reverse();
+    }
+
+    function updateStats() {
+      document.getElementById('statSteps').textContent = stepsCount;
+      document.getElementById('statVisited').textContent = closedSet.size;
+      const cost = path.length > 0 ? (gScore.get(key(goal.x, goal.y)) || 0).toFixed(2) : '-';
+      document.getElementById('statCost').textContent = cost;
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const offsetX = (canvas.width - COLS * cellSize) / 2;
+      const offsetY = (canvas.height - ROWS * cellSize) / 2;
+
+      // Draw grid cells
+      for (let y = 0; y < ROWS; y++) {
+        for (let x = 0; x < COLS; x++) {
+          const px = offsetX + x * cellSize;
+          const py = offsetY + y * cellSize;
+          const k = key(x, y);
+
+          if (grid[y][x] === 1) {
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(px + 1, py + 1, cellSize - 2, cellSize - 2);
+          } else if (closedSet.has(k)) {
+            ctx.fillStyle = 'rgba(2, 132, 199, 0.35)';
+            ctx.fillRect(px + 1, py + 1, cellSize - 2, cellSize - 2);
+          } else if (openSet.some(n => n.x === x && n.y === y)) {
+            ctx.fillStyle = 'rgba(245, 158, 11, 0.45)';
+            ctx.fillRect(px + 1, py + 1, cellSize - 2, cellSize - 2);
+          } else {
+            ctx.fillStyle = '#111827';
+            ctx.fillRect(px + 1, py + 1, cellSize - 2, cellSize - 2);
+          }
+
+          // Subtle grid line
+          ctx.strokeStyle = '#1e293b';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(px, py, cellSize, cellSize);
+        }
+      }
+
+      // Draw path polyline
+      if (path.length > 1) {
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = Math.max(3, cellSize * 0.25);
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.shadowColor = '#0284c7';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        for (let i = 0; i < path.length; i++) {
+          const px = offsetX + path[i].x * cellSize + cellSize / 2;
+          const py = offsetY + path[i].y * cellSize + cellSize / 2;
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+
+      // Draw Start & Goal
+      function drawCircle(pt, color, label) {
+        const cx = offsetX + pt.x * cellSize + cellSize / 2;
+        const cy = offsetY + pt.y * cellSize + cellSize / 2;
+        const r = cellSize * 0.38;
+
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `bold ${Math.max(10, Math.floor(cellSize * 0.45))}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(label, cx, cy);
+      }
+
+      drawCircle(start, '#10b981', 'S');
+      drawCircle(goal, '#ef4444', 'G');
+    }
+
+    function getGridCoords(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.clientX ?? (e.touches && e.touches[0].clientX);
+      const clientY = e.clientY ?? (e.touches && e.touches[0].clientY);
+      const offsetX = (canvas.width - COLS * cellSize) / 2;
+      const offsetY = (canvas.height - ROWS * cellSize) / 2;
+      const x = Math.floor((clientX - rect.left - offsetX) / cellSize);
+      const y = Math.floor((clientY - rect.top - offsetY) / cellSize);
+      return { x, y };
+    }
+
+    canvas.addEventListener('mousedown', (e) => {
+      const { x, y } = getGridCoords(e);
+      if (x < 0 || x >= COLS || y < 0 || y >= ROWS) return;
+      isMouseDown = true;
+
+      if (x === start.x && y === start.y) {
+        dragTarget = 'start';
+      } else if (x === goal.x && y === goal.y) {
+        dragTarget = 'goal';
+      } else {
+        dragTarget = grid[y][x] === 1 ? 'erase' : 'wall';
+        grid[y][x] = dragTarget === 'wall' ? 1 : 0;
+        resetSearch();
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      isMouseDown = false;
+      dragTarget = null;
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (!isMouseDown) return;
+      const { x, y } = getGridCoords(e);
+      if (x < 0 || x >= COLS || y < 0 || y >= ROWS) return;
+
+      if (dragTarget === 'start') {
+        if (grid[y][x] === 0 && !(x === goal.x && y === goal.y)) {
+          start = { x, y };
+          resetSearch();
+        }
+      } else if (dragTarget === 'goal') {
+        if (grid[y][x] === 0 && !(x === start.x && y === start.y)) {
+          goal = { x, y };
+          resetSearch();
+        }
+      } else if (dragTarget === 'wall') {
+        if (!(x === start.x && y === start.y) && !(x === goal.x && y === goal.y)) {
+          grid[y][x] = 1;
+          resetSearch();
+        }
+      } else if (dragTarget === 'erase') {
+        grid[y][x] = 0;
+        resetSearch();
+      }
+    });
+
+    // Button actions
+    document.getElementById('btnStep').addEventListener('click', () => {
+      if (isRunning) {
+        clearInterval(timerId);
+        isRunning = false;
+        document.getElementById('btnRun').textContent = '⚡ Запуск';
+      }
+      step();
+    });
+
+    document.getElementById('btnRun').addEventListener('click', () => {
+      if (isRunning) {
+        clearInterval(timerId);
+        isRunning = false;
+        document.getElementById('btnRun').textContent = '⚡ Запуск';
+        document.getElementById('btnRun').className = 'btn btn-primary';
+      } else {
+        if (isFinished) resetSearch();
+        isRunning = true;
+        document.getElementById('btnRun').textContent = '⏸ Пауза';
+        document.getElementById('btnRun').className = 'btn btn-danger';
+        const speed = Number(document.getElementById('speedSlider').value);
+        const intervalMs = Math.max(5, 110 - speed);
+        timerId = setInterval(() => {
+          if (!step()) {
+            clearInterval(timerId);
+            isRunning = false;
+            document.getElementById('btnRun').textContent = '⚡ Запуск';
+            document.getElementById('btnRun').className = 'btn btn-primary';
+          }
+        }, intervalMs);
+      }
+    });
+
+    document.getElementById('btnReset').addEventListener('click', resetSearch);
+
+    document.getElementById('btnClear').addEventListener('click', () => {
+      initGrid();
+      document.getElementById('presetSelect').value = '';
+    });
+
+    document.getElementById('algoSelect').addEventListener('change', resetSearch);
+
+    document.getElementById('presetSelect').addEventListener('change', (e) => {
+      initGrid();
+      const val = e.target.value;
+      if (val === 'utrap') {
+        // U-shaped trap obstacle
+        for (let y = 4; y <= 13; y++) {
+          grid[y][18] = 1; // back wall
+        }
+        for (let x = 18; x >= 8; x--) {
+          grid[4][x] = 1;  // top wall
+          grid[13][x] = 1; // bottom wall
+        }
+        start = { x: 14, y: 8 };
+        goal = { x: 26, y: 8 };
+      } else if (val === 'maze') {
+        for (let y = 0; y < 14; y++) grid[y][8] = 1;
+        for (let y = 4; y < ROWS; y++) grid[y][16] = 1;
+        for (let y = 0; y < 14; y++) grid[y][24] = 1;
+        start = { x: 3, y: 9 };
+        goal = { x: 28, y: 9 };
+      } else if (val === 'pillars') {
+        for (let x = 6; x < COLS - 4; x += 6) {
+          for (let y = 3; y < ROWS - 2; y += 5) {
+            grid[y][x] = 1;
+            grid[y+1][x] = 1;
+            grid[y][x+1] = 1;
+            grid[y+1][x+1] = 1;
+          }
+        }
+      }
+      resetSearch();
+    });
+
+    // Start
+    initGrid();
+    resizeCanvas();
+  </script>
+</body>
+</html>

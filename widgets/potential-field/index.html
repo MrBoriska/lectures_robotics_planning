@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Интерактивные Искусственные Потенциальные Поля (APF)</title>
+  <link rel="stylesheet" href="../common/widget-base.css">
+  <style>
+    .legend-vector {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .vec-sample {
+      display: inline-block;
+      width: 14px;
+      height: 3px;
+      border-radius: 2px;
+    }
+    .v-att { background: #3b82f6; }
+    .v-rep { background: #ef4444; }
+    .v-net { background: #10b981; }
+  </style>
+</head>
+<body>
+  <div class="widget-layout">
+    <div class="toolbar">
+      <button id="btnRun" class="btn btn-primary">⚡ Симуляция</button>
+      <button id="btnResetRobot" class="btn">🔄 Вернуть робота</button>
+
+      <select id="scenarioSelect" class="select-control">
+        <option value="obstacle">Одиночное препятствие</option>
+        <option value="trap">U-ловушка (Локальный минимум!)</option>
+        <option value="corridor">Узкий коридор</option>
+      </select>
+
+      <div class="slider-group">
+        <span>K_att:</span>
+        <input type="range" id="kAttSlider" min="5" max="50" value="20">
+      </div>
+
+      <div class="slider-group">
+        <span>K_rep:</span>
+        <input type="range" id="kRepSlider" min="10" max="150" value="80">
+      </div>
+
+      <div class="legend-vector">
+        <span><i class="vec-sample v-att"></i> F_att</span>
+        <span><i class="vec-sample v-rep"></i> F_rep</span>
+        <span><i class="vec-sample v-net"></i> F_total</span>
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat-item">Сила: <span id="statForce">0.0</span></div>
+        <div class="stat-item">Состояние: <span id="statStatus">Готов</span></div>
+      </div>
+    </div>
+
+    <div class="canvas-container">
+      <canvas id="apfCanvas"></canvas>
+      <div class="overlay-hint">Перетаскивайте Робота, Цель (G) и препятствия мышью.</div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('apfCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let width = 800;
+    let height = 500;
+
+    let robot = { x: 100, y: 250, vx: 0, vy: 0, radius: 14 };
+    let initialPos = { x: 100, y: 250 };
+    let goal = { x: 700, y: 250, radius: 20 };
+
+    let obstacles = [];
+    let robotTrail = [];
+    let isRunning = false;
+    let animId = null;
+    let dragging = null; // 'robot', 'goal', obstacle ref
+
+    function resize() {
+      const container = canvas.parentElement;
+      width = container.clientWidth;
+      height = container.clientHeight;
+      canvas.width = width;
+      canvas.height = height;
+      draw();
+    }
+    window.addEventListener('resize', resize);
+
+    function loadScenario(type) {
+      robotTrail = [];
+      robot.vx = 0;
+      robot.vy = 0;
+      if (type === 'obstacle') {
+        robot.x = initialPos.x = 100;
+        robot.y = initialPos.y = 250;
+        goal.x = 700;
+        goal.y = 250;
+        obstacles = [
+          { x: 400, y: 250, r: 65, influence: 140 }
+        ];
+      } else if (type === 'trap') {
+        robot.x = initialPos.x = 280;
+        robot.y = initialPos.y = 250;
+        goal.x = 700;
+        goal.y = 250;
+        obstacles = [
+          { x: 450, y: 150, r: 35, influence: 90 },
+          { x: 450, y: 200, r: 35, influence: 90 },
+          { x: 450, y: 250, r: 35, influence: 90 },
+          { x: 450, y: 300, r: 35, influence: 90 },
+          { x: 450, y: 350, r: 35, influence: 90 },
+          { x: 380, y: 150, r: 35, influence: 90 },
+          { x: 380, y: 350, r: 35, influence: 90 }
+        ];
+      } else if (type === 'corridor') {
+        robot.x = initialPos.x = 80;
+        robot.y = initialPos.y = 250;
+        goal.x = 720;
+        goal.y = 250;
+        obstacles = [
+          { x: 300, y: 140, r: 60, influence: 120 },
+          { x: 300, y: 360, r: 60, influence: 120 },
+          { x: 500, y: 180, r: 50, influence: 110 },
+          { x: 500, y: 320, r: 50, influence: 110 }
+        ];
+      }
+      draw();
+    }
+
+    function computeForces(pos) {
+      const kAtt = Number(document.getElementById('kAttSlider').value) * 0.005;
+      const kRep = Number(document.getElementById('kRepSlider').value) * 800;
+
+      // Attractive force
+      const dxGoal = goal.x - pos.x;
+      const dyGoal = goal.y - pos.y;
+      const distGoal = Math.hypot(dxGoal, dyGoal);
+
+      let fAttX = kAtt * dxGoal;
+      let fAttY = kAtt * dyGoal;
+
+      // Cap attractive force for stability
+      const maxAtt = 10;
+      const fAttMag = Math.hypot(fAttX, fAttY);
+      if (fAttMag > maxAtt) {
+        fAttX = (fAttX / fAttMag) * maxAtt;
+        fAttY = (fAttY / fAttMag) * maxAtt;
+      }
+
+      // Repulsive forces
+      let fRepX = 0;
+      let fRepY = 0;
+
+      for (const obs of obstacles) {
+        const dx = pos.x - obs.x;
+        const dy = pos.y - obs.y;
+        const d = Math.hypot(dx, dy) - obs.r;
+        const d0 = obs.influence || 100;
+
+        if (d > 0 && d < d0) {
+          // Standard Khatib formula: F_rep = k_rep * (1/d - 1/d0) * (1/d^2) * norm(d)
+          const factor = kRep * (1.0 / d - 1.0 / d0) * (1.0 / (d * d));
+          const nx = dx / (d + obs.r);
+          const ny = dy / (d + obs.r);
+          fRepX += factor * nx;
+          fRepY += factor * ny;
+        } else if (d <= 0) {
+          // Inside obstacle: strong emergency repulsion
+          const nx = (dx || 1) / Math.hypot(dx || 1, dy || 1);
+          const ny = (dy || 1) / Math.hypot(dx || 1, dy || 1);
+          fRepX += nx * 50;
+          fRepY += ny * 50;
+        }
+      }
+
+      // Cap repulsion
+      const maxRep = 25;
+      const fRepMag = Math.hypot(fRepX, fRepY);
+      if (fRepMag > maxRep) {
+        fRepX = (fRepX / fRepMag) * maxRep;
+        fRepY = (fRepY / fRepMag) * maxRep;
+      }
+
+      const fNetX = fAttX + fRepX;
+      const fNetY = fAttY + fRepY;
+
+      return { fAttX, fAttY, fRepX, fRepY, fNetX, fNetY };
+    }
+
+    function updatePhysics() {
+      if (!isRunning) return;
+
+      const { fAttX, fAttY, fRepX, fRepY, fNetX, fNetY } = computeForces(robot);
+      const fNetMag = Math.hypot(fNetX, fNetY);
+      document.getElementById('statForce').textContent = fNetMag.toFixed(2);
+
+      const dGoal = Math.hypot(goal.x - robot.x, goal.y - robot.y);
+      if (dGoal < goal.radius) {
+        document.getElementById('statStatus').textContent = '🎯 Цель достигнута!';
+        document.getElementById('statStatus').style.color = '#10b981';
+        isRunning = false;
+        document.getElementById('btnRun').textContent = '⚡ Симуляция';
+        document.getElementById('btnRun').className = 'btn btn-primary';
+        return;
+      }
+
+      // Detect local minimum
+      if (fNetMag < 0.25 && dGoal > goal.radius * 2) {
+        document.getElementById('statStatus').textContent = '⚠️ Локальный минимум!';
+        document.getElementById('statStatus').style.color = '#ef4444';
+      } else {
+        document.getElementById('statStatus').textContent = 'Движение...';
+        document.getElementById('statStatus').style.color = '#38bdf8';
+      }
+
+      // Damped integration
+      const damping = 0.85;
+      const mass = 1.0;
+      robot.vx = (robot.vx + (fNetX / mass)) * damping;
+      robot.vy = (robot.vy + (fNetY / mass)) * damping;
+
+      // Speed clamp
+      const maxSpeed = 4.5;
+      const speed = Math.hypot(robot.vx, robot.vy);
+      if (speed > maxSpeed) {
+        robot.vx = (robot.vx / speed) * maxSpeed;
+        robot.vy = (robot.vy / speed) * maxSpeed;
+      }
+
+      robot.x += robot.vx;
+      robot.y += robot.vy;
+
+      // Record trail
+      if (robotTrail.length === 0 || Math.hypot(robotTrail[robotTrail.length - 1].x - robot.x, robotTrail[robotTrail.length - 1].y - robot.y) > 3) {
+        robotTrail.push({ x: robot.x, y: robot.y });
+        if (robotTrail.length > 500) robotTrail.shift();
+      }
+    }
+
+    function drawVector(fromX, fromY, vecX, vecY, color, scale = 8) {
+      const toX = fromX + vecX * scale;
+      const toY = fromY + vecY * scale;
+
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = 2.5;
+
+      ctx.beginPath();
+      ctx.moveTo(fromX, fromY);
+      ctx.lineTo(toX, toY);
+      ctx.stroke();
+
+      // Arrow head
+      const angle = Math.atan2(vecY, vecX);
+      const headLen = 6;
+      ctx.beginPath();
+      ctx.moveTo(toX, toY);
+      ctx.lineTo(toX - headLen * Math.cos(angle - Math.PI / 6), toY - headLen * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(toX - headLen * Math.cos(angle + Math.PI / 6), toY - headLen * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, width, height);
+
+      // Draw subtle background grid
+      ctx.strokeStyle = '#162032';
+      ctx.lineWidth = 1;
+      const stepGrid = 40;
+      for (let x = 0; x < width; x += stepGrid) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+      }
+      for (let y = 0; y < height; y += stepGrid) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+
+      // Draw Obstacles with influence regions
+      for (const obs of obstacles) {
+        const d0 = obs.influence || 100;
+        ctx.strokeStyle = 'rgba(239, 68, 68, 0.15)';
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.04)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(obs.x, obs.y, obs.r + d0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#1e293b';
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(obs.x, obs.y, obs.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      }
+
+      // Draw Goal
+      ctx.fillStyle = 'rgba(59, 130, 246, 0.2)';
+      ctx.strokeStyle = '#3b82f6';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(goal.x, goal.y, goal.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#3b82f6';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('GOAL', goal.x, goal.y);
+
+      // Draw Robot Trail
+      if (robotTrail.length > 1) {
+        ctx.strokeStyle = '#06b6d4';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(robotTrail[0].x, robotTrail[0].y);
+        for (let i = 1; i < robotTrail.length; i++) {
+          ctx.lineTo(robotTrail[i].x, robotTrail[i].y);
+        }
+        ctx.stroke();
+      }
+
+      // Draw Forces at Robot
+      const forces = computeForces(robot);
+      drawVector(robot.x, robot.y, forces.fAttX, forces.fAttY, '#3b82f6', 10);
+      drawVector(robot.x, robot.y, forces.fRepX, forces.fRepY, '#ef4444', 10);
+      drawVector(robot.x, robot.y, forces.fNetX, forces.fNetY, '#10b981', 12);
+
+      // Draw Robot
+      ctx.fillStyle = '#0284c7';
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#0284c7';
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.arc(robot.x, robot.y, robot.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('R', robot.x, robot.y);
+    }
+
+    function animate() {
+      updatePhysics();
+      draw();
+      animId = requestAnimationFrame(animate);
+    }
+
+    document.getElementById('btnRun').addEventListener('click', () => {
+      if (isRunning) {
+        isRunning = false;
+        document.getElementById('btnRun').textContent = '⚡ Симуляция';
+        document.getElementById('btnRun').className = 'btn btn-primary';
+      } else {
+        isRunning = true;
+        document.getElementById('btnRun').textContent = '⏸ Пауза';
+        document.getElementById('btnRun').className = 'btn btn-danger';
+      }
+    });
+
+    document.getElementById('btnResetRobot').addEventListener('click', () => {
+      robot.x = initialPos.x;
+      robot.y = initialPos.y;
+      robot.vx = 0;
+      robot.vy = 0;
+      robotTrail = [];
+      document.getElementById('statStatus').textContent = 'Готов';
+      document.getElementById('statStatus').style.color = '#94a3b8';
+      draw();
+    });
+
+    document.getElementById('scenarioSelect').addEventListener('change', (e) => {
+      loadScenario(e.target.value);
+    });
+
+    canvas.addEventListener('mousedown', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      if (Math.hypot(x - robot.x, y - robot.y) < robot.radius + 10) {
+        dragging = 'robot';
+      } else if (Math.hypot(x - goal.x, y - goal.y) < goal.radius + 10) {
+        dragging = 'goal';
+      } else {
+        for (const obs of obstacles) {
+          if (Math.hypot(x - obs.x, y - obs.y) < obs.r + 10) {
+            dragging = obs;
+            break;
+          }
+        }
+      }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      if (dragging === 'robot') {
+        robot.x = x;
+        robot.y = y;
+        robot.vx = 0;
+        robot.vy = 0;
+      } else if (dragging === 'goal') {
+        goal.x = x;
+        goal.y = y;
+      } else if (typeof dragging === 'object') {
+        dragging.x = x;
+        dragging.y = y;
+      }
+      draw();
+    });
+
+    window.addEventListener('mouseup', () => {
+      dragging = null;
+    });
+
+    resize();
+    loadScenario('obstacle');
+    animate();
+  </script>
+</body>
+</html>

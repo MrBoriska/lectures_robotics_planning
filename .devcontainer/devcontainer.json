@@ -1,0 +1,49 @@
+{
+  "name": "Robotics Motion Planning Lectures (Marp)",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "remoteUser": "node",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "marp-team.marp-vscode",
+        "yzhang.markdown-all-in-one",
+        "bierner.markdown-mermaid",
+        "ritwickdey.liveserver",
+        "esbenp.prettier-vscode",
+        "davidanson.vscode-markdownlint",
+        "streetsidesoftware.code-spell-checker",
+        "streetsidesoftware.code-spell-checker-russian"
+      ],
+      "settings": {
+        "markdown.marp.themes": [
+          "themes/robotics-minimal.css"
+        ],
+        "markdown.marp.enableHtml": true,
+        "markdown.marp.outlineExtension": true,
+        "markdown.marp.strictPath": false,
+        "editor.wordWrap": "on",
+        "editor.formatOnSave": true,
+        "files.eol": "\n"
+      }
+    }
+  },
+  "forwardPorts": [8080, 5500, 37717],
+  "portsAttributes": {
+    "8080": {
+      "label": "Course Web Portal",
+      "onAutoForward": "openBrowser"
+    },
+    "5500": {
+      "label": "Live Server (Interactive Widgets)",
+      "onAutoForward": "silent"
+    },
+    "37717": {
+      "label": "Marp Live Server",
+      "onAutoForward": "silent"
+    }
+  },
+  "postCreateCommand": "npm install"
+}

@@ -1,0 +1,29 @@
+{
+  "name": "lectures-robotics-planning",
+  "version": "1.0.0",
+  "description": "Курс лекций: Планирование движений и траекторий для мобильных роботов (Marp, Interactive Widgets, DevContainer)",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "build:html": "node scripts/build.mjs --html-only",
+    "build:pdf": "node scripts/build.mjs --pdf",
+    "dev": "marp -I lectures --config-file marp.config.mjs --server",
+    "preview": "node scripts/build.mjs --html-only && npx serve dist -l 8080",
+    "serve": "npx serve dist -l 8080"
+  },
+  "keywords": [
+    "robotics",
+    "motion-planning",
+    "path-planning",
+    "mobile-robots",
+    "marp",
+    "presentations",
+    "lectures"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@marp-team/marp-cli": "^4.1.2",
+    "serve": "^14.2.4"
+  }
+}

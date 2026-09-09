@@ -1,0 +1,11 @@
+{
+  "markdown.marp.themes": [
+    "themes/robotics-minimal.css"
+  ],
+  "markdown.marp.enableHtml": true,
+  "markdown.marp.outlineExtension": true,
+  "markdown.marp.strictPath": false,
+  "editor.wordWrap": "on",
+  "editor.formatOnSave": true,
+  "files.eol": "\n"
+}

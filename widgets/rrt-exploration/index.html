@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Интерактивный RRT / RRT* Visualizer</title>
+  <link rel="stylesheet" href="../common/widget-base.css">
+</head>
+<body>
+  <div class="widget-layout">
+    <div class="toolbar">
+      <select id="algoSelect" class="select-control">
+        <option value="rrt">RRT (Rapidly-exploring Random Tree)</option>
+        <option value="rrt-star">RRT* (Асимптотически оптимальный)</option>
+      </select>
+
+      <button id="btnStep" class="btn">▶ Шаг (Сэмплинг)</button>
+      <button id="btnRun" class="btn btn-primary">⚡ Запуск</button>
+      <button id="btnReset" class="btn">🔄 Сброс дерева</button>
+      <button id="btnClearObs" class="btn">🧹 Очистить преграды</button>
+
+      <div class="slider-group">
+        <span>Шаг:</span>
+        <input type="range" id="stepSizeSlider" min="10" max="45" value="22">
+      </div>
+
+      <div class="slider-group">
+        <span>Goal Bias:</span>
+        <input type="range" id="goalBiasSlider" min="0" max="40" value="10">
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat-item">Узлы: <span id="statNodes">1</span></div>
+        <div class="stat-item">Итерации: <span id="statIter">0</span></div>
+        <div class="stat-item">Длина пути: <span id="statCost">-</span></div>
+      </div>
+    </div>
+
+    <div class="canvas-container">
+      <canvas id="rrtCanvas"></canvas>
+      <div class="overlay-hint">Кликните и потяните, чтобы создать круглые препятствия. Перетаскивайте S и G.</div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('rrtCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let width = 800;
+    let height = 500;
+
+    let start = { x: 80, y: 250 };
+    let goal = { x: 720, y: 250, radius: 25 };
+
+    let nodes = [];
+    let obstacles = [
+      { x: 300, y: 160, r: 70 },
+      { x: 320, y: 340, r: 80 },
+      { x: 500, y: 250, r: 90 }
+    ];
+
+    let lastSample = null;
+    let pathFoundNode = null;
+    let isRunning = false;
+    let animFrame = null;
+    let iterations = 0;
+
+    let isDrawingObstacle = false;
+    let newObsStart = null;
+    let draggingPoint = null; // 'start', 'goal'
+
+    function resize() {
+      const container = canvas.parentElement;
+      width = container.clientWidth;
+      height = container.clientHeight;
+      canvas.width = width;
+      canvas.height = height;
+      draw();
+    }
+    window.addEventListener('resize', resize);
+
+    function resetTree() {
+      if (animFrame) cancelAnimationFrame(animFrame);
+      isRunning = false;
+      document.getElementById('btnRun').textContent = '⚡ Запуск';
+      document.getElementById('btnRun').className = 'btn btn-primary';
+
+      nodes = [{ x: start.x, y: start.y, parent: null, cost: 0 }];
+      lastSample = null;
+      pathFoundNode = null;
+      iterations = 0;
+      updateStats();
+      draw();
+    }
+
+    function dist(p1, p2) {
+      return Math.hypot(p1.x - p2.x, p1.y - p2.y);
+    }
+
+    function isPointInObstacle(p, margin = 0) {
+      for (const obs of obstacles) {
+        if (dist(p, obs) <= obs.r + margin) return true;
+      }
+      return false;
+    }
+
+    function isSegmentColliding(p1, p2) {
+      const steps = Math.ceil(dist(p1, p2) / 4);
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const pt = {
+          x: p1.x + (p2.x - p1.x) * t,
+          y: p1.y + (p2.y - p1.y) * t
+        };
+        if (isPointInObstacle(pt, 2)) return true;
+      }
+      return false;
+    }
+
+    function sample() {
+      const bias = Number(document.getElementById('goalBiasSlider').value) / 100;
+      if (Math.random() < bias) {
+        return { x: goal.x, y: goal.y };
+      }
+      return {
+        x: Math.random() * width,
+        y: Math.random() * height
+      };
+    }
+
+    function findNearest(pt) {
+      let best = nodes[0];
+      let minD = dist(nodes[0], pt);
+      for (let i = 1; i < nodes.length; i++) {
+        const d = dist(nodes[i], pt);
+        if (d < minD) {
+          minD = d;
+          best = nodes[i];
+        }
+      }
+      return best;
+    }
+
+    function steer(from, to, maxStep) {
+      const d = dist(from, to);
+      if (d <= maxStep) return { x: to.x, y: to.y };
+      const theta = Math.atan2(to.y - from.y, to.x - from.x);
+      return {
+        x: from.x + Math.cos(theta) * maxStep,
+        y: from.y + Math.sin(theta) * maxStep
+      };
+    }
+
+    function step() {
+      iterations++;
+      const maxStep = Number(document.getElementById('stepSizeSlider').value);
+      const isStar = document.getElementById('algoSelect').value === 'rrt-star';
+
+      const qRand = sample();
+      lastSample = qRand;
+
+      const qNear = findNearest(qRand);
+      const qNew = steer(qNear, qRand, maxStep);
+
+      if (!isSegmentColliding(qNear, qNew)) {
+        let parent = qNear;
+        let minCost = qNear.cost + dist(qNear, qNew);
+
+        // RRT* choose best parent in radius
+        const rStar = Math.min(maxStep * 2.5, 60);
+        if (isStar) {
+          for (const node of nodes) {
+            const d = dist(node, qNew);
+            if (d <= rStar && node.cost + d < minCost) {
+              if (!isSegmentColliding(node, qNew)) {
+                parent = node;
+                minCost = node.cost + d;
+              }
+            }
+          }
+        }
+
+        const newNode = {
+          x: qNew.x,
+          y: qNew.y,
+          parent: parent,
+          cost: minCost
+        };
+        nodes.push(newNode);
+
+        // RRT* rewiring
+        if (isStar) {
+          for (const node of nodes) {
+            if (node === parent) continue;
+            const d = dist(newNode, node);
+            if (d <= rStar && newNode.cost + d < node.cost) {
+              if (!isSegmentColliding(newNode, node)) {
+                node.parent = newNode;
+                node.cost = newNode.cost + d;
+              }
+            }
+          }
+        }
+
+        // Check if goal reached
+        if (dist(newNode, goal) <= goal.radius) {
+          if (!pathFoundNode || newNode.cost < pathFoundNode.cost) {
+            pathFoundNode = newNode;
+          }
+        }
+      }
+
+      updateStats();
+      draw();
+      return true;
+    }
+
+    function updateStats() {
+      document.getElementById('statNodes').textContent = nodes.length;
+      document.getElementById('statIter').textContent = iterations;
+      document.getElementById('statCost').textContent = pathFoundNode ? pathFoundNode.cost.toFixed(1) : '-';
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, width, height);
+
+      // Draw obstacles
+      ctx.fillStyle = '#1e293b';
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 2;
+      for (const obs of obstacles) {
+        ctx.beginPath();
+        ctx.arc(obs.x, obs.y, obs.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      }
+
+      // Draw Tree Edges
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.35)';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      for (let i = 1; i < nodes.length; i++) {
+        const n = nodes[i];
+        if (n.parent) {
+          ctx.moveTo(n.parent.x, n.parent.y);
+          ctx.lineTo(n.x, n.y);
+        }
+      }
+      ctx.stroke();
+
+      // Draw Nodes
+      ctx.fillStyle = '#0284c7';
+      for (let i = 0; i < nodes.length; i++) {
+        ctx.fillRect(nodes[i].x - 1, nodes[i].y - 1, 3, 3);
+      }
+
+      // Draw last sample
+      if (lastSample) {
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 1.5;
+        const size = 5;
+        ctx.beginPath();
+        ctx.moveTo(lastSample.x - size, lastSample.y);
+        ctx.lineTo(lastSample.x + size, lastSample.y);
+        ctx.moveTo(lastSample.x, lastSample.y - size);
+        ctx.lineTo(lastSample.x, lastSample.y + size);
+        ctx.stroke();
+      }
+
+      // Draw Extracted Path if reached
+      if (pathFoundNode) {
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.shadowColor = '#10b981';
+        ctx.shadowBlur = 12;
+
+        ctx.beginPath();
+        ctx.moveTo(goal.x, goal.y);
+        let curr = pathFoundNode;
+        while (curr) {
+          ctx.lineTo(curr.x, curr.y);
+          curr = curr.parent;
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+
+      // Draw Goal Region
+      ctx.fillStyle = 'rgba(239, 68, 68, 0.2)';
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(goal.x, goal.y, goal.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Draw Start & Goal markers
+      function drawMarker(pt, col, label) {
+        ctx.fillStyle = col;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 9, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(label, pt.x, pt.y);
+      }
+
+      drawMarker(start, '#10b981', 'S');
+      drawMarker(goal, '#ef4444', 'G');
+    }
+
+    function loop() {
+      if (!isRunning) return;
+      for (let k = 0; k < 3; k++) {
+        step();
+      }
+      animFrame = requestAnimationFrame(loop);
+    }
+
+    document.getElementById('btnStep').addEventListener('click', () => {
+      if (isRunning) {
+        isRunning = false;
+        cancelAnimationFrame(animFrame);
+        document.getElementById('btnRun').textContent = '⚡ Запуск';
+      }
+      step();
+    });
+
+    document.getElementById('btnRun').addEventListener('click', () => {
+      if (isRunning) {
+        isRunning = false;
+        cancelAnimationFrame(animFrame);
+        document.getElementById('btnRun').textContent = '⚡ Запуск';
+        document.getElementById('btnRun').className = 'btn btn-primary';
+      } else {
+        isRunning = true;
+        document.getElementById('btnRun').textContent = '⏸ Пауза';
+        document.getElementById('btnRun').className = 'btn btn-danger';
+        loop();
+      }
+    });
+
+    document.getElementById('btnReset').addEventListener('click', resetTree);
+    document.getElementById('btnClearObs').addEventListener('click', () => {
+      obstacles = [];
+      resetTree();
+    });
+
+    canvas.addEventListener('mousedown', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      if (dist({ x, y }, start) < 16) {
+        draggingPoint = 'start';
+      } else if (dist({ x, y }, goal) < 16) {
+        draggingPoint = 'goal';
+      } else {
+        isDrawingObstacle = true;
+        newObsStart = { x, y };
+      }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      if (draggingPoint === 'start') {
+        start.x = x;
+        start.y = y;
+        resetTree();
+      } else if (draggingPoint === 'goal') {
+        goal.x = x;
+        goal.y = y;
+        resetTree();
+      } else if (isDrawingObstacle && newObsStart) {
+        const r = dist(newObsStart, { x, y });
+        draw();
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.arc(newObsStart.x, newObsStart.y, r, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    });
+
+    window.addEventListener('mouseup', (e) => {
+      if (isDrawingObstacle && newObsStart) {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const r = dist(newObsStart, { x, y });
+        if (r > 12) {
+          obstacles.push({ x: newObsStart.x, y: newObsStart.y, r });
+          resetTree();
+        }
+      }
+      isDrawingObstacle = false;
+      newObsStart = null;
+      draggingPoint = null;
+    });
+
+    resize();
+    resetTree();
+  </script>
+</body>
+</html>

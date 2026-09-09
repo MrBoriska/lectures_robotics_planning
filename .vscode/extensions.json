@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "marp-team.marp-vscode",
+    "yzhang.markdown-all-in-one",
+    "bierner.markdown-mermaid",
+    "ritwickdey.liveserver",
+    "esbenp.prettier-vscode",
+    "davidanson.vscode-markdownlint",
+    "streetsidesoftware.code-spell-checker",
+    "streetsidesoftware.code-spell-checker-russian"
+  ]
+}
