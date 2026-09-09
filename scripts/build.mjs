@@ -367,6 +367,11 @@ const portalHtml = `<!DOCTYPE html>
         <h2 class="section-title">🕹️ Интерактивные симуляторы алгоритмов</h2>
         <p style="color: var(--text-muted);">Интерактивные виджеты встроены прямо в презентации Marp, а также доступны в полноэкранном режиме:</p>
         <div class="widgets-grid">
+          <a href="widgets/cspace-minkowski/index.html" class="widget-link-card" target="_blank">
+            <h4>C-Space & Minkowski Sum</h4>
+            <p>Конфигурационное пространство, поворот робота $\theta$, вычисление сечения {obs} = O \oplus (-A)$ и проверка коллизий.</p>
+            <span class="lecture-num">Открыть симулятор →</span>
+          </a>
           <a href="widgets/astar-grid/index.html" class="widget-link-card" target="_blank">
             <h4>A* & Dijkstra Grid Search</h4>
             <p>Дискретный поиск кратчайшего пути на 2D-сетке, динамическое рисование препятствий, сравнение эвристик.</p>

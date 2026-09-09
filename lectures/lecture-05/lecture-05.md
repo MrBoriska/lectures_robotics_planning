@@ -13,38 +13,38 @@ math: mathjax
 <!-- _footer: "" -->
 
 # **Планирование движений мобильных роботов**
-## Лекция 05: [Название темы будет предоставлено]
+## Лекция 05: Оптимальное управление (Optimal Control)
 
 <div class="mt-4">
-  <span class="badge badge-blue">⏱️ Продолжительность: 90 минут</span>
-  <span class="badge badge-green">Курс: Мобильная робототехника</span>
-  <span class="badge badge-purple">Marp + Interactive Engine</span>
+  <span class="badge badge-blue">⏱️ 90 минут</span>
+  <span class="badge badge-green">Теория управления</span>
+  <span class="badge badge-purple">Понтрягин • Беллман • LQR • Коллокация</span>
 </div>
 
 ---
 
 <!-- _header: "Лекция 05 | Структура занятия" -->
 
-## Тайминг и структура лекции <span class="badge badge-time">⏱️ 90 минут</span>
+## План лекции на 90 минут <span class="badge badge-time">⏱️ 90 минут</span>
 
 <div class="grid-2 mt-4">
 
 <div class="card card-accent">
-  <h3>Часть 1: Теория и концепции (45 мин)</h3>
+  <h3>Блок 1: Аналитическая теория (45 мин)</h3>
   <ul>
-    <li><strong>00–15 мин:</strong> Мотивация, связь с предыдущей лекцией, постановка задачи.</li>
-    <li><strong>15–35 мин:</strong> Математический аппарат и теоретический фундамент метода.</li>
-    <li><strong>35–45 мин:</strong> Анализ допущений, свойств сходимости и вычислительной сложности.</li>
+    <li><strong>00–15 мин:</strong> Постановка задачи оптимального управления (состояние $x$, управление $u$, функционал $J$).</li>
+    <li><strong>15–30 мин:</strong> Принцип максимума Понтрягина (Гамильтониан $H$, сопряженные переменные $\lambda$).</li>
+    <li><strong>30–45 мин:</strong> Динамическое программирование, уравнение Гамильтона-Якоби-Беллмана (HJB) и LQR (регулятор Риккати).</li>
   </ul>
 </div>
 
 <div class="card card-accent">
-  <h3>Часть 2: Алгоритмы и практика (45 мин)</h3>
+  <h3>Блок 2: Численная оптимизация и роботы (45 мин)</h3>
   <ul>
-    <li><strong>45–65 мин:</strong> Пошаговая реализация алгоритма, псевдокод и структуры данных.</li>
-    <li><strong>65–75 мин:</strong> <span class="badge badge-green">Интерактивная демонстрация</span> и разбор поведения в симуляторе.</li>
-    <li><strong>75–85 мин:</strong> Ограничения реальных роботов (динамика, шум сенсоров, латентность).</li>
-    <li><strong>85–90 мин:</strong> Резюме, контрольные вопросы и дискуссия.</li>
+    <li><strong>45–60 мин:</strong> Оптимизация траекторий: Direct Shooting vs <strong>Direct Collocation</strong>.</li>
+    <li><strong>60–75 мин:</strong> Аналитические экстремали для колесных платформ: кривые Дубинса и Ридса-Шеппа.</li>
+    <li><strong>75–85 мин:</strong> Практическая реализация слежения за траекторией (TVLQR на мобильном шасси).</li>
+    <li><strong>85–90 мин:</strong> Итоги, контрольные вопросы и Q&A.</li>
   </ul>
 </div>
 
@@ -52,29 +52,67 @@ math: mathjax
 
 ---
 
-## 1. Введение и постановка проблемы <span class="badge badge-time">00–15 мин</span>
+## 1. Постановка задачи оптимального управления <span class="badge badge-time">00–15 мин</span>
 
 <div class="grid-2">
 
 <div class="col">
-  <div class="card">
-    <h3>Контекст и предпосылки темы:</h3>
-    <p>[Здесь будет размещено описание проблемы, мотивирующие примеры из реальной робототехники и связь с предыдущими занятиями курса.]</p>
+  <p>В отличие от чисто геометрического пути, в оптимальном управлении ищется функция управления $u(t)$ и соответствующая траектория состояния $x(t)$:</p>
+
+  <div class="formula-box">
+    $$\min_{u(t)} J = \int_{0}^{T} L(x(t), u(t)) \, dt + \Phi(x(T))$$
+    $$\text{при условиях:} \quad \dot{x}(t) = f(x(t), u(t)), \quad x(0) = x_0$$
+    $$x(t) \in \mathcal{X}_{free}, \quad u(t) \in \mathcal{U}$$
+  </div>
+</div>
+
+<div class="col">
+  <div class="card card-accent">
+    <h3>Компоненты функционала качества $J$:</h3>
     <ul>
-      <li>Цель планирования в рамках данной парадигмы.</li>
-      <li>Где и почему стандартные подходы терпят неудачу.</li>
-      <li>Области применения: автономные автомобили, AGV, складские AMR, БПЛА.</li>
+      <li>$L(x, u)$ — текущие затраты (Running cost): расход энергии приводов, время проезда, отклонение от осевой линии коридора.</li>
+      <li>$\Phi(x(T))$ — терминальные затраты (Terminal cost): штраф за неточность попадания в целевую точку.</li>
+      <li>$\dot{x} = f(x, u)$ — дифференциальные уравнения кинематики и динамики робота.</li>
     </ul>
+  </div>
+</div>
+
+</div>
+
+---
+
+## 2. Принцип максимума Понтрягина (ПМП) <span class="badge badge-time">15–30 мин</span>
+
+<div class="grid-2">
+
+<div class="col">
+  <p>Для задачи оптимизации вводится <strong>функция Гамильтона (Гамильтониан)</strong> с вектором множителей Лагранжа (сопряженных переменных) $\lambda(t)$:</p>
+
+  <div class="formula-box">
+    $$H(x, u, \lambda) = L(x, u) + \lambda^T f(x, u)$$
+  </div>
+
+  <div class="card">
+    <h3>Необходимые условия экстремума:</h3>
+    <ol>
+      <li><strong>Уравнение состояния:</strong> $\dot{x} = \frac{\partial H}{\partial \lambda} = f(x, u)$.</li>
+      <li><strong>Сопряженное уравнение:</strong> $\dot{\lambda} = -\frac{\partial H}{\partial x}$.</li>
+      <li><strong>Оптимальность управления:</strong> $u^*(t) = \arg\min_{u \in \mathcal{U}} H(x^*, u, \lambda^*)$.</li>
+      <li><strong>Условие трансверсальности:</strong> $\lambda(T) = \frac{\partial \Phi}{\partial x}(x(T))$.</li>
+    </ol>
   </div>
 </div>
 
 <div class="col">
   <div class="card card-alert">
-    <h3>Ключевые вызовы:</h3>
+    <h3>Bang-Bang управление:</h3>
+    <p>Если управление входит в систему линейно ($f(x, u) = f_0(x) + f_1(x)u$), а ограничения имеют вид $u \in [u_{min}, u_{max}]$, то Гамильтониан линеен по $u$:</p>
+    $$H = L_0(x) + \underbrace{(\lambda^T f_1(x))}_{\sigma(t) \text{ — функция переключения}} \cdot u$$
     <ul>
-      <li>Вычислительная сложность в пространствах высокой размерности.</li>
-      <li>Локальные экстремумы и неполнота информации.</li>
-      <li>Динамические и неголономные ограничения шасси.</li>
+      <li>Оптимальное управление принимает только граничные значения:
+        $$u^*(t) = \begin{cases} u_{min}, & \sigma(t) > 0 \\ u_{max}, & \sigma(t) < 0 \end{cases}$$
+      </li>
+      <li>Это математическое обоснование предельных разгонов и торможений робота.</li>
     </ul>
   </div>
 </div>
@@ -83,37 +121,63 @@ math: mathjax
 
 ---
 
-## 2. Теоретический базис и математическая модель <span class="badge badge-time">15–35 мин</span>
+## 3. Линейно-квадратичный регулятор (LQR) <span class="badge badge-time">30–45 мин</span>
 
 <div class="grid-2">
 
 <div class="col">
-  <p>Формальное описание целевой функции и пространства поиска:</p>
+  <p>Для линейной системы и квадратичного критерия оптимальное управление имеет <strong>строгий аналитический замкнутый вид</strong>:</p>
 
   <div class="formula-box">
-    2690136J(\tau) = \int_{0}^{T} \mathcal{L}(x(t), u(t)) \, dt + \Phi(x(T))2690136
-    2690136\text{s.t.} \quad \dot{x}(t) = f(x(t), u(t)), \quad x(t) \in \mathcal{X}_{free}2690136
+    $$\dot{x} = A x + B u$$
+    $$J = \int_{0}^{\infty} \left( x^T Q x + u^T R u \right) dt$$
   </div>
 
+  <ul>
+    <li>$Q \ge 0$ — матрица штрафа за отклонение состояния.</li>
+    <li>$R > 0$ — матрица штрафа за усилия приводов.</li>
+  </ul>
+</div>
+
+<div class="col">
+  <div class="card card-success">
+    <h3>Уравнение Риккати и закон управления:</h3>
+    <p>Оптимальное управление строится как линейная обратная связь по состоянию:</p>
+    $$u^*(t) = -K x(t), \quad K = R^{-1} B^T P$$
+    <p>где симметричная положительно определенная матрица $P$ находится из <strong>Алгебраического уравнения Риккати (ARE)</strong>:</p>
+    $$A^T P + P A - P B R^{-1} B^T P + Q = 0$$
+    <p class="text-sm">Обладает бесконечным запасом устойчивости по усилению и фазе $\ge 60^\circ$.</p>
+  </div>
+</div>
+
+</div>
+
+---
+
+## 4. Численная оптимизация траекторий: Direct Collocation <span class="badge badge-time">45–65 мин</span>
+
+<div class="grid-2">
+
+<div class="col">
   <div class="card">
-    <h3>Свойства пространства:</h3>
+    <h3>Direct Shooting (Прямое выстреливание):</h3>
     <ul>
-      <li>Топология пространства состояний.</li>
-      <li>Метрика расстояния и функции допустимости.</li>
+      <li>Дискретизируется только вектор управления: $\{u_0, u_1, \dots, u_{N-1}\}$.</li>
+      <li>Траектория $x(t)$ вычисляется прямым интегрированием дифференциальных уравнений (ODE45 / RK4).</li>
+      <li><em>Минус:</em> крайне чувствителен к начальным условиям; ошибки интегрирования накапливаются по горизонту.</li>
     </ul>
   </div>
 </div>
 
 <div class="col">
   <div class="card card-accent">
-    <h3>Анализ сходимости и оптимальности:</h3>
+    <h3>Direct Collocation (Прямая коллокация):</h3>
     <ul>
-      <li><strong>Вероятностная полнота (Probabilistic Completeness):</strong>
-        2690136\lim_{N \to \infty} P(\text{нахождение пути} \mid \text{путь существует}) = 12690136
+      <li>Дискретизируются <strong>и состояния, и управления</strong>: $\{x_k, u_k\}_{k=0}^N$.</li>
+      <li>Динамика системы преобразуется в алгебраические равенства в точках коллокации (метод трапеций или Эрмита-Симпсона):
+        $$x_{k+1} - x_k - \frac{\Delta t}{2}(f(x_k, u_k) + f(x_{k+1}, u_{k+1})) = 0$$
       </li>
-      <li><strong>Асимптотическая оптимальность (Asymptotic Optimality):</strong>
-        2690136\lim_{N \to \infty} \text{Cost}(Path_N) = c^*2690136
-      </li>
+      <li>Задача превращается в разреженное нелинейное программирование (NLP), эффективно решаемое IPOPT / SNOPT за доли секунды.</li>
     </ul>
   </div>
 </div>
@@ -122,78 +186,32 @@ math: mathjax
 
 ---
 
-## 3. Алгоритмическое ядро и реализация <span class="badge badge-time">35–55 мин</span>
+## 5. Аналитические траектории: Дубинс и Ридс-Шеппа <span class="badge badge-time">65–85 мин</span>
 
 <div class="grid-2">
 
 <div class="col">
-  <div class="card">
-    <h3>Псевдокод алгоритма:</h3>
-    <pre><code>def plan_trajectory(start, goal, obstacles):
-    state_tree = initialize_tree(start)
-    for iteration in range(MAX_ITER):
-        target_sample = sample_space(goal_bias)
-        nearest_node = find_nearest(state_tree, target_sample)
-        new_state = propagate_model(nearest_node, target_sample)
-        if collision_free(new_state, obstacles):
-            state_tree.add(new_state)
-            if reaches_goal(new_state, goal):
-                return extract_optimal_path(new_state)
-    return FAILURE</code></pre>
+  <div class="card card-accent">
+    <h3>Модель автомобиля Дубинса (1957):</h3>
+    <p>Робот движется вперед с постоянной скоростью $V$, радиус поворота ограничен $R \ge R_{min}$:</p>
+    $$\dot{x} = V \cos\theta, \quad \dot{y} = V \sin\theta, \quad \dot{\theta} = u, \quad |u| \le \frac{V}{R_{min}}$$
+    <ul>
+      <li>По принципу максимума Понтрягина кратчайший путь состоит строго из <strong>дуг окружностей максимальной кривизны</strong> ($L, R$) и <strong>прямых отрезков</strong> ($S$).</li>
+      <li>Всего 6 допустимых слов:
+        $$\{LSL, RSR, LSR, RSL, LRL, RLR\}$$
+      </li>
+    </ul>
   </div>
 </div>
 
 <div class="col">
   <div class="card card-success">
-    <h3>Ключевые оптимизации:</h3>
+    <h3>Кривые Ридса-Шеппа (1990):</h3>
+    <p>Обобщение модели Дубинса на автомобили с возможностью движения <strong>задним ходом</strong> ($V \in \{-1, +1\}$):</p>
     <ul>
-      <li><strong>Пространственные индексы:</strong> hBcd tree / R-tree для ускорения поиска ближайших соседей $\mathcal{O}(\log N)$.</li>
-      <li><strong>Collision Checking:</strong> иерархии BVH (Bounding Volume Hierarchies).</li>
-      <li><strong>Goal Biasing:</strong> адаптивное смещение выборки к целевой зоне.</li>
-    </ul>
-  </div>
-</div>
-
-</div>
-
----
-
-<!-- _header: "Интерактивная практика | Лекция 05" -->
-
-## Интерактивная демонстрация: Исследование алгоритма <span class="badge badge-green">⏱️ 55–70 мин</span>
-
-<div class="interactive-container">
-  <div class="interactive-header">
-    <span><i class="interactive-dot"></i> Интерактивный алгоритмический симулятор</span>
-    <span>Экспериментируйте с параметрами и картой препятствий в реальном времени</span>
-  </div>
-  <iframe src="../../widgets/astar-grid/index.html" class="interactive-frame"></iframe>
-</div>
-
----
-
-## 4. Специфика реального робота и интеграция в ROS <span class="badge badge-time">70–85 мин</span>
-
-<div class="grid-2">
-
-<div class="col">
-  <div class="card card-accent">
-    <h3>Учет физических ограничений:</h3>
-    <ul>
-      <li><strong>Пределы ускорений:</strong> $|a_v| \le a_{max}, \quad |\alpha_\omega| \le \alpha_{max}$.</li>
-      <li><strong>Задержка контура управления (Latency):</strong> прогнозирование состояния вперед на время реакции системы ($\tau_{delay} \approx 50\text{--}100$ мс).</li>
-      <li><strong>Отказоустойчивость:</strong> аварийное торможение при приближении динамического объекта.</li>
-    </ul>
-  </div>
-</div>
-
-<div class="col">
-  <div class="card">
-    <h3>Архитектурная интеграция (ROS 2 / Nav2):</h3>
-    <ul>
-      <li>Плагин для <code>nav2_core::GlobalPlanner</code> или <code>Controller</code>.</li>
-      <li>Подписка на <code>/costmap/costmap_raw</code> и <code>/odom</code>.</li>
-      <li>Публикация траектории в топик <code>/plan</code> и команд скорости в <code>/cmd_vel</code>.</li>
+      <li>Добавляются точки смены направления движения (cusps).</li>
+      <li>Всего 48 канонических шаблонов оптимальных путей (например, $L^+ R^- L^+$ или $L^+ S^+ L^+$).</li>
+      <li>Используются как точная функция расстояния (Steer function) в алгоритмах Hybrid $A^*$ и RRT* для парковки автомобилей.</li>
     </ul>
   </div>
 </div>
@@ -203,28 +221,32 @@ math: mathjax
 ---
 
 <!-- _class: invert -->
-<!-- _header: "Лекция 05 | Заключение" -->
+<!-- _header: "Лекция 05 | Итоги и вопросы" -->
 
-## Резюме и вопросы для обсуждения <span class="badge badge-time">85–90 мин</span>
+## Резюме лекции и контрольные вопросы <span class="badge badge-time">85–90 мин</span>
 
 <div class="grid-2">
 
 <div class="card">
-  <h3>Главные выводы занятия:</h3>
+  <h3>Главные выводы:</h3>
   <ol>
-    <li>Теоретические свойства и границы применимости изученного метода.</li>
-    <li>Влияние настройки гиперпараметров на сходимость и вычислительную сложность.</li>
-    <li>Практические особенности переноса с идеальной симуляции на физический робот.</li>
+    <li>Оптимальное управление объединяет геометрию, кинематику и энергетику приводов в единую вариационную задачу.</li>
+    <li>Принцип максимума Понтрягина объясняет природу релейных (bang-bang) разгонов и предельных траекторий.</li>
+    <li>LQR дает стабильный регулятор замкнутого контура для квадратичных задач и отслеживания траекторий.</li>
+    <li>Direct Collocation — стандарт индустрии для численного решения сложных кинематических задач.</li>
   </ol>
 </div>
 
 <div class="card card-accent">
   <h3>Контрольные вопросы:</h3>
   <ul>
-    <li>При каких условиях алгоритм теряет свойство оптимальности?</li>
-    <li>Как изменится поведение робота при зашумленной одометрии?</li>
-    <li>Каков вычислительный предел метода при увеличении числа степеней свободы?</li>
+    <li>Почему в модели автомобиля Дубинса кратчайший путь не может содержать дугу окружности радиуса больше, чем $R_{min}$?</li>
+    <li>В чем преимущество метода прямой коллокации перед прямым выстреливанием (Direct Shooting)?</li>
+    <li>Как использовать LQR для стабилизации неголономного дифференциального робота на криволинейной траектории?</li>
   </ul>
+  <div class="mt-4 text-center">
+    <span class="badge badge-blue">Следующая лекция: Предиктивное управление (Model Predictive Control)</span>
+  </div>
 </div>
 
 </div>

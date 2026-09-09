@@ -5,101 +5,52 @@
 [![GitHub Pages](https://img.shields.io/badge/Deploy-GitHub_Pages-10b981.svg)](https://pages.github.com/)
 [![Lectures](https://img.shields.io/badge/Lectures-8_%C3%97_90_min-f59e0b.svg)](#структура-курса)
 
-Современный учебно-методический комплекс презентаций для 90-минутных лекций по планированию траекторий мобильных колесных роботов. Написан на **Markdown (Marp)** со встроенными интерактивными симуляторами алгоритмов, строгой математической формализацией ($\mathcal{C}$-space, суммы Минковского, неголономные связи), минималистичным дизайном и готовым **Docker DevContainer** для разработки.
-
----
-
-## 🚀 Быстрый старт через VS Code DevContainer (Рекомендуется)
-
-Проект полностью изолирован в легковесном Docker-контейнере на базе `node:22-bookworm-slim` с предустановленным Chromium, Marp CLI и плагинами VS Code. Ничего на хост-систему устанавливать не нужно!
-
-1. Откройте директорию проекта в **VS Code**.
-2. Установите расширение **Dev Containers** (`ms-vscode-remote.remote-containers`), если оно еще не установлено.
-3. Нажмите `F1` (или `Ctrl+Shift+P` / `Cmd+Shift+P`) и выберите:  
-   👉 **`Dev Containers: Reopen in Container`**
-4. VS Code автоматически соберет легковесный контейнер, установит все экстеншены и настроит рабочую среду.
-
-### Предустановленные расширения VS Code:
-* 📽️ **Marp for VS Code** (`marp-team.marp-vscode`) — рендеринг слайдов, live-preview и экспорт.
-* ✍️ **Markdown All in One** (`yzhang.markdown-all-in-one`) — шорткаты форматирования, оглавление.
-* 📊 **Markdown Mermaid** (`bierner.markdown-mermaid`) — диаграммы и графы.
-* 🌐 **Live Server** (`ritwickdey.liveserver`) — локальный предпросмотр интерактивных виджетов.
-* 💅 **Prettier** (`esbenp.prettier-vscode`) — автоформатирование.
-* 🔤 **Code Spell Checker + Russian** — проверка орфографии русского и английского языка.
+Современный учебно-методический комплекс презентаций для 90-минутных лекций по планированию движений мобильных колесных роботов. Написан на **Markdown (Marp)** со встроенными интерактивными симуляторами алгоритмов, строгой математической формализацией ($\mathcal{C}$-space, суммы Минковского, неголономные связи, LQR, MPC, World Models), минималистичным дизайном и готовым **Docker DevContainer** для изолированной разработки.
 
 ---
 
 ## 📚 Структура курса (8 лекций по 90 минут)
 
-Каждая лекция выстроена по строгому педагогическому регламенту:
-* `00–15 мин`: Введение, мотивация, контекст физического робота.
-* `15–35 мин`: Математический фундамент ($\mathcal{C}$-space, целевые функции, ограничения).
-* `35–55 мин`: Алгоритмическое ядро, псевдокод и структуры данных.
-* `55–70 мин`: **Интерактивная практика** с живым симулятором алгоритма.
-* `70–85 мин`: Учет кинематики и неголономности, перенос в ROS 2 (Nav2).
-* `85–90 мин`: Резюме, контрольные вопросы и дискуссия.
+Каждая лекция выстроена по строгому педагогическому регламенту: теория (45 мин), интерактивный симулятор (15 мин), прикладная робототехника / ROS 2 (20 мин) и Q&A (10 мин).
 
-| Лекция | Файл презентации | План и тайминг | Статус темы |
+| Лекция | Файл презентации | План и тайминг | Ключевые темы и концепции |
 | :--- | :--- | :--- | :--- |
-| **Лекция 01** | [`lectures/lecture-01/lecture-01.md`](lectures/lecture-01/lecture-01.md) | [timing.md](lectures/lecture-01/timing.md) | Введение, $\mathcal{C}$-space, дискретный поиск ($A^*$, Dijkstra) |
-| **Лекция 02** | [`lectures/lecture-02/lecture-02.md`](lectures/lecture-02/lecture-02.md) | [timing.md](lectures/lecture-02/timing.md) | [Тема будет заполнена] |
-| **Лекция 03** | [`lectures/lecture-03/lecture-03.md`](lectures/lecture-03/lecture-03.md) | [timing.md](lectures/lecture-03/timing.md) | [Тема будет заполнена] |
-| **Лекция 04** | [`lectures/lecture-04/lecture-04.md`](lectures/lecture-04/lecture-04.md) | [timing.md](lectures/lecture-04/timing.md) | [Тема будет заполнена] |
-| **Лекция 05** | [`lectures/lecture-05/lecture-05.md`](lectures/lecture-05/lecture-05.md) | [timing.md](lectures/lecture-05/timing.md) | [Тема будет заполнена] |
-| **Лекция 06** | [`lectures/lecture-06/lecture-06.md`](lectures/lecture-06/lecture-06.md) | [timing.md](lectures/lecture-06/timing.md) | [Тема будет заполнена] |
-| **Лекция 07** | [`lectures/lecture-07/lecture-07.md`](lectures/lecture-07/lecture-07.md) | [timing.md](lectures/lecture-07/timing.md) | [Тема будет заполнена] |
-| **Лекция 08** | [`lectures/lecture-08/lecture-08.md`](lectures/lecture-08/lecture-08.md) | [timing.md](lectures/lecture-08/timing.md) | [Тема будет заполнена] |
+| **Лекция 01** | [`lecture-01.md`](lectures/lecture-01/lecture-01.md) | [timing.md](lectures/lecture-01/timing.md) | **Постановка задачи планирования, репрезентация среды и ландшафт методов:** Path vs Trajectory, $\mathcal{C}$-space, сумма Минковского, профильная, опорная и семантическая проходимость, SOTA (nvblox, wavemap, elevation_mapping_cupy), SDF/ESDF, World Models. |
+| **Лекция 02** | [`lecture-02.md`](lectures/lecture-02/lecture-02.md) | [timing.md](lectures/lecture-02/timing.md) | **Дискретное планирование на графах и сетках:** 4/8-связные сетки, граф видимости, диаграммы Вороного, Dijkstra, $A^*$, допустимые и монотонные эвристики (Octile, Manhattan, Euclid), $D^*$ Lite, сглаживание траекторий. |
+| **Лекция 03** | [`lecture-03.md`](lectures/lecture-03/lecture-03.md) | [timing.md](lectures/lecture-03/timing.md) | **Планирование, основанное на выборке:** Проклятие размерности, PRM, RRT, доказательство неоптимальности базового RRT (Караман–Фраццоли), асимптотически оптимальный $RRT^*$ (Rewiring), Informed $RRT^*$, $k$-d tree, BVH. |
+| **Лекция 04** | [`lecture-04.md`](lectures/lecture-04/lecture-04.md) | [timing.md](lectures/lecture-04/timing.md) | **Реактивные и локальные методы:** Искусственные потенциальные поля (APF), гармонические поля (уравнение Лапласа $\Delta U = 0$), устранение U-ловушек, Dynamic Window Approach (DWA), Timed Elastic Band (TEB), Velocity Obstacles (VO/RVO). |
+| **Лекция 05** | [`lecture-05.md`](lectures/lecture-05/lecture-05.md) | [timing.md](lectures/lecture-05/timing.md) | **Оптимальное управление:** Вариационное исчисление, принцип максимума Понтрягина (Bang-Bang управление), уравнение HJB, LQR регулятор и уравнение Риккати, Direct Shooting vs Direct Collocation, кривые Дубинса и Ридса-Шеппа. |
+| **Лекция 06** | [`lecture-06.md`](lectures/lecture-06/lecture-06.md) | [timing.md](lectures/lecture-06/timing.md) | **Предиктивное управление (Model Predictive Control):** Принцип скользящего горизонта (Receding Horizon), линейный MPC (задача QP), нелинейный NMPC (Bicycle model, SQP, RTI, acados), Control Barrier Functions (CBF), Safe Flight Corridors. |
+| **Лекция 07** | [`lecture-07.md`](lectures/lecture-07/lecture-07.md) | [timing.md](lectures/lecture-07/timing.md) | **Учёт ограничений в алгоритмах планирования:** Геометрические, кинематические и динамические связи, неголономность (Пфафф $\omega \dot{q} = 0$), скобки Ли (Lie brackets), теорема Чоу–Рашевского, State Lattice, Kinodynamic RRT, конус трения шин, профилирование TOPP-RA. |
+| **Лекция 08** | [`lecture-08.md`](lectures/lecture-08/lecture-08.md) | [timing.md](lectures/lecture-08/timing.md) | **Вычислительные аспекты и инженерные компромиссы:** Многотактовая архитектура (1 Гц $\to$ 30 Гц $\to$ 1 кГц), компенсация задержки (Latency), алгоритм линейного EDT Фельзеншвальба, ROS 2 Nav2, Деревья поведения (Behavior Trees), восстановительные сценарии, Sim-to-Real. |
 
 ---
 
-## 🕹️ Интерактивные симуляторы алгоритмов (`widgets/`)
+## 🕹️ Интерактивные алгоритмические симуляторы (`widgets/`)
 
-В слайды можно встраивать интерактивные симуляторы через тег `<iframe>`. Они работают автономно в браузере без внешних библиотек и CDN:
-
-1. **A\* & Dijkstra Grid Search** (`widgets/astar-grid/index.html`):
-   - Динамическое рисование стен/препятствий мышью.
-   - Перетаскивание точек Start и Goal.
-   - Сравнение эвристик (Манхэттен, Евклид, Дейкстра $h=0$).
-   - Пошаговый запуск и статистика исследованных узлов.
-2. **RRT / RRT\* Sampling Planner** (`widgets/rrt-exploration/index.html`):
-   - Случайные деревья в непрерывном 2D конфигурационном пространстве.
-   - Визуализация выборки $q_{rand}$, ближайшего соседа $q_{near}$, шага $q_{new}$.
-   - Сравнение классического RRT и оптимизирующего RRT\* (переподключение ветвей).
-3. **Artificial Potential Fields** (`widgets/potential-field/index.html`):
-   - Силы притяжения к цели и отталкивания от препятствий.
-   - Наглядная демонстрация проблемы **локального минимума (U-ловушки)**.
+В слайды интегрированы полнофункциональные автономные симуляторы (чистый HTML5 Canvas/JS):
+1. [**C-Space & Minkowski Sum**](widgets/cspace-minkowski/index.html) — визуализация формирования среза $\mathcal{C}_{obs} = \mathcal{O} \oplus (-\mathcal{A})$ при вращении некруглого робота $\theta$.
+2. [**A\* & Dijkstra Grid Search**](widgets/astar-grid/index.html) — интерактивная сетка, динамическое рисование стен, сравнение эвристик (Манхэттен, Евклид, Дейкстра $h=0$), анимация фронта волны.
+3. [**RRT / RRT\* Tree Exploration**](widgets/rrt-exploration/index.html) — случайный сэмплинг в непрерывном $\mathcal{C}$-space, демонстрация переподключения ребер (Rewiring) в $RRT^*$.
+4. [**Artificial Potential Fields (APF)**](widgets/potential-field/index.html) — векторы сил притяжения/отталкивания и наглядный захват робота в U-ловушку (локальный минимум).
 
 ---
 
-## 🎨 Минималистичный и стильный дизайн (`themes/robotics-minimal.css`)
+## 📖 Первоисточники в репозитории (`references/`)
 
-Кастомная тема для Marp создана специально для презентаций по робототехнике:
-* Соотношение сторон 16:9 (`size: 16:9`).
-* Поддержка математических формул $\LaTeX$ через MathJax/KaTeX.
-* Готовые классы верстки:
-  - `.grid-2`, `.grid-3` — адаптивные колонки для сравнения алгоритмов.
-  - `.card`, `.card-accent`, `.card-alert`, `.card-success` — информационные блоки.
-  - `.badge`, `.badge-blue`, `.badge-green`, `.badge-time` — маркеры тайминга и сложности.
-  - `.formula-box` — акцентные блоки под математические формулы.
-  - `<!-- _class: invert -->` — глубокий темный режим для титульных и итоговых слайдов.
+* **Стивен М. Лаваль:** «Planning Algorithms» ([`references/lavalle_planning_algorithms/`](references/lavalle_planning_algorithms/)).
+* **ETH Zürich:** «Autonomous Mobile Robots» ([`references/eth_zurich/`](references/eth_zurich/)).
+* **MIT:** «Principles of Autonomy and Decision Making» + статья Karaman & Frazzoli по $RRT^*$ ([`references/mit/`](references/mit/)).
+* **Сводный анализ:** [`references/README.md`](references/README.md).
 
 ---
 
-## 🛠️ Скрипты и команды (внутри DevContainer)
+## 🛠️ Скрипты и команды (внутри Docker / DevContainer)
 
 | Команда | Описание |
 | :--- | :--- |
-| `npm run dev` | Запуск сервера Marp с автообновлением при сохранении `.md` файлов |
-| `npm run build` | Полная сборка всех презентаций в HTML, копирование тем, виджетов и генерация портала |
+| `npm run dev` | Запуск сервера Marp с автообновлением слайдов на лету |
+| `npm run build` | Полная сборка всех 8 презентаций в HTML, PDF и генерация портала курса |
 | `npm run build:html` | Быстрая сборка только HTML-версий |
-| `npm run build:pdf` | Экспорт всех лекций в формат PDF (через Chromium) |
-| `npm run preview` | Сборка и запуск локального веб-сервера портала на порту `8080` |
-
----
-
-## 🌐 Публикация на GitHub Pages
-
-В репозитории настроен GitHub Actions Workflow ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)):
-1. При любом `git push` в ветку `main` автоматически запускается сборка.
-2. Генерируется портал курса `dist/index.html`, презентации лекций и интерактивные симуляторы.
-3. Результат автоматически развертывается на **GitHub Pages**.
+| `npm run build:pdf` | Экспорт всех лекций в PDF через Chromium |
+| `npm run preview` | Локальный сервер портала курса на порту `8080` |

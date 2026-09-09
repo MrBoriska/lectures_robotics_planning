@@ -13,38 +13,38 @@ math: mathjax
 <!-- _footer: "" -->
 
 # **Планирование движений мобильных роботов**
-## Лекция 07: [Название темы будет предоставлено]
+## Лекция 07: Учёт ограничений в алгоритмах планирования
 
 <div class="mt-4">
-  <span class="badge badge-blue">⏱️ Продолжительность: 90 минут</span>
-  <span class="badge badge-green">Курс: Мобильная робототехника</span>
-  <span class="badge badge-purple">Marp + Interactive Engine</span>
+  <span class="badge badge-blue">⏱️ 90 минут</span>
+  <span class="badge badge-green">Физика и ограничения</span>
+  <span class="badge badge-purple">Неголономность • Скобки Ли • Трение • TOPP</span>
 </div>
 
 ---
 
 <!-- _header: "Лекция 07 | Структура занятия" -->
 
-## Тайминг и структура лекции <span class="badge badge-time">⏱️ 90 минут</span>
+## План лекции на 90 минут <span class="badge badge-time">⏱️ 90 минут</span>
 
 <div class="grid-2 mt-4">
 
 <div class="card card-accent">
-  <h3>Часть 1: Теория и концепции (45 мин)</h3>
+  <h3>Блок 1: Неголономность и скобки Ли (45 мин)</h3>
   <ul>
-    <li><strong>00–15 мин:</strong> Мотивация, связь с предыдущей лекцией, постановка задачи.</li>
-    <li><strong>15–35 мин:</strong> Математический аппарат и теоретический фундамент метода.</li>
-    <li><strong>35–45 мин:</strong> Анализ допущений, свойств сходимости и вычислительной сложности.</li>
+    <li><strong>00–15 мин:</strong> Классификация ограничений: геометрические, кинематические, динамические.</li>
+    <li><strong>15–30 мин:</strong> Неголономные связи формы Пфаффа $\omega(q)\dot{q} = 0$, интегрируемость и теорема Фробениуса.</li>
+    <li><strong>30–45 мин:</strong> Алгебра Ли, <strong>скобки Ли (Lie brackets)</strong> и теорема Чоу-Рашевского об управляемости.</li>
   </ul>
 </div>
 
 <div class="card card-accent">
-  <h3>Часть 2: Алгоритмы и практика (45 мин)</h3>
+  <h3>Блок 2: Динамика, сцепление и реализация (45 мин)</h3>
   <ul>
-    <li><strong>45–65 мин:</strong> Пошаговая реализация алгоритма, псевдокод и структуры данных.</li>
-    <li><strong>65–75 мин:</strong> <span class="badge badge-green">Интерактивная демонстрация</span> и разбор поведения в симуляторе.</li>
-    <li><strong>75–85 мин:</strong> Ограничения реальных роботов (динамика, шум сенсоров, латентность).</li>
-    <li><strong>85–90 мин:</strong> Резюме, контрольные вопросы и дискуссия.</li>
+    <li><strong>45–60 мин:</strong> Кинодинамическое планирование: State Lattice (решетки состояний) и Kinodynamic RRT.</li>
+    <li><strong>60–75 мин:</strong> Динамика колеса: конус трения Кулона, боковое скольжение ($a_y \le \mu g$) и профилирование скорости (TOPP).</li>
+    <li><strong>75–85 мин:</strong> Практика: движение робота задним ходом и автопоезда с прицепами.</li>
+    <li><strong>85–90 мин:</strong> Итоги, контрольные вопросы и Q&A.</li>
   </ul>
 </div>
 
@@ -52,148 +52,168 @@ math: mathjax
 
 ---
 
-## 1. Введение и постановка проблемы <span class="badge badge-time">00–15 мин</span>
+## 1. Классификация ограничений в мобильной робототехнике <span class="badge badge-time">00–15 мин</span>
+
+<div class="grid-3">
+
+<div class="card">
+  <h3>1. Геометрические</h3>
+  $$g(q) \le 0$$
+  <ul>
+    <li>Стены, колонны, двери.</li>
+    <li>Границы рабочей зоны $\mathcal{W}$.</li>
+    <li>Зазоры безопасности (Clearance).</li>
+    <li>Учитываются через $\mathcal{C}_{free}$.</li>
+  </ul>
+</div>
+
+<div class="card card-accent">
+  <h3>2. Кинематические</h3>
+  $$A(q) \dot{q} = 0, \quad |\kappa| \le \kappa_{max}$$
+  <ul>
+    <li>Запрет бокового проскальзывания колес.</li>
+    <li>Ограничение радиуса поворота $R \ge R_{min}$.</li>
+    <li>Пределы углов шарниров.</li>
+  </ul>
+</div>
+
+<div class="card card-alert">
+  <h3>3. Динамические</h3>
+  $$M(q)\ddot{q} + C(q, \dot{q})\dot{q} = \tau$$
+  <ul>
+    <li>Пределы крутящих моментов моторов $|\tau| \le \tau_{max}$.</li>
+    <li>Сцепление шин с полом (конус трения $\mu$).</li>
+    <li>Защита от опрокидывания (Rollover).</li>
+  </ul>
+</div>
+
+</div>
+
+---
+
+## 2. Неголономные связи и скобки Ли (Lie Brackets) <span class="badge badge-time">15–35 мин</span>
+
+<div class="grid-2">
+
+<div class="col">
+  <p>Связь называется <strong>голономной</strong>, если ее дифференциальная форма интегрируема и может быть сведена к функции координат $h(q) = 0$. Если нет — связь <strong>неголономная</strong>.</p>
+
+  <div class="formula-box">
+    $$\text{Дифференциальный робот:} \quad \dot{x}\sin\theta - \dot{y}\cos\theta = 0$$
+  </div>
+
+  <ul>
+    <li>Робот не может двигаться боком в данный момент времени.</li>
+    <li>Однако последовательностью маневров («параллельная парковка») робот может достичь <em>любой точки</em> в $SE(2)$!</li>
+  </ul>
+</div>
+
+<div class="col">
+  <div class="card card-accent">
+    <h3>Скобки Ли (Lie Bracket):</h3>
+    <p>Для векторных полей $f(q)$ и $g(q)$ скобка Ли определяет новое направление движения за счет коммутации:</p>
+    $$[f, g](q) = \frac{\partial g}{\partial q} f(q) - \frac{\partial f}{\partial q} g(q)$$
+    <div class="card-success">
+      <strong>Теорема Чоу–Рашевского:</strong> если векторные поля приводов и их скобки Ли повторного порядка порождают все касательное пространство $T_q \mathcal{C}$, система является <em>локально управляемой (STLC)</em>.
+    </div>
+  </div>
+</div>
+
+</div>
+
+---
+
+## 3. Методы планирования с ограничениями <span class="badge badge-time">35–55 мин</span>
 
 <div class="grid-2">
 
 <div class="col">
   <div class="card">
-    <h3>Контекст и предпосылки темы:</h3>
-    <p>[Здесь будет размещено описание проблемы, мотивирующие примеры из реальной робототехники и связь с предыдущими занятиями курса.]</p>
+    <h3>1. State Lattice Planning (Решетки состояний):</h3>
     <ul>
-      <li>Цель планирования в рамках данной парадигмы.</li>
-      <li>Где и почему стандартные подходы терпят неудачу.</li>
-      <li>Области применения: автономные автомобили, AGV, складские AMR, БПЛА.</li>
+      <li>Пространство состояний дискретизируется не регулярной сеткой, а набором <strong>допустимых примитивов движения (Motion Primitives)</strong>.</li>
+      <li>Каждый примитив заранее аналитически рассчитан с точным удовлетворением неголономных связей и пределов кривизны (например, клотоиды или полиномы 5-й степени).</li>
+      <li>Поиск на графе ($A^*$) выбирает только физически реализуемые ветви.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="col">
+  <div class="card card-accent">
+    <h3>2. Kinodynamic RRT:</h3>
+    <ul>
+      <li>Вместо геометрического шага $q_{new} = q_{near} + \Delta q$ сэмплируется вектор управляющих воздействий:
+        $$u \sim \operatorname{Uniform}(\mathcal{U})$$
+      </li>
+      <li>Новое состояние вычисляется численным интегрированием физической модели:
+        $$q_{new} = q_{near} + \int_0^{\Delta t} f(q(\tau), u) \, d\tau$$
+      </li>
+      <li>Гарантирует 100% кинематическую и динамическую корректность каждого ребра дерева.</li>
+    </ul>
+  </div>
+</div>
+
+</div>
+
+---
+
+## 4. Динамика колеса и профилирование скорости (TOPP) <span class="badge badge-time">55–75 мин</span>
+
+<div class="grid-2">
+
+<div class="col">
+  <div class="card card-alert">
+    <h3>Конус трения Кулона (Friction Cone):</h3>
+    <p>Суммарная сила сцепления колеса с поверхностью ограничена нормальной реакцией:</p>
+    $$\sqrt{F_x^2 + F_y^2} \le \mu F_z = \mu m g$$
+    <ul>
+      <li>Боковое ускорение в повороте радиуса $R = 1/\kappa$:
+        $$a_{lat} = v^2 \kappa \le \mu g \implies v_{max}(\kappa) = \sqrt{\frac{\mu g}{|\kappa|}}$$
+      </li>
+      <li>В крутых поворотах робот <em>обязан</em> снижать линейную скорость во избежание сноса (Skidding).</li>
+    </ul>
+  </div>
+</div>
+
+<div class="col">
+  <div class="card card-success">
+    <h3>Параметризация времени (Time-Optimal Path Parameterization — TOPP):</h3>
+    <p>Для заданного геометрического пути $s \in [0, S]$ находим профиль предельной скорости $\dot{s}(s)$:</p>
+    $$\min \int_0^S \frac{1}{\dot{s}} \, ds$$
+    $$\text{s.t.} \quad \ddot{s} \le a_{max}(s, \dot{s}), \quad |\dot{s}^2 \kappa(s)| \le a_{lat}^{max}$$
+    <p class="text-sm">Алгоритмы TOPP-RA вычисляют профиль разгона и торможения методом выпуклого программирования за микросекунды.</p>
+  </div>
+</div>
+
+</div>
+
+---
+
+## 5. Практический кейс: Робот с прицепами (N-Trailer) <span class="badge badge-time">75–85 мин</span>
+
+<div class="grid-2">
+
+<div class="col">
+  <div class="card card-accent">
+    <h3>Специфика складских автопоездов (AGV Tugger):</h3>
+    <ul>
+      <li>Тягач с дифференциальным приводом + пассивные прицепы с шарнирной сцепкой (Hitch).</li>
+      <li>Размерность $\mathcal{C}$-space:
+        $$q = (x, y, \theta_0, \beta_1, \beta_2, \dots, \beta_N)^T$$
+      </li>
+      <li>Связь угла складывания $i$-го прицепа:
+        $$\dot{\beta}_i = \frac{v_i}{L_i} \sin(\beta_i) - \dots$$
     </ul>
   </div>
 </div>
 
 <div class="col">
   <div class="card card-alert">
-    <h3>Ключевые вызовы:</h3>
+    <h3>Явление складывания (Jackknifing):</h3>
     <ul>
-      <li>Вычислительная сложность в пространствах высокой размерности.</li>
-      <li>Локальные экстремумы и неполнота информации.</li>
-      <li>Динамические и неголономные ограничения шасси.</li>
-    </ul>
-  </div>
-</div>
-
-</div>
-
----
-
-## 2. Теоретический базис и математическая модель <span class="badge badge-time">15–35 мин</span>
-
-<div class="grid-2">
-
-<div class="col">
-  <p>Формальное описание целевой функции и пространства поиска:</p>
-
-  <div class="formula-box">
-    2690136J(\tau) = \int_{0}^{T} \mathcal{L}(x(t), u(t)) \, dt + \Phi(x(T))2690136
-    2690136\text{s.t.} \quad \dot{x}(t) = f(x(t), u(t)), \quad x(t) \in \mathcal{X}_{free}2690136
-  </div>
-
-  <div class="card">
-    <h3>Свойства пространства:</h3>
-    <ul>
-      <li>Топология пространства состояний.</li>
-      <li>Метрика расстояния и функции допустимости.</li>
-    </ul>
-  </div>
-</div>
-
-<div class="col">
-  <div class="card card-accent">
-    <h3>Анализ сходимости и оптимальности:</h3>
-    <ul>
-      <li><strong>Вероятностная полнота (Probabilistic Completeness):</strong>
-        2690136\lim_{N \to \infty} P(\text{нахождение пути} \mid \text{путь существует}) = 12690136
-      </li>
-      <li><strong>Асимптотическая оптимальность (Asymptotic Optimality):</strong>
-        2690136\lim_{N \to \infty} \text{Cost}(Path_N) = c^*2690136
-      </li>
-    </ul>
-  </div>
-</div>
-
-</div>
-
----
-
-## 3. Алгоритмическое ядро и реализация <span class="badge badge-time">35–55 мин</span>
-
-<div class="grid-2">
-
-<div class="col">
-  <div class="card">
-    <h3>Псевдокод алгоритма:</h3>
-    <pre><code>def plan_trajectory(start, goal, obstacles):
-    state_tree = initialize_tree(start)
-    for iteration in range(MAX_ITER):
-        target_sample = sample_space(goal_bias)
-        nearest_node = find_nearest(state_tree, target_sample)
-        new_state = propagate_model(nearest_node, target_sample)
-        if collision_free(new_state, obstacles):
-            state_tree.add(new_state)
-            if reaches_goal(new_state, goal):
-                return extract_optimal_path(new_state)
-    return FAILURE</code></pre>
-  </div>
-</div>
-
-<div class="col">
-  <div class="card card-success">
-    <h3>Ключевые оптимизации:</h3>
-    <ul>
-      <li><strong>Пространственные индексы:</strong> hBcd tree / R-tree для ускорения поиска ближайших соседей $\mathcal{O}(\log N)$.</li>
-      <li><strong>Collision Checking:</strong> иерархии BVH (Bounding Volume Hierarchies).</li>
-      <li><strong>Goal Biasing:</strong> адаптивное смещение выборки к целевой зоне.</li>
-    </ul>
-  </div>
-</div>
-
-</div>
-
----
-
-<!-- _header: "Интерактивная практика | Лекция 07" -->
-
-## Интерактивная демонстрация: Исследование алгоритма <span class="badge badge-green">⏱️ 55–70 мин</span>
-
-<div class="interactive-container">
-  <div class="interactive-header">
-    <span><i class="interactive-dot"></i> Интерактивный алгоритмический симулятор</span>
-    <span>Экспериментируйте с параметрами и картой препятствий в реальном времени</span>
-  </div>
-  <iframe src="../../widgets/astar-grid/index.html" class="interactive-frame"></iframe>
-</div>
-
----
-
-## 4. Специфика реального робота и интеграция в ROS <span class="badge badge-time">70–85 мин</span>
-
-<div class="grid-2">
-
-<div class="col">
-  <div class="card card-accent">
-    <h3>Учет физических ограничений:</h3>
-    <ul>
-      <li><strong>Пределы ускорений:</strong> $|a_v| \le a_{max}, \quad |\alpha_\omega| \le \alpha_{max}$.</li>
-      <li><strong>Задержка контура управления (Latency):</strong> прогнозирование состояния вперед на время реакции системы ($\tau_{delay} \approx 50\text{--}100$ мс).</li>
-      <li><strong>Отказоустойчивость:</strong> аварийное торможение при приближении динамического объекта.</li>
-    </ul>
-  </div>
-</div>
-
-<div class="col">
-  <div class="card">
-    <h3>Архитектурная интеграция (ROS 2 / Nav2):</h3>
-    <ul>
-      <li>Плагин для <code>nav2_core::GlobalPlanner</code> или <code>Controller</code>.</li>
-      <li>Подписка на <code>/costmap/costmap_raw</code> и <code>/odom</code>.</li>
-      <li>Публикация траектории в топик <code>/plan</code> и команд скорости в <code>/cmd_vel</code>.</li>
+      <li>При движении задним ходом система экспоненциально неустойчива!</li>
+      <li>Если угол $\beta$ превышает критический порог $\beta_{crit} \approx 60^\circ$, прицеп упирается в тягач (складывание).</li>
+      <li>Ограничение $|\beta_i| \le \beta_{safe}$ должно жестко закладываться в планировщик как барьерное ограничение.</li>
     </ul>
   </div>
 </div>
@@ -203,28 +223,32 @@ math: mathjax
 ---
 
 <!-- _class: invert -->
-<!-- _header: "Лекция 07 | Заключение" -->
+<!-- _header: "Лекция 07 | Итоги и вопросы" -->
 
-## Резюме и вопросы для обсуждения <span class="badge badge-time">85–90 мин</span>
+## Резюме лекции и контрольные вопросы <span class="badge badge-time">85–90 мин</span>
 
 <div class="grid-2">
 
 <div class="card">
-  <h3>Главные выводы занятия:</h3>
+  <h3>Главные выводы:</h3>
   <ol>
-    <li>Теоретические свойства и границы применимости изученного метода.</li>
-    <li>Влияние настройки гиперпараметров на сходимость и вычислительную сложность.</li>
-    <li>Практические особенности переноса с идеальной симуляции на физический робот.</li>
+    <li>Игнорирование ограничений на этапе планирования приводит к невозможности исполнения траектории реальными приводами.</li>
+    <li>Скобки Ли доказывают, что неголономный робот способен попасть в любую точку пространства за счет скоординированных маневров.</li>
+    <li>Lattice-планеры и Kinodynamic RRT встраивают физику движения непосредственно в структуру графа поиска.</li>
+    <li>TOPP-RA разделяет планирование геометрии и оптимизацию скоростей, гарантируя сцепление без заноса.</li>
   </ol>
 </div>
 
 <div class="card card-accent">
   <h3>Контрольные вопросы:</h3>
   <ul>
-    <li>При каких условиях алгоритм теряет свойство оптимальности?</li>
-    <li>Как изменится поведение робота при зашумленной одометрии?</li>
-    <li>Каков вычислительный предел метода при увеличении числа степеней свободы?</li>
+    <li>Почему скобка Ли от двух векторных полей дифференциального привода порождает вектор движения вбок?</li>
+    <li>Как ограничение сцепления шин влияет на максимальную скорость прохождения дуги?</li>
+    <li>Что такое «складывание» автопоезда (Jackknife) и как его предотвратить в планировщике?</li>
   </ul>
+  <div class="mt-4 text-center">
+    <span class="badge badge-blue">Следующая лекция: Вычислительные аспекты и инженерные компромиссы</span>
+  </div>
 </div>
 
 </div>

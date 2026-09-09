@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Конфигурационное пространство и Сумма Минковского</title>
+  <link rel="stylesheet" href="../common/widget-base.css">
+  <style>
+    .legend-cspace {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .c-swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      display: inline-block;
+    }
+    .sw-robot { background: #0284c7; }
+    .sw-obs { background: #ef4444; }
+    .sw-cobs { background: rgba(245, 158, 11, 0.3); border: 1px dashed #f59e0b; }
+    .sw-point { background: #10b981; }
+  </style>
+</head>
+<body>
+  <div class="widget-layout">
+    <div class="toolbar">
+      <select id="shapeSelect" class="select-control">
+        <option value="rectangle">Робот: Прямоугольник (диф. шасси)</option>
+        <option value="circle">Робот: Окружность (омни-шасси)</option>
+        <option value="triangle">Робот: Треугольник (направленный)</option>
+      </select>
+
+      <div class="slider-group">
+        <span>Угол &theta; (°):</span>
+        <input type="range" id="thetaSlider" min="0" max="360" value="0">
+        <span id="thetaVal" style="font-family: var(--font-mono); color: #38bdf8; width: 35px;">0°</span>
+      </div>
+
+      <div class="slider-group">
+        <span>Размер робота:</span>
+        <input type="range" id="sizeSlider" min="20" max="80" value="45">
+      </div>
+
+      <div class="legend-cspace">
+        <span><i class="c-swatch sw-obs"></i> Препятствие O</span>
+        <span><i class="c-swatch sw-cobs"></i> C_obs (Сумма Минковского)</span>
+        <span><i class="c-swatch sw-robot"></i> Робот A(q)</span>
+        <span><i class="c-swatch sw-point"></i> Точка q=(x,y)</span>
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat-item">Состояние: <span id="statCollision">C_free (Безопасно)</span></div>
+      </div>
+    </div>
+
+    <div class="canvas-container">
+      <canvas id="cspaceCanvas"></canvas>
+      <div class="overlay-hint">Перетаскивайте робота мышью по полю | Вращайте ползунком угол &theta;</div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('cspaceCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let width = 800;
+    let height = 500;
+
+    let robotPos = { x: 180, y: 250 };
+    let theta = 0; // radians
+    let robotSize = 45;
+    let robotShape = 'rectangle';
+
+    // Polygonal obstacle in workspace
+    const obstacle = [
+      { x: 380, y: 150 },
+      { x: 550, y: 180 },
+      { x: 600, y: 320 },
+      { x: 440, y: 360 },
+      { x: 350, y: 260 }
+    ];
+
+    let isDragging = false;
+
+    function resize() {
+      const container = canvas.parentElement;
+      width = container.clientWidth;
+      height = container.clientHeight;
+      canvas.width = width;
+      canvas.height = height;
+      draw();
+    }
+    window.addEventListener('resize', resize);
+
+    function getRobotVertices(pos, angle, size) {
+      if (robotShape === 'rectangle') {
+        const w = size * 1.4;
+        const h = size * 0.8;
+        const hw = w / 2;
+        const hh = h / 2;
+        const local = [
+          { x: -hw, y: -hh },
+          { x: hw, y: -hh },
+          { x: hw, y: hh },
+          { x: -hw, y: hh }
+        ];
+        return rotateAndTranslate(local, pos, angle);
+      } else if (robotShape === 'triangle') {
+        const r = size * 0.8;
+        const local = [
+          { x: r, y: 0 },
+          { x: -r * 0.7, y: -r * 0.7 },
+          { x: -r * 0.4, y: 0 },
+          { x: -r * 0.7, y: r * 0.7 }
+        ];
+        return rotateAndTranslate(local, pos, angle);
+      } else {
+        // Circle approximation with 16 vertices
+        const local = [];
+        const n = 16;
+        const r = size * 0.6;
+        for (let i = 0; i < n; i++) {
+          const a = (i / n) * Math.PI * 2;
+          local.push({ x: Math.cos(a) * r, y: Math.sin(a) * r });
+        }
+        return rotateAndTranslate(local, pos, 0); // circle invariant to angle
+      }
+    }
+
+    function rotateAndTranslate(points, center, angle) {
+      const cos = Math.cos(angle);
+      const sin = Math.sin(angle);
+      return points.map(p => ({
+        x: center.x + p.x * cos - p.y * sin,
+        y: center.y + p.x * sin + p.y * cos
+      }));
+    }
+
+    // Compute Minkowski Sum of polygon O and reflected robot -A(0)
+    // C_obs = O ⊕ (-A) = { o - a | o in O, a in A }
+    function computeMinkowskiSum() {
+      const localRobot = getRobotVertices({ x: 0, y: 0 }, theta, robotSize);
+      // Invert: -A
+      const invRobot = localRobot.map(p => ({ x: -p.x, y: -p.y }));
+
+      // Sum all combinations of vertices
+      const sumPoints = [];
+      for (const obsP of obstacle) {
+        for (const robP of invRobot) {
+          sumPoints.push({ x: obsP.x + robP.x, y: obsP.y + robP.y });
+        }
+      }
+
+      // Compute convex hull of sumPoints (Monotone Chain algorithm)
+      return computeConvexHull(sumPoints);
+    }
+
+    function computeConvexHull(pts) {
+      const sorted = pts.slice().sort((a, b) => a.x === b.x ? a.y - b.y : a.x - b.x);
+      const lower = [];
+      for (const p of sorted) {
+        while (lower.length >= 2 && crossProduct(lower[lower.length - 2], lower[lower.length - 1], p) <= 0) {
+          lower.pop();
+        }
+        lower.push(p);
+      }
+      const upper = [];
+      for (let i = sorted.length - 1; i >= 0; i--) {
+        const p = sorted[i];
+        while (upper.length >= 2 && crossProduct(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) {
+          upper.pop();
+        }
+        upper.push(p);
+      }
+      lower.pop();
+      upper.pop();
+      return lower.concat(upper);
+    }
+
+    function crossProduct(o, a, b) {
+      return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+    }
+
+    function isPointInPolygon(pt, poly) {
+      let inside = false;
+      for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+        const xi = poly[i].x, yi = poly[i].y;
+        const xj = poly[j].x, yj = poly[j].y;
+        const intersect = ((yi > pt.y) !== (yj > pt.y)) &&
+                          (pt.x < (xj - xi) * (pt.y - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+      }
+      return inside;
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, width, height);
+
+      // Grid lines
+      ctx.strokeStyle = '#162032';
+      ctx.lineWidth = 1;
+      const step = 40;
+      for (let x = 0; x < width; x += step) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
+      }
+      for (let y = 0; y < height; y += step) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
+      }
+
+      // Compute C_obs
+      const cObs = computeMinkowskiSum();
+
+      // Check collision
+      const inCollision = isPointInPolygon(robotPos, cObs);
+      const statElem = document.getElementById('statCollision');
+      if (inCollision) {
+        statElem.textContent = '❌ C_obs (КОЛЛИЗИЯ!)';
+        statElem.style.color = '#ef4444';
+      } else {
+        statElem.textContent = '✅ C_free (Безопасно)';
+        statElem.style.color = '#10b981';
+      }
+
+      // 1. Draw C_obs (Minkowski Sum boundary)
+      ctx.fillStyle = inCollision ? 'rgba(239, 68, 68, 0.25)' : 'rgba(245, 158, 11, 0.18)';
+      ctx.strokeStyle = inCollision ? '#ef4444' : '#f59e0b';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 6]);
+      ctx.beginPath();
+      ctx.moveTo(cObs[0].x, cObs[0].y);
+      for (let i = 1; i < cObs.length; i++) ctx.lineTo(cObs[i].x, cObs[i].y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Label C_obs
+      ctx.fillStyle = '#f59e0b';
+      ctx.font = 'bold 13px monospace';
+      ctx.fillText('C_obs = O ⊕ (-A)', cObs[0].x - 10, cObs[0].y - 12);
+
+      // 2. Draw Original Obstacle O
+      ctx.fillStyle = '#1e293b';
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(obstacle[0].x, obstacle[0].y);
+      for (let i = 1; i < obstacle.length; i++) ctx.lineTo(obstacle[i].x, obstacle[i].y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#ef4444';
+      ctx.font = 'bold 14px sans-serif';
+      ctx.fillText('Препятствие O', obstacle[0].x + 30, obstacle[0].y + 60);
+
+      // 3. Draw Robot A(q) in workspace
+      const robotPoly = getRobotVertices(robotPos, theta, robotSize);
+      ctx.fillStyle = inCollision ? 'rgba(239, 68, 68, 0.7)' : 'rgba(2, 132, 199, 0.65)';
+      ctx.strokeStyle = inCollision ? '#b91c1c' : '#38bdf8';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(robotPoly[0].x, robotPoly[0].y);
+      for (let i = 1; i < robotPoly.length; i++) ctx.lineTo(robotPoly[i].x, robotPoly[i].y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Heading indicator for robot
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(robotPos.x, robotPos.y);
+      ctx.lineTo(robotPos.x + Math.cos(theta) * (robotSize * 0.9), robotPos.y + Math.sin(theta) * (robotSize * 0.9));
+      ctx.stroke();
+
+      // 4. Draw reference point q = (x, y)
+      ctx.fillStyle = '#10b981';
+      ctx.beginPath();
+      ctx.arc(robotPos.x, robotPos.y, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 12px monospace';
+      ctx.fillText(`q = (${Math.round(robotPos.x)}, ${Math.round(robotPos.y)})`, robotPos.x + 10, robotPos.y - 10);
+    }
+
+    // Event handlers
+    document.getElementById('thetaSlider').addEventListener('input', (e) => {
+      const deg = Number(e.target.value);
+      theta = (deg * Math.PI) / 180;
+      document.getElementById('thetaVal').textContent = `${deg}°`;
+      draw();
+    });
+
+    document.getElementById('sizeSlider').addEventListener('input', (e) => {
+      robotSize = Number(e.target.value);
+      draw();
+    });
+
+    document.getElementById('shapeSelect').addEventListener('change', (e) => {
+      robotShape = e.target.value;
+      draw();
+    });
+
+    canvas.addEventListener('mousedown', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      if (Math.hypot(x - robotPos.x, y - robotPos.y) < robotSize + 15) {
+        isDragging = true;
+      }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      const rect = canvas.getBoundingClientRect();
+      robotPos.x = e.clientX - rect.left;
+      robotPos.y = e.clientY - rect.top;
+      draw();
+    });
+
+    window.addEventListener('mouseup', () => {
+      isDragging = false;
+    });
+
+    resize();
+  </script>
+</body>
+</html>

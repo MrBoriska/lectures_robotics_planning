@@ -13,38 +13,38 @@ math: mathjax
 <!-- _footer: "" -->
 
 # **Планирование движений мобильных роботов**
-## Лекция 08: [Название темы будет предоставлено]
+## Лекция 08: Вычислительные аспекты и инженерные компромиссы
 
 <div class="mt-4">
-  <span class="badge badge-blue">⏱️ Продолжительность: 90 минут</span>
-  <span class="badge badge-green">Курс: Мобильная робототехника</span>
-  <span class="badge badge-purple">Marp + Interactive Engine</span>
+  <span class="badge badge-blue">⏱️ 90 минут</span>
+  <span class="badge badge-green">Инженерия и архитектура</span>
+  <span class="badge badge-purple">Real-Time • Nav2 • Behavior Trees • Sim-to-Real</span>
 </div>
 
 ---
 
 <!-- _header: "Лекция 08 | Структура занятия" -->
 
-## Тайминг и структура лекции <span class="badge badge-time">⏱️ 90 минут</span>
+## План лекции на 90 минут <span class="badge badge-time">⏱️ 90 минут</span>
 
 <div class="grid-2 mt-4">
 
 <div class="card card-accent">
-  <h3>Часть 1: Теория и концепции (45 мин)</h3>
+  <h3>Блок 1: Real-Time и структуры данных (45 мин)</h3>
   <ul>
-    <li><strong>00–15 мин:</strong> Мотивация, связь с предыдущей лекцией, постановка задачи.</li>
-    <li><strong>15–35 мин:</strong> Математический аппарат и теоретический фундамент метода.</li>
-    <li><strong>35–45 мин:</strong> Анализ допущений, свойств сходимости и вычислительной сложности.</li>
+    <li><strong>00–15 мин:</strong> Инженерные компромиссы: горизонт vs частота, бюджет вычислений на бортовом компьютере (SoC).</li>
+    <li><strong>15–30 мин:</strong> Многотактовая архитектура (Multi-rate): планирование на 1 Гц, 30 Гц и 1 кГц. Компенсация задержки (Latency).</li>
+    <li><strong>30–45 мин:</strong> Пространственные структуры данных: $k$-d tree, BVH, быстрое преобразование евклидова расстояния (EDT).</li>
   </ul>
 </div>
 
 <div class="card card-accent">
-  <h3>Часть 2: Алгоритмы и практика (45 мин)</h3>
+  <h3>Блок 2: Навигационный стек и надежность (45 мин)</h3>
   <ul>
-    <li><strong>45–65 мин:</strong> Пошаговая реализация алгоритма, псевдокод и структуры данных.</li>
-    <li><strong>65–75 мин:</strong> <span class="badge badge-green">Интерактивная демонстрация</span> и разбор поведения в симуляторе.</li>
-    <li><strong>75–85 мин:</strong> Ограничения реальных роботов (динамика, шум сенсоров, латентность).</li>
-    <li><strong>85–90 мин:</strong> Резюме, контрольные вопросы и дискуссия.</li>
+    <li><strong>45–65 мин:</strong> Архитектура ROS 2 Nav2: Деревья поведения (Behavior Trees) и отказоустойчивость.</li>
+    <li><strong>65–75 мин:</strong> Восстановительные поведения (Recovery Behaviors: Spin, Backup, Costmap clearing).</li>
+    <li><strong>75–85 мин:</strong> Sim-to-Real перенос, валидация безопасности и физические аварийные контуры.</li>
+    <li><strong>85–90 мин:</strong> Итоги курса, будущее мобильной автономности и Q&A.</li>
   </ul>
 </div>
 
@@ -52,148 +52,208 @@ math: mathjax
 
 ---
 
-## 1. Введение и постановка проблемы <span class="badge badge-time">00–15 мин</span>
+## 1. Инженерные компромиссы в реальном роботе <span class="badge badge-time">00–15 мин</span>
+
+<div class="grid-3">
+
+<div class="card">
+  <h3>Горизонт vs Частота</h3>
+  <ul>
+    <li><strong>Длинный горизонт:</strong> позволяет находить глобально оптимальные маневры, но требует экспоненциально больше CPU.</li>
+    <li><strong>Короткий горизонт:</strong> быстрый пересчет, но риск застрять в локальной ловушке.</li>
+  </ul>
+</div>
+
+<div class="card card-accent">
+  <h3>Точность vs Скорость</h3>
+  <ul>
+    <li>Сеточные воксели 1 см дают ювелирную точность, но перегружают память.</li>
+    <li>Воксели 10 см считаются мгновенно, но робот не помещается в узкие дверные проемы.</li>
+  </ul>
+</div>
+
+<div class="card card-alert">
+  <h3>Бюджет бортового SoC</h3>
+  <ul>
+    <li>SLAM, нейросети детекции людей и планировщик делят одну плату (NVIDIA Jetson / x86).</li>
+    <li>Лимит на поток планирования: не более <strong>1–2 ядер CPU</strong> и <strong>$\le 30$ мс</strong> на цикл.</li>
+  </ul>
+</div>
+
+</div>
+
+---
+
+## 2. Многотактовая архитектура (Multi-Rate System) <span class="badge badge-time">15–30 мин</span>
+
+<div class="grid-2">
+
+<div class="col">
+  <div class="card card-accent">
+    <h3>Иерархия временных масштабов:</h3>
+    <ol>
+      <li><strong>Уровень миссии ($\sim 0.1\text{--}1$ Гц):</strong> логика поведения, выбор целей (Behavior Tree).</li>
+      <li><strong>Глобальный планировщик ($\sim 1\text{--}2$ Гц):</strong> геометрический путь в глобальной статической карте.</li>
+      <li><strong>Локальный планировщик / MPC ($\sim 20\text{--}50$ Гц):</strong> оптимизация траектории и обход динамических препятствий.</li>
+      <li><strong>Контроллер приводов ($\sim 500\text{--}1000$ Гц):</strong> контур токов и скоростей двигателей в реальном времени (RTOS / Microcontroller).</li>
+    </ol>
+  </div>
+</div>
+
+<div class="col">
+  <div class="card card-alert">
+    <h3>Компенсация задержки (Latency Compensation):</h3>
+    <p>Время от момента съемки кадра сенсором до подачи тока на мотор составляет $\tau_{delay} \approx 40\text{--}100$ мс!</p>
+    <ul>
+      <li>За это время на скорости $2$ м/с робот проезжает $20$ см «вслепую».</li>
+      <li><strong>Решение:</strong> планирование стартует не из текущего положения $x(t)$, а из <em>прогнозируемого состояния</em> на шаг вперед:
+        $$\hat{x}(t + \tau_{delay}) = x(t) + \int_t^{t+\tau_{delay}} f(x(\tau), u(\tau)) \, d\tau$$
+      </li>
+    </ul>
+  </div>
+</div>
+
+</div>
+
+---
+
+## 3. Быстрые алгоритмы для карт: Алгоритм EDT <span class="badge badge-time">30–45 мин</span>
 
 <div class="grid-2">
 
 <div class="col">
   <div class="card">
-    <h3>Контекст и предпосылки темы:</h3>
-    <p>[Здесь будет размещено описание проблемы, мотивирующие примеры из реальной робототехники и связь с предыдущими занятиями курса.]</p>
+    <h3>Евклидово преобразование расстояний (EDT):</h3>
     <ul>
-      <li>Цель планирования в рамках данной парадигмы.</li>
-      <li>Где и почему стандартные подходы терпят неудачу.</li>
-      <li>Области применения: автономные автомобили, AGV, складские AMR, БПЛА.</li>
+      <li>Вычисляет расстояние до ближайшего препятствия для всех ячеек сетки $N \times M$.</li>
+      <li>Наивный перебор: $\mathcal{O}((N \cdot M)^2)$ — недопустимо медленно.</li>
+      <li><strong>Алгоритм Фельзеншвальба (Felzenszwalb & Huttenlocher):</strong>
+        Разделение по осям $X$ и $Y$ с поиском нижней огибающей парабол за <strong>$\mathcal{O}(N \cdot M)$ — строго линейное время!</strong>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="col">
+  <div class="card card-success">
+    <h3>Пространственные индексы (Spatial Query):</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Структура</th>
+          <th>Поиск соседа</th>
+          <th>Динамическое обновление</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Массив (Brute-force)</strong></td>
+          <td>$\mathcal{O}(N)$</td>
+          <td>$\mathcal{O}(1)$</td>
+        </tr>
+        <tr>
+          <td><strong>$k$-d Tree</strong></td>
+          <td>$\mathcal{O}(\log N)$</td>
+          <td>$\mathcal{O}(N \log N)$ перебалансировка</td>
+        </tr>
+        <tr>
+          <td><strong>Voxel Hashing / BVH</strong></td>
+          <td>$\mathcal{O}(1)$ среднее</td>
+          <td>$\mathcal{O}(1)$</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</div>
+
+---
+
+## 4. Архитектура ROS 2 Nav2 и Деревья поведения (BT) <span class="badge badge-time">45–65 мин</span>
+
+<div class="grid-2">
+
+<div class="col">
+  <div class="card card-accent">
+    <h3>Behavior Trees (Деревья поведения):</h3>
+    <p>Пришли на смену конечным автоматам (FSM) благодаря модульности, реактивности и масштабируемости.</p>
+    <ul>
+      <li>Узлы: <code>Sequence</code> $\to$, <code>Fallback</code> ?, <code>Parallel</code> $\rightrightarrows$, <code>Decorator</code>.</li>
+      <li>Состояния возврата: <code>SUCCESS</code>, <code>FAILURE</code>, <code>RUNNING</code>.</li>
+      <li>Позволяют описывать сложные протоколы: «Спланируй глобальный путь $\to$ если контроллер застрял $\to$ запусти расчистку карты $\to$ повтори попытку».</li>
+    </ul>
+  </div>
+</div>
+
+<div class="col">
+  <div class="card">
+    <h3>Пайплайн Nav2 в ROS 2:</h3>
+    <ul>
+      <li><code>nav2_bt_navigator</code> — центральный дирижер навигационной задачи.</li>
+      <li><code>nav2_planner</code> — плагины глобального пути (Smac Planner, NavFn).</li>
+      <li><code>nav2_controller</code> — локальные плагины траекторий (DWB, TEB, MPPI).</li>
+      <li><code>nav2_costmap_2d</code> — многослойные карты занятости на базе плагинов.</li>
+    </ul>
+  </div>
+</div>
+
+</div>
+
+---
+
+## 5. Восстановительные поведения (Recovery Behaviors) <span class="badge badge-time">65–75 мин</span>
+
+<div class="grid-2">
+
+<div class="col">
+  <div class="card card-alert">
+    <h3>Когда алгоритмы планирования пасуют:</h3>
+    <ul>
+      <li>Внезапное препятствие окружило робота со всех сторон (лифт, толпа).</li>
+      <li>Одометрия накопила ошибку, и робот «по карте» оказался внутри стены.</li>
+      <li>Планировщик возвращает статус <code>NO_PATH_FOUND</code>.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="col">
+  <div class="card card-success">
+    <h3>Каскад восстановления (Recovery Pipeline):</h3>
+    <ol>
+      <li><strong>Очистка временных слоев карты (Clear Costmap):</strong> удаление фантомных препятствий, зафиксированных лидаром из-за шума или пыли.</li>
+      <li><strong>Вращение на месте (Spin Recovery):</strong> поворот на $360^\circ$ для актуализации 3D-данных вокруг робота.</li>
+      <li><strong>Откат назад (Wait & Back-up):</strong> отъезд по своей же безопасной колее на 0.5–1.0 м назад.</li>
+      <li><strong>Аварийный вызов оператора:</strong> безопасная остановка и запрос помощи.</li>
+    </ol>
+  </div>
+</div>
+
+</div>
+
+---
+
+## 6. Sim-to-Real перенос и безопасность <span class="badge badge-time">75–85 мин</span>
+
+<div class="grid-2">
+
+<div class="col">
+  <div class="card card-accent">
+    <h3>Преодоление разрыва реальности (Sim-to-Real Gap):</h3>
+    <ul>
+      <li><strong>Рандомизация домена (Domain Randomization):</strong> рандомизация коэффициентов трения колес ($\mu \in [0.4, 0.9]$), массы груза и задержек в Isaac Sim.</li>
+      <li><strong>Моделирование шума сенсоров:</strong> добавление гауссова шума дальностей и выпадения лучей лидара.</li>
     </ul>
   </div>
 </div>
 
 <div class="col">
   <div class="card card-alert">
-    <h3>Ключевые вызовы:</h3>
+    <h3>Аппаратные барьеры безопасности (Safety Interlocks):</h3>
     <ul>
-      <li>Вычислительная сложность в пространствах высокой размерности.</li>
-      <li>Локальные экстремумы и неполнота информации.</li>
-      <li>Динамические и неголономные ограничения шасси.</li>
-    </ul>
-  </div>
-</div>
-
-</div>
-
----
-
-## 2. Теоретический базис и математическая модель <span class="badge badge-time">15–35 мин</span>
-
-<div class="grid-2">
-
-<div class="col">
-  <p>Формальное описание целевой функции и пространства поиска:</p>
-
-  <div class="formula-box">
-    2690136J(\tau) = \int_{0}^{T} \mathcal{L}(x(t), u(t)) \, dt + \Phi(x(T))2690136
-    2690136\text{s.t.} \quad \dot{x}(t) = f(x(t), u(t)), \quad x(t) \in \mathcal{X}_{free}2690136
-  </div>
-
-  <div class="card">
-    <h3>Свойства пространства:</h3>
-    <ul>
-      <li>Топология пространства состояний.</li>
-      <li>Метрика расстояния и функции допустимости.</li>
-    </ul>
-  </div>
-</div>
-
-<div class="col">
-  <div class="card card-accent">
-    <h3>Анализ сходимости и оптимальности:</h3>
-    <ul>
-      <li><strong>Вероятностная полнота (Probabilistic Completeness):</strong>
-        2690136\lim_{N \to \infty} P(\text{нахождение пути} \mid \text{путь существует}) = 12690136
-      </li>
-      <li><strong>Асимптотическая оптимальность (Asymptotic Optimality):</strong>
-        2690136\lim_{N \to \infty} \text{Cost}(Path_N) = c^*2690136
-      </li>
-    </ul>
-  </div>
-</div>
-
-</div>
-
----
-
-## 3. Алгоритмическое ядро и реализация <span class="badge badge-time">35–55 мин</span>
-
-<div class="grid-2">
-
-<div class="col">
-  <div class="card">
-    <h3>Псевдокод алгоритма:</h3>
-    <pre><code>def plan_trajectory(start, goal, obstacles):
-    state_tree = initialize_tree(start)
-    for iteration in range(MAX_ITER):
-        target_sample = sample_space(goal_bias)
-        nearest_node = find_nearest(state_tree, target_sample)
-        new_state = propagate_model(nearest_node, target_sample)
-        if collision_free(new_state, obstacles):
-            state_tree.add(new_state)
-            if reaches_goal(new_state, goal):
-                return extract_optimal_path(new_state)
-    return FAILURE</code></pre>
-  </div>
-</div>
-
-<div class="col">
-  <div class="card card-success">
-    <h3>Ключевые оптимизации:</h3>
-    <ul>
-      <li><strong>Пространственные индексы:</strong> hBcd tree / R-tree для ускорения поиска ближайших соседей $\mathcal{O}(\log N)$.</li>
-      <li><strong>Collision Checking:</strong> иерархии BVH (Bounding Volume Hierarchies).</li>
-      <li><strong>Goal Biasing:</strong> адаптивное смещение выборки к целевой зоне.</li>
-    </ul>
-  </div>
-</div>
-
-</div>
-
----
-
-<!-- _header: "Интерактивная практика | Лекция 08" -->
-
-## Интерактивная демонстрация: Исследование алгоритма <span class="badge badge-green">⏱️ 55–70 мин</span>
-
-<div class="interactive-container">
-  <div class="interactive-header">
-    <span><i class="interactive-dot"></i> Интерактивный алгоритмический симулятор</span>
-    <span>Экспериментируйте с параметрами и картой препятствий в реальном времени</span>
-  </div>
-  <iframe src="../../widgets/astar-grid/index.html" class="interactive-frame"></iframe>
-</div>
-
----
-
-## 4. Специфика реального робота и интеграция в ROS <span class="badge badge-time">70–85 мин</span>
-
-<div class="grid-2">
-
-<div class="col">
-  <div class="card card-accent">
-    <h3>Учет физических ограничений:</h3>
-    <ul>
-      <li><strong>Пределы ускорений:</strong> $|a_v| \le a_{max}, \quad |\alpha_\omega| \le \alpha_{max}$.</li>
-      <li><strong>Задержка контура управления (Latency):</strong> прогнозирование состояния вперед на время реакции системы ($\tau_{delay} \approx 50\text{--}100$ мс).</li>
-      <li><strong>Отказоустойчивость:</strong> аварийное торможение при приближении динамического объекта.</li>
-    </ul>
-  </div>
-</div>
-
-<div class="col">
-  <div class="card">
-    <h3>Архитектурная интеграция (ROS 2 / Nav2):</h3>
-    <ul>
-      <li>Плагин для <code>nav2_core::GlobalPlanner</code> или <code>Controller</code>.</li>
-      <li>Подписка на <code>/costmap/costmap_raw</code> и <code>/odom</code>.</li>
-      <li>Публикация траектории в топик <code>/plan</code> и команд скорости в <code>/cmd_vel</code>.</li>
+      <li>Планировщик — это программный код, который может зависнуть.</li>
+      <li><strong>Watchdog Timer:</strong> если за 100 мс новая команда <code>/cmd_vel</code> не пришла, моторный драйвер мгновенно сбрасывает скорости в 0.</li>
+      <li><strong>Аппаратный лазерный сканер безопасности (Safety SICK / Pepperl+Fuchs):</strong> физически разрывает цепь питания моторов при появлении объекта в опасной зоне 30 см.</li>
     </ul>
   </div>
 </div>
@@ -203,28 +263,37 @@ math: mathjax
 ---
 
 <!-- _class: invert -->
-<!-- _header: "Лекция 08 | Заключение" -->
+<!-- _header: "Курс завершен! | Финальные выводы" -->
 
-## Резюме и вопросы для обсуждения <span class="badge badge-time">85–90 мин</span>
+## Итоги курса: Систематизация знаний <span class="badge badge-time">85–90 мин</span>
 
 <div class="grid-2">
 
 <div class="card">
-  <h3>Главные выводы занятия:</h3>
-  <ol>
-    <li>Теоретические свойства и границы применимости изученного метода.</li>
-    <li>Влияние настройки гиперпараметров на сходимость и вычислительную сложность.</li>
-    <li>Практические особенности переноса с идеальной симуляции на физический робот.</li>
+  <h3>Фундаментальный стек инженера по планированию:</h3>
+  <ol class="text-sm">
+    <li><strong>Пространство состояний ($\mathcal{C}$-space):</strong> геометрия и сумма Минковского.</li>
+    <li><strong>Дискретный глобальный поиск:</strong> $A^*$, $D^*$ Lite, графы видимости.</li>
+    <li><strong>Сэмплирующие методы:</strong> RRT, асимптотическая оптимальность RRT*.</li>
+    <li><strong>Локальная реактивность:</strong> DWA, потенциальные поля, TEB.</li>
+    <li><strong>Теория управления:</strong> LQR, Direct Collocation, аналитический Дубинс.</li>
+    <li><strong>Предиктивность:</strong> MPC, квадратичное программирование (QP).</li>
+    <li><strong>Физические связи:</strong> неголономность, скобки Ли, сцепление колес.</li>
+    <li><strong>Промышленная надежность:</strong> ROS 2 Nav2, Behavior Trees, Safety Watchdogs.</li>
   </ol>
 </div>
 
 <div class="card card-accent">
-  <h3>Контрольные вопросы:</h3>
+  <h3>Куда двигаться дальше?</h3>
+  <p>Современный фронтир робототехники объединяет доказанную безопасность классических алгоритмов с гибкостью нейросетей:</p>
   <ul>
-    <li>При каких условиях алгоритм теряет свойство оптимальности?</li>
-    <li>Как изменится поведение робота при зашумленной одометрии?</li>
-    <li>Каков вычислительный предел метода при увеличении числа степеней свободы?</li>
+    <li>Диффузионные политики управления (Diffusion Policy).</li>
+    <li>Модели мира (World Models) для планирования в латентном пространстве.</li>
+    <li>Аппаратно-ускоренные поля расстояний (nvblox на GPU).</li>
   </ul>
+  <div class="mt-4 text-center">
+    <span class="badge badge-green">Спасибо за внимание! Успешных траекторий! 🚀</span>
+  </div>
 </div>
 
 </div>
