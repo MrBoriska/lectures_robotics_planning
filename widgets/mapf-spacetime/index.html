@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Интерактивный MAPF и Space-Time A*</title>
+  <link rel="stylesheet" href="../common/widget-base.css">
+  <style>
+    .legend-mapf {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      display: inline-block;
+    }
+    .sw-r1 { background: #0284c7; }
+    .sw-r2 { background: #f59e0b; }
+    .sw-collision { background: #ef4444; }
+    .sw-wait { background: #8b5cf6; }
+    .timeline-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: 10px;
+    }
+    .time-badge {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: #38bdf8;
+      background: rgba(2, 132, 199, 0.2);
+      padding: 2px 8px;
+      border-radius: 4px;
+      min-width: 55px;
+      text-align: center;
+    }
+    .collision-alert {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(239, 68, 68, 0.9);
+      color: #ffffff;
+      padding: 6px 16px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 13px;
+      display: none;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.5);
+      z-index: 10;
+      animation: pulse 1s infinite alternate;
+    }
+    @keyframes pulse {
+      from { opacity: 0.85; transform: translateX(-50%) scale(0.98); }
+      to { opacity: 1; transform: translateX(-50%) scale(1.02); }
+    }
+  </style>
+</head>
+<body>
+  <div class="widget-layout">
+    <div class="toolbar">
+      <select id="modeSelect" class="select-control">
+        <option value="spacetime">Space-Time A* (Резервирование времени)</option>
+        <option value="naive">Нескоординированный A* (КОЛЛИЗИЯ!)</option>
+      </select>
+
+      <select id="scenarioSelect" class="select-control">
+        <option value="corridor">Сценарий 1: Узкий коридор</option>
+        <option value="intersection">Сценарий 2: Перекресток (Крест)</option>
+      </select>
+
+      <div class="timeline-controls">
+        <button id="btnPlay" class="btn btn-primary">▶ Плей</button>
+        <button id="btnStepFwd" class="btn">Шаг +1</button>
+        <button id="btnResetTime" class="btn">🔄 Сброс t=0</button>
+        <div class="slider-group">
+          <span>Шаг t:</span>
+          <input type="range" id="timeSlider" min="0" max="20" value="0">
+        </div>
+        <span class="time-badge" id="timeDisplay">t = 0</span>
+      </div>
+
+      <div class="legend-mapf">
+        <span><i class="swatch sw-r1"></i> Робот 1 (Приоритет 1)</span>
+        <span><i class="swatch sw-r2"></i> Робот 2 (Приоритет 2)</span>
+        <span><i class="swatch sw-wait"></i> Wait-действие</span>
+      </div>
+    </div>
+
+    <div class="canvas-container">
+      <div id="collisionAlert" class="collision-alert">💥 КОЛЛИЗИЯ РОБОТОВ В МОМЕНТ t!</div>
+      <canvas id="mapfCanvas"></canvas>
+      <div class="overlay-hint">Управляйте ползунком t или запустите Плей для анимации движения агентов</div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('mapfCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const COLS = 24;
+    const ROWS = 12;
+    let cellSize = 28;
+
+    let currentTime = 0;
+    let maxTime = 16;
+    let isPlaying = false;
+    let playTimer = null;
+
+    let grid = [];
+    let r1Path = []; // array of {x, y, t, wait: bool}
+    let r2Path = [];
+
+    let r1Start = { x: 2, y: 6 };
+    let r1Goal = { x: 21, y: 6 };
+
+    let r2Start = { x: 21, y: 6 };
+    let r2Goal = { x: 2, y: 6 };
+
+    function initScenario(type) {
+      grid = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+
+      if (type === 'corridor') {
+        // Bottleneck corridor in the middle
+        for (let x = 0; x < COLS; x++) {
+          for (let y = 0; y < ROWS; y++) {
+            if (x >= 7 && x <= 16) {
+              if (y < 5 || y > 6) grid[y][x] = 1;
+            }
+          }
+        }
+        r1Start = { x: 2, y: 5 };
+        r1Goal = { x: 21, y: 6 };
+        r2Start = { x: 21, y: 5 };
+        r2Goal = { x: 2, y: 6 };
+      } else {
+        // Intersection cross
+        for (let x = 0; x < COLS; x++) {
+          for (let y = 0; y < ROWS; y++) {
+            if (!((x >= 10 && x <= 13) || (y >= 4 && y <= 7))) {
+              grid[y][x] = 1;
+            }
+          }
+        }
+        r1Start = { x: 3, y: 5 };
+        r1Goal = { x: 20, y: 5 };
+        r2Start = { x: 11, y: 10 };
+        r2Goal = { x: 12, y: 1 };
+      }
+
+      computePaths();
+    }
+
+    function computePaths() {
+      const mode = document.getElementById('modeSelect').value;
+
+      // 1. Robot 1 always plans standard A* from start to goal
+      r1Path = findPathAStar(r1Start, r1Goal, new Set());
+
+      if (mode === 'naive') {
+        // Robot 2 plans completely independently ignoring Robot 1
+        r2Path = findPathAStar(r2Start, r2Goal, new Set());
+      } else {
+        // Space-Time A*: build reservation table from Robot 1
+        const reservationTable = new Set();
+        for (const pt of r1Path) {
+          reservationTable.add(`${pt.x},${pt.y},${pt.t}`);
+        }
+        // Robot 2 plans with Space-Time A* with wait moves allowed
+        r2Path = findSpaceTimePath(r2Start, r2Goal, reservationTable, r1Path);
+      }
+
+      maxTime = Math.max(r1Path.length - 1, r2Path.length - 1, 10);
+      document.getElementById('timeSlider').max = maxTime;
+      currentTime = 0;
+      updateTimeDisplay();
+      draw();
+    }
+
+    function findPathAStar(start, goal, forbidden) {
+      const open = [{ x: start.x, y: start.y, g: 0, f: Math.hypot(start.x - goal.x, start.y - goal.y), parent: null }];
+      const closed = new Set();
+
+      while (open.length > 0) {
+        open.sort((a, b) => a.f - b.f);
+        const curr = open.shift();
+        const k = `${curr.x},${curr.y}`;
+        if (closed.has(k)) continue;
+        closed.add(k);
+
+        if (curr.x === goal.x && curr.y === goal.y) {
+          const res = [];
+          let node = curr;
+          while (node) {
+            res.push({ x: node.x, y: node.y, wait: false });
+            node = node.parent;
+          }
+          res.reverse();
+          return res.map((p, idx) => ({ ...p, t: idx }));
+        }
+
+        const dirs = [{ x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 }];
+        for (const d of dirs) {
+          const nx = curr.x + d.x;
+          const ny = curr.y + d.y;
+          if (nx < 0 || nx >= COLS || ny < 0 || ny >= ROWS) continue;
+          if (grid[ny][nx] === 1) continue;
+          if (closed.has(`${nx},${ny}`)) continue;
+
+          const g = curr.g + 1;
+          const f = g + Math.hypot(nx - goal.x, ny - goal.y);
+          open.push({ x: nx, y: ny, g, f, parent: curr });
+        }
+      }
+      return [{ x: start.x, y: start.y, t: 0, wait: false }];
+    }
+
+    // Space-Time A* with (x, y, t) states & Wait actions
+    function findSpaceTimePath(start, goal, reservation, r1Trajectory) {
+      const open = [{ x: start.x, y: start.y, t: 0, g: 0, f: Math.hypot(start.x - goal.x, start.y - goal.y), wait: false, parent: null }];
+      const visited = new Set();
+      const MAX_T = 30;
+
+      while (open.length > 0) {
+        open.sort((a, b) => a.f - b.f);
+        const curr = open.shift();
+        const stateKey = `${curr.x},${curr.y},${curr.t}`;
+        if (visited.has(stateKey)) continue;
+        visited.add(stateKey);
+
+        if (curr.x === goal.x && curr.y === goal.y) {
+          const res = [];
+          let node = curr;
+          while (node) {
+            res.push({ x: node.x, y: node.y, t: node.t, wait: node.wait });
+            node = node.parent;
+          }
+          res.reverse();
+          return res;
+        }
+
+        if (curr.t >= MAX_T) continue;
+
+        // Moves: North, South, East, West, and WAIT IN PLACE!
+        const moves = [
+          { x: 0, y: 0, wait: true }, // Wait action
+          { x: 1, y: 0, wait: false },
+          { x: -1, y: 0, wait: false },
+          { x: 0, y: 1, wait: false },
+          { x: 0, y: -1, wait: false }
+        ];
+
+        const nextT = curr.t + 1;
+
+        for (const m of moves) {
+          const nx = curr.x + m.x;
+          const ny = curr.y + m.y;
+
+          if (nx < 0 || nx >= COLS || ny < 0 || ny >= ROWS) continue;
+          if (grid[ny][nx] === 1) continue;
+
+          // 1. Vertex collision check: is cell reserved by Robot 1 at nextT?
+          if (reservation.has(`${nx},${ny},${nextT}`)) continue;
+
+          // 2. Edge / Swap collision check: did Robot 1 move from (nx, ny) to (curr.x, curr.y) between curr.t and nextT?
+          const r1AtCurr = r1Trajectory[curr.t] || r1Trajectory[r1Trajectory.length - 1];
+          const r1AtNext = r1Trajectory[nextT] || r1Trajectory[r1Trajectory.length - 1];
+          if (r1AtCurr && r1AtNext) {
+            if (r1AtCurr.x === nx && r1AtCurr.y === ny && r1AtNext.x === curr.x && r1AtNext.y === curr.y) {
+              continue; // Swap conflict!
+            }
+          }
+
+          const g = curr.g + (m.wait ? 1.05 : 1.0);
+          const h = Math.hypot(nx - goal.x, ny - goal.y);
+          const f = g + h;
+
+          open.push({
+            x: nx,
+            y: ny,
+            t: nextT,
+            g,
+            f,
+            wait: m.wait,
+            parent: curr
+          });
+        }
+      }
+      return [{ x: start.x, y: start.y, t: 0, wait: false }];
+    }
+
+    function checkCollisionAtCurrentTime() {
+      const p1 = r1Path[Math.min(currentTime, r1Path.length - 1)] || r1Start;
+      const p2 = r2Path[Math.min(currentTime, r2Path.length - 1)] || r2Start;
+
+      // Vertex conflict
+      if (p1.x === p2.x && p1.y === p2.y) {
+        return { type: 'VERTEX', pos: p1 };
+      }
+
+      // Edge swap conflict
+      if (currentTime > 0) {
+        const prev1 = r1Path[Math.min(currentTime - 1, r1Path.length - 1)] || r1Start;
+        const prev2 = r2Path[Math.min(currentTime - 1, r2Path.length - 1)] || r2Start;
+        if (prev1.x === p2.x && prev1.y === p2.y && p1.x === prev2.x && p1.y === prev2.y) {
+          return { type: 'SWAP', pos: p1 };
+        }
+      }
+      return null;
+    }
+
+    function resize() {
+      const container = canvas.parentElement;
+      canvas.width = container.clientWidth;
+      canvas.height = container.clientHeight;
+      cellSize = Math.min(canvas.width / COLS, canvas.height / ROWS);
+      draw();
+    }
+    window.addEventListener('resize', resize);
+
+    function updateTimeDisplay() {
+      document.getElementById('timeDisplay').textContent = `t = ${currentTime}`;
+      document.getElementById('timeSlider').value = currentTime;
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const offsetX = (canvas.width - COLS * cellSize) / 2;
+      const offsetY = (canvas.height - ROWS * cellSize) / 2;
+
+      // Draw Grid & Walls
+      for (let y = 0; y < ROWS; y++) {
+        for (let x = 0; x < COLS; x++) {
+          const px = offsetX + x * cellSize;
+          const py = offsetY + y * cellSize;
+
+          if (grid[y][x] === 1) {
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(px + 1, py + 1, cellSize - 2, cellSize - 2);
+          } else {
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(px + 1, py + 1, cellSize - 2, cellSize - 2);
+          }
+
+          ctx.strokeStyle = '#1e293b';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(px, py, cellSize, cellSize);
+        }
+      }
+
+      // Draw Trajectory Trails
+      function drawTrail(path, color) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        for (let i = 0; i < path.length; i++) {
+          const px = offsetX + path[i].x * cellSize + cellSize / 2;
+          const py = offsetY + path[i].y * cellSize + cellSize / 2;
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      drawTrail(r1Path, 'rgba(56, 189, 248, 0.4)');
+      drawTrail(r2Path, 'rgba(245, 158, 11, 0.4)');
+
+      // Draw Goals
+      function drawGoal(pt, color, label) {
+        const cx = offsetX + pt.x * cellSize + cellSize / 2;
+        const cy = offsetY + pt.y * cellSize + cellSize / 2;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(cx - cellSize * 0.4, cy - cellSize * 0.4, cellSize * 0.8, cellSize * 0.8);
+        ctx.fillStyle = color;
+        ctx.font = 'bold 10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(label, cx, cy);
+      }
+      drawGoal(r1Goal, '#38bdf8', 'G1');
+      drawGoal(r2Goal, '#f59e0b', 'G2');
+
+      // Check collision
+      const collision = checkCollisionAtCurrentTime();
+      const alertElem = document.getElementById('collisionAlert');
+      if (collision) {
+        alertElem.style.display = 'block';
+        alertElem.textContent = collision.type === 'VERTEX' ?
+          `💥 СТОЛКНОВЕНИЕ ВЕРШИН (Vertex Collision) в ячейке (${collision.pos.x}, ${collision.pos.y}) на шаге t=${currentTime}!` :
+          `💥 ОБМЕННОЕ СТОЛКНОВЕНИЕ (Edge/Swap Collision) на шаге t=${currentTime}!`;
+      } else {
+        alertElem.style.display = 'none';
+      }
+
+      // Draw Robot Positions at currentTime
+      const p1 = r1Path[Math.min(currentTime, r1Path.length - 1)] || r1Start;
+      const p2 = r2Path[Math.min(currentTime, r2Path.length - 1)] || r2Start;
+
+      function drawRobot(p, color, label, isWaiting) {
+        const cx = offsetX + p.x * cellSize + cellSize / 2;
+        const cy = offsetY + p.y * cellSize + cellSize / 2;
+        const r = cellSize * 0.38;
+
+        if (collision) {
+          ctx.shadowColor = '#ef4444';
+          ctx.shadowBlur = 15;
+        }
+
+        ctx.fillStyle = collision ? '#ef4444' : color;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(label, cx, cy);
+
+        if (isWaiting) {
+          ctx.fillStyle = '#8b5cf6';
+          ctx.font = 'bold 9px monospace';
+          ctx.fillText('WAIT', cx, cy - cellSize * 0.55);
+        }
+      }
+
+      drawRobot(p1, '#0284c7', 'R1', false);
+      const isR2Waiting = r2Path[currentTime] && r2Path[currentTime].wait;
+      drawRobot(p2, '#f59e0b', 'R2', isR2Waiting);
+    }
+
+    // Controls
+    document.getElementById('timeSlider').addEventListener('input', (e) => {
+      currentTime = Number(e.target.value);
+      updateTimeDisplay();
+      draw();
+    });
+
+    document.getElementById('btnStepFwd').addEventListener('click', () => {
+      if (currentTime < maxTime) {
+        currentTime++;
+        updateTimeDisplay();
+        draw();
+      }
+    });
+
+    document.getElementById('btnResetTime').addEventListener('click', () => {
+      currentTime = 0;
+      updateTimeDisplay();
+      draw();
+    });
+
+    document.getElementById('btnPlay').addEventListener('click', () => {
+      if (isPlaying) {
+        clearInterval(playTimer);
+        isPlaying = false;
+        document.getElementById('btnPlay').textContent = '▶ Плей';
+        document.getElementById('btnPlay').className = 'btn btn-primary';
+      } else {
+        isPlaying = true;
+        document.getElementById('btnPlay').textContent = '⏸ Пауза';
+        document.getElementById('btnPlay').className = 'btn btn-danger';
+        playTimer = setInterval(() => {
+          if (currentTime >= maxTime) {
+            currentTime = 0;
+          } else {
+            currentTime++;
+          }
+          updateTimeDisplay();
+          draw();
+        }, 500);
+      }
+    });
+
+    document.getElementById('modeSelect').addEventListener('change', computePaths);
+    document.getElementById('scenarioSelect').addEventListener('change', (e) => {
+      initScenario(e.target.value);
+    });
+
+    initScenario('corridor');
+    resize();
+  </script>
+</body>
+</html>

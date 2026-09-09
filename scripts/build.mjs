@@ -372,6 +372,11 @@ const portalHtml = `<!DOCTYPE html>
             <p>Конфигурационное пространство, поворот робота $\theta$, вычисление сечения {obs} = O \oplus (-A)$ и проверка коллизий.</p>
             <span class="lecture-num">Открыть симулятор →</span>
           </a>
+          <a href="widgets/mapf-spacetime/index.html" class="widget-link-card" target="_blank">
+            <h4>Space-Time A* & MAPF</h4>
+            <p>Многоагентное планирование, предотвращение Vertex и Swap коллизий с помощью действий ожидания (WAIT) и таблицы резервирования.</p>
+            <span class="lecture-num">Открыть симулятор →</span>
+          </a>
           <a href="widgets/astar-grid/index.html" class="widget-link-card" target="_blank">
             <h4>A* & Dijkstra Grid Search</h4>
             <p>Дискретный поиск кратчайшего пути на 2D-сетке, динамическое рисование препятствий, сравнение эвристик.</p>
