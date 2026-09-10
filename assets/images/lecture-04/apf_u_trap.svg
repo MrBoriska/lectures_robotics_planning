@@ -12,7 +12,7 @@
     <circle cx="170" cy="40" r="7" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
     <text x="185" y="44" font-family="Inter" font-size="11" font-weight="700" fill="#0284c7">Цель (G)</text>
 
-    <path d="M170,270 L170,165" stroke="#dc2626" stroke-width="3" stroke-linecap="round"/>
+    <path d="M170,270 L170,165" stroke="#dc2626" stroke-width="3" stroke-linecap="round" fill="none"/>
     <circle cx="170" cy="270" r="5" fill="#059669"/>
     <text x="150" y="290" font-family="Inter" font-size="10.5" fill="#059669">Старт (S)</text>
 
@@ -48,6 +48,6 @@
 
     <rect x="14" y="240" width="317" height="68" rx="5" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1"/>
     <text x="24" y="260" font-family="Inter, sans-serif" font-size="11.5" font-weight="700" fill="#065f46">Принцип максимума гармонических функций:</text>
-    <text x="24" y="278" font-family="Inter, sans-serif" font-size="10.5" fill="#047857">Экстремумы достигаются ТОЛЬКО на границах! Внутри свободной зоны локальные минимумы невозможны.</text>
+    <text x="24" y="278" font-family="Inter, sans-serif" font-size="10.50" fill="#047857"><tspan x="24.0" dy="0">Экстремумы достигаются ТОЛЬКО на границах! Внутри</tspan><tspan x="24.0" dy="12.2">свободной зоны локальные минимумы невозможны.</tspan></text>
   </g>
 </svg>

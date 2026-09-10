@@ -9,7 +9,7 @@ math: katex
 
 ---
 
-<!-- _class: lead invert -->
+<!-- _class: lead -->
 <!-- _header: "" -->
 <!-- _footer: "" -->
 
@@ -168,38 +168,27 @@ $$\dot{x}(t) = f(x(t), u(t))$$
 
 ## 2. Конфигурационное пространство ($\mathcal{C}$-space) <span class="badge badge-time">15–30 мин</span>
 
-<div class="grid-2">
-
-<div class="col">
-
-<div class="card">
-
-### Редукция робота к материальной точке
-
-Конфигурация $q \in \mathcal{C}$ — минимальный вектор координат, однозначно определяющий положение каждой точки робота $\mathcal{A}(q)$ в рабочем пространстве $\mathcal{W} \subset \mathbb{R}^d$.
-
-$$\mathcal{C}_{obs} = \{ q \in \mathcal{C} \mid \mathcal{A}(q) \cap \mathcal{O} \neq \emptyset \}$$
-$$\mathcal{C}_{free} = \mathcal{C} \setminus \mathcal{C}_{obs}$$
-
-В $\mathcal{C}$-space робот сложной формы сжимается в точку, а препятствия $\mathcal{O}$ раздуваются на геометрию робота.
-
-</div>
-
-</div>
-
-<div class="col">
-
 <div class="diagram-box">
 
 <img src="../../assets/images/lecture-01/minkowski_cspace.svg" alt="Сумма Минковского и C-space" />
 
 </div>
 
-<div class="formula-box text-sm">
+<div class="grid-2 tight">
 
-$$\mathcal{C}_{obs} = \mathcal{O} \oplus (-\mathcal{A}(0)) = \{ p - a \mid p \in \mathcal{O}, a \in \mathcal{A}(0) \}$$
+<div class="card text-sm">
+
+**Конфигурация** $q \in \mathcal{C}$ — минимальный вектор координат, однозначно задающий положение каждой точки робота $\mathcal{A}(q)$ в рабочем пространстве $\mathcal{W} \subset \mathbb{R}^d$.
+
+$$\mathcal{C}_{obs} = \{ q \mid \mathcal{A}(q) \cap \mathcal{O} \neq \emptyset \}, \quad \mathcal{C}_{free} = \mathcal{C} \setminus \mathcal{C}_{obs}$$
 
 </div>
+
+<div class="card card-accent text-sm">
+
+**Сумма Минковского** даёт $\mathcal{C}_{obs}$ явно: робот сжимается в точку, препятствие раздувается на его геометрию.
+
+$$\mathcal{C}_{obs} = \mathcal{O} \oplus (-\mathcal{A}(0)) = \{ p - a \mid p \in \mathcal{O},\, a \in \mathcal{A}(0) \}$$
 
 </div>
 
@@ -219,7 +208,7 @@ $$\mathcal{C}_{obs} = \mathcal{O} \oplus (-\mathcal{A}(0)) = \{ p - a \mid p \in
 <span>Перетаскивайте робота мышью | Вращайте угол $\theta$ ползунком</span>
 
 </div>
-<iframe src="http://localhost:5500/widgets/cspace-minkowski/index.html" class="interactive-frame"></iframe>
+<iframe src="http://localhost:5599/widgets/cspace-minkowski/index.html" class="interactive-frame"></iframe>
 
 </div>
 
@@ -426,6 +415,10 @@ $$L(m_i) = \log \frac{P(m_i)}{1 - P(m_i)}$$
 - Мгновенный расчет TSDF (поверхности) и ESDF (поля расстояний) в реальном времени ($\ge 60$ fps).
 - Интегрировано в ROS 2 Nav2.
 
+**Отдаёт планировщику:** воксельный $\operatorname{ESDF}$ с готовым градиентом $\nabla d$.
+
+**Берут, когда:** нужен 3D-объём и градиент для оптимизатора, а GPU уже есть на борту.
+
 </div>
 
 <div class="card">
@@ -435,6 +428,10 @@ $$L(m_i) = \log \frac{P(m_i)}{1 - P(m_i)}$$
 - Многомасштабное картирование на основе вейвлет-преобразования Хаара.
 - Точная интеграция лучей лидара без артефактов дискретизации.
 - Экстремально низкое потребление памяти при миллиметровом разрешении.
+
+**Отдаёт планировщику:** многомасштабную карту занятости (грубое разрешение вдали, мелкое вблизи).
+
+**Берут, когда:** карта большая, память ограничена, а тонкие препятствия терять нельзя.
 
 </div>
 
@@ -446,6 +443,10 @@ $$L(m_i) = \log \frac{P(m_i)}{1 - P(m_i)}$$
 - В реальном времени вычисляет слои: уклон, шероховатость, проходимость.
 - Стандарт для шагающих роботов ANYmal.
 
+**Отдаёт планировщику:** стек 2.5D-слоёв — высота, уклон, шероховатость, стоимость.
+
+**Берут, когда:** мир «почти двумерный» (рельеф без нависаний), и нужна опорная проходимость.
+
 </div>
 
 </div>
@@ -454,37 +455,25 @@ $$L(m_i) = \log \frac{P(m_i)}{1 - P(m_i)}$$
 
 ## Поля расстояний: SDF, ESDF и градиенты <span class="badge badge-time">50–60 мин</span>
 
-<div class="grid-2">
-
-<div class="col">
-
-<div class="card">
-
-### Евклидово знаковое поле (ESDF)
-
-Сопоставляет каждой точке пространства знаковое расстояние до ближайшего препятствия:
-
-$$\operatorname{SDF}(x) = \begin{cases} -d(x, \partial \mathcal{O}), & x \in \mathcal{O} \\ +d(x, \partial \mathcal{O}), & x \in \mathcal{C}_{free} \end{cases}$$
-
-**TSDF (Truncated):** обрезка диапазоном $[-\delta, +\delta]$ для быстрой 3D-реконструкции поверхностей.
-
-</div>
-
-</div>
-
-<div class="col">
-
 <div class="diagram-box">
 
 <img src="../../assets/images/lecture-01/sdf_gradient.svg" alt="SDF и градиенты" />
 
 </div>
 
-<div class="card card-accent text-sm">
+<div class="grid-2 tight">
 
-Градиент $\mathbf{n}(x) = \nabla \operatorname{ESDF}(x)$ задает направление наискорейшего удаления от стен, позволяя строить гладкие траектории в оптимизаторах CHOMP, TrajOpt и MPC.
+<div class="card text-sm">
+
+**Евклидово знаковое поле (ESDF)** сопоставляет каждой точке знаковое расстояние до ближайшего препятствия; **TSDF** — то же с обрезкой диапазоном $[-\delta, +\delta]$.
+
+$$\operatorname{SDF}(x) = \begin{cases} -d(x, \partial \mathcal{O}), & x \in \mathcal{O} \\ +d(x, \partial \mathcal{O}), & x \in \mathcal{C}_{free} \end{cases}$$
 
 </div>
+
+<div class="card card-accent text-sm">
+
+**Зачем планировщику знак и градиент:** $\mathbf{n}(x) = \nabla \operatorname{ESDF}(x)$ задаёт направление наискорейшего удаления от стен. Это делает штраф за близость к препятствию $C^1$-гладким — и потому пригодным для CHOMP, TrajOpt и MPC, которым нужна производная, а не булев ответ «столкнулся / нет».
 
 </div>
 
@@ -552,7 +541,7 @@ $$z_{t+1} \sim p(z_{t+1} \mid z_t, a_t)$$
 
 ---
 
-<!-- _class: invert -->
+<!-- _class: accent -->
 <!-- _header: "Лекция 01 | Заключение" -->
 
 ## Итоги вводной лекции и дорожная карта курса <span class="badge badge-time">85–90 мин</span>

@@ -1,70 +1,75 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <defs>
+    <marker id="dub-arrow-1e293b" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#1e293b"/>
+    </marker>
+    <marker id="dub-arrow-0284c7" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#0284c7"/>
+    </marker>
+    <marker id="dub-arrow-dc2626" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#dc2626"/>
+    </marker>
+  </defs>
   <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
 
   <g transform="translate(30, 24)">
     <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">6 канонических слов Дубинса (Dubins, 1957)</text>
-    <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Кратчайший путь для автомобиля с передней передачей (v &gt; 0, |κ| ≤ 1/R_min) состоит из 3 сегментов</text>
+    <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Одна и та же пара поз q_s → q_g, R_min = 30: кратчайшим оказывается RSL (L = 158)</text>
   </g>
   <g transform="translate(30, 65)">
-    <rect width="225" height="125" rx="6" fill="#f0fdf4" stroke="#86efac" stroke-width="1.2"/>
+    <rect width="225" height="125" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.2"/>
     <text x="12" y="20" font-family="Inter" font-size="12" font-weight="700" fill="#0f172a">1. LSL (CSC)</text>
     <text x="12" y="34" font-family="Inter" font-size="9.5" fill="#64748b">Left arc → Straight → Left arc</text>
-
-    <path d="M30,70 A30,30 0 0,0 60,40 L150,40 A30,30 0 0,0 180,70" stroke="#059669" stroke-width="2.8" fill="none" stroke-linecap="round"/>
-
-    <circle cx="30" cy="55" r="3.5" fill="#0284c7"/>
-    <circle cx="170" cy="55" r="3.5" fill="#dc2626"/>
-    <rect x="135" y="9" width="78" height="18" rx="3" fill="#059669"/>
-    <text x="141" y="22" font-family="Inter" font-size="9.5" font-weight="700" fill="#ffffff">★ ШОРТЕСТ</text>
+    <path d="M76.2,81.0 L80.4,80.5 L84.4,79.0 L88.0,76.7 L90.9,73.6 L93.1,70.0 L94.4,65.9 L94.7,61.7 L94.0,57.5 L92.4,53.5 L89.9,50.1 L86.7,47.2 L83.0,45.2 L78.9,44.1 L74.6,44.0 L70.5,44.8 L66.6,46.6 L63.2,49.2 L60.5,52.5 L58.7,56.4 L57.8,60.5 L57.8,64.8 L58.8,68.9 L60.8,72.7 L63.5,76.0 L103.0,113.0 L104.7,114.4 L106.6,115.6 L108.5,116.6 L110.6,117.3 L112.8,117.8 L114.9,118.0 L117.1,118.0 L119.3,117.7 L121.4,117.1 L123.5,116.3 L125.4,115.3 L127.2,114.0 L128.9,112.5 L130.3,110.9 L131.5,109.1 L132.6,107.1 L133.4,105.1 L133.9,103.0 L134.2,100.8 L134.2,98.6 L134.0,96.4 L133.5,94.3 L132.7,92.2 L131.7,90.2" stroke="#0284c7" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="76.2" cy="81.0" r="3.5" fill="#1e293b"/><line x1="76.2" y1="81.0" x2="89.2" y2="81.0" stroke="#1e293b" stroke-width="1.8" marker-end="url(#dub-arrow-1e293b)"/>
+    <circle cx="131.7" cy="90.2" r="3.5" fill="#dc2626"/><line x1="131.7" y1="90.2" x2="125.2" y2="79.0" stroke="#dc2626" stroke-width="1.8" marker-end="url(#dub-arrow-dc2626)"/>
+    <text x="213" y="116" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600" fill="#0284c7">L = 339.1</text>
   </g>
   <g transform="translate(270, 65)">
     <rect width="225" height="125" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.2"/>
     <text x="12" y="20" font-family="Inter" font-size="12" font-weight="700" fill="#0f172a">2. RSR (CSC)</text>
     <text x="12" y="34" font-family="Inter" font-size="9.5" fill="#64748b">Right arc → Straight → Right arc</text>
-
-    <path d="M30,40 A30,30 0 0,1 60,70 L150,70 A30,30 0 0,1 180,40" stroke="#0284c7" stroke-width="2.8" fill="none" stroke-linecap="round"/>
-
-    <circle cx="30" cy="55" r="3.5" fill="#0284c7"/>
-    <circle cx="170" cy="55" r="3.5" fill="#dc2626"/>
+    <path d="M76.2,81.0 L80.8,81.6 L85.1,83.3 L88.9,86.0 L91.8,89.6 L93.8,93.8 L94.7,98.3 L94.4,102.9 L92.9,107.4 L90.5,111.3 L87.1,114.5 L83.0,116.7 L78.5,117.9 L73.9,117.9 L69.4,116.7 L65.3,114.5 L61.9,111.3 L59.4,107.4 L58.0,103.0 L57.7,98.4 L58.6,93.8 L60.5,89.6 L63.5,86.0 L67.2,83.3 L71.6,81.6 L143.1,63.0 L146.5,62.5 L149.9,62.6 L153.3,63.3 L156.4,64.6 L159.3,66.5 L161.8,68.9 L163.8,71.6 L165.2,74.7 L166.1,78.1 L166.3,81.5 L165.9,84.9 L164.9,88.1 L163.2,91.2 L161.1,93.8 L158.5,96.1 L155.6,97.8 L152.3,98.9 L149.0,99.5 L145.5,99.4 L142.2,98.6 L139.0,97.3 L136.2,95.4 L133.7,93.0 L131.7,90.2" stroke="#0284c7" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="76.2" cy="81.0" r="3.5" fill="#1e293b"/><line x1="76.2" y1="81.0" x2="89.2" y2="81.0" stroke="#1e293b" stroke-width="1.8" marker-end="url(#dub-arrow-1e293b)"/>
+    <circle cx="131.7" cy="90.2" r="3.5" fill="#dc2626"/><line x1="131.7" y1="90.2" x2="125.2" y2="79.0" stroke="#dc2626" stroke-width="1.8" marker-end="url(#dub-arrow-dc2626)"/>
+    <text x="213" y="116" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600" fill="#0284c7">L = 434.0</text>
   </g>
   <g transform="translate(510, 65)">
     <rect width="225" height="125" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.2"/>
     <text x="12" y="20" font-family="Inter" font-size="12" font-weight="700" fill="#0f172a">3. LSR (CSC)</text>
     <text x="12" y="34" font-family="Inter" font-size="9.5" fill="#64748b">Left arc → Straight → Right arc</text>
-
-    <path d="M30,70 A30,30 0 0,0 60,40 L150,70 A30,30 0 0,1 180,40" stroke="#0284c7" stroke-width="2.8" fill="none" stroke-linecap="round"/>
-
-    <circle cx="30" cy="55" r="3.5" fill="#0284c7"/>
-    <circle cx="170" cy="55" r="3.5" fill="#dc2626"/>
+    <path d="M76.2,81.0 L76.4,81.0 L76.6,81.0 L76.8,81.0 L77.0,81.0 L77.2,80.9 L77.4,80.9 L77.7,80.9 L77.9,80.9 L78.1,80.9 L78.3,80.9 L78.5,80.8 L78.7,80.8 L78.9,80.8 L79.1,80.7 L79.3,80.7 L79.5,80.7 L79.7,80.6 L79.9,80.6 L80.1,80.5 L80.3,80.5 L80.5,80.5 L80.7,80.4 L81.0,80.3 L81.2,80.3 L142.8,63.1 L146.2,62.5 L149.6,62.5 L153.0,63.2 L156.2,64.5 L159.1,66.3 L161.6,68.7 L163.6,71.4 L165.1,74.5 L166.0,77.8 L166.3,81.3 L165.9,84.7 L164.9,88.0 L163.3,91.0 L161.2,93.7 L158.6,96.0 L155.7,97.7 L152.4,98.9 L149.0,99.4 L145.6,99.4 L142.2,98.6 L139.1,97.3 L136.2,95.4 L133.7,93.0 L131.7,90.2" stroke="#0284c7" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="76.2" cy="81.0" r="3.5" fill="#1e293b"/><line x1="76.2" y1="81.0" x2="89.2" y2="81.0" stroke="#1e293b" stroke-width="1.8" marker-end="url(#dub-arrow-1e293b)"/>
+    <circle cx="131.7" cy="90.2" r="3.5" fill="#dc2626"/><line x1="131.7" y1="90.2" x2="125.2" y2="79.0" stroke="#dc2626" stroke-width="1.8" marker-end="url(#dub-arrow-dc2626)"/>
+    <text x="213" y="116" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600" fill="#0284c7">L = 245.6</text>
   </g>
   <g transform="translate(30, 205)">
-    <rect width="225" height="125" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.2"/>
+    <rect width="225" height="125" rx="6" fill="#f0fdf4" stroke="#86efac" stroke-width="1.2"/>
     <text x="12" y="20" font-family="Inter" font-size="12" font-weight="700" fill="#0f172a">4. RSL (CSC)</text>
     <text x="12" y="34" font-family="Inter" font-size="9.5" fill="#64748b">Right arc → Straight → Left arc</text>
-
-    <path d="M30,40 A30,30 0 0,1 60,70 L150,40 A30,30 0 0,0 180,70" stroke="#0284c7" stroke-width="2.8" fill="none" stroke-linecap="round"/>
-
-    <circle cx="30" cy="55" r="3.5" fill="#0284c7"/>
-    <circle cx="170" cy="55" r="3.5" fill="#dc2626"/>
+    <path d="M76.2,81.0 L77.1,81.0 L78.1,81.1 L79.0,81.2 L79.9,81.3 L80.8,81.6 L81.7,81.8 L82.6,82.1 L83.5,82.5 L84.3,82.9 L85.2,83.3 L86.0,83.8 L86.8,84.3 L87.5,84.8 L88.2,85.4 L88.9,86.1 L89.6,86.7 L90.2,87.4 L90.8,88.1 L91.4,88.9 L91.9,89.7 L92.4,90.5 L92.8,91.3 L93.2,92.2 L93.5,93.0 L98.3,105.9 L99.4,108.3 L100.8,110.4 L102.4,112.4 L104.3,114.1 L106.4,115.5 L108.7,116.6 L111.1,117.4 L113.6,117.9 L116.2,118.0 L118.7,117.8 L121.2,117.2 L123.6,116.2 L125.8,115.0 L127.9,113.5 L129.7,111.7 L131.2,109.6 L132.4,107.4 L133.4,105.0 L134.0,102.5 L134.2,100.0 L134.1,97.5 L133.7,94.9 L132.9,92.5 L131.7,90.2" stroke="#059669" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="76.2" cy="81.0" r="3.5" fill="#1e293b"/><line x1="76.2" y1="81.0" x2="89.2" y2="81.0" stroke="#1e293b" stroke-width="1.8" marker-end="url(#dub-arrow-1e293b)"/>
+    <circle cx="131.7" cy="90.2" r="3.5" fill="#dc2626"/><line x1="131.7" y1="90.2" x2="125.2" y2="79.0" stroke="#dc2626" stroke-width="1.8" marker-end="url(#dub-arrow-dc2626)"/>
+    <text x="213" y="116" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600" fill="#059669">L = 158.0</text>
+    <rect x="121" y="9" width="92" height="18" rx="3" fill="#059669"/>
+    <text x="167" y="22" text-anchor="middle" font-family="Inter" font-size="9.5" font-weight="700" fill="#ffffff">★ КРАТЧАЙШЕЕ</text>
   </g>
   <g transform="translate(270, 205)">
     <rect width="225" height="125" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.2"/>
     <text x="12" y="20" font-family="Inter" font-size="12" font-weight="700" fill="#0f172a">5. LRL (CCC)</text>
-    <text x="12" y="34" font-family="Inter" font-size="9.5" fill="#64748b">3 сопряженных круга максимальной кривизны</text>
-
-    <path d="M30,65 A25,25 0 0,0 70,45 A25,25 0 0,1 130,45 A25,25 0 0,0 170,65" stroke="#0284c7" stroke-width="2.8" fill="none" stroke-linecap="round"/>
-
-    <circle cx="30" cy="55" r="3.5" fill="#0284c7"/>
-    <circle cx="170" cy="55" r="3.5" fill="#dc2626"/>
+    <text x="12" y="34" font-family="Inter" font-size="9.5" fill="#64748b">3 сопряжённые дуги R_min (без прямой)</text>
+    <path d="M76.2,81.0 L77.4,80.9 L78.6,80.8 L79.8,80.6 L81.0,80.3 L82.1,80.0 L83.3,79.6 L84.4,79.1 L85.4,78.5 L86.5,77.9 L87.4,77.2 L88.4,76.4 L89.3,75.6 L90.1,74.7 L90.9,73.7 L91.6,72.8 L92.2,71.7 L92.8,70.7 L93.3,69.6 L93.7,68.4 L94.1,67.3 L94.3,66.1 L94.5,64.9 L94.7,63.7 L94.7,62.5 L95.1,58.9 L96.1,55.5 L97.8,52.3 L100.0,49.6 L102.7,47.3 L105.9,45.5 L109.3,44.4 L112.8,44.0 L116.4,44.3 L119.9,45.2 L123.1,46.8 L125.9,49.0 L128.2,51.7 L130.0,54.8 L131.2,58.2 L131.7,61.7 L131.5,65.3 L130.7,68.8 L129.1,72.0 L127.0,74.9 L124.4,77.3 L121.3,79.2 L118.0,80.4 L114.5,81.0 L110.5,81.7 L106.9,83.2 L103.6,85.5 L100.9,88.4 L98.8,91.8 L97.6,95.6 L97.2,99.6 L97.6,103.5 L98.9,107.3 L101.0,110.7 L103.7,113.6 L107.0,115.8 L110.7,117.3 L114.6,118.0 L118.6,117.8 L122.4,116.7 L126.0,114.9 L129.0,112.4 L131.5,109.2 L133.2,105.6 L134.1,101.8 L134.1,97.8 L133.4,93.9 L131.7,90.2" stroke="#0284c7" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="76.2" cy="81.0" r="3.5" fill="#1e293b"/><line x1="76.2" y1="81.0" x2="89.2" y2="81.0" stroke="#1e293b" stroke-width="1.8" marker-end="url(#dub-arrow-1e293b)"/>
+    <circle cx="131.7" cy="90.2" r="3.5" fill="#dc2626"/><line x1="131.7" y1="90.2" x2="125.2" y2="79.0" stroke="#dc2626" stroke-width="1.8" marker-end="url(#dub-arrow-dc2626)"/>
+    <text x="213" y="116" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600" fill="#0284c7">L = 341.4</text>
   </g>
   <g transform="translate(510, 205)">
     <rect width="225" height="125" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.2"/>
     <text x="12" y="20" font-family="Inter" font-size="12" font-weight="700" fill="#0f172a">6. RLR (CCC)</text>
-    <text x="12" y="34" font-family="Inter" font-size="9.5" fill="#64748b">Применяется при близком расположении целей</text>
-
-    <path d="M30,45 A25,25 0 0,1 70,65 A25,25 0 0,0 130,65 A25,25 0 0,1 170,45" stroke="#0284c7" stroke-width="2.8" fill="none" stroke-linecap="round"/>
-
-    <circle cx="30" cy="55" r="3.5" fill="#0284c7"/>
-    <circle cx="170" cy="55" r="3.5" fill="#dc2626"/>
+    <text x="12" y="34" font-family="Inter" font-size="9.5" fill="#64748b">3 сопряжённые дуги R_min (без прямой)</text>
+    <path d="M76.2,81.0 L77.2,81.0 L78.3,81.1 L79.4,81.2 L80.4,81.5 L81.4,81.7 L82.4,82.1 L83.4,82.4 L84.4,82.9 L85.3,83.4 L86.2,83.9 L87.1,84.5 L87.9,85.2 L88.7,85.9 L89.5,86.6 L90.2,87.4 L90.9,88.2 L91.5,89.1 L92.1,90.0 L92.6,90.9 L93.1,91.9 L93.5,92.8 L93.8,93.8 L94.1,94.9 L94.4,95.9 L95.0,98.3 L96.0,100.6 L97.3,102.8 L98.8,104.8 L100.6,106.5 L102.7,108.0 L104.9,109.2 L107.2,110.1 L109.7,110.6 L112.2,110.8 L114.7,110.7 L117.2,110.2 L119.5,109.4 L121.8,108.3 L123.9,106.9 L125.8,105.3 L127.4,103.4 L128.7,101.2 L129.8,99.0 L130.5,96.6 L131.0,94.1 L131.0,91.6 L130.8,89.1 L130.2,86.6 L129.3,82.0 L129.6,77.4 L131.1,73.0 L133.6,69.0 L137.1,65.9 L141.2,63.7 L145.7,62.6 L150.4,62.6 L154.9,63.9 L158.9,66.2 L162.3,69.5 L164.7,73.5 L166.0,77.9 L166.2,82.6 L165.2,87.2 L163.1,91.3 L160.0,94.9 L156.2,97.5 L151.8,99.1 L147.1,99.5 L142.5,98.7 L138.2,96.8 L134.6,93.9 L131.7,90.2" stroke="#0284c7" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="76.2" cy="81.0" r="3.5" fill="#1e293b"/><line x1="76.2" y1="81.0" x2="89.2" y2="81.0" stroke="#1e293b" stroke-width="1.8" marker-end="url(#dub-arrow-1e293b)"/>
+    <circle cx="131.7" cy="90.2" r="3.5" fill="#dc2626"/><line x1="131.7" y1="90.2" x2="125.2" y2="79.0" stroke="#dc2626" stroke-width="1.8" marker-end="url(#dub-arrow-dc2626)"/>
+    <text x="213" y="116" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600" fill="#0284c7">L = 321.1</text>
   </g>
 </svg>

@@ -9,7 +9,7 @@ math: katex
 
 ---
 
-<!-- _class: lead invert -->
+<!-- _class: lead -->
 <!-- _header: "" -->
 <!-- _footer: "" -->
 
@@ -431,7 +431,7 @@ $$\operatorname{cost}(q_{new}) + \|q_{new} - v\| < \operatorname{cost}(v)$$
 <span>Рисуйте препятствия мышью | Регулируйте шаг и радиус окрестности</span>
 
 </div>
-<iframe src="http://localhost:5500/widgets/rrt-exploration/index.html" class="interactive-frame"></iframe>
+<iframe src="http://localhost:5599/widgets/rrt-exploration/index.html" class="interactive-frame"></iframe>
 
 </div>
 
@@ -532,7 +532,7 @@ $$\mathcal{O}(\log N)$$
 
 ---
 
-<!-- _class: invert -->
+<!-- _class: accent -->
 <!-- _header: "Лекция 03 | Итоги и вопросы" -->
 
 ## Резюме лекции и контрольные вопросы <span class="badge badge-time">88–90 мин</span>

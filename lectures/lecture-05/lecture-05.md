@@ -9,7 +9,7 @@ math: katex
 
 ---
 
-<!-- _class: lead invert -->
+<!-- _class: lead -->
 <!-- _header: "" -->
 <!-- _footer: "" -->
 
@@ -288,7 +288,7 @@ $$\text{Слова RS: } \{ C|C|C, \;\; CC|C, \;\; CSC, \;\; C|CSC, \dots \}$$
 
 ---
 
-## 6 канонических слов Дубинса (Dubins, 1957) <span class="badge badge-time">40–44 мин</span>
+## Разбор: одна пара поз — шесть кандидатов, один минимум <span class="badge badge-time">40–44 мин</span>
 
 <div class="diagram-box">
 
@@ -298,7 +298,7 @@ $$\text{Слова RS: } \{ C|C|C, \;\; CC|C, \;\; CSC, \;\; C|CSC, \dots \}$$
 
 ---
 
-## Кривые Ридса-Шеппа: Маневры с реверсом (Cusp) <span class="badge badge-time">44–48 мин</span>
+## Что добавляет задний ход: точки возврата <span class="badge badge-time">44–48 мин</span>
 
 <div class="diagram-box">
 
@@ -462,7 +462,7 @@ $$u^*(t) = u_{nom}(t) - K(t) \left(x(t) - x_{nom}(t)\right)$$
 
 ---
 
-<!-- _class: invert -->
+<!-- _class: accent -->
 <!-- _header: "Лекция 05 | Итоги и вопросы" -->
 
 ## Резюме лекции и контрольные вопросы <span class="badge badge-time">82–90 мин</span>

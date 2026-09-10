@@ -9,6 +9,7 @@
     "build:pdf": "node scripts/build.mjs --pdf",
     "generate:diagrams": "python3 scripts/generate_algorithmic_diagrams.py",
     "dev": "marp -I lectures --config-file marp.config.mjs --server",
+    "widgets": "npx serve . -l 5599",
     "preview": "node scripts/build.mjs --html-only && npx serve dist -l 8080",
     "serve": "npx serve dist -l 8080"
   },

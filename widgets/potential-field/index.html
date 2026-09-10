@@ -4,7 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Интерактивные Искусственные Потенциальные Поля (APF)</title>
-  <link rel="stylesheet" href="../common/widget-base.css">
+  <!-- Some static servers (e.g. `serve` with clean URLs on) answer
+       /widgets/<name>/index.html by rewriting the URL to /widgets/<name>.
+       That moves the document base up one level, so "../common/..." points
+       outside the widgets folder and the stylesheet 404s, leaving the
+       simulator unstyled and effectively blank. Fall back to the path that
+       is correct under the rewritten base. -->
+  <link rel="stylesheet" href="../common/widget-base.css"
+        onerror="this.onerror=null; this.href='common/widget-base.css';">
   <style>
     .legend-vector {
       display: flex;
@@ -161,10 +168,61 @@
       }
       draw();
     }
-    window.addEventListener('resize', resize);
-    if (window.ResizeObserver) {
-      new ResizeObserver(resize).observe(canvas.parentElement);
+
+    // ---------------------------------------------------------------------
+    // Canvas sizing guard.
+    //
+    // The canvas backing store is set from the container's clientWidth/Height.
+    // Inside a Marp slide the iframe is sometimes still unlaid-out when this
+    // first runs, so the measurement returns 0, the canvas is created 0x0 and
+    // the widget draws nothing at all — the toolbar shows, the picture never
+    // appears. A lone ResizeObserver is not enough to recover from that, so
+    // re-measure until the box reports a real size, and re-fit on every event
+    // that can change it.
+    // ---------------------------------------------------------------------
+    function autosize(element, onResize) {
+      if (!element) return;
+      var frames = 0;
+      var ticks = 0;
+      var poll = null;
+
+      function sized() {
+        return element.clientWidth > 0 && element.clientHeight > 0;
+      }
+
+      function attempt() {
+        onResize();
+        if (sized()) return;
+        if (frames++ < 240) {
+          window.requestAnimationFrame(attempt);
+        } else if (!poll) {
+          // Slow fallback for a slide that only becomes visible later.
+          poll = setInterval(function () {
+            onResize();
+            if (sized() || ticks++ > 40) {
+              clearInterval(poll);
+              poll = null;
+            }
+          }, 250);
+        }
+      }
+
+      // Deferred, never synchronous: the widgets finish building their state
+      // (grids, trees, fields) further down the script, and calling the draw
+      // path inline here would run it against half-initialised data.
+      window.requestAnimationFrame(attempt);
+      window.addEventListener('resize', onResize);
+      window.addEventListener('pageshow', onResize);
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) onResize();
+      });
+      if (window.ResizeObserver) new window.ResizeObserver(onResize).observe(element);
+      if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(onResize).catch(function () {});
+      }
     }
+
+    autosize(canvas.parentElement, resize);
 
     function computeForces(pos) {
       const kAtt = Number(document.getElementById('kAttSlider').value) * 0.005;

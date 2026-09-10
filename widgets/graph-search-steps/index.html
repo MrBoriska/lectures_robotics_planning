@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Пошаговый разбор: Дейкстра, A* и Theta*</title>
+  <!-- Some static servers (e.g. `serve` with clean URLs on) answer
+       /widgets/<name>/index.html by rewriting the URL to /widgets/<name>.
+       That moves the document base up one level, so "../common/..." points
+       outside the widgets folder and the stylesheet 404s, leaving the
+       simulator unstyled and effectively blank. Fall back to the path that
+       is correct under the rewritten base. -->
+  <link rel="stylesheet" href="../common/widget-base.css"
+        onerror="this.onerror=null; this.href='common/widget-base.css';">
+  <style>
+    .stage {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1.85fr) minmax(170px, 0.55fr) minmax(230px, 0.85fr);
+      gap: 8px;
+      padding: 8px;
+      background: var(--bg-widget);
+    }
+
+    .pane {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 7px;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .pane-title {
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-light);
+      padding: 6px 10px 4px;
+      border-bottom: 1px solid var(--border-color);
+      flex-shrink: 0;
+    }
+
+    .pane-body {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      position: relative;
+    }
+
+    /* ---- OPEN priority queue ---- */
+    table.queue {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    table.queue th {
+      position: sticky;
+      top: 0;
+      background: var(--bg-control);
+      color: var(--text-muted);
+      font-weight: 600;
+      text-align: right;
+      padding: 3px 7px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    table.queue th:first-child { text-align: left; }
+    table.queue td {
+      padding: 2px 7px;
+      text-align: right;
+      border-bottom: 1px solid #f1f5f9;
+      color: #334155;
+    }
+    table.queue td:first-child { text-align: left; color: var(--text-main); }
+    table.queue tr.top td {
+      background: #e0f2fe;
+      color: #0369a1;
+      font-weight: 700;
+    }
+    table.queue tr.touched td { background: #fefce8; }
+    .queue-empty {
+      padding: 10px;
+      font-size: 11px;
+      color: var(--text-light);
+    }
+
+    /* ---- pseudocode ---- */
+    ol.code {
+      list-style: none;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      line-height: 1.5;
+      padding: 5px 0;
+      counter-reset: ln;
+    }
+    ol.code li {
+      counter-increment: ln;
+      padding: 0 8px 0 30px;
+      position: relative;
+      color: #475569;
+      white-space: pre;
+    }
+    ol.code li::before {
+      content: counter(ln);
+      position: absolute;
+      left: 0;
+      width: 22px;
+      text-align: right;
+      color: var(--text-light);
+      font-size: 9.5px;
+    }
+    ol.code li.on {
+      background: #ecfdf5;
+      color: #065f46;
+      font-weight: 600;
+      box-shadow: inset 2px 0 0 var(--accent-green);
+    }
+
+    /* ---- narration ---- */
+    .narration {
+      flex-shrink: 0;
+      border-top: 1px solid var(--border-color);
+      background: #f8fafc;
+      padding: 6px 10px;
+      font-size: 11.5px;
+      line-height: 1.35;
+      color: #334155;
+      min-height: 46px;
+    }
+    .narration b { color: var(--text-main); }
+    .narration .ok { color: var(--accent-green); font-weight: 600; }
+    .narration .no { color: var(--accent-red); font-weight: 600; }
+    .narration code {
+      font-family: var(--font-mono);
+      background: #eef2f7;
+      border-radius: 3px;
+      padding: 0 3px;
+    }
+
+    .phase-tag {
+      display: inline-block;
+      font-size: 9.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-radius: 3px;
+      padding: 1px 5px;
+      margin-right: 5px;
+      vertical-align: 1px;
+    }
+    .p-pop { background: #e0f2fe; color: #0369a1; }
+    .p-relax { background: #fef3c7; color: #92400e; }
+    .p-los { background: #ede9fe; color: #5b21b6; }
+    .p-done { background: #dcfce7; color: #15803d; }
+
+    .legend { display: flex; gap: 9px; font-size: 10.5px; color: var(--text-muted); align-items: center; flex-wrap: wrap; }
+    .legend-box { width: 10px; height: 10px; border-radius: 2px; display: inline-block; border: 1px solid transparent; }
+    .c-open { background: #cfe9fb; border-color: #0284c7; }
+    .c-closed { background: #fde8c8; border-color: #d97706; }
+    .c-cur { background: #a5f3fc; border-color: #0e7490; }
+    .c-path { background: #059669; }
+    .c-wall { background: #334155; }
+
+    input[type="range"].scrub { flex: 1; min-width: 90px; accent-color: #0284c7; }
+    .step-counter { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+  </style>
+</head>
+<body>
+  <div class="widget-layout">
+    <div class="toolbar">
+      <select id="algo" class="select-control">
+        <option value="dijkstra">Дейкстра (h = 0)</option>
+        <option value="astar" selected>A* (h = евклид)</option>
+        <option value="theta">Theta* (any-angle)</option>
+      </select>
+      <button id="back" class="btn">◀ Назад</button>
+      <button id="fwd" class="btn btn-primary">Шаг ▶</button>
+      <button id="play" class="btn btn-success">Авто ⏵</button>
+      <button id="end" class="btn">В конец ⏭</button>
+      <button id="reset" class="btn btn-danger">Сброс</button>
+      <input type="range" id="scrub" class="scrub" min="0" value="0">
+      <span class="step-counter" id="counter">0 / 0</span>
+      <div class="legend">
+        <span><i class="legend-box c-cur"></i> текущий</span>
+        <span><i class="legend-box c-open"></i> OPEN</span>
+        <span><i class="legend-box c-closed"></i> CLOSED</span>
+        <span><i class="legend-box c-path"></i> путь</span>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="pane">
+        <div class="pane-title">Сетка: g (сл.) · h (спр.) · f (в центре)</div>
+        <div class="pane-body"><canvas id="grid"></canvas></div>
+      </div>
+
+      <div class="pane">
+        <div class="pane-title">OPEN — очередь с приоритетом</div>
+        <div class="pane-body" id="queueBody"></div>
+      </div>
+
+      <div class="pane">
+        <div class="pane-title" id="codeTitle">Псевдокод</div>
+        <div class="pane-body"><ol class="code" id="code"></ol></div>
+        <div class="narration" id="narration"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ---------------------------------------------------------------------
+  // Scenario. Deliberately the same map as the static A*/Theta* figure in
+  // the lecture, so the stepped walkthrough and the printed slide agree.
+  // ---------------------------------------------------------------------
+  var COLS = 10, ROWS = 7;
+  var WALLS = ['4,2', '4,3', '4,4', '5,4'];
+  var START = { x: 0, y: 6 }, GOAL = { x: 9, y: 0 };
+
+  var SQRT2 = Math.SQRT2;
+  var key = function (x, y) { return x + ',' + y; };
+  var isWall = function (x, y) { return WALLS.indexOf(key(x, y)) !== -1; };
+  var inside = function (x, y) { return x >= 0 && x < COLS && y >= 0 && y < ROWS; };
+  var dist = function (a, b) { return Math.hypot(a.x - b.x, a.y - b.y); };
+
+  // Supercover line of sight, the same test Theta* itself uses.
+  function lineOfSight(a, b) {
+    var x = a.x, y = a.y;
+    var dx = Math.abs(b.x - x), dy = Math.abs(b.y - y);
+    var sx = b.x > x ? 1 : -1, sy = b.y > y ? 1 : -1, err, i;
+    if (dx >= dy) {
+      err = (dx / 2) | 0;
+      for (i = 0; i < dx; i++) {
+        err -= dy;
+        if (err < 0) {
+          y += sy; err += dx;
+          if (isWall(x, y) || isWall(x + sx, y - sy)) return false;
+        }
+        x += sx;
+        if (isWall(x, y)) return false;
+      }
+    } else {
+      err = (dy / 2) | 0;
+      for (i = 0; i < dy; i++) {
+        err -= dx;
+        if (err < 0) {
+          x += sx; err += dy;
+          if (isWall(x, y) || isWall(x - sx, y + sy)) return false;
+        }
+        y += sy;
+        if (isWall(x, y)) return false;
+      }
+    }
+    return true;
+  }
+
+  // ---------------------------------------------------------------------
+  // Trace builder. The whole search is run once up front and recorded as a
+  // list of immutable frames; the UI then just replays frame[i]. That makes
+  // stepping backwards and scrubbing exact rather than re-simulated.
+  // ---------------------------------------------------------------------
+  var PSEUDO = {
+    dijkstra: [
+      'OPEN ← {start},  g(start) ← 0',
+      'while OPEN ≠ ∅:',
+      '    s ← argmin g(n)   // h ≡ 0',
+      '    if s = goal: return path',
+      '    CLOSED ← CLOSED ∪ {s}',
+      '    for s\' in neighbours(s):',
+      '        if s\' in CLOSED: continue',
+      '        g_new ← g(s) + c(s, s\')',
+      '        if g_new < g(s\'):',
+      '            g(s\') ← g_new',
+      '            parent(s\') ← s',
+      '            push s\' into OPEN'
+    ],
+    astar: [
+      'OPEN ← {start},  g(start) ← 0',
+      'while OPEN ≠ ∅:',
+      '    s ← argmin f(n) = g(n) + h(n)',
+      '    if s = goal: return path',
+      '    CLOSED ← CLOSED ∪ {s}',
+      '    for s\' in neighbours(s):',
+      '        if s\' in CLOSED: continue',
+      '        g_new ← g(s) + c(s, s\')',
+      '        if g_new < g(s\'):',
+      '            g(s\') ← g_new',
+      '            parent(s\') ← s',
+      '            push s\' with f = g + h'
+    ],
+    theta: [
+      'OPEN ← {start},  g(start) ← 0',
+      'while OPEN ≠ ∅:',
+      '    s ← argmin f(n) = g(n) + h(n)',
+      '    if s = goal: return path',
+      '    CLOSED ← CLOSED ∪ {s}',
+      '    for s\' in neighbours(s):',
+      '        if s\' in CLOSED: continue',
+      '        // Path 2: try to skip s entirely',
+      '        if LineOfSight(parent(s), s\'):',
+      '            p ← parent(s)',
+      '        else:',
+      '            p ← s          // Path 1',
+      '        g_new ← g(p) + ‖p − s\'‖',
+      '        if g_new < g(s\'):',
+      '            g(s\') ← g_new;  parent(s\') ← p',
+      '            push s\' with f = g + h'
+    ]
+  };
+
+  // Which pseudocode line each phase highlights, per algorithm.
+  var LINE = {
+    dijkstra: { init: 0, pop: 2, goal: 3, close: 4, skip: 6, better: 8, worse: 8, push: 11 },
+    astar:    { init: 0, pop: 2, goal: 3, close: 4, skip: 6, better: 8, worse: 8, push: 11 },
+    theta:    { init: 0, pop: 2, goal: 3, close: 4, skip: 6, los: 8, path2: 9, path1: 11,
+                better: 13, worse: 13, push: 15 }
+  };
+
+  function buildTrace(algo) {
+    var anyAngle = algo === 'theta';
+    var useH = algo !== 'dijkstra';
+    var h = function (x, y) { return useH ? dist({ x: x, y: y }, GOAL) : 0; };
+
+    var g = {}, parent = {}, closed = {}, open = [];
+    var frames = [];
+    var expanded = 0;
+
+    function snapshot(extra) {
+      var f = {
+        g: JSON.parse(JSON.stringify(g)),
+        parent: JSON.parse(JSON.stringify(parent)),
+        closed: Object.keys(closed),
+        open: open.map(function (n) { return { k: n.k, x: n.x, y: n.y, g: n.g, h: n.h, f: n.f }; })
+                  .sort(function (a, b) { return a.f - b.f || a.g - b.g; }),
+        expanded: expanded
+      };
+      for (var p in extra) f[p] = extra[p];
+      frames.push(f);
+    }
+
+    function pushOpen(x, y, gv) {
+      var k = key(x, y), hv = h(x, y);
+      for (var i = 0; i < open.length; i++) {
+        if (open[i].k === k) { open[i].g = gv; open[i].f = gv + hv; return; }
+      }
+      open.push({ k: k, x: x, y: y, g: gv, h: hv, f: gv + hv });
+    }
+
+    var sk = key(START.x, START.y);
+    g[sk] = 0;
+    parent[sk] = sk;
+    pushOpen(START.x, START.y, 0);
+    snapshot({
+      phase: 'init', cur: null, focus: null,
+      text: 'Инициализация: <code>g(start) = 0</code>, старт кладём в OPEN. ' +
+            (useH ? 'Приоритет — <code>f = g + h</code>.' : 'Приоритет — только <code>g</code>: эвристики нет.')
+    });
+
+    var guard = 0;
+    while (open.length && guard++ < 4000) {
+      open.sort(function (a, b) { return a.f - b.f || a.g - b.g; });
+      var cur = open.shift();
+      expanded++;
+
+      var atGoal = cur.x === GOAL.x && cur.y === GOAL.y;
+      snapshot({
+        phase: 'pop', cur: cur, focus: null,
+        text: 'Извлекаем <b>' + cur.k + '</b> — минимальный ' + (useH ? 'f' : 'g') +
+              ' = <b>' + cur.f.toFixed(2) + '</b>' +
+              (useH ? ' (g = ' + cur.g.toFixed(2) + ', h = ' + cur.h.toFixed(2) + ')' : '') + '.'
+      });
+
+      if (atGoal) {
+        var path = [], node = cur.k;
+        while (node !== parent[node]) { path.push(node); node = parent[node]; }
+        path.push(sk);
+        path.reverse();
+        snapshot({
+          phase: 'done', cur: cur, focus: null, path: path,
+          text: 'Цель извлечена из OPEN — путь оптимален. Длина <b>' + cur.g.toFixed(2) +
+                '</b>, раскрыто вершин: <b>' + expanded + '</b>, изломов: <b>' + Math.max(0, path.length - 2) + '</b>.'
+        });
+        return { frames: frames, algo: algo };
+      }
+
+      closed[cur.k] = true;
+      snapshot({
+        phase: 'close', cur: cur, focus: null,
+        text: '<b>' + cur.k + '</b> переносим в CLOSED: её значение g окончательное.'
+      });
+
+      for (var dx = -1; dx <= 1; dx++) {
+        for (var dy = -1; dy <= 1; dy++) {
+          if (!dx && !dy) continue;
+          var nx = cur.x + dx, ny = cur.y + dy, nk = key(nx, ny);
+          if (!inside(nx, ny) || isWall(nx, ny)) continue;
+          if (dx && dy && (isWall(cur.x + dx, cur.y) || isWall(cur.x, cur.y + dy))) continue;
+          if (closed[nk]) {
+            snapshot({
+              phase: 'skip', cur: cur, focus: { x: nx, y: ny },
+              text: 'Сосед <b>' + nk + '</b> уже в CLOSED — <span class="no">пропускаем</span>.'
+            });
+            continue;
+          }
+
+          var anchor = cur, tag = '', losOK = null;
+          if (anyAngle) {
+            var pk = parent[cur.k].split(','),
+                pnode = { x: +pk[0], y: +pk[1] };
+            losOK = lineOfSight(pnode, { x: nx, y: ny });
+            snapshot({
+              phase: 'los', cur: cur, focus: { x: nx, y: ny }, ray: [pnode, { x: nx, y: ny }], losOK: losOK,
+              text: '<code>LineOfSight(' + parent[cur.k] + ', ' + nk + ')</code> = ' +
+                    (losOK ? '<span class="ok">True</span> — можно подключить соседа сразу к прародителю (Path 2).'
+                           : '<span class="no">False</span> — луч задет препятствие, остаёмся на Path 1.')
+            });
+            if (losOK) { anchor = { k: parent[cur.k], x: pnode.x, y: pnode.y, g: g[parent[cur.k]] }; tag = ' (Path 2)'; }
+            else { tag = ' (Path 1)'; }
+          }
+
+          var step = dist(anchor, { x: nx, y: ny });
+          var gNew = g[anchor.k] + step;
+          var gOld = g.hasOwnProperty(nk) ? g[nk] : Infinity;
+          var better = gNew < gOld - 1e-9;
+
+          snapshot({
+            phase: better ? 'better' : 'worse',
+            cur: cur, focus: { x: nx, y: ny }, edge: [anchor, { x: nx, y: ny }],
+            candidate: better ? { k: nk, g: gNew, h: h(nx, ny) } : null,
+            text: 'g(' + anchor.k + ') + ‖' + anchor.k + ' − ' + nk + '‖ = ' +
+                  g[anchor.k].toFixed(2) + ' + ' + step.toFixed(2) + ' = <b>' + gNew.toFixed(2) + '</b>' + tag +
+                  (better ? ' &lt; ' + (gOld === Infinity ? '∞' : gOld.toFixed(2)) + ' — <span class="ok">улучшение</span>.'
+                          : ' ≥ ' + gOld.toFixed(2) + ' — <span class="no">хуже, оставляем прежнего родителя</span>.')
+          });
+
+          if (better) {
+            g[nk] = gNew;
+            parent[nk] = anchor.k;
+            pushOpen(nx, ny, gNew);
+            snapshot({
+              phase: 'push', cur: cur, focus: { x: nx, y: ny }, edge: [anchor, { x: nx, y: ny }],
+              text: '<code>parent(' + nk + ') ← ' + anchor.k + '</code>, кладём в OPEN с ' +
+                    (useH ? 'f = ' + (gNew + h(nx, ny)).toFixed(2) : 'g = ' + gNew.toFixed(2)) + '.'
+            });
+          }
+        }
+      }
+    }
+
+    snapshot({ phase: 'done', cur: null, focus: null, text: 'OPEN пуст — цель недостижима.' });
+    return { frames: frames, algo: algo };
+  }
+
+  // ---------------------------------------------------------------------
+  // Rendering
+  // ---------------------------------------------------------------------
+  var canvas = document.getElementById('grid');
+  var ctx = canvas.getContext('2d');
+  var queueBody = document.getElementById('queueBody');
+  var codeEl = document.getElementById('code');
+  var codeTitle = document.getElementById('codeTitle');
+  var narration = document.getElementById('narration');
+  var counter = document.getElementById('counter');
+  var scrub = document.getElementById('scrub');
+
+  var trace = null, idx = 0, timer = null;
+
+  var PHASE_LABEL = {
+    init: ['ИНИЦИАЛИЗАЦИЯ', 'p-pop'], pop: ['POP', 'p-pop'], close: ['CLOSED', 'p-pop'],
+    skip: ['ПРОПУСК', 'p-relax'], los: ['LINE OF SIGHT', 'p-los'],
+    better: ['РЕЛАКСАЦИЯ', 'p-relax'], worse: ['РЕЛАКСАЦИЯ', 'p-relax'],
+    push: ['PUSH', 'p-relax'], done: ['ГОТОВО', 'p-done']
+  };
+
+  function fit() {
+    var box = canvas.parentElement;
+    var ratio = window.devicePixelRatio || 1;
+    canvas.width = box.clientWidth * ratio;
+    canvas.height = box.clientHeight * ratio;
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    draw();
+  }
+
+  function geometry() {
+    var W = canvas.clientWidth || canvas.parentElement.clientWidth;
+    var H = canvas.clientHeight || canvas.parentElement.clientHeight;
+    var cell = Math.max(18, Math.min((W - 16) / COLS, (H - 16) / ROWS));
+    return { cell: cell, ox: (W - cell * COLS) / 2, oy: (H - cell * ROWS) / 2 };
+  }
+
+  function draw() {
+    var W = canvas.clientWidth, H = canvas.clientHeight;
+    ctx.clearRect(0, 0, W, H);
+    if (!trace) return;
+    var fr = trace.frames[idx];
+    var geo = geometry(), cell = geo.cell, ox = geo.ox, oy = geo.oy;
+    var cx = function (x) { return ox + x * cell + cell / 2; };
+    var cy = function (y) { return oy + y * cell + cell / 2; };
+
+    var openKeys = {};
+    fr.open.forEach(function (n) { openKeys[n.k] = n; });
+    var closedKeys = {};
+    fr.closed.forEach(function (k) { closedKeys[k] = true; });
+    var pathKeys = {};
+    (fr.path || []).forEach(function (k) { pathKeys[k] = true; });
+
+    for (var y = 0; y < ROWS; y++) {
+      for (var x = 0; x < COLS; x++) {
+        var k = key(x, y), px = ox + x * cell, py = oy + y * cell;
+        var fill = '#ffffff', stroke = '#e2e8f0';
+        if (isWall(x, y)) { fill = '#334155'; stroke = '#1e293b'; }
+        else if (fr.cur && fr.cur.k === k) { fill = '#a5f3fc'; stroke = '#0e7490'; }
+        else if (closedKeys[k]) { fill = '#fdedd3'; stroke = '#f0c893'; }
+        else if (openKeys[k]) { fill = '#dceffb'; stroke = '#93c5ea'; }
+
+        ctx.fillStyle = fill;
+        ctx.fillRect(px, py, cell, cell);
+        ctx.strokeStyle = stroke;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(px + 0.5, py + 0.5, cell - 1, cell - 1);
+
+        if (fr.focus && fr.focus.x === x && fr.focus.y === y) {
+          ctx.strokeStyle = '#d97706';
+          ctx.lineWidth = 2.5;
+          ctx.strokeRect(px + 1.5, py + 1.5, cell - 3, cell - 3);
+        }
+
+        // g / h / f readouts, the numbers the algorithm actually compares.
+        // g and h sit in the top corners at a size that keeps a two-digit h
+        // from colliding with g; f is the big number in the middle.
+        if (!isWall(x, y) && fr.g.hasOwnProperty(k) && cell >= 32) {
+          var gv = fr.g[k];
+          var hv = trace.algo === 'dijkstra' ? 0 : dist({ x: x, y: y }, GOAL);
+          ctx.fillStyle = '#64748b';
+          ctx.font = Math.round(cell * 0.17) + 'px "JetBrains Mono", monospace';
+          ctx.textAlign = 'left';
+          ctx.fillText(gv.toFixed(1), px + 3, py + cell * 0.21);
+          if (trace.algo !== 'dijkstra') {
+            ctx.textAlign = 'right';
+            ctx.fillText(hv.toFixed(1), px + cell - 3, py + cell * 0.21);
+          }
+          ctx.fillStyle = '#0f172a';
+          ctx.font = '600 ' + Math.round(cell * 0.26) + 'px "JetBrains Mono", monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText((gv + hv).toFixed(1), px + cell / 2, py + cell * 0.62);
+        }
+      }
+    }
+
+    // Parent pointers. Once the path is found they only add noise, so the
+    // final frame drops them and shows the solution alone.
+    ctx.strokeStyle = 'rgba(100, 116, 139, 0.28)';
+    ctx.lineWidth = 1.1;
+    if (!fr.path) Object.keys(fr.parent).forEach(function (k) {
+      var p = fr.parent[k];
+      if (p === k) return;
+      var a = k.split(','), b = p.split(',');
+      ctx.beginPath();
+      ctx.moveTo(cx(+a[0]), cy(+a[1]));
+      ctx.lineTo(cx(+b[0]), cy(+b[1]));
+      ctx.stroke();
+    });
+
+    // the edge or ray under discussion this frame
+    if (fr.ray) {
+      ctx.strokeStyle = fr.losOK ? '#7c3aed' : '#dc2626';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 4]);
+      ctx.beginPath();
+      ctx.moveTo(cx(fr.ray[0].x), cy(fr.ray[0].y));
+      ctx.lineTo(cx(fr.ray[1].x), cy(fr.ray[1].y));
+      ctx.stroke();
+      ctx.setLineDash([]);
+    } else if (fr.edge) {
+      ctx.strokeStyle = fr.phase === 'worse' ? '#dc2626' : '#d97706';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(cx(fr.edge[0].x), cy(fr.edge[0].y));
+      ctx.lineTo(cx(fr.edge[1].x), cy(fr.edge[1].y));
+      ctx.stroke();
+    }
+
+    if (fr.path) {
+      ctx.strokeStyle = '#059669';
+      ctx.lineWidth = Math.max(3, cell * 0.09);
+      ctx.lineJoin = ctx.lineCap = 'round';
+      ctx.beginPath();
+      fr.path.forEach(function (k, i) {
+        var a = k.split(',');
+        ctx[i ? 'lineTo' : 'moveTo'](cx(+a[0]), cy(+a[1]));
+      });
+      ctx.stroke();
+    }
+
+    // S and G are drawn as a corner badge plus a ring, so they never cover the
+    // f value in the middle of their own cell.
+    [[START, '#0284c7', 'S'], [GOAL, '#dc2626', 'G']].forEach(function (m) {
+      var px = ox + m[0].x * cell, py = oy + m[0].y * cell;
+      ctx.strokeStyle = m[1];
+      ctx.lineWidth = 2.5;
+      ctx.strokeRect(px + 1.5, py + 1.5, cell - 3, cell - 3);
+      var r = Math.max(6, cell * 0.16);
+      ctx.fillStyle = m[1];
+      ctx.beginPath();
+      ctx.arc(px + cell - r - 2, py + cell - r - 2, r, 0, 6.284);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '700 ' + Math.round(r * 1.25) + 'px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(m[2], px + cell - r - 2, py + cell - r - 2);
+      ctx.textBaseline = 'alphabetic';
+    });
+  }
+
+  function renderQueue() {
+    var fr = trace.frames[idx];
+    if (!fr.open.length) {
+      queueBody.innerHTML = '<div class="queue-empty">OPEN пуст</div>';
+      return;
+    }
+    var useH = trace.algo !== 'dijkstra';
+    var rows = fr.open.map(function (n, i) {
+      var cls = i === 0 ? ' class="top"' : (fr.candidate && fr.candidate.k === n.k ? ' class="touched"' : '');
+      return '<tr' + cls + '><td>' + n.k + '</td><td>' + n.g.toFixed(2) + '</td>' +
+             (useH ? '<td>' + n.h.toFixed(2) + '</td>' : '') +
+             '<td>' + n.f.toFixed(2) + '</td></tr>';
+    }).join('');
+    queueBody.innerHTML =
+      '<table class="queue"><thead><tr><th>узел</th><th>g</th>' +
+      (useH ? '<th>h</th>' : '') + '<th>' + (useH ? 'f' : 'ключ') + '</th></tr></thead><tbody>' +
+      rows + '</tbody></table>';
+  }
+
+  function renderCode() {
+    var fr = trace.frames[idx];
+    var line = LINE[trace.algo][fr.phase];
+    Array.prototype.forEach.call(codeEl.children, function (li, i) {
+      li.className = i === line ? 'on' : '';
+    });
+  }
+
+  function render() {
+    var fr = trace.frames[idx];
+    var lab = PHASE_LABEL[fr.phase] || ['', 'p-pop'];
+    narration.innerHTML = '<span class="phase-tag ' + lab[1] + '">' + lab[0] + '</span>' + fr.text;
+    counter.textContent = (idx + 1) + ' / ' + trace.frames.length +
+                          '  ·  раскрыто ' + fr.expanded;
+    scrub.value = idx;
+    renderQueue();
+    renderCode();
+    draw();
+  }
+
+  function load(algo) {
+    stop();
+    trace = buildTrace(algo);
+    idx = 0;
+    codeTitle.textContent = 'Псевдокод — ' +
+      ({ dijkstra: 'Дейкстра', astar: 'A*', theta: 'Theta*' })[algo];
+    codeEl.innerHTML = PSEUDO[algo].map(function (l) {
+      return '<li>' + l.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</li>';
+    }).join('');
+    scrub.max = trace.frames.length - 1;
+    render();
+  }
+
+  function go(delta) {
+    idx = Math.max(0, Math.min(trace.frames.length - 1, idx + delta));
+    render();
+  }
+
+  function stop() {
+    if (timer) { clearInterval(timer); timer = null; }
+    document.getElementById('play').textContent = 'Авто ⏵';
+  }
+
+  document.getElementById('fwd').onclick = function () { stop(); go(1); };
+  document.getElementById('back').onclick = function () { stop(); go(-1); };
+  document.getElementById('end').onclick = function () { stop(); idx = trace.frames.length - 1; render(); };
+  document.getElementById('reset').onclick = function () { load(document.getElementById('algo').value); };
+  document.getElementById('algo').onchange = function () { load(this.value); };
+  scrub.oninput = function () { stop(); idx = +this.value; render(); };
+
+  document.getElementById('play').onclick = function () {
+    if (timer) { stop(); return; }
+    this.textContent = 'Пауза ⏸';
+    var self = this;
+    timer = setInterval(function () {
+      if (idx >= trace.frames.length - 1) { stop(); self.textContent = 'Авто ⏵'; return; }
+      go(1);
+    }, 260);
+  };
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight') { stop(); go(1); }
+    if (e.key === 'ArrowLeft') { stop(); go(-1); }
+  });
+
+
+  // ---------------------------------------------------------------------
+  // Canvas sizing guard.
+  //
+  // The canvas backing store is set from the container's clientWidth/Height.
+  // Inside a Marp slide the iframe is sometimes still unlaid-out when this
+  // first runs, so the measurement returns 0, the canvas is created 0x0 and
+  // the widget draws nothing at all — the toolbar shows, the picture never
+  // appears. A lone ResizeObserver is not enough to recover from that, so
+  // re-measure until the box reports a real size, and re-fit on every event
+  // that can change it.
+  // ---------------------------------------------------------------------
+  function autosize(element, onResize) {
+    if (!element) return;
+    var frames = 0;
+    var ticks = 0;
+    var poll = null;
+
+    function sized() {
+    return element.clientWidth > 0 && element.clientHeight > 0;
+    }
+
+    function attempt() {
+    onResize();
+    if (sized()) return;
+    if (frames++ < 240) {
+      window.requestAnimationFrame(attempt);
+    } else if (!poll) {
+      // Slow fallback for a slide that only becomes visible later.
+      poll = setInterval(function () {
+        onResize();
+        if (sized() || ticks++ > 40) {
+          clearInterval(poll);
+          poll = null;
+        }
+      }, 250);
+    }
+    }
+
+    // Deferred, never synchronous: the widgets finish building their state
+    // (grids, trees, fields) further down the script, and calling the draw
+    // path inline here would run it against half-initialised data.
+    window.requestAnimationFrame(attempt);
+    window.addEventListener('resize', onResize);
+    window.addEventListener('pageshow', onResize);
+    document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) onResize();
+    });
+    if (window.ResizeObserver) new window.ResizeObserver(onResize).observe(element);
+    if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(onResize).catch(function () {});
+    }
+  }
+
+  autosize(canvas.parentElement, fit);
+
+  // A slide can deep-link to the algorithm it is about: .../index.html#theta
+  var wanted = (location.hash || '').replace('#', '');
+  if (!PSEUDO[wanted]) wanted = 'astar';
+  document.getElementById('algo').value = wanted;
+  load(wanted);
+  fit();
+})();
+</script>
+</body>
+</html>

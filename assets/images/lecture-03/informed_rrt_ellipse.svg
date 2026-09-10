@@ -107,6 +107,6 @@
 
     <rect x="10" y="165" width="145" height="60" rx="4" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1"/>
     <text x="16" y="184" font-family="Inter, sans-serif" font-size="10.5" font-weight="700" fill="#065f46">Эффект сжатия:</text>
-    <text x="16" y="200" font-family="Inter, sans-serif" font-size="9.5" fill="#047857">Отсекает до 90% нерелевантного пространства!</text>
+    <text x="16" y="200" font-family="Inter, sans-serif" font-size="9.50" fill="#047857"><tspan x="16.0" dy="0">Отсекает до 90% нерелевантного</tspan><tspan x="16.0" dy="11.0">пространства!</tspan></text>
   </g>
 </svg>

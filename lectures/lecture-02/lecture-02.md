@@ -9,7 +9,7 @@ math: katex
 
 ---
 
-<!-- _class: lead invert -->
+<!-- _class: lead -->
 <!-- _header: "" -->
 <!-- _footer: "" -->
 
@@ -101,7 +101,7 @@ math: katex
 
 </div>
 
-<div class="grid-2">
+<div class="grid-2 tight">
 
 <div class="card text-sm">
 
@@ -154,35 +154,55 @@ $$h(n) \le c(n, n') + h(n')$$
 
 ---
 
-## 3. Сглаженный поиск: Алгоритм $\text{Theta}^*$ <span class="badge badge-time">30–40 мин</span>
+<!-- _header: "Разбор алгоритма | Дейкстра и A* по шагам" -->
 
-<div class="grid-2">
+## Пошаговый разбор: что делает $A^*$ на каждой итерации <span class="badge badge-green">⏱️ 22–30 мин</span>
 
-<div class="col">
+<div class="interactive-container">
+
+<div class="interactive-header">
+
+<span><i class="interactive-dot"></i> Шаг = одна строка псевдокода: извлечение из OPEN, релаксация ребра, обновление $f = g + h$</span>
+<span>Переключите $h = 0$ и сравните: Дейкстра раскрывает 66 вершин, $A^*$ — 44</span>
+
+</div>
+<iframe src="http://localhost:5599/widgets/graph-search-steps/index.html#astar" class="interactive-frame"></iframe>
+
+</div>
+
+---
+
+## Что показывает разбор: цена эвристики <span class="badge badge-time">28–30 мин</span>
+
+<div class="grid-3">
 
 <div class="card">
 
-### Проблема сеточных ступенек $A^*$
+### Дейкстра ($h = 0$)
 
-На 8-связной сетке алгоритм $A^*$ скован ребрами с углами кратными 45° и 90°. В результате путь содержит искусственные зигзаги (удлинение до 8% по сравнению с евклидовым отрезком).
+Ключ очереди — только $g(n)$. Фронт растёт **концентрической волной** во все стороны, включая направление «от цели».
 
-</div>
-
-<div class="card card-accent text-sm">
-
-**Идея $\text{Theta}^*$ (Nash et al.):** при раскрытии соседа $s'$ проверяется прямая видимость `LineOfSight(parent(s), s')`. Если луч свободен — предком $s'$ назначается напрямую `parent(s)`, срезая лишние изломы!
+**Раскрыто: 66 вершин** из 66 свободных — обойдена вся карта.
 
 </div>
 
+<div class="card card-accent">
+
+### $A^*$ ($h$ — евклид)
+
+Ключ — $f = g + h$. Волна **вытягивается эллипсом** к цели: узлы «за спиной» имеют большой $h$ и не всплывают наверх очереди.
+
+**Раскрыто: 44 вершины** — та же длина пути $12.66$ при $-33\%$ работы.
+
 </div>
 
-<div class="col">
+<div class="card card-alert">
 
-<div class="diagram-box">
+### Где смотреть в виджете
 
-<img src="../../assets/images/lecture-02/theta_star_los.svg" alt="A* vs Theta* Any-Angle" />
-
-</div>
+- **Столбец $h$** в таблице OPEN: у Дейкстры он нулевой, поэтому порядок задаёт один лишь $g$.
+- **Строка 3 псевдокода** — `argmin` по разному ключу.
+- **Цвет клеток:** оранжевый CLOSED показывает форму пройденного фронта.
 
 </div>
 
@@ -190,9 +210,53 @@ $$h(n) \le c(n, n') + h(n')$$
 
 ---
 
+## 3. Сглаженный поиск: Алгоритм $\text{Theta}^*$ <span class="badge badge-time">30–36 мин</span>
+
+<div class="diagram-box">
+
+<img src="../../assets/images/lecture-02/theta_star_los.svg" alt="A* vs Theta* Any-Angle" />
+
+</div>
+
+<div class="grid-2 tight">
+
+<div class="card text-sm">
+
+**Проблема сеточных ступенек $A^*$:** на 8-связной сетке путь скован ребрами с углами, кратными 45°. Выигрыш по длине мал, но изломов — десяток, и каждый требует остановки и разворота на месте.
+
+</div>
+
+<div class="card card-accent text-sm">
+
+**Идея $\text{Theta}^*$ (Nash et al.):** при раскрытии соседа $s'$ проверяется прямая видимость `LineOfSight(parent(s), s')`. Если луч свободен — предком $s'$ назначается напрямую `parent(s)`, срезая лишние изломы.
+
+</div>
+
+</div>
+
+---
+
+<!-- _header: "Разбор алгоритма | Theta* и проверка луча" -->
+
+## Пошаговый разбор: как $\text{Theta}^*$ срезает изломы <span class="badge badge-green">⏱️ 36–42 мин</span>
+
+<div class="interactive-container">
+
+<div class="interactive-header">
+
+<span><i class="interactive-dot"></i> Фиолетовый луч — проверка `LineOfSight(parent(s), s')`; сплошной = Path 2, красный = отказ и возврат к Path 1</span>
+<span>Тот же граф, что на схеме выше: $L = 11.91$, изломов 1 вместо 10</span>
+
+</div>
+<iframe src="http://localhost:5599/widgets/graph-search-steps/index.html#theta" class="interactive-frame"></iframe>
+
+</div>
+
+---
+
 <!-- _header: "Интерактивная практика | Поиск на сетке" -->
 
-## Интерактивный симулятор: Сравнение $A^*$, Дейкстры и $\text{Theta}^*$ <span class="badge badge-green">⏱️ 40–50 мин</span>
+## Свободный симулятор: рисуйте карту и сравнивайте <span class="badge badge-green">⏱️ 42–50 мин</span>
 
 <div class="interactive-container">
 
@@ -202,7 +266,7 @@ $$h(n) \le c(n, n') + h(n')$$
 <span>Рисуйте стены мышью | Сравнивайте длину пути и число раскрытых ячеек</span>
 
 </div>
-<iframe src="http://localhost:5500/widgets/astar-grid/index.html" class="interactive-frame"></iframe>
+<iframe src="http://localhost:5599/widgets/astar-grid/index.html" class="interactive-frame"></iframe>
 
 </div>
 
@@ -283,7 +347,7 @@ $$a_i(t) = a_j(t+1) \quad \text{и} \quad a_i(t+1) = a_j(t)$$
 <span>Переключайте режим: Столкновение vs Скоординированный пропуск</span>
 
 </div>
-<iframe src="http://localhost:5500/widgets/mapf-spacetime/index.html" class="interactive-frame"></iframe>
+<iframe src="http://localhost:5599/widgets/mapf-spacetime/index.html" class="interactive-frame"></iframe>
 
 </div>
 
@@ -319,7 +383,7 @@ $$a_i(t) = a_j(t+1) \quad \text{и} \quad a_i(t+1) = a_j(t)$$
 
 ---
 
-<!-- _class: invert -->
+<!-- _class: accent -->
 <!-- _header: "Лекция 02 | Итоги и вопросы" -->
 
 ## Резюме лекции и контрольные вопросы <span class="badge badge-time">85–90 мин</span>

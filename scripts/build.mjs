@@ -46,6 +46,17 @@ if (existsSync(ASSETS_DIR)) {
   cpSync(ASSETS_DIR, join(DIST_DIR, 'assets'), { recursive: true });
 }
 
+// `serve` rewrites /widgets/<name>/index.html -> /widgets/<name> by default.
+// Dropping the trailing segment re-bases every relative URL inside the widget,
+// so `../common/widget-base.css` resolved to /common/... and 404'd — the
+// simulators then rendered as an unstyled (visually blank) page inside their
+// iframe. Turning clean URLs off keeps the widget's own base path intact.
+writeFileSync(
+  join(DIST_DIR, 'serve.json'),
+  JSON.stringify({ cleanUrls: false, trailingSlash: true }, null, 2),
+  'utf-8'
+);
+
 // 2. Discover lectures
 const lectureDirs = readdirSync(LECTURES_DIR, { withFileTypes: true })
   .filter(d => d.isDirectory() && d.name.startsWith('lecture-'))
@@ -82,7 +93,9 @@ for (const dirName of lectureDirs) {
   // Normalize localhost widget paths to relative paths for production dist
   if (existsSync(outHtmlPath)) {
     let htmlContent = readFileSync(outHtmlPath, 'utf-8');
-    htmlContent = htmlContent.replace(/http:\/\/(localhost|127\.0\.0\.1):5500\/widgets\//g, '../../widgets/');
+    // 5599 is the dev port served by `npm run widgets`; 5500 is kept so decks
+    // that still point at a Live Server instance keep building correctly.
+    htmlContent = htmlContent.replace(/http:\/\/(localhost|127\.0\.0\.1):(5599|5500)\/widgets\//g, '../../widgets/');
     writeFileSync(outHtmlPath, htmlContent, 'utf-8');
   }
 
@@ -399,6 +412,11 @@ const portalHtml = `<!DOCTYPE html>
           <a href="widgets/mapf-spacetime/index.html" class="widget-link-card" target="_blank">
             <h4>Space-Time A* & MAPF</h4>
             <p>Многоагентное планирование, предотвращение Vertex и Swap коллизий с помощью действий ожидания (WAIT) и таблицы резервирования.</p>
+            <span class="lecture-num">Открыть симулятор →</span>
+          </a>
+          <a href="widgets/graph-search-steps/index.html" class="widget-link-card" target="_blank">
+            <h4>Пошаговый разбор: Dijkstra / A* / Theta*</h4>
+            <p>Одна итерация за клик: извлечение из OPEN, релаксация ребра, проверка LineOfSight. Очередь с приоритетом и псевдокод синхронны с сеткой.</p>
             <span class="lecture-num">Открыть симулятор →</span>
           </a>
           <a href="widgets/astar-grid/index.html" class="widget-link-card" target="_blank">

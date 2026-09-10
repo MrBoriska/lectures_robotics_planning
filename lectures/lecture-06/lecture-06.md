@@ -9,7 +9,7 @@ math: katex
 
 ---
 
-<!-- _class: lead invert -->
+<!-- _class: lead -->
 <!-- _header: "" -->
 <!-- _footer: "" -->
 
@@ -137,7 +137,7 @@ MPC сегодня — фактический стандарт для беспи
 
 ---
 
-## Принцип скользящего горизонта MPC (Receding Horizon) <span class="badge badge-time">08–12 мин</span>
+## Разбор: почему из всего плана исполняется только первый шаг <span class="badge badge-time">08–12 мин</span>
 
 <div class="diagram-box">
 
@@ -456,7 +456,7 @@ $$\Delta h(x_k, u_k) = h(x_{k+1}) - h(x_k) \ge -\gamma h(x_k), \quad 0 < \gamma 
 
 ---
 
-## Архитектура контура RTI: Тайминг и обратная связь <span class="badge badge-time">78–82 мин</span>
+## Разбор: куда уходит бюджет такта в реальном контуре <span class="badge badge-time">78–82 мин</span>
 
 <div class="diagram-box">
 
@@ -466,7 +466,7 @@ $$\Delta h(x_k, u_k) = h(x_{k+1}) - h(x_k) \ge -\gamma h(x_k), \quad 0 < \gamma 
 
 ---
 
-<!-- _class: invert -->
+<!-- _class: accent -->
 <!-- _header: "Лекция 06 | Итоги и вопросы" -->
 
 ## Резюме лекции и контрольные вопросы <span class="badge badge-time">82–90 мин</span>

@@ -9,7 +9,7 @@ math: katex
 
 ---
 
-<!-- _class: lead invert -->
+<!-- _class: lead -->
 <!-- _header: "" -->
 <!-- _footer: "" -->
 
@@ -209,7 +209,7 @@ $$\forall X, Y \in \Delta \implies [X, Y] \in \Delta$$
 
 ---
 
-## Кинематика велосипеда и геометрия Аккермана <span class="badge badge-time">20–25 мин</span>
+## Разбор: откуда берётся мгновенный центр поворота <span class="badge badge-time">20–25 мин</span>
 
 <div class="diagram-box">
 
@@ -276,7 +276,7 @@ $$\Delta q = \epsilon^2 [f_1, f_2](q) + \mathcal{O}(\epsilon^3)$$
 
 ---
 
-## Скобка Ли: Геометрия параллельной парковки <span class="badge badge-time">32–37 мин</span>
+## Почему параллельная парковка вообще возможна <span class="badge badge-time">32–37 мин</span>
 
 <div class="diagram-box">
 
@@ -490,7 +490,7 @@ $$\ddot{s} = \frac{1}{2} b'(s)$$
 
 ---
 
-<!-- _class: invert -->
+<!-- _class: accent -->
 <!-- _header: "Лекция 07 | Итоги и вопросы" -->
 
 ## Резюме лекции и контрольные вопросы <span class="badge badge-time">80–90 мин</span>

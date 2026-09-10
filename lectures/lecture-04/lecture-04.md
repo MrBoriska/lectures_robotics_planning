@@ -9,7 +9,7 @@ math: katex
 
 ---
 
-<!-- _class: lead invert -->
+<!-- _class: lead -->
 <!-- _header: "" -->
 <!-- _footer: "" -->
 
@@ -229,7 +229,7 @@ $$F_{att}(q) + F_{rep}(q) = 0$$
 
 ---
 
-## Патологии APF: U-ловушка vs Гармоническое поле <span class="badge badge-time">30–33 мин</span>
+## Почему робот застревает в тупике — и как это лечится <span class="badge badge-time">30–33 мин</span>
 
 <div class="diagram-box">
 
@@ -304,7 +304,7 @@ $$U(i, j) = \frac{1}{4} \Big( U(i+1, j) + U(i-1, j) + U(i, j+1) + U(i, j-1) \Big
 <span>Перетаскивайте препятствия | Создайте U-ловушку и наблюдайте застревание</span>
 
 </div>
-<iframe src="http://localhost:5500/widgets/potential-field/index.html" class="interactive-frame"></iframe>
+<iframe src="http://localhost:5599/widgets/potential-field/index.html" class="interactive-frame"></iframe>
 
 </div>
 
@@ -372,7 +372,7 @@ $$G(v, \omega) = \alpha \cdot \operatorname{heading}(v, \omega) + \beta \cdot \o
 
 ---
 
-## Геометрия DWA: Пространство скоростей $(v, \omega)$ <span class="badge badge-time">62–67 мин</span>
+## Разбор: что именно перебирает DWA за один такт <span class="badge badge-time">62–67 мин</span>
 
 <div class="diagram-box">
 
@@ -489,7 +489,7 @@ $$\min_{\mathcal{B}} \sum_k \left( w_t \Delta T_k^2 + w_{obs} f_{obs}(s_k) + w_{
 
 ---
 
-## Геометрия TEB: Деформация эластичной ленты <span class="badge badge-time">80–84 мин</span>
+## Разбор: как лента находит обход и что её растягивает <span class="badge badge-time">80–84 мин</span>
 
 <div class="diagram-box">
 
@@ -499,7 +499,7 @@ $$\min_{\mathcal{B}} \sum_k \left( w_t \Delta T_k^2 + w_{obs} f_{obs}(s_k) + w_{
 
 ---
 
-<!-- _class: invert -->
+<!-- _class: accent -->
 <!-- _header: "Лекция 04 | Итоги и вопросы" -->
 
 ## Резюме лекции и контрольные вопросы <span class="badge badge-time">84–90 мин</span>

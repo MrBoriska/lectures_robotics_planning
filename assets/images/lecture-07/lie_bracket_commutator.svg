@@ -9,19 +9,19 @@
   <g transform="translate(40, 70)">
     <rect width="400" height="245" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
 
-    <path d="M60,190 H220" stroke="#0284c7" stroke-width="3" stroke-linecap="round"/>
+    <path d="M60,190 H220" stroke="#0284c7" stroke-width="3" stroke-linecap="round" fill="none"/>
     <polygon points="220,190 210,185 210,195" fill="#0284c7"/>
     <text x="110" y="210" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#0284c7">1. +f₁ (Вперед)</text>
 
-    <path d="M220,190 Q240,160 220,110" stroke="#2563eb" stroke-width="3" stroke-linecap="round"/>
+    <path d="M220,190 Q240,160 220,110" stroke="#2563eb" stroke-width="3" stroke-linecap="round" fill="none"/>
     <polygon points="220,110 228,118 220,125" fill="#2563eb"/>
     <text x="240" y="150" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#2563eb">2. +f₂ (Руль)</text>
 
-    <path d="M220,110 H80" stroke="#dc2626" stroke-width="3" stroke-linecap="round"/>
+    <path d="M220,110 H80" stroke="#dc2626" stroke-width="3" stroke-linecap="round" fill="none"/>
     <polygon points="80,110 90,105 90,115" fill="#dc2626"/>
     <text x="120" y="95" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#dc2626">3. -f₁ (Назад)</text>
 
-    <path d="M80,110 Q60,130 60,145" stroke="#9333ea" stroke-width="3" stroke-linecap="round"/>
+    <path d="M80,110 Q60,130 60,145" stroke="#9333ea" stroke-width="3" stroke-linecap="round" fill="none"/>
     <text x="10" y="130" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#9333ea">4. -f₂ (Руль)</text>
 
     <line x1="60" y1="190" x2="60" y2="145" stroke="#059669" stroke-width="4" stroke-linecap="round"/>
@@ -41,9 +41,9 @@
     <text x="18" y="56" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#065f46">[f₁, f₂] = ∂f₂/∂x f₁ - ∂f₁/∂x f₂</text>
     <text x="18" y="72" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#047857">rank Δ_LARC = dim(C) = 3</text>
 
-    <text x="14" y="110" font-family="Inter" font-size="11.5" fill="#334155">• Автомобиль имеет только 2 привода: тяга (f₁) и руление (f₂).</text>
-    <text x="14" y="145" font-family="Inter" font-size="11.5" fill="#334155">• Непосредственно ехать боком колеса не могут (чистое качение).</text>
-    <text x="14" y="180" font-family="Inter" font-size="11.5" fill="#334155">• Но скобка Ли [f₁, f₂] дает ненулевую составляющую в направлении оси Y!</text>
+    <text x="14" y="110" font-family="Inter" font-size="11.50" fill="#334155"><tspan x="14.0" dy="0">• Автомобиль имеет только 2 привода: тяга (f₁)</tspan><tspan x="14.0" dy="13.3">и руление (f₂).</tspan></text>
+    <text x="14" y="145" font-family="Inter" font-size="11.50" fill="#334155"><tspan x="14.0" dy="0">• Непосредственно ехать боком колеса не</tspan><tspan x="14.0" dy="13.3">могут (чистое качение).</tspan></text>
+    <text x="14" y="180" font-family="Inter" font-size="11.50" fill="#334155"><tspan x="14.0" dy="0">• Но скобка Ли [f₁, f₂] дает ненулевую</tspan><tspan x="14.0" dy="13.3">составляющую в направлении оси Y!</tspan></text>
 
     <rect x="12" y="210" width="241" height="24" rx="3" fill="#eff6ff"/>
     <text x="18" y="226" font-family="Inter" font-size="10" font-weight="700" fill="#1e40af">Полная управляемость системы доказана!</text>

@@ -2,38 +2,32 @@
   <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
 
   <g transform="translate(30, 24)">
-    <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Кривые Ридса-Шеппа: Маневры с реверсом (Cusp)</text>
-    <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Расширение Дубинса: допускается движение задним ходом (v &lt; 0), образующее точки возврата (точки переключения передач)</text>
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Кривые Ридса-Шеппа: манёвры с реверсом (cusp)</text>
+    <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Расширение Дубинса: допускается v &lt; 0, и в точке смены передачи касательная разворачивается</text>
   </g>
 
-  <!-- Left: Reeds-Shepp with cusp -->
+  <!-- Left: integrated L+ R- L+ word with two real cusps -->
   <g transform="translate(30, 65)">
     <rect width="335" height="265" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
-    <text x="16" y="24" font-family="Inter" font-size="13" font-weight="700" fill="#0f172a">1. Маневр параллельной парковки L⁺ | R⁻ | L⁺</text>
+    <text x="16" y="24" font-family="Inter" font-size="13" font-weight="700" fill="#0f172a">1. Слово L+ | R- | L+ (проинтегрировано)</text>
 
-    <!-- Forward segment L+ -->
-    <path d="M40,210 Q90,170 140,170" stroke="#0284c7" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-    <text x="60" y="175" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#0284c7">L⁺ (Вперед)</text>
-
-    <circle cx="140" cy="170" r="6" fill="#d97706" stroke="#ffffff" stroke-width="2"/>
-    <text x="110" y="150" font-family="Inter" font-size="10" font-weight="700" fill="#d97706">Точка возврата (Cusp)</text>
-
-    <!-- Reverse segment R- -->
-    <path d="M140,170 Q190,170 230,120" stroke="#dc2626" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-dasharray="4,2"/>
-    <text x="195" y="160" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#dc2626">R⁻ (Назад)</text>
-
-    <circle cx="230" cy="120" r="6" fill="#d97706" stroke="#ffffff" stroke-width="2"/>
-
-    <!-- Forward segment L+ to goal -->
-    <path d="M230,120 Q270,80 300,80" stroke="#0284c7" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-    <text x="260" y="70" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#0284c7">L⁺</text>
-
-    <circle cx="300" cy="80" r="6" fill="#059669"/>
-    <text x="290" y="105" font-family="Inter" font-size="11" font-weight="700" fill="#059669">Цель</text>
+    <path d="M88.7,115.1 L92.1,114.5 L95.5,113.7 L98.9,112.8 L102.3,111.8 L105.6,110.7 L108.8,109.4 L112.0,108.1 L115.2,106.5 L118.3,104.9 L121.3,103.2 L124.3,101.3 L127.2,99.4 L130.0,97.3 L132.7,95.1 L135.4,92.8 L137.9,90.4 L140.4,88.0 L142.7,85.4 L145.0,82.7 L147.2,80.0 L149.2,77.2 L151.2,74.3 L153.0,71.3 L154.7,68.2 L156.3,65.1 L157.8,62.0 L159.2,58.7 L160.4,55.5 L161.5,52.2 L162.5,48.8 L163.4,45.4 L164.1,42.0" stroke="#0284c7" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <text x="118" y="74" text-anchor="middle" font-family="JetBrains Mono" font-size="10.5" font-weight="700" fill="#0284c7">L+ (вперёд)</text>
+    <path d="M164.1,42.0 L163.4,46.7 L162.9,51.4 L162.6,56.1 L162.6,60.9 L162.8,65.6 L163.3,70.3 L164.0,75.0 L165.0,79.7 L166.2,84.3 L167.6,88.8 L169.3,93.2 L171.2,97.6 L173.3,101.8 L175.7,105.9 L178.2,109.9 L181.0,113.8 L183.9,117.5 L187.1,121.1 L190.4,124.5 L193.9,127.7 L197.5,130.7 L201.3,133.5 L205.3,136.2 L209.4,138.6 L213.6,140.8 L217.9,142.8 L222.3,144.6 L226.8,146.1 L231.3,147.4 L235.9,148.5 L240.6,149.3 L245.3,149.9" stroke="#dc2626" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-dasharray="5,3"/>
+    <text x="207" y="112" text-anchor="middle" font-family="JetBrains Mono" font-size="10.5" font-weight="700" fill="#dc2626">R- (назад)</text>
+    <path d="M245.3,149.9 L242.3,149.6 L239.4,149.4 L236.4,149.3 L233.4,149.4 L230.4,149.5 L227.4,149.7 L224.4,150.0 L221.4,150.5 L218.5,151.0 L215.6,151.6 L212.6,152.3 L209.8,153.1 L206.9,154.0 L204.1,155.0 L201.3,156.0 L198.5,157.2 L195.8,158.5 L193.1,159.8 L190.5,161.3 L187.9,162.8 L185.4,164.4 L182.9,166.1 L180.5,167.8 L178.1,169.7 L175.8,171.6 L173.6,173.6 L171.4,175.7 L169.3,177.8 L167.3,180.0 L165.3,182.3 L163.5,184.6 L161.6,187.0" stroke="#0284c7" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <text x="214" y="178" text-anchor="middle" font-family="JetBrains Mono" font-size="10.5" font-weight="700" fill="#0284c7">L+ (вперёд)</text>
+    <circle cx="164.1" cy="42.0" r="5.5" fill="#d97706" stroke="#ffffff" stroke-width="2"/>
+    <circle cx="245.3" cy="149.9" r="5.5" fill="#d97706" stroke="#ffffff" stroke-width="2"/>
+    <text x="164" y="42" dy="-11" font-family="Inter" font-size="10" font-weight="700" fill="#d97706" text-anchor="middle">cusp</text>
+    <circle cx="88.7" cy="115.1" r="5" fill="#1e293b"/>
+    <text x="89" y="115" dx="-14" dy="16" text-anchor="middle" font-family="Inter" font-size="10.5" font-weight="700" fill="#1e293b">Старт</text>
+    <circle cx="161.6" cy="187.0" r="5.5" fill="#059669"/>
+    <text x="162" y="187" dx="0" dy="18" text-anchor="middle" font-family="Inter" font-size="10.5" font-weight="700" fill="#059669">Цель</text>
 
     <rect x="14" y="210" width="307" height="42" rx="4" fill="#fffbeb" stroke="#fef08a" stroke-width="1"/>
     <text x="22" y="228" font-family="Inter" font-size="10.5" font-weight="700" fill="#854d0e">В точке cusp скорость v меняет знак:</text>
-    <text x="22" y="242" font-family="Inter" font-size="10" fill="#b45309">Робот останавливается, выворачивает руль и дает задний ход</text>
+    <text x="22" y="242" font-family="Inter" font-size="10" fill="#b45309">Робот останавливается, выворачивает руль и даёт задний ход</text>
   </g>
 
   <!-- Right: 48 Optimal Words -->

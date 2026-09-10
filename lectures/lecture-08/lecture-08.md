@@ -9,7 +9,7 @@ math: katex
 
 ---
 
-<!-- _class: lead invert -->
+<!-- _class: lead -->
 <!-- _header: "" -->
 <!-- _footer: "" -->
 
@@ -191,7 +191,7 @@ $$x_{init}^{mpc} = x(t) + \int_{t}^{t + \Delta t_{lat}} f(x, u_{current}) dt$$
 
 ---
 
-## Иерархия реального времени: Контуры от 1 Гц до 1000 Гц <span class="badge badge-time">18–22 мин</span>
+## Разбор: кто с какой частотой обязан успевать <span class="badge badge-time">18–22 мин</span>
 
 <div class="diagram-box">
 
@@ -363,7 +363,7 @@ $$D_f(p) = \min_{q} \Big( (p - q)^2 + f(q) \Big)$$
 
 ---
 
-## Архитектура Nav2: Дерево Поведения (Behavior Tree) <span class="badge badge-time">52–58 мин</span>
+## Разбор: как дерево решает, что делать при отказе <span class="badge badge-time">52–58 мин</span>
 
 <div class="diagram-box">
 
@@ -514,7 +514,7 @@ $$\begin{array}{rcl}
 
 ---
 
-<!-- _class: invert -->
+<!-- _class: accent -->
 <!-- _header: "Лекция 08 | Итоги и вопросы" -->
 
 ## Резюме лекции и завершение курса <span class="badge badge-time">86–90 мин</span>

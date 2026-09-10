@@ -178,17 +178,17 @@ code {
 }
 
 pre {
-  background-color: #0b0f19 !important;
+  background-color: #f8fafc !important;
   border-radius: 8px;
   padding: 12px 16px !important;
   box-shadow: var(--card-shadow);
-  border: 1px solid #1e293b;
+  border: 1px solid var(--border-subtle);
   margin: 8px 0 12px 0;
 }
 
 pre code {
   background: transparent;
-  color: #e2e8f0;
+  color: #0f172a;
   border: none;
   font-size: 17px;
   line-height: 1.4;
@@ -255,6 +255,34 @@ pre code {
   grid-template-columns: 1fr 1fr 1fr;
   gap: 12px;
   align-items: stretch;
+}
+
+/* The slide <section> is a column flexbox: let the main content block absorb
+   the leftover height instead of leaving the bottom third of the slide empty. */
+section > :is(.grid-2, .grid-3) {
+  flex: 1 1 auto;
+  min-height: 0;
+  align-content: stretch;
+}
+
+/* `.tight` opts a row out of that stretch: use it for a strip of one- or
+   two-sentence cards under a figure, so the figure gets the leftover height
+   instead of the text boxes ballooning into empty rectangles. */
+:is(.grid-2, .grid-3).tight {
+  flex: 0 0 auto !important;
+  align-items: start;
+}
+
+:is(.grid-2, .grid-3).tight .card {
+  padding: 10px 14px;
+  margin-bottom: 0;
+}
+
+/* A figure that owns its slide should take every pixel the text leaves over.
+   It outweighs a sibling grid so wide diagrams stop rendering postage-stamp
+   sized next to a half-empty column of prose. */
+section > .diagram-box {
+  flex: 3 1 0;
 }
 
 .col {
@@ -333,10 +361,13 @@ pre code {
   min-height: 0;
 }
 
+/* Fill the box in both directions and let object-fit preserve the aspect
+   ratio. `height: auto` used to cap the figure at its intrinsic size, which is
+   why the 760x360 diagrams rendered small inside a tall slot. */
 .diagram-box img, .diagram-box svg {
-  max-width: 100%;
-  max-height: 100%;
-  height: auto;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
   object-fit: contain;
 }
 
@@ -371,10 +402,29 @@ pre code {
   font-weight: 500;
 }
 
-.interactive-header span {
+/* NB: markdown-it wraps header content in <p>, so the flex row lives on <p>.
+   The span rule MUST stay a direct-child selector: a descendant `span` rule
+   here would hit KaTeX's internal spans and explode every formula. */
+.interactive-header > p {
+  margin: 0;
+  width: 100%;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.interactive-header > p > span,
+.interactive-header > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+/* Hard guard: never let layout rules leak into KaTeX internals. */
+.katex, .katex * {
+  gap: 0 !important;
 }
 
 .interactive-dot {
@@ -444,68 +494,36 @@ section.lead h2 {
   padding-bottom: 0;
 }
 
-/* Invert Mode (Dark Aesthetic) */
-section.invert {
-  background-color: #0b0f19;
-  color: #f1f5f9;
+/* Accent slides (former dark "invert" mode) — kept fully light so that
+   bold text, KaTeX and code never end up dark-on-dark. */
+section.lead {
+  background:
+    radial-gradient(1100px 600px at 88% -10%, #e0f2fe 0%, rgba(224, 242, 254, 0) 60%),
+    linear-gradient(180deg, #ffffff 0%, #f6f9fc 100%);
+  border-left: 6px solid var(--accent-primary);
 }
 
-section.invert h1, section.invert h2, section.invert h3 {
-  color: #ffffff;
+section.accent {
+  background: linear-gradient(180deg, #f8fbff 0%, #f1f6fb 100%);
 }
 
-section.invert h1 strong, section.invert h2 strong {
-  color: #38bdf8;
+section.accent :is(h1, h2, h3) {
+  color: var(--text-main);
 }
 
-section.invert header, section.invert footer {
-  color: #64748b;
-  border-color: #1e293b;
+section.accent h2 {
+  border-bottom-color: var(--border-accent);
 }
 
-section.invert section::after {
-  color: #64748b;
+section.accent .card {
+  background: #ffffff;
+  border-color: var(--border-accent);
 }
 
-section.invert .card {
-  background: #111827;
-  border-color: #1f2937;
-  color: #f1f5f9;
-}
-
-section.invert .card-accent {
-  background: rgba(3, 105, 161, 0.15);
-  border-color: rgba(56, 189, 248, 0.3);
-  border-left-color: #38bdf8;
-}
-
-section.invert .formula-box {
-  background: #111827;
-  border-color: #1f2937;
-  color: #f8fafc;
-}
-
-section.invert .diagram-box {
-  background: #111827;
-  border-color: #1f2937;
-}
-
-section.invert .katex {
-  color: #f8fafc;
-}
-
-section.invert table th {
-  background-color: #1e293b;
-  color: #ffffff;
-  border-color: #334155;
-}
-
-section.invert table td {
-  border-color: #1e293b;
-}
-
-section.invert tr:nth-child(even) td {
-  background-color: rgba(255, 255, 255, 0.02);
+section.accent .formula-box,
+section.accent .diagram-box {
+  background: #ffffff;
+  border-color: var(--border-accent);
 }
 
 /* Utility classes */

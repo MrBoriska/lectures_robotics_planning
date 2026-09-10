@@ -100,6 +100,182 @@ def convex_hull(points):
     return lower[:-1] + upper[:-1]
 
 # -------------------------------------------------------------------------
+# SVG text fitting: no label may ever overflow its panel box.
+#
+# The diagrams place <text> at hand-picked coordinates. Russian labels are far
+# wider than the Latin ones the layout was eyeballed with, so text used to run
+# past the panel border and get clipped. fit_svg_text() measures every label
+# with a per-script advance-width model and shrinks the ones that do not fit
+# (falling back to textLength compression only in the extreme cases).
+# -------------------------------------------------------------------------
+import re as _re
+
+_ADV_SANS = {'narrow': 0.30, 'wide': 0.83, 'normal': 0.52, 'cyr': 0.58}
+_ADV_MONO = 0.601
+_NARROW = set("ijltIfr.,:;'|!()[]{}/\ ")
+_WIDE = set("mwMW—⟺⟷")
+
+
+def text_width(s, font_size, mono=False, bold=False):
+    """Estimate rendered advance width of `s` in user units."""
+    if mono:
+        return len(s) * _ADV_MONO * font_size
+    total = 0.0
+    for ch in s:
+        if ch in _NARROW:
+            total += _ADV_SANS['narrow']
+        elif ch in _WIDE:
+            total += _ADV_SANS['wide']
+        elif 'А' <= ch <= 'я' or ch in 'ЁёІ':
+            total += _ADV_SANS['cyr']
+        else:
+            total += _ADV_SANS['normal']
+    w = total * font_size
+    return w * 1.045 if bold else w
+
+
+_TEXT_RE = _re.compile(r'<text\b([^>]*)>(.*?)</text>', _re.S)
+_G_RE = _re.compile(r'<g\s+transform="translate\(\s*([-\d.]+)\s*,\s*([-\d.]+)\s*\)"')
+_RECT_W_RE = _re.compile(r'\A\s*<rect\s+width="(\d+(?:\.\d+)?)"')
+
+
+_TSPAN_RE = _re.compile(r'<tspan\b[^>]*>.*?</tspan>|<[^>]+/>', _re.S)
+
+
+def _strip_tags(fragment):
+    return _re.sub(r'<[^>]+>', '', fragment)
+
+
+def _tokenize_body(body):
+    """Split a <text> body into wrappable tokens.
+
+    A nested <tspan>…</tspan> (used for the bold lead-in of a bullet) stays a
+    single atomic token so wrapping never splits a tag across lines.
+    """
+    tokens, pos = [], 0
+    for m in _TSPAN_RE.finditer(body):
+        tokens.extend(w for w in body[pos:m.start()].split(' ') if w)
+        tokens.append(m.group(0))
+        pos = m.end()
+    tokens.extend(w for w in body[pos:].split(' ') if w)
+    return tokens
+
+
+MAX_WRAP_LINES = 2
+
+
+def _wrap_tokens(tokens, avail, font_size, mono, bold):
+    lines, cur = [], ''
+    for word in tokens:
+        trial = word if not cur else cur + ' ' + word
+        if text_width(_strip_tags(trial), font_size, mono=mono, bold=bold) <= avail or not cur:
+            cur = trial
+        else:
+            lines.append(cur)
+            cur = word
+    lines.append(cur)
+    return lines
+
+
+def _attr(attrs, name, default=None):
+    m = _re.search(r'\b%s="([^"]*)"' % name, attrs)
+    return m.group(1) if m else default
+
+
+def fit_svg_text(svg, canvas_width=760, pad=10):
+    """Shrink every <text> that would overflow the box it sits in.
+
+    Boxes are inferred from the diagram idiom used throughout this file:
+    a panel is `<g transform="translate(dx,dy)">` whose first child is
+    `<rect width="W" ...>`. Text outside any such group is bounded by the
+    canvas itself.
+    """
+    # Map each group's start offset -> (origin_x, box_width)
+    groups = []
+    for m in _G_RE.finditer(svg):
+        gx = float(m.group(1))
+        tail = svg[m.end():m.end() + 400]
+        rm = _RECT_W_RE.search(tail)
+        box_w = float(rm.group(1)) if rm else canvas_width - gx
+        groups.append((m.start(), gx, box_w))
+
+    def box_for(pos):
+        origin, width = 0.0, canvas_width
+        for start, gx, bw in groups:
+            if start < pos:
+                origin, width = gx, bw
+            else:
+                break
+        return origin, width
+
+    def repl(m):
+        attrs, body = m.group(1), m.group(2)
+        inner = _re.sub(r'<[^>]+>', '', body)
+        if not inner.strip():
+            return m.group(0)
+        try:
+            x = float(_attr(attrs, 'x', '0'))
+            fs = float(_attr(attrs, 'font-size', '11'))
+        except ValueError:
+            return m.group(0)
+        if _attr(attrs, 'textLength'):
+            return m.group(0)
+
+        origin, box_w = box_for(m.start())
+        anchor = _attr(attrs, 'text-anchor', 'start')
+        mono = 'mono' in (_attr(attrs, 'font-family', '') or '')
+        bold = (_attr(attrs, 'font-weight', '400') or '400') in ('600', '700', '800', 'bold')
+
+        w = text_width(inner, fs, mono=mono, bold=bold)
+        if anchor == 'middle':
+            avail = 2 * min(x, box_w - pad - x)
+        elif anchor == 'end':
+            avail = x - pad
+        else:
+            avail = box_w - pad - x
+        if avail <= 0 or w <= avail:
+            return m.group(0)
+
+        # 1) A gentle shrink handles near-misses without changing the layout.
+        scale = avail / w
+        if scale >= 0.90:
+            out = _re.sub(r'font-size="[^"]*"', 'font-size="%.2f"' % (fs * scale), attrs, count=1)
+            return '<text%s>%s</text>' % (out, body)
+
+        # 2) Otherwise wrap onto at most 2 lines at (near) the original size,
+        #    which keeps long Russian sentences readable instead of microscopic.
+        #    More than 2 lines would collide with the next label below.
+        tokens = _tokenize_body(body)
+        if len(tokens) > 1:
+            for shrink in (1.0, 0.94, 0.88, 0.82, 0.76):
+                line_fs = fs * shrink
+                lines = _wrap_tokens(tokens, avail, line_fs, mono, bold)
+                if len(lines) <= MAX_WRAP_LINES:
+                    out = _re.sub(r'font-size="[^"]*"', 'font-size="%.2f"' % line_fs, attrs, count=1)
+                    tspans = ''.join(
+                        '<tspan x="%s" dy="%s">%s</tspan>' % (x, '0' if i == 0 else '%.1f' % (line_fs * 1.16), ln)
+                        for i, ln in enumerate(lines))
+                    return '<text%s>%s</text>' % (out, tspans)
+
+        # 3) Last resort: compress glyph spacing to the available width.
+        out = _re.sub(r'font-size="[^"]*"', 'font-size="%.2f"' % (fs * 0.8), attrs, count=1)
+        out += ' textLength="%.1f" lengthAdjust="spacingAndGlyphs"' % avail
+        return '<text%s>%s</text>' % (out, body)
+
+    return _TEXT_RE.sub(repl, svg)
+
+
+_orig_open = open
+
+
+def write_svg(filepath, svg):
+    """Single exit point for every diagram: fit labels, then write."""
+    ensure_dir(filepath)
+    with _orig_open(filepath, 'w', encoding='utf-8') as f:
+        f.write(fit_svg_text(svg))
+    print("Generated: %s" % filepath)
+
+# -------------------------------------------------------------------------
 # Diagram 1: Lecture 02 - Visibility Graph vs Voronoi Diagram
 # -------------------------------------------------------------------------
 def generate_visibility_vs_voronoi():
@@ -260,9 +436,94 @@ def generate_visibility_vs_voronoi():
   </g>
 </svg>'''
 
-    with open(filepath, 'w', encoding='utf-8') as f:
-        f.write(svg)
-    print(f"Generated: {filepath}")
+    write_svg(filepath, svg)
+
+# -------------------------------------------------------------------------
+# Grid search: 8-connected A* and Theta* with a real supercover line-of-sight.
+# The Theta* path is *computed*, never hand-drawn, so it can never cut a corner
+# through a blocked cell.
+# -------------------------------------------------------------------------
+def grid_line_of_sight(a, b, blocked):
+    """Supercover LoS on a cell grid (Bresenham variant used by Theta*)."""
+    x0, y0 = a
+    x1, y1 = b
+    dx, dy = abs(x1 - x0), abs(y1 - y0)
+    sx = 1 if x1 > x0 else -1
+    sy = 1 if y1 > y0 else -1
+    x, y = x0, y0
+    if dx >= dy:
+        err = dx // 2
+        for _ in range(dx):
+            err -= dy
+            if err < 0:
+                y += sy
+                err += dx
+                # a diagonal step must not squeeze between two blocked cells
+                if (x, y) in blocked or (x + sx, y - sy) in blocked:
+                    return False
+            x += sx
+            if (x, y) in blocked:
+                return False
+    else:
+        err = dy // 2
+        for _ in range(dy):
+            err -= dx
+            if err < 0:
+                x += sx
+                err += dy
+                if (x, y) in blocked or (x - sx, y + sy) in blocked:
+                    return False
+            y += sy
+            if (x, y) in blocked:
+                return False
+    return True
+
+
+def _grid_neighbors(node, cols, rows, blocked):
+    cx, cy = node
+    for dx in (-1, 0, 1):
+        for dy in (-1, 0, 1):
+            if dx == 0 and dy == 0:
+                continue
+            nx, ny = cx + dx, cy + dy
+            if not (0 <= nx < cols and 0 <= ny < rows) or (nx, ny) in blocked:
+                continue
+            if dx and dy and ((cx + dx, cy) in blocked or (cx, cy + dy) in blocked):
+                continue  # no cutting between two diagonal obstacles
+            yield (nx, ny)
+
+
+def _search_grid(start, goal, cols, rows, blocked, any_angle):
+    """A* (any_angle=False) or Theta* (any_angle=True). Returns the node path."""
+    import heapq
+    g = {start: 0.0}
+    parent = {start: start}
+    open_heap = [(dist(start, goal), start)]
+    closed = set()
+    while open_heap:
+        _, cur = heapq.heappop(open_heap)
+        if cur in closed:
+            continue
+        closed.add(cur)
+        if cur == goal:
+            break
+        for nb in _grid_neighbors(cur, cols, rows, blocked):
+            if nb in closed:
+                continue
+            # Theta* path 2: try to attach nb straight to parent(cur)
+            anchor = parent[cur] if (any_angle and grid_line_of_sight(parent[cur], nb, blocked)) else cur
+            cand = g[anchor] + dist(anchor, nb)
+            if cand < g.get(nb, float('inf')) - 1e-9:
+                g[nb] = cand
+                parent[nb] = anchor
+                heapq.heappush(open_heap, (cand + dist(nb, goal), nb))
+    if goal not in parent:
+        return []
+    path, node = [goal], goal
+    while node != start:
+        node = parent[node]
+        path.append(node)
+    return path[::-1]
 
 # -------------------------------------------------------------------------
 # Diagram 2: Lecture 02 - Theta* Any-Angle vs Grid A*
@@ -271,22 +532,35 @@ def generate_theta_star_los():
     filepath = os.path.join(OUTPUT_DIR, 'lecture-02', 'theta_star_los.svg')
     ensure_dir(filepath)
 
-    cols = 8
-    rows = 6
-    cell = 36
-    ox, oy = 25, 45
+    cols = 10
+    rows = 7
+    cell = 30
+    ox, oy = 22, 50
 
-    obs = {(3, 1), (3, 2), (4, 2), (4, 3)}
-    start_cell = (1, 4)
-    goal_cell = (6, 1)
+    obs = {(4, 2), (4, 3), (4, 4), (5, 4)}
+    start_cell = (0, 6)
+    goal_cell = (9, 0)
 
-    astar_nodes = [(1, 4), (2, 4), (3, 4), (4, 4), (5, 3), (6, 2), (6, 1)]
-    astar_pts = [(ox + c * cell + cell/2, oy + r * cell + cell/2) for c, r in astar_nodes]
-    astar_dist = sum(dist(astar_pts[i], astar_pts[i+1]) for i in range(len(astar_pts)-1)) / cell
+    # Both paths are searched, not drawn by hand.
+    astar_nodes = _search_grid(start_cell, goal_cell, cols, rows, obs, any_angle=False)
+    theta_nodes = _search_grid(start_cell, goal_cell, cols, rows, obs, any_angle=True)
 
-    theta_nodes = [(1, 4), (2, 4), (6, 1)]
-    theta_pts = [(ox + c * cell + cell/2, oy + r * cell + cell/2) for c, r in theta_nodes]
-    theta_dist = sum(dist(theta_pts[i], theta_pts[i+1]) for i in range(len(theta_pts)-1)) / cell
+    def to_px(nodes):
+        return [(ox + c * cell + cell/2, oy + r * cell + cell/2) for c, r in nodes]
+
+    def path_len(pts):
+        return sum(dist(pts[i], pts[i+1]) for i in range(len(pts)-1)) / cell
+
+    astar_pts, theta_pts = to_px(astar_nodes), to_px(theta_nodes)
+    astar_dist, theta_dist = path_len(astar_pts), path_len(theta_pts)
+
+    # Sanity check: every Theta* leg must have real line of sight.
+    for i in range(len(theta_nodes) - 1):
+        assert grid_line_of_sight(theta_nodes[i], theta_nodes[i+1], obs), \
+            'Theta* leg %s->%s crosses an obstacle' % (theta_nodes[i], theta_nodes[i+1])
+
+    # The LoS ray annotation follows the last computed any-angle leg.
+    los_a, los_b = theta_pts[-2], theta_pts[-1]
 
     def render_grid(pts, is_theta):
         grid_svg = ""
@@ -325,8 +599,8 @@ def generate_theta_star_los():
     {render_grid(astar_pts, False)}
 
     <rect x="14" y="270" width="317" height="38" rx="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
-    <text x="24" y="287" font-family="Inter, sans-serif" font-size="11.5" font-weight="700" fill="#dc2626">Длина пути: L = {astar_dist:.2f} клеток</text>
-    <text x="24" y="301" font-family="Inter, sans-serif" font-size="10" fill="#64748b">Избыточные изломы и искусственные повороты на ребрах сетки</text>
+    <text x="24" y="287" font-family="Inter, sans-serif" font-size="11.5" font-weight="700" fill="#dc2626">L = {astar_dist:.2f} клеток | изломов: {len(astar_nodes)-2}</text>
+    <text x="24" y="301" font-family="Inter, sans-serif" font-size="10" fill="#64748b">Курс квантован по 45°: искусственные повороты на ребрах сетки</text>
   </g>
 
   <!-- RIGHT: THETA* ANY-ANGLE -->
@@ -337,19 +611,16 @@ def generate_theta_star_los():
 
     {render_grid(theta_pts, True)}
 
-    <!-- Line of sight ray indicator -->
-    <line x1="{ox + 2*cell + cell/2}" y1="{oy + 4*cell + cell/2}" x2="{ox + 6*cell + cell/2}" y2="{oy + 1*cell + cell/2}" stroke="#0284c7" stroke-width="1.5" stroke-dasharray="3,3"/>
-    <text x="155" y="145" font-family="JetBrains Mono, monospace" font-size="9" fill="#0284c7">LineOfSight() = True</text>
+    <!-- Line of sight ray for the last any-angle leg (verified above) -->
+    <line x1="{los_a[0]:.1f}" y1="{los_a[1]:.1f}" x2="{los_b[0]:.1f}" y2="{los_b[1]:.1f}" stroke="#0284c7" stroke-width="1.5" stroke-dasharray="3,3"/>
 
     <rect x="14" y="270" width="317" height="38" rx="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
-    <text x="24" y="287" font-family="Inter, sans-serif" font-size="11.5" font-weight="700" fill="#059669">Длина пути: L = {theta_dist:.2f} клеток (-{((astar_dist-theta_dist)/astar_dist)*100:.1f}%)</text>
-    <text x="24" y="301" font-family="Inter, sans-serif" font-size="10" fill="#64748b">Устраняет дискретный артефакт сетки без пост-сглаживания</text>
+    <text x="24" y="287" font-family="Inter, sans-serif" font-size="11.5" font-weight="700" fill="#059669">L = {theta_dist:.2f} ({-((astar_dist-theta_dist)/astar_dist)*100:.1f}%) | изломов: {len(theta_nodes)-2}</text>
+    <text x="24" y="301" font-family="Inter, sans-serif" font-size="10" fill="#64748b">LineOfSight = True на всех {len(theta_nodes)-1} сегментах; выигрыш — в числе изломов</text>
   </g>
 </svg>'''
 
-    with open(filepath, 'w', encoding='utf-8') as f:
-        f.write(svg)
-    print(f"Generated: {filepath}")
+    write_svg(filepath, svg)
 
 # -------------------------------------------------------------------------
 # Diagram 3: Lecture 01 - Minkowski Sum & C-Space
@@ -381,15 +652,15 @@ def generate_minkowski_cspace():
     <polygon points="{' '.join(f'{x},{y}' for x,y in O)}" fill="#fee2e2" stroke="#ef4444" stroke-width="2"/>
     <text x="95" y="105" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#b91c1c">Препятствие O</text>
 
-    <!-- Robot at position q = (180, 200) -->
-    <g transform="translate(190, 195) rotate(20)">
+    <!-- Robot at q = (190, 195, 0). theta MUST match the C_obs slice below. -->
+    <g transform="translate(190, 195)">
       <polygon points="-20,-15 25,0 -20,15" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
       <circle cx="0" cy="0" r="3.5" fill="#2563eb"/>
       <line x1="0" y1="0" x2="25" y2="0" stroke="#1d4ed8" stroke-width="2"/>
     </g>
     <circle cx="190" cy="195" r="4" fill="#2563eb"/>
     <text x="145" y="228" font-family="Inter, sans-serif" font-size="11.5" font-weight="600" fill="#1d4ed8">Робот A(q) (размер &gt; 0)</text>
-    <text x="145" y="243" font-family="JetBrains Mono, monospace" font-size="10" fill="#64748b">q = (x, y, θ)</text>
+    <text x="145" y="243" font-family="JetBrains Mono, monospace" font-size="10" fill="#64748b">q = (190, 195, θ=0)</text>
 
     <rect x="14" y="260" width="317" height="48" rx="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
     <text x="24" y="278" font-family="Inter, sans-serif" font-size="11" fill="#334155">Коллизия возникает, когда пересекаются тела:</text>
@@ -406,19 +677,18 @@ def generate_minkowski_cspace():
   <g transform="translate(395, 20)">
     <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
     <text x="16" y="24" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">2. Конфигурационное пространство C-space</text>
-    <text x="16" y="39" font-family="Inter, sans-serif" font-size="11" fill="#64748b">Срез при фиксированном угле θ: робот сжат в точку q!</text>
+    <text x="16" y="39" font-family="Inter, sans-serif" font-size="11" fill="#64748b">Срез θ = 0</text>
 
     <!-- Computed Minkowski Sum C_obs -->
     <polygon points="{' '.join(f'{x},{y}' for x,y in C_obs)}" fill="#fecaca" stroke="#dc2626" stroke-width="2.2" stroke-dasharray="4,2"/>
     <polygon points="{' '.join(f'{x},{y}' for x,y in O)}" fill="#fee2e2" stroke="#f87171" stroke-width="1" opacity="0.6"/>
 
-    <text x="80" y="105" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#991b1b">C_obs = O ⊕ (-A(0))</text>
-    <text x="80" y="122" font-family="Inter, sans-serif" font-size="10" fill="#b91c1c">(Раздутая запретная зона)</text>
+    <text x="16" y="200" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#991b1b">C_obs = O ⊕ (−A(0))</text>
+    <text x="16" y="216" font-family="Inter, sans-serif" font-size="10" fill="#b91c1c">{len(O)} вершин O + {len(neg_A)} вершины A → {len(C_obs)} граней C_obs</text>
 
     <!-- Point robot q and clearance path -->
-    <path d="M25,210 Q110,215 190,195 T260,80" stroke="#059669" stroke-width="2.5" fill="none" stroke-dasharray="3,3"/>
-    <circle cx="190" cy="195" r="5" fill="#059669" stroke="#ffffff" stroke-width="2"/>
-    <text x="160" y="222" font-family="Inter, sans-serif" font-size="11.5" font-weight="700" fill="#047857">Точка q ∈ C_free</text>
+    <circle cx="258" cy="238" r="5" fill="#059669" stroke="#ffffff" stroke-width="2"/>
+    <text x="200" y="230" font-family="Inter, sans-serif" font-size="11.5" font-weight="700" fill="#047857">q ∈ C_free</text>
 
     <rect x="14" y="260" width="317" height="48" rx="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
     <text x="24" y="278" font-family="Inter, sans-serif" font-size="11" fill="#334155">Планирование пути сложного робота сводится к</text>
@@ -426,9 +696,7 @@ def generate_minkowski_cspace():
   </g>
 </svg>'''
 
-    with open(filepath, 'w', encoding='utf-8') as f:
-        f.write(svg)
-    print(f"Generated: {filepath}")
+    write_svg(filepath, svg)
 
 # -------------------------------------------------------------------------
 # Diagram 4: Lecture 01 - Euclidean Signed Distance Field (ESDF)
@@ -437,8 +705,33 @@ def generate_sdf_gradient():
     filepath = os.path.join(OUTPUT_DIR, 'lecture-01', 'sdf_gradient.svg')
     ensure_dir(filepath)
 
-    cx, cy = 150, 140
+    cx, cy = 148, 158
     rx, ry = 50, 35
+
+    # True isolines of an ESDF, not scaled copies of the obstacle. For a convex
+    # body the level set {d(x) = t} is the outward offset of the boundary along
+    # its unit normal, which is *not* another ellipse — so sample it exactly.
+    def offset_contour(t, steps=180):
+        pts = []
+        for i in range(steps):
+            a = 2 * math.pi * i / steps
+            px, py = cx + rx * math.cos(a), cy + ry * math.sin(a)
+            # outward normal of x^2/rx^2 + y^2/ry^2 = 1
+            nx, ny = math.cos(a) / rx, math.sin(a) / ry
+            n = math.hypot(nx, ny)
+            pts.append((px + t * nx / n, py + t * ny / n))
+        return 'M' + ' L'.join('%.1f,%.1f' % p for p in pts) + ' Z'
+
+    scale_m = 48.0          # px per metre, so the labels below are honest
+    iso = {d: offset_contour(d * scale_m) for d in (-0.3, 0.5, 1.0, 1.5)}
+
+    def label_pt(d, a=-math.radians(38)):
+        """Put a contour's label on that contour, at the upper-right."""
+        px, py = cx + rx * math.cos(a), cy + ry * math.sin(a)
+        nx, ny = math.cos(a) / rx, math.sin(a) / ry
+        n = math.hypot(nx, ny)
+        t = d * scale_m
+        return (px + t * nx / n + 5, py + t * ny / n + 3)
 
     svg = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
   <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
@@ -447,25 +740,27 @@ def generate_sdf_gradient():
   <g transform="translate(20, 20)">
     <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
     <text x="16" y="24" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">1. Евклидово поле расстояний (ESDF)</text>
-    <text x="16" y="39" font-family="Inter, sans-serif" font-size="11" fill="#64748b">Изолинии расстояния d(x) = min_{{p ∈ ∂O}} ||x - p||</text>
+    <text x="16" y="39" font-family="Inter, sans-serif" font-size="11" fill="#64748b">d(x) = ±min_{{p ∈ ∂O}} ||x - p||, знак задаёт «внутри / снаружи»</text>
 
-    <!-- Isolines d = 80, 55, 30 -->
-    <ellipse cx="{cx}" cy="{cy}" rx="{rx + 80}" ry="{ry + 65}" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1.2" stroke-dasharray="3,3"/>
-    <ellipse cx="{cx}" cy="{cy}" rx="{rx + 55}" ry="{ry + 45}" fill="#e0f2fe" stroke="#7dd3fc" stroke-width="1.4" stroke-dasharray="3,3"/>
-    <ellipse cx="{cx}" cy="{cy}" rx="{rx + 30}" ry="{ry + 25}" fill="#bae6fd" stroke="#38bdf8" stroke-width="1.6"/>
+    <!-- Computed level sets d = +1.5, +1.0, +0.5 m (exact convex offsets) -->
+    <path d="{iso[1.5]}" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1.2" stroke-dasharray="3,3"/>
+    <path d="{iso[1.0]}" fill="#e0f2fe" stroke="#7dd3fc" stroke-width="1.4" stroke-dasharray="3,3"/>
+    <path d="{iso[0.5]}" fill="#bae6fd" stroke="#38bdf8" stroke-width="1.6"/>
 
-    <!-- Obstacle (d <= 0) -->
+    <!-- Obstacle interior: this is a SIGNED field, so d < 0 inside -->
     <ellipse cx="{cx}" cy="{cy}" rx="{rx}" ry="{ry}" fill="#ef4444" stroke="#b91c1c" stroke-width="2"/>
+    <path d="{iso[-0.3]}" fill="none" stroke="#fecaca" stroke-width="1.3" stroke-dasharray="2,2"/>
     <text x="{cx-28}" y="{cy+4}" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#ffffff">Препятствие</text>
 
-    <!-- Labels on isolines -->
-    <text x="{cx+rx+10}" y="{cy-18}" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600" fill="#0369a1">d = +0.5 м</text>
-    <text x="{cx+rx+35}" y="{cy-38}" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600" fill="#0284c7">d = +1.0 м</text>
-    <text x="{cx+rx+60}" y="{cy-58}" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600" fill="#0369a1">d = +1.5 м</text>
+    <!-- Labels anchored on the contours they name -->
+    <text x="{label_pt(-0.3)[0]:.0f}" y="{label_pt(-0.3)[1]:.0f}" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600" fill="#fca5a5">d &lt; 0</text>
+    <text x="{label_pt(0.5)[0]:.0f}" y="{label_pt(0.5)[1]:.0f}" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600" fill="#0369a1">d = +0.5 м</text>
+    <text x="{label_pt(1.0)[0]:.0f}" y="{label_pt(1.0)[1]:.0f}" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600" fill="#0284c7">d = +1.0 м</text>
+    <text x="{label_pt(1.5)[0]:.0f}" y="{label_pt(1.5)[1]:.0f}" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600" fill="#0369a1">d = +1.5 м</text>
 
     <rect x="14" y="250" width="317" height="58" rx="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
     <text x="24" y="270" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#0284c7">Свойства поля расстояний:</text>
-    <text x="24" y="286" font-family="JetBrains Mono, monospace" font-size="10" fill="#334155">d(x) &gt; 0 в свободном пространстве, d(x) = 0 на границе</text>
+    <text x="24" y="286" font-family="JetBrains Mono, monospace" font-size="10" fill="#334155">d &gt; 0 снаружи, d = 0 на границе, d &lt; 0 внутри препятствия</text>
     <text x="24" y="299" font-family="Inter, sans-serif" font-size="10" fill="#64748b">Вычисляется на GPU через nvblox / VDB-EDT в реалтайме</text>
   </g>
 
@@ -502,9 +797,7 @@ def generate_sdf_gradient():
   </g>
 </svg>'''
 
-    with open(filepath, 'w', encoding='utf-8') as f:
-        f.write(svg)
-    print(f"Generated: {filepath}")
+    write_svg(filepath, svg)
 
 # -------------------------------------------------------------------------
 # Diagram 5: Lecture 03 - RRT* Rewiring
@@ -583,9 +876,7 @@ def generate_rrt_star_rewire():
   </g>
 </svg>'''
 
-    with open(filepath, 'w', encoding='utf-8') as f:
-        f.write(svg)
-    print(f"Generated: {filepath}")
+    write_svg(filepath, svg)
 
 # -------------------------------------------------------------------------
 # Diagram 6: Lecture 03 - Informed RRT* Ellipsoid
@@ -670,9 +961,7 @@ def generate_informed_rrt_ellipse():
   </g>
 </svg>'''
 
-    with open(filepath, 'w', encoding='utf-8') as f:
-        f.write(svg)
-    print(f"Generated: {filepath}")
+    write_svg(filepath, svg)
 
 # -------------------------------------------------------------------------
 # Diagram 7: Lecture 04 - APF U-Trap vs Harmonic Field
@@ -695,7 +984,7 @@ def generate_apf_u_trap():
     <circle cx="170" cy="40" r="7" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
     <text x="185" y="44" font-family="Inter" font-size="11" font-weight="700" fill="#0284c7">Цель (G)</text>
 
-    <path d="M170,270 L170,165" stroke="#dc2626" stroke-width="3" stroke-linecap="round"/>
+    <path d="M170,270 L170,165" stroke="#dc2626" stroke-width="3" stroke-linecap="round" fill="none"/>
     <circle cx="170" cy="270" r="5" fill="#059669"/>
     <text x="150" y="290" font-family="Inter" font-size="10.5" fill="#059669">Старт (S)</text>
 
@@ -735,9 +1024,7 @@ def generate_apf_u_trap():
   </g>
 </svg>'''
 
-    with open(filepath, 'w', encoding='utf-8') as f:
-        f.write(svg)
-    print(f"Generated: {filepath}")
+    write_svg(filepath, svg)
 
 # -------------------------------------------------------------------------
 # Diagram 8: Lecture 04 - DWA Dynamic Window Approach
@@ -806,9 +1093,7 @@ def generate_dwa_space():
   </g>
 </svg>'''
 
-    with open(filepath, 'w', encoding='utf-8') as f:
-        f.write(svg)
-    print(f"Generated: {filepath}")
+    write_svg(filepath, svg)
 
 # -------------------------------------------------------------------------
 # Diagram 9: Lecture 04 - TEB Timed Elastic Band
@@ -861,112 +1146,336 @@ def generate_teb_elastic_band():
   <text x="40" y="328" font-family="Inter" font-size="10" fill="#64748b">одновременно с расстоянием до преград</text>
 </svg>'''
 
-    with open(filepath, 'w', encoding='utf-8') as f:
-        f.write(svg)
-    print(f"Generated: {filepath}")
+    write_svg(filepath, svg)
+
+# -------------------------------------------------------------------------
+# Analytic Dubins paths (LaValle, "Planning Algorithms", §13.1.2).
+#
+# All six canonical words are built by explicit tangent construction between
+# the turning circles of the start and goal poses, so every drawn path really
+# does start at (x0, y0, th0), end at (x1, y1, th1) and respect |kappa| <= 1/R.
+# Lengths are computed, and the "shortest" badge follows that computation.
+# -------------------------------------------------------------------------
+def _rot(v, ang):
+    c, s = math.cos(ang), math.sin(ang)
+    return (v[0] * c - v[1] * s, v[0] * s + v[1] * c)
+
+
+def _unit(v):
+    n = math.hypot(*v)
+    return (v[0] / n, v[1] / n)
+
+
+def _turn_center(pose, radius, left):
+    x, y, th = pose
+    off = th + (math.pi / 2 if left else -math.pi / 2)
+    return (x + radius * math.cos(off), y + radius * math.sin(off))
+
+
+def _arc_sweep(center, p_from, p_to, ccw):
+    """Signed sweep angle (always in [0, 2pi)) from p_from to p_to about center."""
+    a0 = math.atan2(p_from[1] - center[1], p_from[0] - center[0])
+    a1 = math.atan2(p_to[1] - center[1], p_to[0] - center[0])
+    d = (a1 - a0) if ccw else (a0 - a1)
+    return d % (2 * math.pi)
+
+
+def _arc_points(center, p_from, sweep, ccw, radius, steps=24):
+    a0 = math.atan2(p_from[1] - center[1], p_from[0] - center[0])
+    pts = []
+    for i in range(steps + 1):
+        a = a0 + (sweep if ccw else -sweep) * i / steps
+        pts.append((center[0] + radius * math.cos(a), center[1] + radius * math.sin(a)))
+    return pts
+
+
+def _dubins_csc(start, goal, radius, left0, left1):
+    """One CSC word. Returns (points, length) or None if the tangent does not exist."""
+    c0 = _turn_center(start, radius, left0)
+    c1 = _turn_center(goal, radius, left1)
+    D = (c1[0] - c0[0], c1[1] - c0[1])
+    d = math.hypot(*D)
+    if d < 1e-9:
+        return None
+
+    if left0 == left1:                       # LSL / RSR: outer tangent
+        v = _unit(D)
+        n = _rot(v, -math.pi / 2) if left0 else _rot(v, math.pi / 2)
+        t0 = (c0[0] + radius * n[0], c0[1] + radius * n[1])
+        t1 = (c1[0] + radius * n[0], c1[1] + radius * n[1])
+    else:                                    # LSR / RSL: inner tangent
+        if d < 2 * radius + 1e-6:
+            return None                      # circles touch or overlap: word undefined
+        base = math.atan2(D[1], D[0])
+        half = math.acos(max(-1.0, min(1.0, 2 * radius / d)))
+        for sign in (1, -1):
+            u0 = (math.cos(base + sign * half), math.sin(base + sign * half))
+            v = _unit((D[0] - 2 * radius * u0[0], D[1] - 2 * radius * u0[1]))
+            expected = _rot(u0, math.pi / 2) if left0 else _rot(u0, -math.pi / 2)
+            if abs(expected[0] - v[0]) < 1e-6 and abs(expected[1] - v[1]) < 1e-6:
+                t0 = (c0[0] + radius * u0[0], c0[1] + radius * u0[1])
+                t1 = (c1[0] - radius * u0[0], c1[1] - radius * u0[1])
+                break
+        else:
+            return None
+
+    s0 = _arc_sweep(c0, (start[0], start[1]), t0, left0)
+    s1 = _arc_sweep(c1, t1, (goal[0], goal[1]), left1)
+    pts = _arc_points(c0, (start[0], start[1]), s0, left0, radius)
+    pts += [t1]
+    pts += _arc_points(c1, t1, s1, left1, radius)[1:]
+    length = radius * (s0 + s1) + math.hypot(t1[0] - t0[0], t1[1] - t0[1])
+    return pts, length
+
+
+def _dubins_ccc(start, goal, radius, left_outer):
+    """LRL (left_outer=True) or RLR. Returns (points, length) or None."""
+    c0 = _turn_center(start, radius, left_outer)
+    c1 = _turn_center(goal, radius, left_outer)
+    D = (c1[0] - c0[0], c1[1] - c0[1])
+    d = math.hypot(*D)
+    if d > 4 * radius - 1e-9 or d < 1e-9:
+        return None                          # poses too far apart for a CCC word
+    base = math.atan2(D[1], D[0])
+    off = math.acos(max(-1.0, min(1.0, d / (4 * radius))))
+    sign = 1 if left_outer else -1
+    cm = (c0[0] + 2 * radius * math.cos(base + sign * off),
+          c0[1] + 2 * radius * math.sin(base + sign * off))
+    # Tangent points are the midpoints between adjacent circle centres.
+    t0 = ((c0[0] + cm[0]) / 2, (c0[1] + cm[1]) / 2)
+    t1 = ((cm[0] + c1[0]) / 2, (cm[1] + c1[1]) / 2)
+
+    s0 = _arc_sweep(c0, (start[0], start[1]), t0, left_outer)
+    sm = _arc_sweep(cm, t0, t1, not left_outer)
+    s1 = _arc_sweep(c1, t1, (goal[0], goal[1]), left_outer)
+    pts = _arc_points(c0, (start[0], start[1]), s0, left_outer, radius)
+    pts += _arc_points(cm, t0, sm, not left_outer, radius)[1:]
+    pts += _arc_points(c1, t1, s1, left_outer, radius)[1:]
+    return pts, radius * (s0 + sm + s1)
+
+
+def dubins_all_words(start, goal, radius):
+    """The six canonical words, as {name: (points, length)} for those that exist."""
+    out = {}
+    for name, l0, l1 in (('LSL', True, True), ('RSR', False, False),
+                         ('LSR', True, False), ('RSL', False, True)):
+        r = _dubins_csc(start, goal, radius, l0, l1)
+        if r:
+            out[name] = r
+    for name, lo in (('LRL', True), ('RLR', False)):
+        r = _dubins_ccc(start, goal, radius, lo)
+        if r:
+            out[name] = r
+    return out
 
 # -------------------------------------------------------------------------
 # Diagram 10: Lecture 05 - Dubins 6 Canonical Words
 # -------------------------------------------------------------------------
 def generate_dubins_words():
     filepath = os.path.join(OUTPUT_DIR, 'lecture-05', 'dubins_words.svg')
-    ensure_dir(filepath)
+
+    # One shared query: identical start and goal poses for all six words, so the
+    # panels are directly comparable and the shortest one is a real result.
+    R = 30.0
+    start = (0.0, 0.0, 0.0)
+    goal = (90.0, -15.0, math.radians(120))
+    words = dubins_all_words(start, goal, R)
+
+    order = ['LSL', 'RSR', 'LSR', 'RSL', 'LRL', 'RLR']
+    kinds = {'LSL': 'CSC', 'RSR': 'CSC', 'LSR': 'CSC', 'RSL': 'CSC', 'LRL': 'CCC', 'RLR': 'CCC'}
+    descr = {
+        'LSL': 'Left arc → Straight → Left arc',
+        'RSR': 'Right arc → Straight → Right arc',
+        'LSR': 'Left arc → Straight → Right arc',
+        'RSL': 'Right arc → Straight → Left arc',
+        'LRL': '3 сопряжённые дуги R_min (без прямой)',
+        'RLR': '3 сопряжённые дуги R_min (без прямой)',
+    }
+    shortest = min(words, key=lambda k: words[k][1])
+
+    # Common fit: one transform for every tile => lengths are visually comparable.
+    tile_w, tile_h = 225.0, 125.0
+    inner_w, inner_h, pad_x, pad_y = 200.0, 74.0, 12.0, 44.0
+    all_pts = [p for k in order if k in words for p in words[k][0]]
+    xs = [p[0] for p in all_pts]
+    ys = [p[1] for p in all_pts]
+    span_x, span_y = max(xs) - min(xs), max(ys) - min(ys)
+    k = min(inner_w / max(span_x, 1e-6), inner_h / max(span_y, 1e-6))
+    cx0, cy0 = (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2
+
+    def tx(p):
+        """World -> tile coordinates (SVG y grows downward, hence the flip)."""
+        return (pad_x + inner_w / 2 + (p[0] - cx0) * k,
+                pad_y + inner_h / 2 - (p[1] - cy0) * k)
+
+    def pose_marker(pose, colour):
+        px, py = tx((pose[0], pose[1]))
+        hx = math.cos(pose[2]) * 13
+        hy = -math.sin(pose[2]) * 13
+        return (f'<circle cx="{px:.1f}" cy="{py:.1f}" r="3.5" fill="{colour}"/>'
+                f'<line x1="{px:.1f}" y1="{py:.1f}" x2="{px+hx:.1f}" y2="{py+hy:.1f}" '
+                f'stroke="{colour}" stroke-width="1.8" marker-end="url(#dub-arrow-{colour[1:]})"/>')
 
     svg = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <defs>
+    <marker id="dub-arrow-1e293b" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#1e293b"/>
+    </marker>
+    <marker id="dub-arrow-0284c7" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#0284c7"/>
+    </marker>
+    <marker id="dub-arrow-dc2626" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#dc2626"/>
+    </marker>
+  </defs>
   <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
 
   <g transform="translate(30, 24)">
     <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">6 канонических слов Дубинса (Dubins, 1957)</text>
-    <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Кратчайший путь для автомобиля с передней передачей (v &gt; 0, |κ| ≤ 1/R_min) состоит из 3 сегментов</text>
+    <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Одна и та же пара поз q_s → q_g, R_min = {R:.0f}: кратчайшим оказывается {shortest} (L = {words[shortest][1]:.0f})</text>
   </g>
 '''
-    words = [
-        ('1. LSL (CSC)', 'Left arc → Straight → Left arc', 'M30,70 A30,30 0 0,0 60,40 L150,40 A30,30 0 0,0 180,70', True),
-        ('2. RSR (CSC)', 'Right arc → Straight → Right arc', 'M30,40 A30,30 0 0,1 60,70 L150,70 A30,30 0 0,1 180,40', False),
-        ('3. LSR (CSC)', 'Left arc → Straight → Right arc', 'M30,70 A30,30 0 0,0 60,40 L150,70 A30,30 0 0,1 180,40', False),
-        ('4. RSL (CSC)', 'Right arc → Straight → Left arc', 'M30,40 A30,30 0 0,1 60,70 L150,40 A30,30 0 0,0 180,70', False),
-        ('5. LRL (CCC)', '3 сопряженных круга максимальной кривизны', 'M30,65 A25,25 0 0,0 70,45 A25,25 0 0,1 130,45 A25,25 0 0,0 170,65', False),
-        ('6. RLR (CCC)', 'Применяется при близком расположении целей', 'M30,45 A25,25 0 0,1 70,65 A25,25 0 0,0 130,65 A25,25 0 0,1 170,45', False),
-    ]
 
-    for idx, (title, desc, path_d, is_best) in enumerate(words):
-        col = idx % 3
-        row = idx // 3
-        gx = 30 + col * 240
-        gy = 65 + row * 140
+    for idx, name in enumerate(order):
+        gx = 30 + (idx % 3) * 240
+        gy = 65 + (idx // 3) * 140
+        exists = name in words
+        is_best = exists and name == shortest
 
         stroke_col = "#059669" if is_best else "#0284c7"
         bg_col = "#f0fdf4" if is_best else "#f8fafc"
         border_col = "#86efac" if is_best else "#e2e8f0"
 
         svg += f'''  <g transform="translate({gx}, {gy})">
-    <rect width="225" height="125" rx="6" fill="{bg_col}" stroke="{border_col}" stroke-width="1.2"/>
-    <text x="12" y="20" font-family="Inter" font-size="12" font-weight="700" fill="#0f172a">{title}</text>
-    <text x="12" y="34" font-family="Inter" font-size="9.5" fill="#64748b">{desc}</text>
-
-    <path d="{path_d}" stroke="{stroke_col}" stroke-width="2.8" fill="none" stroke-linecap="round"/>
-
-    <circle cx="30" cy="55" r="3.5" fill="#0284c7"/>
-    <circle cx="170" cy="55" r="3.5" fill="#dc2626"/>
+    <rect width="{tile_w:.0f}" height="{tile_h:.0f}" rx="6" fill="{bg_col}" stroke="{border_col}" stroke-width="1.2"/>
+    <text x="12" y="20" font-family="Inter" font-size="12" font-weight="700" fill="#0f172a">{idx+1}. {name} ({kinds[name]})</text>
+    <text x="12" y="34" font-family="Inter" font-size="9.5" fill="#64748b">{descr[name]}</text>
 '''
+        if exists:
+            pts, length = words[name]
+            d = 'M' + ' L'.join('%.1f,%.1f' % tx(p) for p in pts)
+            svg += f'    <path d="{d}" stroke="{stroke_col}" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>\n'
+            svg += '    ' + pose_marker(start, "#1e293b") + '\n'
+            svg += '    ' + pose_marker(goal, "#dc2626") + '\n'
+            svg += (f'    <text x="{tile_w-12:.0f}" y="{tile_h-9:.0f}" text-anchor="end" '
+                    f'font-family="JetBrains Mono, monospace" font-size="10" font-weight="600" '
+                    f'fill="{stroke_col}">L = {length:.1f}</text>\n')
+        else:
+            svg += (f'    <text x="{tile_w/2:.0f}" y="{tile_h/2:.0f}" text-anchor="middle" '
+                    f'font-family="Inter" font-size="11" fill="#94a3b8">слово не определено для этой пары поз</text>\n')
+
         if is_best:
-            svg += '    <rect x="135" y="9" width="78" height="18" rx="3" fill="#059669"/>\n'
-            svg += '    <text x="141" y="22" font-family="Inter" font-size="9.5" font-weight="700" fill="#ffffff">★ ШОРТЕСТ</text>\n'
+            svg += f'    <rect x="{tile_w-104:.0f}" y="9" width="92" height="18" rx="3" fill="#059669"/>\n'
+            svg += f'    <text x="{tile_w-58:.0f}" y="22" text-anchor="middle" font-family="Inter" font-size="9.5" font-weight="700" fill="#ffffff">★ КРАТЧАЙШЕЕ</text>\n'
 
         svg += '  </g>\n'
 
     svg += '</svg>'
 
-    with open(filepath, 'w', encoding='utf-8') as f:
-        f.write(svg)
-    print(f"Generated: {filepath}")
+    write_svg(filepath, svg)
+
 
 # -------------------------------------------------------------------------
 # Diagram 11: Lecture 05 - Reeds-Shepp Curves
 # -------------------------------------------------------------------------
-def generate_reeds_shepp_curves():
-    filepath = os.path.join(OUTPUT_DIR, 'lecture-05', 'reeds_shepp_curves.svg')
-    ensure_dir(filepath)
-
-    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
-  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+SVG_RS_HEADER = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%%" height="100%%">
+  <rect width="100%%" height="100%%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
 
   <g transform="translate(30, 24)">
-    <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Кривые Ридса-Шеппа: Маневры с реверсом (Cusp)</text>
-    <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Расширение Дубинса: допускается движение задним ходом (v &lt; 0), образующее точки возврата (точки переключения передач)</text>
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Кривые Ридса-Шеппа: манёвры с реверсом (cusp)</text>
+    <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Расширение Дубинса: допускается v &lt; 0, и в точке смены передачи касательная разворачивается</text>
   </g>
 
-  <!-- Left: Reeds-Shepp with cusp -->
+  <!-- Left: integrated L+ R- L+ word with two real cusps -->
   <g transform="translate(30, 65)">
     <rect width="335" height="265" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
-    <text x="16" y="24" font-family="Inter" font-size="13" font-weight="700" fill="#0f172a">1. Маневр параллельной парковки L⁺ | R⁻ | L⁺</text>
+    <text x="16" y="24" font-family="Inter" font-size="13" font-weight="700" fill="#0f172a">1. Слово L+ | R- | L+ (проинтегрировано)</text>
 
-    <!-- Forward segment L+ -->
-    <path d="M40,210 Q90,170 140,170" stroke="#0284c7" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-    <text x="60" y="175" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#0284c7">L⁺ (Вперед)</text>
-
-    <circle cx="140" cy="170" r="6" fill="#d97706" stroke="#ffffff" stroke-width="2"/>
-    <text x="110" y="150" font-family="Inter" font-size="10" font-weight="700" fill="#d97706">Точка возврата (Cusp)</text>
-
-    <!-- Reverse segment R- -->
-    <path d="M140,170 Q190,170 230,120" stroke="#dc2626" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-dasharray="4,2"/>
-    <text x="195" y="160" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#dc2626">R⁻ (Назад)</text>
-
-    <circle cx="230" cy="120" r="6" fill="#d97706" stroke="#ffffff" stroke-width="2"/>
-
-    <!-- Forward segment L+ to goal -->
-    <path d="M230,120 Q270,80 300,80" stroke="#0284c7" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-    <text x="260" y="70" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#0284c7">L⁺</text>
-
-    <circle cx="300" cy="80" r="6" fill="#059669"/>
-    <text x="290" y="105" font-family="Inter" font-size="11" font-weight="700" fill="#059669">Цель</text>
+%(paths)s%(cusps)s    <text x="%(cx).0f" y="%(cy).0f" dy="-11" font-family="Inter" font-size="10" font-weight="700" fill="#d97706" text-anchor="middle">cusp</text>
+    <circle cx="%(sx).1f" cy="%(sy).1f" r="5" fill="#1e293b"/>
+    <text x="%(sx).0f" y="%(sy).0f" dx="-14" dy="16" text-anchor="middle" font-family="Inter" font-size="10.5" font-weight="700" fill="#1e293b">Старт</text>
+    <circle cx="%(gx).1f" cy="%(gy).1f" r="5.5" fill="#059669"/>
+    <text x="%(gx).0f" y="%(gy).0f" dx="0" dy="18" text-anchor="middle" font-family="Inter" font-size="10.5" font-weight="700" fill="#059669">Цель</text>
 
     <rect x="14" y="210" width="307" height="42" rx="4" fill="#fffbeb" stroke="#fef08a" stroke-width="1"/>
     <text x="22" y="228" font-family="Inter" font-size="10.5" font-weight="700" fill="#854d0e">В точке cusp скорость v меняет знак:</text>
-    <text x="22" y="242" font-family="Inter" font-size="10" fill="#b45309">Робот останавливается, выворачивает руль и дает задний ход</text>
+    <text x="22" y="242" font-family="Inter" font-size="10" fill="#b45309">Робот останавливается, выворачивает руль и даёт задний ход</text>
   </g>
 
-  <!-- Right: 48 Optimal Words -->
+"""
+
+def rs_segment(pose, steer, direction, arclen, radius, steps=32):
+    """Integrate the unicycle along one Reeds-Shepp segment.
+
+    steer: +1 left, -1 right, 0 straight. direction: +1 forward, -1 reverse.
+    Returns (points, end_pose). Integrating for real is what puts a genuine
+    cusp -- a reversal of the tangent -- at every gear change.
+    """
+    x, y, th = pose
+    pts = [(x, y)]
+    ds = arclen / steps
+    for _ in range(steps):
+        th += direction * steer * ds / radius
+        x += direction * math.cos(th) * ds
+        y += direction * math.sin(th) * ds
+        pts.append((x, y))
+    return pts, (x, y, th)
+
+
+def generate_reeds_shepp_curves():
+    filepath = os.path.join(OUTPUT_DIR, 'lecture-05', 'reeds_shepp_curves.svg')
+
+    # A real L+ R- L+ word, integrated segment by segment.
+    R_rs = 34.0
+    p0 = (0.0, 0.0, math.radians(8))
+    seg1, p1 = rs_segment(p0, +1, +1, R_rs * math.radians(70), R_rs)
+    seg2, p2 = rs_segment(p1, -1, -1, R_rs * math.radians(95), R_rs)
+    seg3, p3 = rs_segment(p2, +1, +1, R_rs * math.radians(60), R_rs)
+    segs = [(seg1, '#0284c7', 'L+ (вперёд)', None),
+            (seg2, '#dc2626', 'R- (назад)', '5,3'),
+            (seg3, '#0284c7', 'L+ (вперёд)', None)]
+
+    # Fit the whole manoeuvre into the drawing area of the left panel.
+    allp = seg1 + seg2 + seg3
+    xs = [q[0] for q in allp]
+    ys = [q[1] for q in allp]
+    bw, bh, bx, by = 290.0, 145.0, 22.0, 42.0
+    k_rs = min(bw / max(max(xs) - min(xs), 1e-6), bh / max(max(ys) - min(ys), 1e-6))
+    mx, my = (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2
+
+    def T(q):
+        return (bx + bw / 2 + (q[0] - mx) * k_rs, by + bh / 2 - (q[1] - my) * k_rs)
+
+    paths_svg = ''
+    for pts, colour, label, dash in segs:
+        d = 'M' + ' L'.join('%.1f,%.1f' % T(q) for q in pts)
+        dash_attr = ' stroke-dasharray="%s"' % dash if dash else ''
+        paths_svg += ('    <path d="%s" stroke="%s" stroke-width="3.5" fill="none" '
+                      'stroke-linecap="round"%s/>\n' % (d, colour, dash_attr))
+        # Push each segment label away from the manoeuvre's centre so the three
+        # labels never land on the curve or on each other.
+        mid = T(pts[len(pts) // 2])
+        cen = T((mx, my))
+        vx, vy = mid[0] - cen[0], mid[1] - cen[1]
+        n = math.hypot(vx, vy) or 1.0
+        lx, ly = mid[0] + vx / n * 26, mid[1] + vy / n * 26
+        paths_svg += ('    <text x="%.0f" y="%.0f" text-anchor="middle" font-family="JetBrains Mono" '
+                      'font-size="10.5" font-weight="700" fill="%s">%s</text>\n'
+                      % (lx, ly, colour, label))
+
+    cusps = ''
+    for cxx, cyy in (T(p1), T(p2)):
+        cusps += ('    <circle cx="%.1f" cy="%.1f" r="5.5" fill="#d97706" '
+                  'stroke="#ffffff" stroke-width="2"/>\n' % (cxx, cyy))
+    cusp_lbl = T(p1)
+    sxx, syy = T(p0)
+    gxx, gyy = T(p3)
+
+    svg = SVG_RS_HEADER % dict(paths=paths_svg, cusps=cusps,
+                               cx=cusp_lbl[0], cy=cusp_lbl[1],
+                               sx=sxx, sy=syy, gx=gxx, gy=gyy)
+
+    svg += '''  <!-- Right: 48 Optimal Words -->
   <g transform="translate(395, 65)">
     <rect width="335" height="265" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
     <text x="16" y="24" font-family="Inter" font-size="13" font-weight="700" fill="#0f172a">2. Семейства Ридса-Шеппа (48 слов / 9 типов)</text>
@@ -994,9 +1503,7 @@ def generate_reeds_shepp_curves():
   </g>
 </svg>'''
 
-    with open(filepath, 'w', encoding='utf-8') as f:
-        f.write(svg)
-    print(f"Generated: {filepath}")
+    write_svg(filepath, svg)
 
 # -------------------------------------------------------------------------
 # Diagram 12: Lecture 06 - Receding Horizon MPC
@@ -1052,9 +1559,7 @@ def generate_receding_horizon():
   </g>
 </svg>'''
 
-    with open(filepath, 'w', encoding='utf-8') as f:
-        f.write(svg)
-    print(f"Generated: {filepath}")
+    write_svg(filepath, svg)
 
 # -------------------------------------------------------------------------
 # Diagram 13: Lecture 06 - MPC Real-Time Iteration (RTI) Pipeline
@@ -1113,9 +1618,7 @@ def generate_mpc_qp_pipeline():
   </g>
 </svg>'''
 
-    with open(filepath, 'w', encoding='utf-8') as f:
-        f.write(svg)
-    print(f"Generated: {filepath}")
+    write_svg(filepath, svg)
 
 # -------------------------------------------------------------------------
 # Diagram 14: Lecture 07 - Ackermann Steering & Bicycle Kinematics
@@ -1180,9 +1683,7 @@ def generate_car_kinematics_ackermann():
   </g>
 </svg>'''
 
-    with open(filepath, 'w', encoding='utf-8') as f:
-        f.write(svg)
-    print(f"Generated: {filepath}")
+    write_svg(filepath, svg)
 
 # -------------------------------------------------------------------------
 # Diagram 15: Lecture 07 - Lie Bracket Commutator
@@ -1202,19 +1703,19 @@ def generate_lie_bracket_commutator():
   <g transform="translate(40, 70)">
     <rect width="400" height="245" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
 
-    <path d="M60,190 H220" stroke="#0284c7" stroke-width="3" stroke-linecap="round"/>
+    <path d="M60,190 H220" stroke="#0284c7" stroke-width="3" stroke-linecap="round" fill="none"/>
     <polygon points="220,190 210,185 210,195" fill="#0284c7"/>
     <text x="110" y="210" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#0284c7">1. +f₁ (Вперед)</text>
 
-    <path d="M220,190 Q240,160 220,110" stroke="#2563eb" stroke-width="3" stroke-linecap="round"/>
+    <path d="M220,190 Q240,160 220,110" stroke="#2563eb" stroke-width="3" stroke-linecap="round" fill="none"/>
     <polygon points="220,110 228,118 220,125" fill="#2563eb"/>
     <text x="240" y="150" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#2563eb">2. +f₂ (Руль)</text>
 
-    <path d="M220,110 H80" stroke="#dc2626" stroke-width="3" stroke-linecap="round"/>
+    <path d="M220,110 H80" stroke="#dc2626" stroke-width="3" stroke-linecap="round" fill="none"/>
     <polygon points="80,110 90,105 90,115" fill="#dc2626"/>
     <text x="120" y="95" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#dc2626">3. -f₁ (Назад)</text>
 
-    <path d="M80,110 Q60,130 60,145" stroke="#9333ea" stroke-width="3" stroke-linecap="round"/>
+    <path d="M80,110 Q60,130 60,145" stroke="#9333ea" stroke-width="3" stroke-linecap="round" fill="none"/>
     <text x="10" y="130" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#9333ea">4. -f₂ (Руль)</text>
 
     <line x1="60" y1="190" x2="60" y2="145" stroke="#059669" stroke-width="4" stroke-linecap="round"/>
@@ -1243,9 +1744,7 @@ def generate_lie_bracket_commutator():
   </g>
 </svg>'''
 
-    with open(filepath, 'w', encoding='utf-8') as f:
-        f.write(svg)
-    print(f"Generated: {filepath}")
+    write_svg(filepath, svg)
 
 # -------------------------------------------------------------------------
 # Diagram 16: Lecture 08 - Real-Time Stack Hierarchy
@@ -1283,9 +1782,7 @@ def generate_realtime_stack_hierarchy():
 
     svg += '</svg>'
 
-    with open(filepath, 'w', encoding='utf-8') as f:
-        f.write(svg)
-    print(f"Generated: {filepath}")
+    write_svg(filepath, svg)
 
 # -------------------------------------------------------------------------
 # Diagram 17: Lecture 08 - ROS 2 Nav2 Behavior Tree
@@ -1372,9 +1869,7 @@ def generate_nav2_bt_tree():
   </g>
 </svg>'''
 
-    with open(filepath, 'w', encoding='utf-8') as f:
-        f.write(svg)
-    print(f"Generated: {filepath}")
+    write_svg(filepath, svg)
 
 def main():
     print("=== Generating Rigorous Algorithmic Diagrams ===")
