@@ -1,40 +1,59 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 320" width="100%" height="100%">
-  <rect width="100%" height="100%" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
-  <text x="30" y="26" font-family="Inter" font-size="14" font-weight="700" fill="#0f172a">Dynamic Window Approach (DWA): Поиск в пространстве (v, ω)</text>
-  <g transform="translate(40, 50)">
-    <!-- Axes v and omega -->
-    <line x1="20" y1="120" x2="280" y2="120" stroke="#94a3b8" stroke-width="1.5"/>
-    <line x1="40" y1="20" x2="40" y2="220" stroke="#94a3b8" stroke-width="1.5"/>
-    <text x="270" y="140" font-family="JetBrains Mono" font-size="12" fill="#475569">v (м/с)</text>
-    <text x="15" y="25" font-family="JetBrains Mono" font-size="12" fill="#475569">ω (рад/с)</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
 
-    <!-- Vs: Hardware Limits -->
-    <rect x="40" y="40" width="220" height="160" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1.5"/>
-    <text x="200" y="55" font-family="Inter" font-size="11" fill="#64748b">Vs (пределы шасси)</text>
+  <g transform="translate(20, 20)">
+    <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">1. Пространство скоростей (v, ω)</text>
+    <text x="16" y="39" font-family="Inter, sans-serif" font-size="11" fill="#64748b">Пересечение ограничений: Vr = Vs ∩ Vd ∩ Va</text>
 
-    <!-- Vd: Dynamic Window -->
-    <rect x="100" y="80" width="100" height="80" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
-    <text x="105" y="98" font-family="Inter" font-size="11" font-weight="600" fill="#0369a1">Vd (окно ускорений τ)</text>
+    <line x1="40" y1="230" x2="310" y2="230" stroke="#94a3b8" stroke-width="1.5"/>
+    <line x1="175" y1="245" x2="175" y2="55" stroke="#94a3b8" stroke-width="1.5"/>
+    <text x="315" y="234" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#475569">ω</text>
+    <text x="170" y="48" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#475569">v</text>
 
-    <!-- Va: Admissible velocities (obstacle parabolic bound) -->
-    <path d="M40,20 Q160,50 180,120 Q160,190 40,220 Z" fill="#fee2e2" opacity="0.4"/>
-    <path d="M40,20 Q160,50 180,120 Q160,190 40,220" stroke="#ef4444" stroke-width="2" fill="none"/>
-    <text x="70" y="195" font-family="Inter" font-size="11" fill="#dc2626">Зона столкновения</text>
+    <rect x="75" y="70" width="200" height="160" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="3,3"/>
+    <text x="80" y="85" font-family="Inter" font-size="10" fill="#94a3b8">Vs (Моторы)</text>
 
-    <!-- Optimal velocity sample -->
-    <circle cx="165" cy="105" r="6" fill="#16a34a"/>
-    <text x="175" y="110" font-family="Inter" font-size="12" font-weight="700" fill="#16a34a">(v*, ω*)</text>
+    <rect x="130" y="110" width="105" height="85" fill="#dbeafe" fill-opacity="0.6" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="136" y="125" font-family="Inter" font-size="10" font-weight="600" fill="#1e40af">Vd (Ускорение)</text>
+
+    <path d="M110,210 Q175,130 260,210 Z" fill="#fee2e2" fill-opacity="0.5" stroke="#ef4444" stroke-width="1.5"/>
+    <text x="180" y="195" font-family="Inter" font-size="9.5" fill="#b91c1c">Va (Препятствия)</text>
+
+    <circle cx="170" cy="165" r="4.5" fill="#0f172a"/>
+    <text x="180" y="165" font-family="JetBrains Mono" font-size="9.5" fill="#0f172a">(v₀, ω₀)</text>
+
+    <circle cx="205" cy="135" r="6" fill="#059669" stroke="#ffffff" stroke-width="1.5"/>
+    <text x="215" y="132" font-family="Inter" font-size="11" font-weight="700" fill="#059669">(v*, ω*)</text>
+
+    <rect x="14" y="255" width="317" height="52" rx="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="22" y="274" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#0284c7">G(v, ω) = α·heading + β·dist + γ·vel</text>
+    <text x="22" y="292" font-family="Inter" font-size="10" fill="#64748b">Максимизация критерия целевой функции в окне Vr</text>
   </g>
-  <g transform="translate(360, 60)">
-    <rect width="300" height="190" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
-    <text x="15" y="26" font-family="Inter" font-size="13" font-weight="700" fill="#0f172a">Пересечение 3-х пространств:</text>
-    <text x="15" y="52" font-family="JetBrains Mono" font-size="12" fill="#0284c7">Vr = Vs ∩ Vd ∩ Va</text>
-    <g transform="translate(15, 75)">
-      <text x="0" y="0" font-family="Inter" font-size="11.5" fill="#334155">• Vs: конструктивные скорости шасси</text>
-      <text x="0" y="22" font-family="Inter" font-size="11.5" fill="#334155">• Vd: скорости за квант времени τ</text>
-      <text x="0" y="44" font-family="Inter" font-size="11.5" fill="#334155">• Va: скорости безопасного торможения</text>
-      <text x="0" y="66" font-family="Inter" font-size="11.5" font-weight="600" fill="#16a34a">• Выбор максимума функции G(v, ω)</text>
-      <text x="0" y="86" font-family="Inter" font-size="11" fill="#64748b">  G = α·heading + β·dist + γ·vel</text>
-    </g>
+
+  <g transform="translate(395, 20)">
+    <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">2. Траектории в пространстве W</text>
+    <text x="16" y="39" font-family="Inter, sans-serif" font-size="11" fill="#64748b">Каждой паре (v, ω) соответствует круговая дуга радиуса R = v/ω</text>
+
+    <rect x="160" y="260" width="26" height="36" rx="3" fill="#0f172a"/>
+    <circle cx="173" cy="278" r="3" fill="#38bdf8"/>
+
+    <circle cx="130" cy="140" r="28" fill="#fee2e2" stroke="#ef4444" stroke-width="2"/>
+    <text x="115" y="144" font-family="Inter" font-size="10.5" font-weight="700" fill="#b91c1c">Преграда</text>
+
+    <circle cx="240" cy="70" r="7" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
+    <text x="252" y="74" font-family="Inter" font-size="11" font-weight="700" fill="#0284c7">Цель</text>
+
+    <path d="M173,260 Q170,180 135,140" stroke="#ef4444" stroke-width="1.8" fill="none" stroke-dasharray="3,3"/>
+    <path d="M173,260 Q173,190 173,80" stroke="#94a3b8" stroke-width="1.8" fill="none"/>
+    <path d="M173,260 Q180,180 280,150" stroke="#94a3b8" stroke-width="1.8" fill="none"/>
+
+    <path d="M173,260 Q180,160 240,75" stroke="#059669" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <text x="210" y="175" font-family="Inter" font-size="11" font-weight="700" fill="#059669">Дуга (v*, ω*)</text>
+
+    <rect x="14" y="255" width="317" height="52" rx="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="22" y="274" font-family="Inter" font-size="11" font-weight="700" fill="#059669">Выбирается дуга с лучшим клиренсом и скоростью</text>
+    <text x="22" y="292" font-family="Inter" font-size="10" fill="#64748b">Контроллер Nav2 DWA работает с частотой 20–50 Гц</text>
   </g>
 </svg>

@@ -1,49 +1,77 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 320" width="100%" height="100%">
-  <rect width="100%" height="100%" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
-  <text x="30" y="26" font-family="Inter" font-size="14" font-weight="700" fill="#0f172a">Архитектура ROS 2 Nav2: Дерево поведения (Behavior Tree)</text>
-  <g transform="translate(350, 45)">
-    <rect x="-80" y="0" width="160" height="30" rx="5" fill="#fef3c7" stroke="#d97706" stroke-width="1.5"/>
-    <text x="0" y="19" font-family="Inter" font-size="11" font-weight="600" text-anchor="middle" fill="#92400e">RecoveryNode (3x)</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <g transform="translate(30, 24)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Архитектура ROS 2 Nav2: Дерево Поведения (Behavior Tree)</text>
+    <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Иерархическое управление навигацией: Sequence (->), Fallback (?) и Recovery ветки</text>
   </g>
-  <path d="M350,75 L200,105 M350,75 L500,105" stroke="#94a3b8" stroke-width="2"/>
-  <g transform="translate(200, 105)">
-    <rect x="-75" y="0" width="150" height="30" rx="5" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/>
-    <text x="0" y="19" font-family="Inter" font-size="11" font-weight="600" text-anchor="middle" fill="#0369a1">PipelineSequence (→)</text>
+
+  <g transform="translate(340, 60)">
+    <circle cx="20" cy="20" r="20" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+    <text x="14" y="26" font-family="Inter" font-size="18" font-weight="700" fill="#b45309">?</text>
+    <text x="-25" y="52" font-family="Inter" font-size="11" font-weight="700" fill="#0f172a">Root Fallback</text>
   </g>
-  <g transform="translate(500, 105)">
-    <rect x="-75" y="0" width="150" height="30" rx="5" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"/>
-    <text x="0" y="19" font-family="Inter" font-size="11" font-weight="600" text-anchor="middle" fill="#991b1b">ReactiveFallback (?)</text>
+
+  <line x1="340" y1="90" x2="220" y2="135" stroke="#94a3b8" stroke-width="2"/>
+  <line x1="380" y1="90" x2="500" y2="135" stroke="#94a3b8" stroke-width="2"/>
+
+  <g transform="translate(200, 135)">
+    <rect x="0" y="0" width="40" height="40" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+    <text x="11" y="26" font-family="Inter" font-size="18" font-weight="700" fill="#1d4ed8">→</text>
+    <text x="-35" y="54" font-family="Inter" font-size="11" font-weight="700" fill="#0f172a">NavigateSequence</text>
   </g>
-  <path d="M200,135 L120,165 M200,135 L280,165" stroke="#94a3b8" stroke-width="2"/>
-  <g transform="translate(120, 165)">
-    <rect x="-65" y="0" width="130" height="34" rx="5" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
-    <text x="0" y="16" font-family="Inter" font-size="11" font-weight="600" text-anchor="middle" fill="#15803d">ComputePath</text>
-    <text x="0" y="28" font-family="JetBrains Mono" font-size="9" fill="#166534" text-anchor="middle">(Global 1 Hz)</text>
+
+  <g transform="translate(480, 135)">
+    <circle cx="20" cy="20" r="20" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+    <text x="14" y="26" font-family="Inter" font-size="18" font-weight="700" fill="#b91c1c">?</text>
+    <text x="-15" y="54" font-family="Inter" font-size="11" font-weight="700" fill="#dc2626">Recovery</text>
   </g>
-  <g transform="translate(280, 165)">
-    <rect x="-65" y="0" width="130" height="34" rx="5" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
-    <text x="0" y="16" font-family="Inter" font-size="11" font-weight="600" text-anchor="middle" fill="#15803d">FollowPath</text>
-    <text x="0" y="28" font-family="JetBrains Mono" font-size="9" fill="#166534" text-anchor="middle">(Local MPC 30 Hz)</text>
+
+  <line x1="200" y1="185" x2="110" y2="225" stroke="#94a3b8" stroke-width="1.8"/>
+  <line x1="240" y1="185" x2="290" y2="225" stroke="#94a3b8" stroke-width="1.8"/>
+
+  <g transform="translate(45, 225)">
+    <rect width="130" height="42" rx="6" fill="#f0fdf4" stroke="#059669" stroke-width="1.8"/>
+    <text x="10" y="20" font-family="Inter" font-size="10.5" font-weight="700" fill="#065f46">ComputePathToPose</text>
+    <text x="10" y="34" font-family="JetBrains Mono" font-size="9" fill="#047857">Global Planner</text>
   </g>
-  <path d="M500,135 L400,165 M500,135 L500,165 M500,135 L600,165" stroke="#94a3b8" stroke-width="2"/>
-  <g transform="translate(400, 165)">
-    <rect x="-45" y="0" width="90" height="34" rx="5" fill="#fdf4ff" stroke="#a855f7" stroke-width="1.5"/>
-    <text x="0" y="16" font-family="Inter" font-size="11" font-weight="600" text-anchor="middle" fill="#7e22ce">ClearCostmap</text>
-    <text x="0" y="28" font-family="Inter" font-size="9" fill="#6b21a8" text-anchor="middle">Шаг 1</text>
+
+  <g transform="translate(230, 225)">
+    <rect width="125" height="42" rx="6" fill="#f0fdf4" stroke="#059669" stroke-width="1.8"/>
+    <text x="25" y="20" font-family="Inter" font-size="10.5" font-weight="700" fill="#065f46">FollowPath</text>
+    <text x="15" y="34" font-family="JetBrains Mono" font-size="9" fill="#047857">Local Controller</text>
   </g>
-  <g transform="translate(500, 165)">
-    <rect x="-45" y="0" width="90" height="34" rx="5" fill="#fdf4ff" stroke="#a855f7" stroke-width="1.5"/>
-    <text x="0" y="16" font-family="Inter" font-size="11" font-weight="600" text-anchor="middle" fill="#7e22ce">Spin (360°)</text>
-    <text x="0" y="28" font-family="Inter" font-size="9" fill="#6b21a8" text-anchor="middle">Шаг 2</text>
+
+  <line x1="480" y1="185" x2="430" y2="225" stroke="#94a3b8" stroke-width="1.8"/>
+  <line x1="500" y1="185" x2="545" y2="225" stroke="#94a3b8" stroke-width="1.8"/>
+  <line x1="520" y1="185" x2="660" y2="225" stroke="#94a3b8" stroke-width="1.8"/>
+
+  <g transform="translate(375, 225)">
+    <rect width="105" height="42" rx="6" fill="#fff1f2" stroke="#e11d48" stroke-width="1.5"/>
+    <text x="10" y="20" font-family="Inter" font-size="10" font-weight="700" fill="#9f1239">ClearCostmap</text>
+    <text x="10" y="34" font-family="JetBrains Mono" font-size="8.5" fill="#e11d48">Сброс вокселей</text>
   </g>
-  <g transform="translate(600, 165)">
-    <rect x="-45" y="0" width="90" height="34" rx="5" fill="#fdf4ff" stroke="#a855f7" stroke-width="1.5"/>
-    <text x="0" y="16" font-family="Inter" font-size="11" font-weight="600" text-anchor="middle" fill="#7e22ce">BackUp (0.3m)</text>
-    <text x="0" y="28" font-family="Inter" font-size="9" fill="#6b21a8" text-anchor="middle">Шаг 3</text>
+
+  <g transform="translate(495, 225)">
+    <rect width="95" height="42" rx="6" fill="#fff1f2" stroke="#e11d48" stroke-width="1.5"/>
+    <text x="18" y="20" font-family="Inter" font-size="10" font-weight="700" fill="#9f1239">Spin (360°)</text>
+    <text x="10" y="34" font-family="JetBrains Mono" font-size="8.5" fill="#e11d48">Осмотр сенсорами</text>
   </g>
-  <g transform="translate(30, 235)">
-    <rect width="640" height="60" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
-    <text x="15" y="22" font-family="Inter" font-size="12" font-weight="700" fill="#0f172a">Преимущество Деревьев Поведения (BT) в робототехнике:</text>
-    <text x="15" y="42" font-family="Inter" font-size="11" fill="#475569">• Нет комбинаторного взрыва состояний, как в FSM. • Модульность, асинхронные Action-клиенты и гибкая эскалация ошибок.</text>
+
+  <g transform="translate(605, 225)">
+    <rect width="105" height="42" rx="6" fill="#fff1f2" stroke="#e11d48" stroke-width="1.5"/>
+    <text x="22" y="20" font-family="Inter" font-size="10" font-weight="700" fill="#9f1239">BackUp (Откат)</text>
+    <text x="12" y="34" font-family="JetBrains Mono" font-size="8.5" fill="#e11d48">Выход из тупика</text>
+  </g>
+
+  <g transform="translate(30, 310)" font-family="Inter" font-size="10.5">
+    <circle cx="8" cy="8" r="5" fill="#059669"/>
+    <text x="20" y="12" font-weight="600" fill="#065f46">SUCCESS (Успех)</text>
+
+    <circle cx="160" cy="8" r="5" fill="#3b82f6"/>
+    <text x="172" y="12" font-weight="600" fill="#1e40af">RUNNING (В процессе)</text>
+
+    <circle cx="320" cy="8" r="5" fill="#dc2626"/>
+    <text x="332" y="12" font-weight="600" fill="#991b1b">FAILURE (Сбой → переход к Recovery)</text>
   </g>
 </svg>

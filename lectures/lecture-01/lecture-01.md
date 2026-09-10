@@ -225,7 +225,7 @@ $$\mathcal{C}_{obs} = \mathcal{O} \oplus (-\mathcal{A}(0)) = \{ p - a \mid p \in
 
 ---
 
-## 3. Проходимость среды (Traversability Analysis) <span class="badge badge-time">30–45 мин</span>
+## 3. Проходимость среды (Traversability Analysis) <span class="badge badge-time">30–34 мин</span>
 
 <div class="grid-3">
 
@@ -267,6 +267,117 @@ $$\mathcal{C}_{obs} = \mathcal{O} \oplus (-\mathcal{A}(0)) = \{ p - a \mid p \in
 <div class="card" style="margin-top: 4px; padding: 10px 16px; background: #f8fafc; border-left: 4px solid #0284c7;">
 
 💡 **Фундаментальный вывод:** Бинарного $\mathcal{C}_{\text{free}} / \mathcal{C}_{\text{obs}}$ недостаточно: геометрия допускает проезд, но террамеханика гарантирует пробуксовку колес, а семантика налагает запреты безопасности.
+
+</div>
+
+---
+
+## 1. Профильная проходимость: Клиренс, углы и ступени <span class="badge badge-time">34–38 мин</span>
+
+<div class="grid-2">
+
+<div class="col">
+
+<div class="card card-accent">
+
+### Геометрические пороги проходимости:
+- **Дорожный просвет ($h_{\text{clear}}$):** минимальный зазор между грунтом и нижней точкой шасси/дифференциала.
+- **Угол въезда ($\alpha_{\text{app}}$) и съезда ($\alpha_{\text{dep}}$):** предельный наклон рампы без удара бампером или оборудованием.
+- **Угол переката ($\beta_{\text{ramp}}$):** порог преодоления гребня без посадки на «брюхо» (*high-centering*).
+- **Предельный вертикальный шаг:** $h \le h_{\text{step}} \approx 0.5 \cdot D_{\text{wheel}}$.
+- **Сенсорный стек:** 3D LiDAR, стереокамеры $\rightarrow$ 2.5D Elevation Map (`elevation_mapping_cupy`) и GPU ESDF.
+
+</div>
+
+<div class="card" style="margin-top: 4px; padding: 8px 12px; background: #eff6ff; border-left: 3px solid #0284c7;">
+
+💡 **Критерий:** ни одна точка шасси не входит в контакт с рельефом $\operatorname{dist}(p_{\text{robot}}, \mathcal{O}_{\text{terrain}}) > 0$.
+
+</div>
+
+</div>
+
+<div class="col">
+
+<div class="diagram-box">
+
+<img src="../../assets/images/lecture-01/traversability_geometry.jpg" alt="Геометрическая проходимость планетохода" />
+
+</div>
+
+</div>
+
+</div>
+
+---
+
+## 2. Опорная проходимость: Террамеханика Беккера–Вонга <span class="badge badge-time">38–41 мин</span>
+
+<div class="grid-2">
+
+<div class="col">
+
+<div class="card card-alert">
+
+### Взаимодействие колеса с грунтом:
+- **Уравнение осадки Беккера ($z$ — глубина колеи):**
+$$p(z) = \left( \frac{k_c}{b} + k_\phi \right) z^n$$
+$b$ — ширина протектора, $k_c, k_\phi, n$ — модули грунта.
+- **Сдвиговые напряжения Яна–Беккера:**
+$$\tau(j) = (c + p \tan \phi)\left(1 - e^{-j/K}\right)$$
+- **Буксование колеса (Slip ratio $s$):**
+$$s = 1 - \frac{v_x}{r \cdot \omega}$$
+При $s > 0.25$ колесо зарывается, сопротивление качению $R_c$ растет, вызывая застревание даже на ровном месте.
+
+</div>
+
+</div>
+
+<div class="col">
+
+<div class="diagram-box">
+
+<img src="../../assets/images/lecture-01/traversability_terramechanics.jpg" alt="Террамеханика колесо-грунт" />
+
+</div>
+
+</div>
+
+</div>
+
+---
+
+## 3. Семантическая проходимость: ИИ-сегментация и Costmap <span class="badge badge-time">41–45 мин</span>
+
+<div class="grid-2">
+
+<div class="col">
+
+<div class="card card-success">
+
+### Оценка проходимости нейросетями:
+- **Семантическая сегментация (RGB + LiDAR):**
+  - Асфальт / ровный бетон: $C_{\text{surf}} = 1.0$ (оптимально)
+  - Стриженый газон / гравий: $C_{\text{surf}} = 1.3$ (допустимо)
+  - Рыхлый песок / грязь / лужи: $C_{\text{surf}} = 8.0$ (высокий риск)
+  - Разметка, зоны пешеходов, ПДД
+- **Штрафы в целевой функции планирования:**
+$$J = \int_0^T \left( C_{\text{semantic}}(x(t)) + \|\mathbf{u}(t)\|_R^2 \right) dt$$
+- **SOTA подходы:** Self-Supervised Traversability (Wayve, ETH Zurich Rüegg et al., DINOv2 visual features).
+
+</div>
+
+</div>
+
+<div class="col">
+
+<div class="diagram-box">
+
+<img src="../../assets/images/lecture-01/traversability_semantics.jpg" alt="Семантическая проходимость и разметка" />
+
+</div>
+
+</div>
 
 </div>
 

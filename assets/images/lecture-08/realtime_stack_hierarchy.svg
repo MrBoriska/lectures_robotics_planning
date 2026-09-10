@@ -1,34 +1,43 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 320" width="100%" height="100%">
-  <rect width="100%" height="100%" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
-  <text x="30" y="26" font-family="Inter" font-size="14" font-weight="700" fill="#0f172a">Многотактовая архитектура реального времени автономного робота</text>
-  <g transform="translate(40, 45)">
-    <!-- Layer 1: Mission / BT -->
-    <rect x="0" y="0" width="620" height="48" rx="6" fill="#fdf4ff" stroke="#c084fc" stroke-width="1.5"/>
-    <text x="20" y="24" font-family="Inter" font-size="12" font-weight="700" fill="#7e22ce">1. Уровень миссии и поведение (Behavior Tree)</text>
-    <rect x="510" y="10" width="90" height="26" rx="4" fill="#a855f7"/>
-    <text x="555" y="27" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">0.5–2 Гц</text>
-    <text x="20" y="40" font-family="Inter" font-size="10.5" fill="#6b21a8">Выбор целей, аварийные действия (Recovery), диспетчеризация задач</text>
-    <!-- Layer 2: Global Planning -->
-    <rect x="0" y="58" width="620" height="48" rx="6" fill="#eff6ff" stroke="#60a5fa" stroke-width="1.5"/>
-    <text x="20" y="82" font-family="Inter" font-size="12" font-weight="700" fill="#1d4ed8">2. Глобальный планировщик пути (Global Planner)</text>
-    <rect x="510" y="68" width="90" height="26" rx="4" fill="#3b82f6"/>
-    <text x="555" y="85" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">1–5 Гц</text>
-    <text x="20" y="98" font-family="Inter" font-size="10.5" fill="#1e40af">Smac Planner (Hybrid A*), D* Lite, Voronoi на глобальной Costmap</text>
-    <!-- Layer 3: Local Planner / MPC -->
-    <rect x="0" y="116" width="620" height="48" rx="6" fill="#f0fdf4" stroke="#4ade80" stroke-width="1.5"/>
-    <text x="20" y="140" font-family="Inter" font-size="12" font-weight="700" fill="#15803d">3. Локальный планировщик траектории (Controller)</text>
-    <rect x="510" y="126" width="90" height="26" rx="4" fill="#22c55e"/>
-    <text x="555" y="143" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">20–50 Гц</text>
-    <text x="20" y="156" font-family="Inter" font-size="10.5" fill="#166534">NMPC (acados), TEB, DWA — учет динамических людей и препятствий</text>
-    <!-- Layer 4: Motor & Safety E-stop -->
-    <rect x="0" y="174" width="620" height="48" rx="6" fill="#fef2f2" stroke="#f87171" stroke-width="1.5"/>
-    <text x="20" y="198" font-family="Inter" font-size="12" font-weight="700" fill="#b91c1c">4. Приводы, энкодеры и аппаратная безопасность</text>
-    <rect x="510" y="184" width="90" height="26" rx="4" fill="#ef4444"/>
-    <text x="555" y="201" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">500–1000 Гц</text>
-    <text x="20" y="214" font-family="Inter" font-size="10.5" fill="#991b1b">CAN bus / micro-ROS, ПИД токов моторов, лазерный бампер (Safety E-stop)</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <g transform="translate(30, 24)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Многотактовая архитектура реального времени (1 Гц — 1000 Гц)</text>
+    <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Иерархия контуров управления робота от жесткого RT на микроконтроллере до планирования миссии</text>
   </g>
-  <g transform="translate(40, 275)">
-    <text x="0" y="15" font-family="Inter" font-size="11.5" font-weight="600" fill="#0f172a">Принцип разделения контуров:</text>
-    <text x="180" y="15" font-family="Inter" font-size="11" fill="#475569">Асинхронные очереди и буферы исключают блокировку нижних быстрых контуров верхними.</text>
+  <g transform="translate(30, 65)">
+    <rect width="700" height="46" rx="6" fill="#fee2e2" stroke="#ef4444" stroke-width="1.2"/>
+    <rect x="0" y="0" width="140" height="46" rx="6" fill="#ef4444"/>
+    <text x="12" y="28" font-family="JetBrains Mono" font-size="12" font-weight="700" fill="#ffffff">1000 Гц (1 мс)</text>
+    <text x="155" y="20" font-family="Inter" font-size="12.5" font-weight="700" fill="#991b1b">CAN / EtherCAT / Инверторы моторов</text>
+    <text x="155" y="37" font-family="Inter" font-size="10.5" fill="#475569">Токовый контур, FOC, ШИМ, энкодеры колес. Жесткий RT, джиттер < 20 мкс</text>
+  </g>
+  <g transform="translate(30, 119)">
+    <rect width="700" height="46" rx="6" fill="#ffedd5" stroke="#f97316" stroke-width="1.2"/>
+    <rect x="0" y="0" width="140" height="46" rx="6" fill="#f97316"/>
+    <text x="12" y="28" font-family="JetBrains Mono" font-size="12" font-weight="700" fill="#ffffff">100 Гц (10 мс)</text>
+    <text x="155" y="20" font-family="Inter" font-size="12.5" font-weight="700" fill="#9a3412">IMU / Комплементарный фильтр / EKF</text>
+    <text x="155" y="37" font-family="Inter" font-size="10.5" fill="#475569">Одометрия, слияние сенсоров, защита от опрокидывания шасси</text>
+  </g>
+  <g transform="translate(30, 173)">
+    <rect width="700" height="46" rx="6" fill="#fef9c3" stroke="#eab308" stroke-width="1.2"/>
+    <rect x="0" y="0" width="140" height="46" rx="6" fill="#eab308"/>
+    <text x="12" y="28" font-family="JetBrains Mono" font-size="12" font-weight="700" fill="#ffffff">20–50 Гц (20–50 мс)</text>
+    <text x="155" y="20" font-family="Inter" font-size="12.5" font-weight="700" fill="#854d0e">Локальный планировщик (MPC / TEB / DWA)</text>
+    <text x="155" y="37" font-family="Inter" font-size="10.5" fill="#475569">Уклонение от динамических преград, расчет ускорений, трекинг пути</text>
+  </g>
+  <g transform="translate(30, 227)">
+    <rect width="700" height="46" rx="6" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.2"/>
+    <rect x="0" y="0" width="140" height="46" rx="6" fill="#3b82f6"/>
+    <text x="12" y="28" font-family="JetBrains Mono" font-size="12" font-weight="700" fill="#ffffff">1–5 Гц (0.2–1 с)</text>
+    <text x="155" y="20" font-family="Inter" font-size="12.5" font-weight="700" fill="#1e40af">Глобальный планировщик (A* / Nav2 / GVD)</text>
+    <text x="155" y="37" font-family="Inter" font-size="10.5" fill="#475569">Построение маршрута по статической карте, Dijkstra, Costmaps</text>
+  </g>
+  <g transform="translate(30, 281)">
+    <rect width="700" height="46" rx="6" fill="#f0fdf4" stroke="#10b981" stroke-width="1.2"/>
+    <rect x="0" y="0" width="140" height="46" rx="6" fill="#10b981"/>
+    <text x="12" y="28" font-family="JetBrains Mono" font-size="12" font-weight="700" fill="#ffffff">0.1–1 Гц (1–10 с)</text>
+    <text x="155" y="20" font-family="Inter" font-size="12.5" font-weight="700" fill="#065f46">Диспетчер миссии (Behavior Tree / FSM)</text>
+    <text x="155" y="37" font-family="Inter" font-size="10.5" fill="#475569">Выбор целей, перезапуск упавших нод, взаимодействие с флотом</text>
   </g>
 </svg>

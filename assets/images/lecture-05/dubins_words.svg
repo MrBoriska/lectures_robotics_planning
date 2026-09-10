@@ -1,39 +1,70 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 320" width="100%" height="100%">
-  <rect width="100%" height="100%" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
-  <text x="30" y="28" font-family="Inter" font-size="14" font-weight="700" fill="#0f172a">6 канонических слов автомобиля Дубинса (LaValle гл. 15): LSL, RSR, LSR, RSL, LRL, RLR</text>
-  <g transform="translate(40, 50)">
-    <rect width="190" height="110" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
-    <text x="15" y="20" font-family="Inter" font-size="13" font-weight="700" fill="#0284c7">1. Слово LSL</text>
-    <circle cx="50" cy="70" r="25" stroke="#94a3b8" stroke-width="1" stroke-dasharray="2 2" fill="none"/>
-    <circle cx="140" cy="70" r="25" stroke="#94a3b8" stroke-width="1" stroke-dasharray="2 2" fill="none"/>
-    <path d="M40,90 A25,25 0 0,1 50,45 L140,45 A25,25 0 0,1 160,85" stroke="#2563eb" stroke-width="2.5" fill="none"/>
-    <circle cx="40" cy="90" r="3" fill="#16a34a"/>
-    <circle cx="160" cy="85" r="3" fill="#dc2626"/>
-    <text x="15" y="100" font-family="Inter" font-size="11" fill="#475569">Поворот L → Прямо S → L</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <g transform="translate(30, 24)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">6 канонических слов Дубинса (Dubins, 1957)</text>
+    <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Кратчайший путь для автомобиля с передней передачей (v &gt; 0, |κ| ≤ 1/R_min) состоит из 3 сегментов</text>
   </g>
-  <g transform="translate(255, 50)">
-    <rect width="190" height="110" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
-    <text x="15" y="20" font-family="Inter" font-size="13" font-weight="700" fill="#0284c7">2. Слово LSR</text>
-    <circle cx="50" cy="75" r="22" stroke="#94a3b8" stroke-width="1" stroke-dasharray="2 2" fill="none"/>
-    <circle cx="140" cy="65" r="22" stroke="#94a3b8" stroke-width="1" stroke-dasharray="2 2" fill="none"/>
-    <path d="M40,93 A22,22 0 0,1 63,55 L125,83 A22,22 0 0,0 155,50" stroke="#059669" stroke-width="2.5" fill="none"/>
-    <circle cx="40" cy="93" r="3" fill="#16a34a"/>
-    <circle cx="155" cy="50" r="3" fill="#dc2626"/>
-    <text x="15" y="100" font-family="Inter" font-size="11" fill="#475569">Внутренняя касательная</text>
+  <g transform="translate(30, 65)">
+    <rect width="225" height="125" rx="6" fill="#f0fdf4" stroke="#86efac" stroke-width="1.2"/>
+    <text x="12" y="20" font-family="Inter" font-size="12" font-weight="700" fill="#0f172a">1. LSL (CSC)</text>
+    <text x="12" y="34" font-family="Inter" font-size="9.5" fill="#64748b">Left arc → Straight → Left arc</text>
+
+    <path d="M30,70 A30,30 0 0,0 60,40 L150,40 A30,30 0 0,0 180,70" stroke="#059669" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+
+    <circle cx="30" cy="55" r="3.5" fill="#0284c7"/>
+    <circle cx="170" cy="55" r="3.5" fill="#dc2626"/>
+    <rect x="135" y="9" width="78" height="18" rx="3" fill="#059669"/>
+    <text x="141" y="22" font-family="Inter" font-size="9.5" font-weight="700" fill="#ffffff">★ ШОРТЕСТ</text>
   </g>
-  <g transform="translate(470, 50)">
-    <rect width="190" height="110" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
-    <text x="15" y="20" font-family="Inter" font-size="13" font-weight="700" fill="#0284c7">3. Слово LRL (без S)</text>
-    <path d="M35,80 A20,20 0 0,1 65,55 A20,20 0 0,0 115,55 A20,20 0 0,1 145,80" stroke="#7c3aed" stroke-width="2.5" fill="none"/>
-    <circle cx="35" cy="80" r="3" fill="#16a34a"/>
-    <circle cx="145" cy="80" r="3" fill="#dc2626"/>
-    <text x="15" y="100" font-family="Inter" font-size="11" fill="#475569">При близких целях (S = ∅)</text>
+  <g transform="translate(270, 65)">
+    <rect width="225" height="125" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.2"/>
+    <text x="12" y="20" font-family="Inter" font-size="12" font-weight="700" fill="#0f172a">2. RSR (CSC)</text>
+    <text x="12" y="34" font-family="Inter" font-size="9.5" fill="#64748b">Right arc → Straight → Right arc</text>
+
+    <path d="M30,40 A30,30 0 0,1 60,70 L150,70 A30,30 0 0,1 180,40" stroke="#0284c7" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+
+    <circle cx="30" cy="55" r="3.5" fill="#0284c7"/>
+    <circle cx="170" cy="55" r="3.5" fill="#dc2626"/>
   </g>
-  <g transform="translate(40, 180)">
-    <rect width="620" height="110" rx="6" fill="#f0f9ff" stroke="#bae6fd"/>
-    <text x="20" y="28" font-family="Inter" font-size="13" font-weight="700" fill="#0369a1">Аналитическая теорема Суссмана и Танга (Sussmann &amp; Tang, 1991):</text>
-    <text x="20" y="52" font-family="Inter" font-size="12" fill="#475569">• Из принципа максимума Понтрягина следует: оптимальное управление u(t) ∈ {-1, 0, +1} (Bang-Bang).</text>
-    <text x="20" y="72" font-family="Inter" font-size="12" fill="#475569">• Кратчайший путь между любыми позами в SE(2) состоит максимум из 3 участков окружностей и прямой.</text>
-    <text x="20" y="92" font-family="JetBrains Mono" font-size="12" fill="#0284c7">Время аналитического расчета: t &lt; 0.5 микросекунды (идеально для Hybrid A* и RRT*)</text>
+  <g transform="translate(510, 65)">
+    <rect width="225" height="125" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.2"/>
+    <text x="12" y="20" font-family="Inter" font-size="12" font-weight="700" fill="#0f172a">3. LSR (CSC)</text>
+    <text x="12" y="34" font-family="Inter" font-size="9.5" fill="#64748b">Left arc → Straight → Right arc</text>
+
+    <path d="M30,70 A30,30 0 0,0 60,40 L150,70 A30,30 0 0,1 180,40" stroke="#0284c7" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+
+    <circle cx="30" cy="55" r="3.5" fill="#0284c7"/>
+    <circle cx="170" cy="55" r="3.5" fill="#dc2626"/>
+  </g>
+  <g transform="translate(30, 205)">
+    <rect width="225" height="125" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.2"/>
+    <text x="12" y="20" font-family="Inter" font-size="12" font-weight="700" fill="#0f172a">4. RSL (CSC)</text>
+    <text x="12" y="34" font-family="Inter" font-size="9.5" fill="#64748b">Right arc → Straight → Left arc</text>
+
+    <path d="M30,40 A30,30 0 0,1 60,70 L150,40 A30,30 0 0,0 180,70" stroke="#0284c7" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+
+    <circle cx="30" cy="55" r="3.5" fill="#0284c7"/>
+    <circle cx="170" cy="55" r="3.5" fill="#dc2626"/>
+  </g>
+  <g transform="translate(270, 205)">
+    <rect width="225" height="125" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.2"/>
+    <text x="12" y="20" font-family="Inter" font-size="12" font-weight="700" fill="#0f172a">5. LRL (CCC)</text>
+    <text x="12" y="34" font-family="Inter" font-size="9.5" fill="#64748b">3 сопряженных круга максимальной кривизны</text>
+
+    <path d="M30,65 A25,25 0 0,0 70,45 A25,25 0 0,1 130,45 A25,25 0 0,0 170,65" stroke="#0284c7" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+
+    <circle cx="30" cy="55" r="3.5" fill="#0284c7"/>
+    <circle cx="170" cy="55" r="3.5" fill="#dc2626"/>
+  </g>
+  <g transform="translate(510, 205)">
+    <rect width="225" height="125" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.2"/>
+    <text x="12" y="20" font-family="Inter" font-size="12" font-weight="700" fill="#0f172a">6. RLR (CCC)</text>
+    <text x="12" y="34" font-family="Inter" font-size="9.5" fill="#64748b">Применяется при близком расположении целей</text>
+
+    <path d="M30,45 A25,25 0 0,1 70,65 A25,25 0 0,0 130,65 A25,25 0 0,1 170,45" stroke="#0284c7" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+
+    <circle cx="30" cy="55" r="3.5" fill="#0284c7"/>
+    <circle cx="170" cy="55" r="3.5" fill="#dc2626"/>
   </g>
 </svg>

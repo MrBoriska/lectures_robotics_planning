@@ -1,28 +1,157 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 320" width="100%" height="100%">
-  <rect width="100%" height="100%" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
-  <g transform="translate(40, 25)">
-    <text x="0" y="0" font-family="Inter" font-size="14" font-weight="700" fill="#0f172a">Классический A* (привязка к сетке)</text>
-    <path d="M20,30 H260 M20,60 H260 M20,90 H260 M20,120 H260 M20,150 H260 M20,180 H260" stroke="#e2e8f0" stroke-width="1"/>
-    <path d="M20,30 V180 M60,30 V180 M100,30 V180 M140,30 V180 M180,30 V180 M220,30 V180 M260,30 V180" stroke="#e2e8f0" stroke-width="1"/>
-    <rect x="100" y="60" width="40" height="60" fill="#ef4444" opacity="0.8"/>
-    <rect x="140" y="90" width="40" height="60" fill="#ef4444" opacity="0.8"/>
-    <path d="M60,150 L100,150 L140,150 L180,150 L220,120 L220,60" stroke="#dc2626" stroke-width="3" fill="none"/>
-    <circle cx="60" cy="150" r="4" fill="#16a34a"/>
-    <circle cx="220" cy="60" r="4" fill="#2563eb"/>
-    <text x="0" y="210" font-family="Inter" font-size="12" font-weight="600" fill="#dc2626">Ступенчатые зигзаги (45° и 90°)</text>
-    <text x="0" y="230" font-family="Inter" font-size="12" fill="#475569">Длина: L = 3·1.0 + √2 + 2·1.0 = 6.41</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- LEFT: STANDARD A* -->
+  <g transform="translate(20, 20)">
+    <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">1. Классический 8-связный A*</text>
+    <text x="16" y="39" font-family="Inter, sans-serif" font-size="11" fill="#64748b">Траектория жестко привязана к сетке (углы 0°, 45°, 90°)</text>
+
+    <rect x="25" y="45" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="61" y="45" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="97" y="45" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="133" y="45" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="169" y="45" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="205" y="45" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="241" y="45" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="277" y="45" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="25" y="81" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="61" y="81" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="97" y="81" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="133" y="81" width="36" height="36" fill="#fee2e2" stroke="#dc2626" stroke-width="1"/>
+<line x1="133" y1="81" x2="169" y2="117" stroke="#fca5a5" stroke-width="1"/>
+<rect x="169" y="81" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="205" y="81" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="241" y="81" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="277" y="81" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="25" y="117" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="61" y="117" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="97" y="117" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="133" y="117" width="36" height="36" fill="#fee2e2" stroke="#dc2626" stroke-width="1"/>
+<line x1="133" y1="117" x2="169" y2="153" stroke="#fca5a5" stroke-width="1"/>
+<rect x="169" y="117" width="36" height="36" fill="#fee2e2" stroke="#dc2626" stroke-width="1"/>
+<line x1="169" y1="117" x2="205" y2="153" stroke="#fca5a5" stroke-width="1"/>
+<rect x="205" y="117" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="241" y="117" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="277" y="117" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="25" y="153" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="61" y="153" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="97" y="153" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="133" y="153" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="169" y="153" width="36" height="36" fill="#fee2e2" stroke="#dc2626" stroke-width="1"/>
+<line x1="169" y1="153" x2="205" y2="189" stroke="#fca5a5" stroke-width="1"/>
+<rect x="205" y="153" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="241" y="153" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="277" y="153" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="25" y="189" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="61" y="189" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="97" y="189" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="133" y="189" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="169" y="189" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="205" y="189" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="241" y="189" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="277" y="189" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="25" y="225" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="61" y="225" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="97" y="225" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="133" y="225" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="169" y="225" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="205" y="225" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="241" y="225" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="277" y="225" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<path d="M79.0,207.0 L115.0,207.0 L151.0,207.0 L187.0,207.0 L223.0,171.0 L259.0,135.0 L259.0,99.0" stroke="#dc2626" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="79.0" cy="207.0" r="3.5" fill="#dc2626" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="115.0" cy="207.0" r="3.5" fill="#dc2626" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="151.0" cy="207.0" r="3.5" fill="#dc2626" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="187.0" cy="207.0" r="3.5" fill="#dc2626" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="223.0" cy="171.0" r="3.5" fill="#dc2626" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="259.0" cy="135.0" r="3.5" fill="#dc2626" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="259.0" cy="99.0" r="3.5" fill="#dc2626" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="79.0" cy="207.0" r="6" fill="#059669" stroke="#ffffff" stroke-width="2"/>
+<text x="65.0" y="211.0" font-family="Inter" font-size="11" font-weight="700" fill="#059669">S</text>
+<circle cx="259.0" cy="99.0" r="6" fill="#dc2626" stroke="#ffffff" stroke-width="2"/>
+<text x="267.0" y="103.0" font-family="Inter" font-size="11" font-weight="700" fill="#dc2626">G</text>
+
+
+    <rect x="14" y="270" width="317" height="38" rx="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="24" y="287" font-family="Inter, sans-serif" font-size="11.5" font-weight="700" fill="#dc2626">Длина пути: L = 6.83 клеток</text>
+    <text x="24" y="301" font-family="Inter, sans-serif" font-size="10" fill="#64748b">Избыточные изломы и искусственные повороты на ребрах сетки</text>
   </g>
-  <g transform="translate(380, 25)">
-    <text x="0" y="0" font-family="Inter" font-size="14" font-weight="700" fill="#0f172a">Сглаженный Theta* (Any-Angle)</text>
-    <path d="M20,30 H260 M20,60 H260 M20,90 H260 M20,120 H260 M20,150 H260 M20,180 H260" stroke="#e2e8f0" stroke-width="1"/>
-    <path d="M20,30 V180 M60,30 V180 M100,30 V180 M140,30 V180 M180,30 V180 M220,30 V180 M260,30 V180" stroke="#e2e8f0" stroke-width="1"/>
-    <rect x="100" y="60" width="40" height="60" fill="#ef4444" opacity="0.8"/>
-    <rect x="140" y="90" width="40" height="60" fill="#ef4444" opacity="0.8"/>
-    <line x1="60" y1="150" x2="220" y2="60" stroke="#059669" stroke-width="1.5" stroke-dasharray="3 3"/>
-    <path d="M60,150 L100,150 L220,60" stroke="#059669" stroke-width="3.5" fill="none"/>
-    <circle cx="60" cy="150" r="4" fill="#16a34a"/>
-    <circle cx="220" cy="60" r="4" fill="#2563eb"/>
-    <text x="0" y="210" font-family="Inter" font-size="12" font-weight="600" fill="#059669">Прямая срезка через LineOfSight()</text>
-    <text x="0" y="230" font-family="Inter" font-size="12" fill="#475569">Длина: L = 1.0 + √(3² + 3²) = 5.24 (-18% пути!)</text>
+
+  <!-- RIGHT: THETA* ANY-ANGLE -->
+  <g transform="translate(395, 20)">
+    <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">2. Theta* (Any-Angle Path Planning)</text>
+    <text x="16" y="39" font-family="Inter, sans-serif" font-size="11" fill="#64748b">LineOfSight(parent(s), s') сглаживает путь напрямую</text>
+
+    <rect x="25" y="45" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="61" y="45" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="97" y="45" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="133" y="45" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="169" y="45" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="205" y="45" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="241" y="45" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="277" y="45" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="25" y="81" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="61" y="81" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="97" y="81" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="133" y="81" width="36" height="36" fill="#fee2e2" stroke="#dc2626" stroke-width="1"/>
+<line x1="133" y1="81" x2="169" y2="117" stroke="#fca5a5" stroke-width="1"/>
+<rect x="169" y="81" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="205" y="81" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="241" y="81" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="277" y="81" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="25" y="117" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="61" y="117" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="97" y="117" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="133" y="117" width="36" height="36" fill="#fee2e2" stroke="#dc2626" stroke-width="1"/>
+<line x1="133" y1="117" x2="169" y2="153" stroke="#fca5a5" stroke-width="1"/>
+<rect x="169" y="117" width="36" height="36" fill="#fee2e2" stroke="#dc2626" stroke-width="1"/>
+<line x1="169" y1="117" x2="205" y2="153" stroke="#fca5a5" stroke-width="1"/>
+<rect x="205" y="117" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="241" y="117" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="277" y="117" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="25" y="153" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="61" y="153" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="97" y="153" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="133" y="153" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="169" y="153" width="36" height="36" fill="#fee2e2" stroke="#dc2626" stroke-width="1"/>
+<line x1="169" y1="153" x2="205" y2="189" stroke="#fca5a5" stroke-width="1"/>
+<rect x="205" y="153" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="241" y="153" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="277" y="153" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="25" y="189" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="61" y="189" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="97" y="189" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="133" y="189" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="169" y="189" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="205" y="189" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="241" y="189" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="277" y="189" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="25" y="225" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="61" y="225" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="97" y="225" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="133" y="225" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="169" y="225" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="205" y="225" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="241" y="225" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="277" y="225" width="36" height="36" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<path d="M79.0,207.0 L115.0,207.0 L259.0,99.0" stroke="#059669" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="79.0" cy="207.0" r="3.5" fill="#059669" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="115.0" cy="207.0" r="3.5" fill="#059669" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="259.0" cy="99.0" r="3.5" fill="#059669" stroke="#ffffff" stroke-width="1.5"/>
+<circle cx="79.0" cy="207.0" r="6" fill="#059669" stroke="#ffffff" stroke-width="2"/>
+<text x="65.0" y="211.0" font-family="Inter" font-size="11" font-weight="700" fill="#059669">S</text>
+<circle cx="259.0" cy="99.0" r="6" fill="#dc2626" stroke="#ffffff" stroke-width="2"/>
+<text x="267.0" y="103.0" font-family="Inter" font-size="11" font-weight="700" fill="#dc2626">G</text>
+
+
+    <!-- Line of sight ray indicator -->
+    <line x1="115.0" y1="207.0" x2="259.0" y2="99.0" stroke="#0284c7" stroke-width="1.5" stroke-dasharray="3,3"/>
+    <text x="155" y="145" font-family="JetBrains Mono, monospace" font-size="9" fill="#0284c7">LineOfSight() = True</text>
+
+    <rect x="14" y="270" width="317" height="38" rx="5" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="24" y="287" font-family="Inter, sans-serif" font-size="11.5" font-weight="700" fill="#059669">Длина пути: L = 6.00 клеток (-12.1%)</text>
+    <text x="24" y="301" font-family="Inter, sans-serif" font-size="10" fill="#64748b">Устраняет дискретный артефакт сетки без пост-сглаживания</text>
   </g>
 </svg>

@@ -22,6 +22,17 @@ if (!existsSync(DIST_DIR)) {
   mkdirSync(DIST_DIR, { recursive: true });
 }
 
+// 0. Generate algorithmic diagrams
+const algoScript = join(ROOT_DIR, 'scripts', 'generate_algorithmic_diagrams.py');
+if (existsSync(algoScript)) {
+  console.log('📐 [Diagrams] Генерация математически строгих диаграмм алгоритмов...');
+  try {
+    execSync(`python3 "${algoScript}"`, { stdio: 'inherit' });
+  } catch (err) {
+    console.warn('⚠️ [Diagrams Warning] Не удалось сгенерировать диаграммы:', err.message);
+  }
+}
+
 // 1. Copy themes, widgets & assets
 console.log('🎨 [Assets] Копирование тем оформления, интерактивных виджетов и иллюстраций...');
 mkdirSync(join(DIST_DIR, 'themes'), { recursive: true });

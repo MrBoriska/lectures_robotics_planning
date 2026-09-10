@@ -1,29 +1,109 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 320" width="100%" height="100%">
-  <rect width="100%" height="100%" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
-  <g transform="translate(30, 25)">
-    <text x="0" y="0" font-family="Inter" font-size="14" font-weight="700" fill="#0f172a">Граф видимости (Visibility Graph)</text>
-    <polygon points="50,60 110,40 90,110 40,100" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5"/>
-    <polygon points="180,90 250,70 240,140 170,130" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5"/>
-    <line x1="20" y1="140" x2="40" y2="100" stroke="#94a3b8" stroke-width="1" stroke-dasharray="2 2"/>
-    <line x1="20" y1="140" x2="90" y2="110" stroke="#94a3b8" stroke-width="1" stroke-dasharray="2 2"/>
-    <line x1="110" y1="40" x2="180" y2="90" stroke="#94a3b8" stroke-width="1" stroke-dasharray="2 2"/>
-    <line x1="90" y1="110" x2="170" y2="130" stroke="#94a3b8" stroke-width="1" stroke-dasharray="2 2"/>
-    <path d="M20,140 L40,100 L110,40 L250,70 L280,130" stroke="#2563eb" stroke-width="3" fill="none"/>
-    <circle cx="20" cy="140" r="4" fill="#16a34a"/>
-    <circle cx="280" cy="130" r="4" fill="#dc2626"/>
-    <text x="0" y="210" font-family="Inter" font-size="12" font-weight="600" fill="#1e40af">✓ Минимальная длина пути</text>
-    <text x="0" y="230" font-family="Inter" font-size="11" fill="#dc2626">✗ Прижимается вплотную к углам (риск коллизии!)</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- LEFT PANEL: EXACT VISIBILITY GRAPH -->
+  <g transform="translate(20, 20)">
+    <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">1. Граф видимости (Visibility Graph)</text>
+    <text x="16" y="42" font-family="Inter, sans-serif" font-size="11" fill="#64748b">Ребра соединяют вершины без пересечения препятствий</text>
+
+    <!-- Obstacles -->
+    <polygon points="75,70 145,55 130,135 65,115" fill="#fee2e2" stroke="#ef4444" stroke-width="1.8"/>
+    <polygon points="185,110 265,80 250,165 175,145" fill="#fee2e2" stroke="#ef4444" stroke-width="1.8"/>
+    <text x="90" y="100" font-family="Inter, sans-serif" font-size="11" font-weight="600" fill="#991b1b">O₁</text>
+    <text x="210" y="130" font-family="Inter, sans-serif" font-size="11" font-weight="600" fill="#991b1b">O₂</text>
+
+    <!-- Computed Visibility Edges -->
+    <g stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3,3" opacity="0.7">
+      <line x1="30" y1="160" x2="75" y2="70"/>
+      <line x1="30" y1="160" x2="130" y2="135"/>
+      <line x1="30" y1="160" x2="65" y2="115"/>
+      <line x1="30" y1="160" x2="250" y2="165"/>
+      <line x1="30" y1="160" x2="175" y2="145"/>
+      <line x1="320" y1="140" x2="265" y2="80"/>
+      <line x1="320" y1="140" x2="250" y2="165"/>
+      <line x1="75" y1="70" x2="145" y2="55"/>
+      <line x1="75" y1="70" x2="65" y2="115"/>
+      <line x1="145" y1="55" x2="130" y2="135"/>
+      <line x1="145" y1="55" x2="185" y2="110"/>
+      <line x1="145" y1="55" x2="265" y2="80"/>
+      <line x1="145" y1="55" x2="175" y2="145"/>
+      <line x1="130" y1="135" x2="65" y2="115"/>
+      <line x1="130" y1="135" x2="185" y2="110"/>
+      <line x1="130" y1="135" x2="250" y2="165"/>
+      <line x1="130" y1="135" x2="175" y2="145"/>
+      <line x1="185" y1="110" x2="265" y2="80"/>
+      <line x1="185" y1="110" x2="175" y2="145"/>
+      <line x1="265" y1="80" x2="250" y2="165"/>
+      <line x1="250" y1="165" x2="175" y2="145"/>
+    </g>
+
+    <!-- Shortest Path Computed via Dijkstra -->
+    <path d="M30,160 L250,165 L320,140" stroke="#0284c7" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="30" cy="160" r="4" fill="#0284c7" stroke="#ffffff" stroke-width="1.5"/>
+    <circle cx="250" cy="165" r="4" fill="#0284c7" stroke="#ffffff" stroke-width="1.5"/>
+    <circle cx="320" cy="140" r="4" fill="#0284c7" stroke="#ffffff" stroke-width="1.5"/>
+
+    <!-- Start & Goal -->
+    <circle cx="30" cy="160" r="6" fill="#059669" stroke="#ffffff" stroke-width="2"/>
+    <text x="16" y="164" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#059669">S</text>
+    <circle cx="320" cy="140" r="6" fill="#dc2626" stroke="#ffffff" stroke-width="2"/>
+    <text x="328" y="144" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#dc2626">G</text>
+
+    <!-- Metrics box -->
+    <rect x="14" y="245" width="317" height="62" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="24" y="266" font-family="Inter, sans-serif" font-size="11.5" font-weight="700" fill="#0284c7">✓ Глобально минимальная длина: L = 294.4 px</text>
+    <text x="24" y="284" font-family="Inter, sans-serif" font-size="11" fill="#b91c1c">✗ Нулевой зазор (клиренс = 0): путь скользит по углам!</text>
+    <text x="24" y="299" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#64748b">Ребер в графе: 21 | Алгоритмическая сложность: O(n² log n)</text>
   </g>
-  <line x1="350" y1="20" x2="350" y2="300" stroke="#e2e8f0" stroke-width="2"/>
-  <g transform="translate(380, 25)">
-    <text x="0" y="0" font-family="Inter" font-size="14" font-weight="700" fill="#0f172a">Диаграмма Вороного (Voronoi / GVD)</text>
-    <polygon points="50,60 110,40 90,110 40,100" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5"/>
-    <polygon points="180,90 250,70 240,140 170,130" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5"/>
-    <path d="M20,70 Q140,95 140,20 M140,95 Q140,150 140,200 M140,95 Q210,110 280,40 M140,150 Q210,160 280,200" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3" fill="none"/>
-    <path d="M20,140 Q80,145 140,150 Q175,155 240,180 L280,130" stroke="#059669" stroke-width="3" fill="none"/>
-    <circle cx="20" cy="140" r="4" fill="#16a34a"/>
-    <circle cx="280" cy="130" r="4" fill="#dc2626"/>
-    <text x="0" y="210" font-family="Inter" font-size="12" font-weight="600" fill="#047857">✓ Максимальный запас безопасности (клиренс)</text>
-    <text x="0" y="230" font-family="Inter" font-size="11" fill="#64748b">✗ Неоптимален по длине (удлинение на 15–30%)</text>
+
+  <!-- RIGHT PANEL: GENERALIZED VORONOI DIAGRAM -->
+  <g transform="translate(395, 20)">
+    <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">2. Диаграмма Вороного (GVD / Voronoi)</text>
+    <text x="16" y="42" font-family="Inter, sans-serif" font-size="11" fill="#64748b">Ребра равноудалены от ближайших препятствий (максимальный клиренс)</text>
+
+    <!-- Obstacles -->
+    <polygon points="75,70 145,55 130,135 65,115" fill="#fee2e2" stroke="#ef4444" stroke-width="1.8"/>
+    <polygon points="185,110 265,80 250,165 175,145" fill="#fee2e2" stroke="#ef4444" stroke-width="1.8"/>
+    <text x="90" y="100" font-family="Inter, sans-serif" font-size="11" font-weight="600" fill="#991b1b">O₁</text>
+    <text x="210" y="130" font-family="Inter, sans-serif" font-size="11" font-weight="600" fill="#991b1b">O₂</text>
+
+    <!-- Voronoi Skeleton -->
+    <g stroke="#10b981" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.6">
+      <line x1="155" y1="20" x2="155" y2="240"/>
+      <line x1="155" y1="140" x2="210" y2="50"/>
+      <line x1="155" y1="195" x2="280" y2="240"/>
+      <line x1="20" y1="95" x2="75" y2="20"/>
+      <line x1="20" y1="205" x2="155" y2="195"/>
+      <line x1="215" y1="205" x2="330" y2="220"/>
+      <line x1="210" y1="50" x2="330" y2="30"/>
+    </g>
+
+    <!-- Voronoi Clearance Path -->
+    <path d="M30,160 L60,205 L155,195 L215,205 L280,185 L320,140" stroke="#059669" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="30" cy="160" r="4" fill="#059669" stroke="#ffffff" stroke-width="1.5"/>
+    <circle cx="60" cy="205" r="4" fill="#059669" stroke="#ffffff" stroke-width="1.5"/>
+    <circle cx="155" cy="195" r="4" fill="#059669" stroke="#ffffff" stroke-width="1.5"/>
+    <circle cx="215" cy="205" r="4" fill="#059669" stroke="#ffffff" stroke-width="1.5"/>
+    <circle cx="280" cy="185" r="4" fill="#059669" stroke="#ffffff" stroke-width="1.5"/>
+    <circle cx="320" cy="140" r="4" fill="#059669" stroke="#ffffff" stroke-width="1.5"/>
+
+    <!-- Start & Goal -->
+    <circle cx="30" cy="160" r="6" fill="#059669" stroke="#ffffff" stroke-width="2"/>
+    <text x="16" y="164" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#059669">S</text>
+    <circle cx="320" cy="140" r="6" fill="#dc2626" stroke="#ffffff" stroke-width="2"/>
+    <text x="328" y="144" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#dc2626">G</text>
+
+    <!-- Clearance circle illustration -->
+    <circle cx="155" cy="195" r="35" fill="none" stroke="#10b981" stroke-width="1.2" stroke-dasharray="2,2"/>
+    <line x1="155" y1="195" x2="135" y2="165" stroke="#10b981" stroke-width="1.2"/>
+    <text x="145" y="180" font-family="JetBrains Mono, monospace" font-size="9" fill="#047857">d_max</text>
+
+    <!-- Metrics box -->
+    <rect x="14" y="245" width="317" height="62" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="24" y="266" font-family="Inter, sans-serif" font-size="11.5" font-weight="700" fill="#059669">✓ Максимальный запас безопасности (клиренс d &gt; 35 px)</text>
+    <text x="24" y="284" font-family="Inter, sans-serif" font-size="11" fill="#b45309">✗ Удлинение пути: L = 338.7 px (+15.0%)</text>
+    <text x="24" y="299" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#64748b">Оптимизирует: argmax min d(q, ∂O) | Метод ретракции</text>
   </g>
 </svg>
