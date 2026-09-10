@@ -341,14 +341,14 @@
           const py = offsetY + y * cellSize;
 
           if (grid[y][x] === 1) {
-            ctx.fillStyle = '#1e293b';
+            ctx.fillStyle = '#334155';
             ctx.fillRect(px + 1, py + 1, cellSize - 2, cellSize - 2);
           } else {
-            ctx.fillStyle = '#0f172a';
+            ctx.fillStyle = '#ffffff';
             ctx.fillRect(px + 1, py + 1, cellSize - 2, cellSize - 2);
           }
 
-          ctx.strokeStyle = '#1e293b';
+          ctx.strokeStyle = '#e2e8f0';
           ctx.lineWidth = 1;
           ctx.strokeRect(px, py, cellSize, cellSize);
         }
@@ -370,8 +370,8 @@
         ctx.setLineDash([]);
       }
 
-      drawTrail(r1Path, 'rgba(56, 189, 248, 0.4)');
-      drawTrail(r2Path, 'rgba(245, 158, 11, 0.4)');
+      drawTrail(r1Path, 'rgba(2, 132, 199, 0.45)');
+      drawTrail(r2Path, 'rgba(217, 119, 6, 0.5)');
 
       // Draw Goals
       function drawGoal(pt, color, label) {
@@ -386,8 +386,8 @@
         ctx.textBaseline = 'middle';
         ctx.fillText(label, cx, cy);
       }
-      drawGoal(r1Goal, '#38bdf8', 'G1');
-      drawGoal(r2Goal, '#f59e0b', 'G2');
+      drawGoal(r1Goal, '#0284c7', 'G1');
+      drawGoal(r2Goal, '#d97706', 'G2');
 
       // Check collision
       const collision = checkCollisionAtCurrentTime();

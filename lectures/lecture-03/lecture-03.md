@@ -431,7 +431,7 @@ $$\operatorname{cost}(q_{new}) + \|q_{new} - v\| < \operatorname{cost}(v)$$
 <span>Рисуйте препятствия мышью | Регулируйте шаг и радиус окрестности</span>
 
 </div>
-<iframe src="../../widgets/rrt-exploration/index.html" class="interactive-frame"></iframe>
+<iframe src="http://localhost:5500/widgets/rrt-exploration/index.html" class="interactive-frame"></iframe>
 
 </div>
 

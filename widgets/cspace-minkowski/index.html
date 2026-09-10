@@ -37,7 +37,7 @@
       <div class="slider-group">
         <span>Угол &theta; (°):</span>
         <input type="range" id="thetaSlider" min="0" max="360" value="0">
-        <span id="thetaVal" style="font-family: var(--font-mono); color: #38bdf8; width: 35px;">0°</span>
+        <span id="thetaVal" style="font-family: var(--font-mono); color: var(--accent-cyan); width: 35px;">0°</span>
       </div>
 
       <div class="slider-group">
@@ -201,7 +201,7 @@
       ctx.clearRect(0, 0, width, height);
 
       // Grid lines
-      ctx.strokeStyle = '#162032';
+      ctx.strokeStyle = '#e2e8f0';
       ctx.lineWidth = 1;
       const step = 40;
       for (let x = 0; x < width; x += step) {
@@ -219,15 +219,15 @@
       const statElem = document.getElementById('statCollision');
       if (inCollision) {
         statElem.textContent = '❌ C_obs (КОЛЛИЗИЯ!)';
-        statElem.style.color = '#ef4444';
+        statElem.style.color = '#dc2626';
       } else {
         statElem.textContent = '✅ C_free (Безопасно)';
-        statElem.style.color = '#10b981';
+        statElem.style.color = '#059669';
       }
 
       // 1. Draw C_obs (Minkowski Sum boundary)
-      ctx.fillStyle = inCollision ? 'rgba(239, 68, 68, 0.25)' : 'rgba(245, 158, 11, 0.18)';
-      ctx.strokeStyle = inCollision ? '#ef4444' : '#f59e0b';
+      ctx.fillStyle = inCollision ? 'rgba(220, 38, 38, 0.18)' : 'rgba(217, 119, 6, 0.12)';
+      ctx.strokeStyle = inCollision ? '#dc2626' : '#d97706';
       ctx.lineWidth = 2;
       ctx.setLineDash([6, 6]);
       ctx.beginPath();
@@ -239,14 +239,14 @@
       ctx.setLineDash([]);
 
       // Label C_obs
-      ctx.fillStyle = '#f59e0b';
-      ctx.font = 'bold 13px monospace';
+      ctx.fillStyle = '#b45309';
+      ctx.font = 'bold 12px monospace';
       ctx.fillText('C_obs = O ⊕ (-A)', cObs[0].x - 10, cObs[0].y - 12);
 
       // 2. Draw Original Obstacle O
-      ctx.fillStyle = '#1e293b';
-      ctx.strokeStyle = '#ef4444';
-      ctx.lineWidth = 2.5;
+      ctx.fillStyle = '#fee2e2';
+      ctx.strokeStyle = '#dc2626';
+      ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(obstacle[0].x, obstacle[0].y);
       for (let i = 1; i < obstacle.length; i++) ctx.lineTo(obstacle[i].x, obstacle[i].y);
@@ -254,15 +254,15 @@
       ctx.fill();
       ctx.stroke();
 
-      ctx.fillStyle = '#ef4444';
-      ctx.font = 'bold 14px sans-serif';
-      ctx.fillText('Препятствие O', obstacle[0].x + 30, obstacle[0].y + 60);
+      ctx.fillStyle = '#b91c1c';
+      ctx.font = 'bold 13px sans-serif';
+      ctx.fillText('Препятствие O', obstacle[0].x + 25, obstacle[0].y + 60);
 
       // 3. Draw Robot A(q) in workspace
       const robotPoly = getRobotVertices(robotPos, theta, robotSize);
-      ctx.fillStyle = inCollision ? 'rgba(239, 68, 68, 0.7)' : 'rgba(2, 132, 199, 0.65)';
-      ctx.strokeStyle = inCollision ? '#b91c1c' : '#38bdf8';
-      ctx.lineWidth = 2.5;
+      ctx.fillStyle = inCollision ? 'rgba(220, 38, 38, 0.5)' : 'rgba(2, 132, 199, 0.35)';
+      ctx.strokeStyle = inCollision ? '#b91c1c' : '#0284c7';
+      ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(robotPoly[0].x, robotPoly[0].y);
       for (let i = 1; i < robotPoly.length; i++) ctx.lineTo(robotPoly[i].x, robotPoly[i].y);
@@ -271,23 +271,23 @@
       ctx.stroke();
 
       // Heading indicator for robot
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#0284c7';
+      ctx.lineWidth = 2.5;
       ctx.beginPath();
       ctx.moveTo(robotPos.x, robotPos.y);
       ctx.lineTo(robotPos.x + Math.cos(theta) * (robotSize * 0.9), robotPos.y + Math.sin(theta) * (robotSize * 0.9));
       ctx.stroke();
 
       // 4. Draw reference point q = (x, y)
-      ctx.fillStyle = '#10b981';
+      ctx.fillStyle = '#059669';
       ctx.beginPath();
-      ctx.arc(robotPos.x, robotPos.y, 6, 0, Math.PI * 2);
+      ctx.arc(robotPos.x, robotPos.y, 5, 0, Math.PI * 2);
       ctx.fill();
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      ctx.fillStyle = '#f8fafc';
+      ctx.fillStyle = '#0f172a';
       ctx.font = 'bold 12px monospace';
       ctx.fillText(`q = (${Math.round(robotPos.x)}, ${Math.round(robotPos.y)})`, robotPos.x + 10, robotPos.y - 10);
     }

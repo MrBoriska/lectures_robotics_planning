@@ -270,7 +270,7 @@
       ctx.clearRect(0, 0, width, height);
 
       // Draw subtle background grid
-      ctx.strokeStyle = '#162032';
+      ctx.strokeStyle = '#f1f5f9';
       ctx.lineWidth = 1;
       const stepGrid = 40;
       for (let x = 0; x < width; x += stepGrid) {
@@ -289,16 +289,16 @@
       // Draw Obstacles with influence regions
       for (const obs of obstacles) {
         const d0 = obs.influence || 100;
-        ctx.strokeStyle = 'rgba(239, 68, 68, 0.15)';
-        ctx.fillStyle = 'rgba(239, 68, 68, 0.04)';
+        ctx.strokeStyle = 'rgba(220, 38, 38, 0.2)';
+        ctx.fillStyle = 'rgba(220, 38, 38, 0.04)';
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.arc(obs.x, obs.y, obs.r + d0, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
 
-        ctx.fillStyle = '#1e293b';
-        ctx.strokeStyle = '#ef4444';
+        ctx.fillStyle = '#fee2e2';
+        ctx.strokeStyle = '#dc2626';
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.arc(obs.x, obs.y, obs.r, 0, Math.PI * 2);
@@ -307,15 +307,15 @@
       }
 
       // Draw Goal
-      ctx.fillStyle = 'rgba(59, 130, 246, 0.2)';
-      ctx.strokeStyle = '#3b82f6';
+      ctx.fillStyle = 'rgba(2, 132, 199, 0.12)';
+      ctx.strokeStyle = '#0284c7';
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.arc(goal.x, goal.y, goal.radius, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
 
-      ctx.fillStyle = '#3b82f6';
+      ctx.fillStyle = '#0284c7';
       ctx.font = 'bold 12px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -323,7 +323,7 @@
 
       // Draw Robot Trail
       if (robotTrail.length > 1) {
-        ctx.strokeStyle = '#06b6d4';
+        ctx.strokeStyle = 'rgba(2, 132, 199, 0.5)';
         ctx.lineWidth = 2.5;
         ctx.beginPath();
         ctx.moveTo(robotTrail[0].x, robotTrail[0].y);
@@ -335,21 +335,18 @@
 
       // Draw Forces at Robot
       const forces = computeForces(robot);
-      drawVector(robot.x, robot.y, forces.fAttX, forces.fAttY, '#3b82f6', 10);
-      drawVector(robot.x, robot.y, forces.fRepX, forces.fRepY, '#ef4444', 10);
-      drawVector(robot.x, robot.y, forces.fNetX, forces.fNetY, '#10b981', 12);
+      drawVector(robot.x, robot.y, forces.fAttX, forces.fAttY, '#0284c7', 10);
+      drawVector(robot.x, robot.y, forces.fRepX, forces.fRepY, '#dc2626', 10);
+      drawVector(robot.x, robot.y, forces.fNetX, forces.fNetY, '#059669', 12);
 
       // Draw Robot
       ctx.fillStyle = '#0284c7';
-      ctx.strokeStyle = '#38bdf8';
-      ctx.lineWidth = 3;
-      ctx.shadowColor = '#0284c7';
-      ctx.shadowBlur = 10;
+      ctx.strokeStyle = '#0369a1';
+      ctx.lineWidth = 2.5;
       ctx.beginPath();
       ctx.arc(robot.x, robot.y, robot.radius, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
-      ctx.shadowBlur = 0;
 
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 10px sans-serif';

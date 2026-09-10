@@ -68,6 +68,13 @@ for (const dirName of lectureDirs) {
   const marpCommandHtml = `npx marp "${mdFile}" --config-file "${join(ROOT_DIR, 'marp.config.mjs')}" --html --allow-local-files -o "${outHtmlPath}"`;
   execSync(marpCommandHtml, { stdio: 'inherit', env: { ...process.env, MARP_NO_SANDBOX: 'true' } });
 
+  // Normalize localhost widget paths to relative paths for production dist
+  if (existsSync(outHtmlPath)) {
+    let htmlContent = readFileSync(outHtmlPath, 'utf-8');
+    htmlContent = htmlContent.replace(/http:\/\/(localhost|127\.0\.0\.1):5500\/widgets\//g, '../../widgets/');
+    writeFileSync(outHtmlPath, htmlContent, 'utf-8');
+  }
+
   if (buildPdf) {
     console.log(`📄 [Marp] Экспорт ${dirName} в PDF...`);
     try {

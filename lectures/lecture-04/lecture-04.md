@@ -304,7 +304,7 @@ $$U(i, j) = \frac{1}{4} \Big( U(i+1, j) + U(i-1, j) + U(i, j+1) + U(i, j-1) \Big
 <span>Перетаскивайте препятствия | Создайте U-ловушку и наблюдайте застревание</span>
 
 </div>
-<iframe src="../../widgets/potential-field/index.html" class="interactive-frame"></iframe>
+<iframe src="http://localhost:5500/widgets/potential-field/index.html" class="interactive-frame"></iframe>
 
 </div>
 

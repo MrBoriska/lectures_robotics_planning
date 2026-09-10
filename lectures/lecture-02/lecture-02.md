@@ -202,7 +202,7 @@ $$h(n) \le c(n, n') + h(n')$$
 <span>Рисуйте стены мышью | Сравнивайте длину пути и число раскрытых ячеек</span>
 
 </div>
-<iframe src="../../widgets/astar-grid/index.html" class="interactive-frame"></iframe>
+<iframe src="http://localhost:5500/widgets/astar-grid/index.html" class="interactive-frame"></iframe>
 
 </div>
 
@@ -283,7 +283,7 @@ $$a_i(t) = a_j(t+1) \quad \text{и} \quad a_i(t+1) = a_j(t)$$
 <span>Переключайте режим: Столкновение vs Скоординированный пропуск</span>
 
 </div>
-<iframe src="../../widgets/mapf-spacetime/index.html" class="interactive-frame"></iframe>
+<iframe src="http://localhost:5500/widgets/mapf-spacetime/index.html" class="interactive-frame"></iframe>
 
 </div>
 
