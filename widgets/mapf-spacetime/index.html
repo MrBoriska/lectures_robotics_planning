@@ -316,12 +316,16 @@
 
     function resize() {
       const container = canvas.parentElement;
+      if (!container) return;
       canvas.width = container.clientWidth;
       canvas.height = container.clientHeight;
       cellSize = Math.min(canvas.width / COLS, canvas.height / ROWS);
       draw();
     }
     window.addEventListener('resize', resize);
+    if (window.ResizeObserver) {
+      new ResizeObserver(resize).observe(canvas.parentElement);
+    }
 
     function updateTimeDisplay() {
       document.getElementById('timeDisplay').textContent = `t = ${currentTime}`;

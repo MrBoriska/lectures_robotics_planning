@@ -49,15 +49,10 @@
     let width = 800;
     let height = 500;
 
-    let start = { x: 80, y: 250 };
-    let goal = { x: 720, y: 250, radius: 25 };
-
+    let start = null;
+    let goal = null;
     let nodes = [];
-    let obstacles = [
-      { x: 300, y: 160, r: 70 },
-      { x: 320, y: 340, r: 80 },
-      { x: 500, y: 250, r: 90 }
-    ];
+    let obstacles = [];
 
     let lastSample = null;
     let pathFoundNode = null;
@@ -69,15 +64,58 @@
     let newObsStart = null;
     let draggingPoint = null; // 'start', 'goal'
 
+    function initEnvironment() {
+      if (!start) {
+        start = { x: Math.round(width * 0.12), y: Math.round(height * 0.5) };
+      }
+      if (!goal) {
+        goal = { x: Math.round(width * 0.88), y: Math.round(height * 0.5), radius: Math.min(26, Math.max(18, height * 0.055)) };
+      }
+      if (obstacles.length === 0) {
+        const rScale = Math.min(width, height) / 500;
+        obstacles = [
+          { x: width * 0.38, y: height * 0.32, r: 65 * rScale },
+          { x: width * 0.40, y: height * 0.70, r: 75 * rScale },
+          { x: width * 0.64, y: height * 0.50, r: 85 * rScale }
+        ];
+      }
+    }
+
     function resize() {
       const container = canvas.parentElement;
+      if (!container) return;
+      const prevW = width;
+      const prevH = height;
       width = container.clientWidth;
       height = container.clientHeight;
       canvas.width = width;
       canvas.height = height;
+
+      if (!start) {
+        initEnvironment();
+      } else if (prevW > 0 && prevH > 0 && (prevW !== width || prevH !== height)) {
+        const sx = width / prevW;
+        const sy = height / prevH;
+        start.x = Math.max(15, Math.min(width - 15, start.x * sx));
+        start.y = Math.max(15, Math.min(height - 15, start.y * sy));
+        goal.x = Math.max(15, Math.min(width - 15, goal.x * sx));
+        goal.y = Math.max(15, Math.min(height - 15, goal.y * sy));
+        for (const obs of obstacles) {
+          obs.x *= sx;
+          obs.y *= sy;
+          obs.r *= Math.min(sx, sy);
+        }
+        for (const n of nodes) {
+          n.x *= sx;
+          n.y *= sy;
+        }
+      }
       draw();
     }
     window.addEventListener('resize', resize);
+    if (window.ResizeObserver) {
+      new ResizeObserver(resize).observe(canvas.parentElement);
+    }
 
     function resetTree() {
       if (animFrame) cancelAnimationFrame(animFrame);
@@ -85,6 +123,7 @@
       document.getElementById('btnRun').textContent = '⚡ Запуск';
       document.getElementById('btnRun').className = 'btn btn-primary';
 
+      if (!start) initEnvironment();
       nodes = [{ x: start.x, y: start.y, parent: null, cost: 0 }];
       lastSample = null;
       pathFoundNode = null;

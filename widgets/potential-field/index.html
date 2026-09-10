@@ -75,61 +75,95 @@
     let initialPos = { x: 100, y: 250 };
     let goal = { x: 700, y: 250, radius: 20 };
 
+    let currentScenario = 'obstacle';
     let obstacles = [];
     let robotTrail = [];
     let isRunning = false;
     let animId = null;
     let dragging = null; // 'robot', 'goal', obstacle ref
 
+    function loadScenario(type) {
+      currentScenario = type;
+      robotTrail = [];
+      robot.vx = 0;
+      robot.vy = 0;
+      const s = Math.min(width, height) / 500;
+      if (type === 'obstacle') {
+        robot.x = initialPos.x = width * 0.12;
+        robot.y = initialPos.y = height * 0.5;
+        goal.x = width * 0.88;
+        goal.y = height * 0.5;
+        obstacles = [
+          { x: width * 0.5, y: height * 0.5, r: 65 * s, influence: 140 * s }
+        ];
+      } else if (type === 'trap') {
+        robot.x = initialPos.x = width * 0.35;
+        robot.y = initialPos.y = height * 0.5;
+        goal.x = width * 0.88;
+        goal.y = height * 0.5;
+        const cx = width * 0.56;
+        const cy = height * 0.5;
+        obstacles = [
+          { x: cx, y: cy - 100 * s, r: 35 * s, influence: 90 * s },
+          { x: cx, y: cy - 50 * s,  r: 35 * s, influence: 90 * s },
+          { x: cx, y: cy,          r: 35 * s, influence: 90 * s },
+          { x: cx, y: cy + 50 * s,  r: 35 * s, influence: 90 * s },
+          { x: cx, y: cy + 100 * s, r: 35 * s, influence: 90 * s },
+          { x: cx - 70 * s, y: cy - 100 * s, r: 35 * s, influence: 90 * s },
+          { x: cx - 70 * s, y: cy + 100 * s, r: 35 * s, influence: 90 * s }
+        ];
+      } else if (type === 'corridor') {
+        robot.x = initialPos.x = width * 0.10;
+        robot.y = initialPos.y = height * 0.5;
+        goal.x = width * 0.90;
+        goal.y = height * 0.5;
+        obstacles = [
+          { x: width * 0.38, y: height * 0.28, r: 60 * s, influence: 120 * s },
+          { x: width * 0.38, y: height * 0.72, r: 60 * s, influence: 120 * s },
+          { x: width * 0.62, y: height * 0.36, r: 50 * s, influence: 110 * s },
+          { x: width * 0.62, y: height * 0.64, r: 50 * s, influence: 110 * s }
+        ];
+      }
+      draw();
+    }
+
     function resize() {
       const container = canvas.parentElement;
+      if (!container) return;
+      const prevW = width;
+      const prevH = height;
       width = container.clientWidth;
       height = container.clientHeight;
       canvas.width = width;
       canvas.height = height;
+
+      if (!obstacles || obstacles.length === 0) {
+        loadScenario(currentScenario);
+      } else if (prevW > 0 && prevH > 0 && (prevW !== width || prevH !== height)) {
+        const sx = width / prevW;
+        const sy = height / prevH;
+        robot.x = Math.max(15, Math.min(width - 15, robot.x * sx));
+        robot.y = Math.max(15, Math.min(height - 15, robot.y * sy));
+        initialPos.x = Math.max(15, Math.min(width - 15, initialPos.x * sx));
+        initialPos.y = Math.max(15, Math.min(height - 15, initialPos.y * sy));
+        goal.x = Math.max(15, Math.min(width - 15, goal.x * sx));
+        goal.y = Math.max(15, Math.min(height - 15, goal.y * sy));
+        for (const obs of obstacles) {
+          obs.x *= sx;
+          obs.y *= sy;
+          obs.r *= Math.min(sx, sy);
+          if (obs.influence) obs.influence *= Math.min(sx, sy);
+        }
+        for (const pt of robotTrail) {
+          pt.x *= sx;
+          pt.y *= sy;
+        }
+      }
       draw();
     }
     window.addEventListener('resize', resize);
-
-    function loadScenario(type) {
-      robotTrail = [];
-      robot.vx = 0;
-      robot.vy = 0;
-      if (type === 'obstacle') {
-        robot.x = initialPos.x = 100;
-        robot.y = initialPos.y = 250;
-        goal.x = 700;
-        goal.y = 250;
-        obstacles = [
-          { x: 400, y: 250, r: 65, influence: 140 }
-        ];
-      } else if (type === 'trap') {
-        robot.x = initialPos.x = 280;
-        robot.y = initialPos.y = 250;
-        goal.x = 700;
-        goal.y = 250;
-        obstacles = [
-          { x: 450, y: 150, r: 35, influence: 90 },
-          { x: 450, y: 200, r: 35, influence: 90 },
-          { x: 450, y: 250, r: 35, influence: 90 },
-          { x: 450, y: 300, r: 35, influence: 90 },
-          { x: 450, y: 350, r: 35, influence: 90 },
-          { x: 380, y: 150, r: 35, influence: 90 },
-          { x: 380, y: 350, r: 35, influence: 90 }
-        ];
-      } else if (type === 'corridor') {
-        robot.x = initialPos.x = 80;
-        robot.y = initialPos.y = 250;
-        goal.x = 720;
-        goal.y = 250;
-        obstacles = [
-          { x: 300, y: 140, r: 60, influence: 120 },
-          { x: 300, y: 360, r: 60, influence: 120 },
-          { x: 500, y: 180, r: 50, influence: 110 },
-          { x: 500, y: 320, r: 50, influence: 110 }
-        ];
-      }
-      draw();
+    if (window.ResizeObserver) {
+      new ResizeObserver(resize).observe(canvas.parentElement);
     }
 
     function computeForces(pos) {

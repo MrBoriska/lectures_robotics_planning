@@ -70,31 +70,49 @@
     let width = 800;
     let height = 500;
 
-    let robotPos = { x: 180, y: 250 };
+    let robotPos = null;
     let theta = 0; // radians
-    let robotSize = 45;
+    let robotSize = 42;
     let robotShape = 'rectangle';
 
-    // Polygonal obstacle in workspace
-    const obstacle = [
-      { x: 380, y: 150 },
-      { x: 550, y: 180 },
-      { x: 600, y: 320 },
-      { x: 440, y: 360 },
-      { x: 350, y: 260 }
-    ];
+    // Polygonal obstacle in workspace (dynamically calculated for canvas size)
+    let obstacle = [];
+
+    function updateGeometry() {
+      const cx = width * 0.60;
+      const cy = height * 0.48;
+      const s = Math.min(width * 0.40, height * 0.55);
+      obstacle = [
+        { x: cx - s * 0.45, y: cy - s * 0.42 },
+        { x: cx + s * 0.35, y: cy - s * 0.32 },
+        { x: cx + s * 0.45, y: cy + s * 0.28 },
+        { x: cx + s * 0.05, y: cy + s * 0.44 },
+        { x: cx - s * 0.50, y: cy + s * 0.12 }
+      ];
+      if (!robotPos) {
+        robotPos = { x: width * 0.20, y: height * 0.5 };
+      } else {
+        robotPos.x = Math.max(30, Math.min(width - 30, robotPos.x));
+        robotPos.y = Math.max(30, Math.min(height - 30, robotPos.y));
+      }
+    }
 
     let isDragging = false;
 
     function resize() {
       const container = canvas.parentElement;
+      if (!container) return;
       width = container.clientWidth;
       height = container.clientHeight;
       canvas.width = width;
       canvas.height = height;
+      updateGeometry();
       draw();
     }
     window.addEventListener('resize', resize);
+    if (window.ResizeObserver) {
+      new ResizeObserver(resize).observe(canvas.parentElement);
+    }
 
     function getRobotVertices(pos, angle, size) {
       if (robotShape === 'rectangle') {

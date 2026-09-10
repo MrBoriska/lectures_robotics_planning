@@ -201,12 +201,16 @@
 
     function resizeCanvas() {
       const container = canvas.parentElement;
+      if (!container) return;
       canvas.width = container.clientWidth;
       canvas.height = container.clientHeight;
       cellSize = Math.min(canvas.width / COLS, canvas.height / ROWS);
       draw();
     }
     window.addEventListener('resize', resizeCanvas);
+    if (window.ResizeObserver) {
+      new ResizeObserver(resizeCanvas).observe(canvas.parentElement);
+    }
 
     function step() {
       if (isFinished || openSet.length === 0) {

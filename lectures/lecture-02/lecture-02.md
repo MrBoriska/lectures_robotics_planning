@@ -97,7 +97,7 @@ math: katex
 
 <div class="diagram-box">
 
-<img src="../../assets/images/lecture-02/visibility_vs_voronoi.svg" alt="Граф видимости vs Диаграмма Вороного" style="max-height: 240px;" />
+<img src="../../assets/images/lecture-02/visibility_vs_voronoi.svg" alt="Граф видимости vs Диаграмма Вороного" />
 
 </div>
 

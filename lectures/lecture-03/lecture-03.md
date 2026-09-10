@@ -409,7 +409,7 @@ $$\operatorname{cost}(q_{new}) + \|q_{new} - v\| < \operatorname{cost}(v)$$
 
 <div class="diagram-box">
 
-<img src="../../assets/images/lecture-03/rrt_star_rewire.svg" alt="RRT* Rewiring" style="max-height: 380px; width: 100%;" />
+<img src="../../assets/images/lecture-03/rrt_star_rewire.svg" alt="RRT* Rewiring" />
 
 </div>
 
@@ -474,7 +474,7 @@ $$\mathcal{C}_{inf} = \{ q \in \mathcal{C} \mid \|q - q_{init}\| + \|q - q_{goal
 
 <div class="diagram-box">
 
-<img src="../../assets/images/lecture-03/informed_rrt_ellipse.svg" alt="Informed RRT* Ellipsoid" style="max-height: 380px; width: 100%;" />
+<img src="../../assets/images/lecture-03/informed_rrt_ellipse.svg" alt="Informed RRT* Ellipsoid" />
 
 </div>
 
