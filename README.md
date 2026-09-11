@@ -14,10 +14,10 @@ Docker DevContainer, публикация — на GitHub Pages.
 | 01 | Постановка задачи планирования и представление среды | [презентация](lectures/lecture-01/lecture-01.md) · [план](lectures/lecture-01/timing.md) |
 | 02 | Дискретное планирование на графах и сетках | [презентация](lectures/lecture-02/lecture-02.md) · [план](lectures/lecture-02/timing.md) |
 | 03 | Методы планирования, основанные на выборке | [презентация](lectures/lecture-03/lecture-03.md) · [план](lectures/lecture-03/timing.md) |
-| 04 | Выборочные методы с моделью движения: DWA и MPPI | [презентация](lectures/lecture-04/lecture-04.md) · [план](lectures/lecture-04/timing.md) |
+| 04 | Кинематические модели и выборочные методы: DWA и MPPI | [презентация](lectures/lecture-04/lecture-04.md) · [план](lectures/lecture-04/timing.md) |
 | 05 | Оптимальное управление: от принципа максимума к численным решателям | [презентация](lectures/lecture-05/lecture-05.md) · [план](lectures/lecture-05/timing.md) |
 | 06 | Управление с прогнозирующей моделью (MPC) | [презентация](lectures/lecture-06/lecture-06.md) · [план](lectures/lecture-06/timing.md) |
-| 07 | Учёт кинематических и динамических ограничений | [презентация](lectures/lecture-07/lecture-07.md) · [план](lectures/lecture-07/timing.md) |
+| 07 | Динамические ограничения и профилирование скорости | [презентация](lectures/lecture-07/lecture-07.md) · [план](lectures/lecture-07/timing.md) |
 | 08 | Вычислительные аспекты и инженерные компромиссы | [презентация](lectures/lecture-08/lecture-08.md) · [план](lectures/lecture-08/timing.md) |
 
 Лекции 01 и 02 проработаны полностью. Остальные имеют актуальные названия;
