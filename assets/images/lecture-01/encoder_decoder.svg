@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 300" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <defs>
+    <marker id="ed-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+
+  <text x="24" y="30" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Автокодировщик: сжатие наблюдения в скрытое описание</text>
+  <text x="24" y="47" font-family="Inter, sans-serif" font-size="11" fill="#64748b">Кодировщик сжимает, декодировщик восстанавливает; планировщик работает с вектором z</text>
+
+  <!-- observation -->
+  <rect x="24" y="96" width="84" height="108" rx="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.4"/>
+  <text x="66" y="126" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#334155">Наблюдение</text>
+  <text x="66" y="146" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#64748b">кадр камеры</text>
+  <text x="66" y="161" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#64748b">облако точек</text>
+  <text x="66" y="184" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#475569">10^6 чисел</text>
+
+  <line x1="110" y1="150" x2="124" y2="150" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#ed-arrow)"/>
+    <rect x="126" y="84" width="20" height="132" rx="3" fill="#dbeafe" stroke="#2563eb" stroke-width="1.4"/>
+    <rect x="155" y="100" width="20" height="100" rx="3" fill="#dbeafe" stroke="#2563eb" stroke-width="1.4"/>
+    <rect x="184" y="115" width="20" height="70" rx="3" fill="#dbeafe" stroke="#2563eb" stroke-width="1.4"/>
+  <text x="155" y="228" text-anchor="middle" font-family="Inter, sans-serif" font-size="11.5" font-weight="700" fill="#1d4ed8">Кодировщик</text>
+  <text x="155" y="243" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#64748b">свёртки, понижение размерности</text>
+
+  <line x1="205" y1="150" x2="222" y2="150" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#ed-arrow)"/>
+
+  <!-- bottleneck -->
+  <rect x="224" y="118" width="180" height="64" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.8"/>
+  <text x="314" y="140" text-anchor="middle" font-family="Inter, sans-serif" font-size="11.5" font-weight="700" fill="#92400e">Скрытое описание</text>
+  <text x="314" y="159" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700" fill="#b45309">z ∈ R^k,  k ~ 10^2</text>
+  <text x="314" y="174" text-anchor="middle" font-family="Inter, sans-serif" font-size="9.5" fill="#a16207">сжатие в 10 000 раз</text>
+
+  <line x1="406" y1="150" x2="428" y2="150" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#ed-arrow)"/>
+    <rect x="430" y="115" width="20" height="70" rx="3" fill="#dcfce7" stroke="#059669" stroke-width="1.4"/>
+    <rect x="459" y="100" width="20" height="100" rx="3" fill="#dcfce7" stroke="#059669" stroke-width="1.4"/>
+    <rect x="488" y="84" width="20" height="132" rx="3" fill="#dcfce7" stroke="#059669" stroke-width="1.4"/>
+  <text x="459" y="228" text-anchor="middle" font-family="Inter, sans-serif" font-size="11.5" font-weight="700" fill="#047857">Декодировщик</text>
+  <text x="459" y="243" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#64748b">восстановление, повышение размерности</text>
+
+  <line x1="509" y1="150" x2="526" y2="150" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#ed-arrow)"/>
+
+  <!-- outputs -->
+  <rect x="528" y="96" width="206" height="108" rx="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.4"/>
+  <text x="631" y="120" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#334155">Выход задачи</text>
+  <text x="631" y="140" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#64748b">карта занятости или проходимости</text>
+  <text x="631" y="156" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#64748b">поле расстояний, семантика</text>
+  <text x="631" y="172" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#64748b">восстановленное наблюдение</text>
+
+  <!-- planner branch -->
+  <path d="M314,182 L314,262 L631,262 L631,208" stroke="#0284c7" stroke-width="1.8" fill="none" stroke-dasharray="5,4" marker-end="url(#ed-arrow)"/>
+  <rect x="360" y="250" width="216" height="24" rx="4" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.2"/>
+  <text x="468" y="266" text-anchor="middle" font-family="Inter, sans-serif" font-size="10.5" font-weight="600" fill="#0369a1">планировщик работает прямо с z</text>
+</svg>

@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <g transform="translate(24, 26)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Как строится граф видимости</text>
+    <text x="0" y="17" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Наивный алгоритм: взять все углы, соединить все пары, выбросить пересечённые</text>
+  </g>
+  <g transform="translate(22, 52)">
+    <rect width="238" height="268" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="14" y="22" font-family="Inter, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">1. Берём вершины</text>
+    <text x="14" y="38" font-family="Inter, sans-serif" font-size="10" fill="#64748b">старт, цель и все углы препятствий</text>
+    <g transform="translate(10, 48) scale(0.72)">
+    <polygon points="70,55 140,42 126,120 60,100" fill="#fee2e2" stroke="#ef4444" stroke-width="1.6"/>
+    <polygon points="180,96 258,70 244,152 172,132" fill="#fee2e2" stroke="#ef4444" stroke-width="1.6"/>
+      <circle cx="70" cy="55" r="3.2" fill="#0284c7"/>
+      <circle cx="140" cy="42" r="3.2" fill="#0284c7"/>
+      <circle cx="126" cy="120" r="3.2" fill="#0284c7"/>
+      <circle cx="60" cy="100" r="3.2" fill="#0284c7"/>
+      <circle cx="180" cy="96" r="3.2" fill="#0284c7"/>
+      <circle cx="258" cy="70" r="3.2" fill="#0284c7"/>
+      <circle cx="244" cy="152" r="3.2" fill="#0284c7"/>
+      <circle cx="172" cy="132" r="3.2" fill="#0284c7"/>
+      <circle cx="18" cy="200" r="5" fill="#059669"/>
+      <circle cx="300" cy="40" r="5" fill="#dc2626"/>
+    </g>
+    <rect x="12" y="232" width="214" height="24" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="20" y="248" font-family="Inter, sans-serif" font-size="10" fill="#334155">Вершин: 10</text>
+  </g>
+  <g transform="translate(261, 52)">
+    <rect width="238" height="268" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="14" y="22" font-family="Inter, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">2. Пробуем все пары</text>
+    <text x="14" y="38" font-family="Inter, sans-serif" font-size="10" fill="#64748b">красный пунктир — отрезок задел препятствие</text>
+    <g transform="translate(10, 48) scale(0.72)">
+      <line x1="18" y1="200" x2="70" y2="55" stroke="#cbd5e1" stroke-width="0.7"/>
+      <line x1="18" y1="200" x2="126" y2="120" stroke="#cbd5e1" stroke-width="0.7"/>
+      <line x1="18" y1="200" x2="60" y2="100" stroke="#cbd5e1" stroke-width="0.7"/>
+      <line x1="18" y1="200" x2="180" y2="96" stroke="#cbd5e1" stroke-width="0.7"/>
+      <line x1="18" y1="200" x2="244" y2="152" stroke="#cbd5e1" stroke-width="0.7"/>
+      <line x1="18" y1="200" x2="172" y2="132" stroke="#cbd5e1" stroke-width="0.7"/>
+      <line x1="300" y1="40" x2="140" y2="42" stroke="#cbd5e1" stroke-width="0.7"/>
+      <line x1="300" y1="40" x2="126" y2="120" stroke="#cbd5e1" stroke-width="0.7"/>
+      <line x1="300" y1="40" x2="180" y2="96" stroke="#cbd5e1" stroke-width="0.7"/>
+      <line x1="300" y1="40" x2="258" y2="70" stroke="#cbd5e1" stroke-width="0.7"/>
+      <line x1="300" y1="40" x2="244" y2="152" stroke="#cbd5e1" stroke-width="0.7"/>
+      <line x1="70" y1="55" x2="140" y2="42" stroke="#cbd5e1" stroke-width="0.7"/>
+      <line x1="70" y1="55" x2="60" y2="100" stroke="#cbd5e1" stroke-width="0.7"/>
+      <line x1="140" y1="42" x2="126" y2="120" stroke="#cbd5e1" stroke-width="0.7"/>
+      <line x1="140" y1="42" x2="180" y2="96" stroke="#cbd5e1" stroke-width="0.7"/>
+      <line x1="140" y1="42" x2="258" y2="70" stroke="#cbd5e1" stroke-width="0.7"/>
+      <line x1="140" y1="42" x2="172" y2="132" stroke="#cbd5e1" stroke-width="0.7"/>
+      <line x1="126" y1="120" x2="60" y2="100" stroke="#cbd5e1" stroke-width="0.7"/>
+      <line x1="126" y1="120" x2="180" y2="96" stroke="#cbd5e1" stroke-width="0.7"/>
+      <line x1="126" y1="120" x2="244" y2="152" stroke="#cbd5e1" stroke-width="0.7"/>
+      <line x1="126" y1="120" x2="172" y2="132" stroke="#cbd5e1" stroke-width="0.7"/>
+      <line x1="180" y1="96" x2="258" y2="70" stroke="#cbd5e1" stroke-width="0.7"/>
+      <line x1="180" y1="96" x2="172" y2="132" stroke="#cbd5e1" stroke-width="0.7"/>
+      <line x1="258" y1="70" x2="244" y2="152" stroke="#cbd5e1" stroke-width="0.7"/>
+      <line x1="244" y1="152" x2="172" y2="132" stroke="#cbd5e1" stroke-width="0.7"/>
+      <line x1="18" y1="200" x2="300" y2="40" stroke="#f87171" stroke-width="0.9" stroke-dasharray="3,2"/>
+      <line x1="18" y1="200" x2="140" y2="42" stroke="#f87171" stroke-width="0.9" stroke-dasharray="3,2"/>
+      <line x1="18" y1="200" x2="258" y2="70" stroke="#f87171" stroke-width="0.9" stroke-dasharray="3,2"/>
+      <line x1="300" y1="40" x2="70" y2="55" stroke="#f87171" stroke-width="0.9" stroke-dasharray="3,2"/>
+      <line x1="300" y1="40" x2="60" y2="100" stroke="#f87171" stroke-width="0.9" stroke-dasharray="3,2"/>
+      <line x1="300" y1="40" x2="172" y2="132" stroke="#f87171" stroke-width="0.9" stroke-dasharray="3,2"/>
+      <line x1="70" y1="55" x2="126" y2="120" stroke="#f87171" stroke-width="0.9" stroke-dasharray="3,2"/>
+      <line x1="70" y1="55" x2="180" y2="96" stroke="#f87171" stroke-width="0.9" stroke-dasharray="3,2"/>
+      <line x1="70" y1="55" x2="258" y2="70" stroke="#f87171" stroke-width="0.9" stroke-dasharray="3,2"/>
+      <line x1="70" y1="55" x2="244" y2="152" stroke="#f87171" stroke-width="0.9" stroke-dasharray="3,2"/>
+      <line x1="70" y1="55" x2="172" y2="132" stroke="#f87171" stroke-width="0.9" stroke-dasharray="3,2"/>
+      <line x1="140" y1="42" x2="60" y2="100" stroke="#f87171" stroke-width="0.9" stroke-dasharray="3,2"/>
+      <line x1="140" y1="42" x2="244" y2="152" stroke="#f87171" stroke-width="0.9" stroke-dasharray="3,2"/>
+      <line x1="126" y1="120" x2="258" y2="70" stroke="#f87171" stroke-width="0.9" stroke-dasharray="3,2"/>
+      <line x1="60" y1="100" x2="180" y2="96" stroke="#f87171" stroke-width="0.9" stroke-dasharray="3,2"/>
+      <line x1="60" y1="100" x2="258" y2="70" stroke="#f87171" stroke-width="0.9" stroke-dasharray="3,2"/>
+      <line x1="60" y1="100" x2="244" y2="152" stroke="#f87171" stroke-width="0.9" stroke-dasharray="3,2"/>
+      <line x1="60" y1="100" x2="172" y2="132" stroke="#f87171" stroke-width="0.9" stroke-dasharray="3,2"/>
+      <line x1="180" y1="96" x2="244" y2="152" stroke="#f87171" stroke-width="0.9" stroke-dasharray="3,2"/>
+      <line x1="258" y1="70" x2="172" y2="132" stroke="#f87171" stroke-width="0.9" stroke-dasharray="3,2"/>
+    <polygon points="70,55 140,42 126,120 60,100" fill="#fee2e2" stroke="#ef4444" stroke-width="1.6"/>
+    <polygon points="180,96 258,70 244,152 172,132" fill="#fee2e2" stroke="#ef4444" stroke-width="1.6"/>
+      <circle cx="70" cy="55" r="3.2" fill="#0284c7"/>
+      <circle cx="140" cy="42" r="3.2" fill="#0284c7"/>
+      <circle cx="126" cy="120" r="3.2" fill="#0284c7"/>
+      <circle cx="60" cy="100" r="3.2" fill="#0284c7"/>
+      <circle cx="180" cy="96" r="3.2" fill="#0284c7"/>
+      <circle cx="258" cy="70" r="3.2" fill="#0284c7"/>
+      <circle cx="244" cy="152" r="3.2" fill="#0284c7"/>
+      <circle cx="172" cy="132" r="3.2" fill="#0284c7"/>
+      <circle cx="18" cy="200" r="5" fill="#059669"/>
+      <circle cx="300" cy="40" r="5" fill="#dc2626"/>
+    </g>
+    <rect x="12" y="232" width="214" height="24" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="20" y="248" font-family="Inter, sans-serif" font-size="10" fill="#334155">Проверок: 45, отброшено 20</text>
+  </g>
+  <g transform="translate(500, 52)">
+    <rect width="238" height="268" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="14" y="22" font-family="Inter, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">3. Остаётся граф</text>
+    <text x="14" y="38" font-family="Inter, sans-serif" font-size="10" fill="#64748b">по нему уже можно пускать Дейкстру</text>
+    <g transform="translate(10, 48) scale(0.72)">
+      <line x1="18" y1="200" x2="70" y2="55" stroke="#0284c7" stroke-width="1.0"/>
+      <line x1="18" y1="200" x2="126" y2="120" stroke="#0284c7" stroke-width="1.0"/>
+      <line x1="18" y1="200" x2="60" y2="100" stroke="#0284c7" stroke-width="1.0"/>
+      <line x1="18" y1="200" x2="180" y2="96" stroke="#0284c7" stroke-width="1.0"/>
+      <line x1="18" y1="200" x2="244" y2="152" stroke="#0284c7" stroke-width="1.0"/>
+      <line x1="18" y1="200" x2="172" y2="132" stroke="#0284c7" stroke-width="1.0"/>
+      <line x1="300" y1="40" x2="140" y2="42" stroke="#0284c7" stroke-width="1.0"/>
+      <line x1="300" y1="40" x2="126" y2="120" stroke="#0284c7" stroke-width="1.0"/>
+      <line x1="300" y1="40" x2="180" y2="96" stroke="#0284c7" stroke-width="1.0"/>
+      <line x1="300" y1="40" x2="258" y2="70" stroke="#0284c7" stroke-width="1.0"/>
+      <line x1="300" y1="40" x2="244" y2="152" stroke="#0284c7" stroke-width="1.0"/>
+      <line x1="70" y1="55" x2="140" y2="42" stroke="#0284c7" stroke-width="1.0"/>
+      <line x1="70" y1="55" x2="60" y2="100" stroke="#0284c7" stroke-width="1.0"/>
+      <line x1="140" y1="42" x2="126" y2="120" stroke="#0284c7" stroke-width="1.0"/>
+      <line x1="140" y1="42" x2="180" y2="96" stroke="#0284c7" stroke-width="1.0"/>
+      <line x1="140" y1="42" x2="258" y2="70" stroke="#0284c7" stroke-width="1.0"/>
+      <line x1="140" y1="42" x2="172" y2="132" stroke="#0284c7" stroke-width="1.0"/>
+      <line x1="126" y1="120" x2="60" y2="100" stroke="#0284c7" stroke-width="1.0"/>
+      <line x1="126" y1="120" x2="180" y2="96" stroke="#0284c7" stroke-width="1.0"/>
+      <line x1="126" y1="120" x2="244" y2="152" stroke="#0284c7" stroke-width="1.0"/>
+      <line x1="126" y1="120" x2="172" y2="132" stroke="#0284c7" stroke-width="1.0"/>
+      <line x1="180" y1="96" x2="258" y2="70" stroke="#0284c7" stroke-width="1.0"/>
+      <line x1="180" y1="96" x2="172" y2="132" stroke="#0284c7" stroke-width="1.0"/>
+      <line x1="258" y1="70" x2="244" y2="152" stroke="#0284c7" stroke-width="1.0"/>
+      <line x1="244" y1="152" x2="172" y2="132" stroke="#0284c7" stroke-width="1.0"/>
+    <polygon points="70,55 140,42 126,120 60,100" fill="#fee2e2" stroke="#ef4444" stroke-width="1.6"/>
+    <polygon points="180,96 258,70 244,152 172,132" fill="#fee2e2" stroke="#ef4444" stroke-width="1.6"/>
+      <circle cx="70" cy="55" r="3.2" fill="#0284c7"/>
+      <circle cx="140" cy="42" r="3.2" fill="#0284c7"/>
+      <circle cx="126" cy="120" r="3.2" fill="#0284c7"/>
+      <circle cx="60" cy="100" r="3.2" fill="#0284c7"/>
+      <circle cx="180" cy="96" r="3.2" fill="#0284c7"/>
+      <circle cx="258" cy="70" r="3.2" fill="#0284c7"/>
+      <circle cx="244" cy="152" r="3.2" fill="#0284c7"/>
+      <circle cx="172" cy="132" r="3.2" fill="#0284c7"/>
+      <circle cx="18" cy="200" r="5" fill="#059669"/>
+      <circle cx="300" cy="40" r="5" fill="#dc2626"/>
+    </g>
+    <rect x="12" y="232" width="214" height="24" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="20" y="248" font-family="Inter, sans-serif" font-size="10" fill="#334155">Рёбер: 25</text>
+  </g>
+</svg>

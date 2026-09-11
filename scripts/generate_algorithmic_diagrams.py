@@ -1871,8 +1871,620 @@ def generate_nav2_bt_tree():
 
     write_svg(filepath, svg)
 
+# -------------------------------------------------------------------------
+# Shared scene + geometry for the roadmap / grid overview figures.
+#
+# The Voronoi diagram is computed, not drawn: every sample point is labelled
+# with the obstacle it is closest to (a brushfire / nearest-site labelling),
+# and the GVD is the set of points where two different labels meet. Bounding
+# walls count as obstacles, exactly as they do for a real robot.
+# -------------------------------------------------------------------------
+SCENE_W, SCENE_H = 320, 250
+SCENE_POLYS = [
+    [(70, 55), (140, 42), (126, 120), (60, 100)],
+    [(180, 96), (258, 70), (244, 152), (172, 132)],
+    [(96, 170), (152, 160), (146, 215), (92, 206)],
+]
+
+
+def point_segment_distance(p, a, b):
+    px, py = p
+    ax, ay = a
+    bx, by = b
+    dx, dy = bx - ax, by - ay
+    denom = dx * dx + dy * dy
+    t = 0.0 if denom == 0 else ((px - ax) * dx + (py - ay) * dy) / denom
+    t = max(0.0, min(1.0, t))
+    return math.hypot(px - (ax + t * dx), py - (ay + t * dy))
+
+
+def polygon_distance(p, poly):
+    """Distance from p to the polygon boundary; 0 if p is inside."""
+    if point_in_polygon(p, poly):
+        return 0.0
+    n = len(poly)
+    return min(point_segment_distance(p, poly[i], poly[(i + 1) % n]) for i in range(n))
+
+
+def nearest_site(p, polys, width, height):
+    """(site id, distance) for the closest obstacle, walls included."""
+    best_id, best_d = None, float('inf')
+    for i, poly in enumerate(polys):
+        d = polygon_distance(p, poly)
+        if d < best_d:
+            best_id, best_d = i, d
+    walls = [('L', p[0]), ('R', width - p[0]), ('T', p[1]), ('B', height - p[1])]
+    for wid, d in walls:
+        if d < best_d:
+            best_id, best_d = wid, d
+    return best_id, best_d
+
+
+def compute_gvd(polys, width, height, step=3, clearance=6):
+    """Sample points where two different nearest-site labels meet."""
+    cols = int(width / step) + 1
+    rows = int(height / step) + 1
+    label = [[None] * cols for _ in range(rows)]
+    for r in range(rows):
+        for c in range(cols):
+            p = (c * step, r * step)
+            sid, d = nearest_site(p, polys, width, height)
+            label[r][c] = (sid, d)
+
+    pts = []
+    for r in range(rows - 1):
+        for c in range(cols - 1):
+            sid, d = label[r][c]
+            if d < clearance:
+                continue
+            if label[r][c + 1][0] != sid or label[r + 1][c][0] != sid:
+                pts.append((c * step, r * step, d))
+    return pts
+
+
+def visibility_edges(polys, extra_points=()):
+    """All (u, v) corner pairs with clear line of sight, plus polygon edges."""
+    verts = list(extra_points)
+    for poly in polys:
+        verts.extend(poly)
+    edges = []
+    for i in range(len(verts)):
+        for j in range(i + 1, len(verts)):
+            u, v = verts[i], verts[j]
+            on_edge = False
+            for poly in polys:
+                n = len(poly)
+                for k in range(n):
+                    if (u == poly[k] and v == poly[(k + 1) % n]) or (v == poly[k] and u == poly[(k + 1) % n]):
+                        on_edge = True
+            if on_edge or line_of_sight(u, v, polys):
+                edges.append((u, v))
+    return verts, edges
+
+
+def quadtree_cells(polys, width, height, max_depth=4, min_size=10):
+    """Subdivide a cell only while it is partially occupied — a real quadtree."""
+    def occupancy(x, y, w, h):
+        """'free', 'full' or 'mixed' by sampling the cell."""
+        hits = 0
+        samples = 0
+        n = 5
+        for i in range(n + 1):
+            for j in range(n + 1):
+                p = (x + w * i / n, y + h * j / n)
+                samples += 1
+                if any(point_in_polygon(p, poly) for poly in polys):
+                    hits += 1
+        if hits == 0:
+            return 'free'
+        if hits == samples:
+            return 'full'
+        return 'mixed'
+
+    cells = []
+
+    def rec(x, y, w, h, depth):
+        state = occupancy(x, y, w, h)
+        if state != 'mixed' or depth >= max_depth or w <= min_size:
+            cells.append((x, y, w, h, state))
+            return
+        hw, hh = w / 2, h / 2
+        rec(x, y, hw, hh, depth + 1)
+        rec(x + hw, y, hw, hh, depth + 1)
+        rec(x, y + hh, hw, hh, depth + 1)
+        rec(x + hw, y + hh, hw, hh, depth + 1)
+
+    rec(0, 0, width, height, 0)
+    return cells
+
+
+def _polys_svg(polys, fill="#fee2e2", stroke="#ef4444", width=1.6):
+    return '\n'.join(
+        '    <polygon points="%s" fill="%s" stroke="%s" stroke-width="%s"/>'
+        % (' '.join('%g,%g' % p for p in poly), fill, stroke, width)
+        for poly in polys)
+
+
+# -------------------------------------------------------------------------
+# Lecture 01 — what a roadmap is (no construction algorithm, on purpose)
+# -------------------------------------------------------------------------
+def generate_roadmaps_overview():
+    filepath = os.path.join(OUTPUT_DIR, 'lecture-01', 'roadmaps_overview.svg')
+
+    verts, edges = visibility_edges(SCENE_POLYS)
+    vis_svg = '\n'.join(
+        '    <line x1="%g" y1="%g" x2="%g" y2="%g" stroke="#94a3b8" stroke-width="0.8" opacity="0.85"/>'
+        % (u[0], u[1], v[0], v[1]) for u, v in edges)
+    vert_svg = '\n'.join(
+        '    <circle cx="%g" cy="%g" r="3" fill="#0284c7"/>' % v for v in verts)
+
+    gvd = compute_gvd(SCENE_POLYS, SCENE_W, SCENE_H)
+    gvd_svg = '\n'.join(
+        '    <rect x="%g" y="%g" width="2.4" height="2.4" fill="#059669" opacity="0.9"/>' % (x, y)
+        for x, y, _ in gvd)
+
+    svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%%" height="100%%">
+  <rect width="100%%" height="100%%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <g transform="translate(20, 20)">
+    <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Граф видимости</text>
+    <text x="16" y="41" font-family="Inter, sans-serif" font-size="11" fill="#64748b">Узлы — углы препятствий, рёбра — прямые «в прямой видимости»</text>
+    <g transform="translate(12, 52)">
+%(vis)s
+%(polys)s
+%(verts)s
+    </g>
+    <rect x="14" y="286" width="317" height="22" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="24" y="301" font-family="Inter, sans-serif" font-size="11" fill="#334155">Кратчайший путь лежит на этом графе — но впритирку к углам</text>
+  </g>
+
+  <g transform="translate(395, 20)">
+    <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Диаграмма Вороного (GVD)</text>
+    <text x="16" y="41" font-family="Inter, sans-serif" font-size="11" fill="#64748b">Линии, равноудалённые от двух ближайших препятствий</text>
+    <g transform="translate(12, 52)">
+%(gvd)s
+%(polys2)s
+    </g>
+    <rect x="14" y="286" width="317" height="22" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="24" y="301" font-family="Inter, sans-serif" font-size="11" fill="#334155">Путь по этим линиям длиннее, зато максимально далёк от стен</text>
+  </g>
+</svg>''' % dict(vis=vis_svg, verts=vert_svg, gvd=gvd_svg,
+                 polys=_polys_svg(SCENE_POLYS), polys2=_polys_svg(SCENE_POLYS))
+
+    write_svg(filepath, svg)
+
+
+def generate_grids_overview():
+    filepath = os.path.join(OUTPUT_DIR, 'lecture-01', 'grids_overview.svg')
+
+    step = 16
+    uniform = []
+    n_occ = 0
+    for r in range(int(SCENE_H / step)):
+        for c in range(int(SCENE_W / step)):
+            x, y = c * step, r * step
+            centre = (x + step / 2, y + step / 2)
+            occ = any(point_in_polygon(centre, poly) for poly in SCENE_POLYS)
+            if occ:
+                n_occ += 1
+            uniform.append(
+                '    <rect x="%g" y="%g" width="%g" height="%g" fill="%s" stroke="#e2e8f0" stroke-width="0.6"/>'
+                % (x, y, step, step, '#fecaca' if occ else '#ffffff'))
+    n_uniform = int(SCENE_H / step) * int(SCENE_W / step)
+
+    cells = quadtree_cells(SCENE_POLYS, SCENE_W, SCENE_H)
+    fills = {'free': '#ffffff', 'full': '#fecaca', 'mixed': '#fde8c8'}
+    quad = '\n'.join(
+        '    <rect x="%g" y="%g" width="%g" height="%g" fill="%s" stroke="#cbd5e1" stroke-width="0.7"/>'
+        % (x, y, w, h, fills[state]) for x, y, w, h, state in cells)
+
+    svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%%" height="100%%">
+  <rect width="100%%" height="100%%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <g transform="translate(20, 20)">
+    <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Регулярная сетка занятости</text>
+    <text x="16" y="41" font-family="Inter, sans-serif" font-size="11" fill="#64748b">Одинаковые ячейки: разрешение всюду одно и то же</text>
+    <g transform="translate(12, 52)">
+%(uniform)s
+%(polys)s
+    </g>
+    <rect x="14" y="286" width="317" height="22" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="24" y="301" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#334155">ячеек: %(nu)d, из них занято %(no)d — пустота стоит столько же</text>
+  </g>
+
+  <g transform="translate(395, 20)">
+    <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Иерархическая сетка (квадродерево)</text>
+    <text x="16" y="41" font-family="Inter, sans-serif" font-size="11" fill="#64748b">Дробится только там, где ячейка занята частично</text>
+    <g transform="translate(12, 52)">
+%(quad)s
+%(polys2)s
+    </g>
+    <rect x="14" y="286" width="317" height="22" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="24" y="301" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#334155">ячеек: %(nq)d при том же разрешении у границ</text>
+  </g>
+</svg>''' % dict(uniform='\n'.join(uniform), quad=quad,
+                 polys=_polys_svg(SCENE_POLYS, fill="none", stroke="#dc2626", width=2),
+                 polys2=_polys_svg(SCENE_POLYS, fill="none", stroke="#dc2626", width=2),
+                 nu=n_uniform, no=n_occ, nq=len(cells))
+
+    write_svg(filepath, svg)
+
+
+# -------------------------------------------------------------------------
+# Lecture 02 — how the two roadmaps are actually built
+# -------------------------------------------------------------------------
+def generate_visibility_construction():
+    filepath = os.path.join(OUTPUT_DIR, 'lecture-02', 'visibility_construction.svg')
+
+    polys = SCENE_POLYS[:2]
+    start, goal = (18, 200), (300, 40)
+    verts, edges = visibility_edges(polys, extra_points=(start, goal))
+
+    # Everything that was tried, split into kept and rejected.
+    tried = []
+    for i in range(len(verts)):
+        for j in range(i + 1, len(verts)):
+            tried.append((verts[i], verts[j]))
+    kept = set()
+    for u, v in edges:
+        kept.add((u, v))
+        kept.add((v, u))
+    rejected = [(u, v) for u, v in tried if (u, v) not in kept]
+
+    def seg(u, v, colour, w, dash=''):
+        d = ' stroke-dasharray="%s"' % dash if dash else ''
+        return ('      <line x1="%g" y1="%g" x2="%g" y2="%g" stroke="%s" stroke-width="%s"%s/>'
+                % (u[0], u[1], v[0], v[1], colour, w, d))
+
+    panel_polys = _polys_svg(polys)
+    dots = '\n'.join('      <circle cx="%g" cy="%g" r="3.2" fill="#0284c7"/>' % v
+                     for v in verts if v not in (start, goal))
+    ends = ('      <circle cx="%g" cy="%g" r="5" fill="#059669"/>\n'
+            '      <circle cx="%g" cy="%g" r="5" fill="#dc2626"/>'
+            % (start[0], start[1], goal[0], goal[1]))
+
+    step1 = panel_polys + '\n' + dots + '\n' + ends
+    step2 = ('\n'.join(seg(u, v, '#cbd5e1', 0.7) for u, v in edges) + '\n' +
+             '\n'.join(seg(u, v, '#f87171', 0.9, '3,2') for u, v in rejected) + '\n' +
+             panel_polys + '\n' + dots + '\n' + ends)
+    step3 = ('\n'.join(seg(u, v, '#0284c7', 1.0) for u, v in edges) + '\n' +
+             panel_polys + '\n' + dots + '\n' + ends)
+
+    def panel(dx, num, title, sub, body, note):
+        return '''  <g transform="translate(%d, 52)">
+    <rect width="238" height="268" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="14" y="22" font-family="Inter, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">%s. %s</text>
+    <text x="14" y="38" font-family="Inter, sans-serif" font-size="10" fill="#64748b">%s</text>
+    <g transform="translate(10, 48) scale(0.72)">
+%s
+    </g>
+    <rect x="12" y="232" width="214" height="24" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="20" y="248" font-family="Inter, sans-serif" font-size="10" fill="#334155">%s</text>
+  </g>''' % (dx, num, title, sub, body, note)
+
+    svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%%" height="100%%">
+  <rect width="100%%" height="100%%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <g transform="translate(24, 26)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Как строится граф видимости</text>
+    <text x="0" y="17" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Наивный алгоритм: взять все углы, соединить все пары, выбросить пересечённые</text>
+  </g>
+%(p1)s
+%(p2)s
+%(p3)s
+</svg>''' % dict(
+        p1=panel(22, 1, 'Берём вершины', 'старт, цель и все углы препятствий', step1,
+                 'Вершин: %d' % len(verts)),
+        p2=panel(261, 2, 'Пробуем все пары', 'красный пунктир — отрезок задел препятствие', step2,
+                 'Проверок: %d, отброшено %d' % (len(tried), len(rejected))),
+        p3=panel(500, 3, 'Остаётся граф', 'по нему уже можно пускать Дейкстру', step3,
+                 'Рёбер: %d' % len(edges)))
+
+    write_svg(filepath, svg)
+
+
+def generate_voronoi_construction():
+    filepath = os.path.join(OUTPUT_DIR, 'lecture-02', 'voronoi_construction.svg')
+
+    step = 4
+    cols = int(SCENE_W / step) + 1
+    rows = int(SCENE_H / step) + 1
+    site_colours = ['#dbeafe', '#dcfce7', '#fef3c7', '#ede9fe', '#fae8ff', '#ffe4e6', '#e0f2fe']
+    site_index = {}
+    regions = []
+    bands = []
+    for r in range(rows):
+        for c in range(cols):
+            p = (c * step, r * step)
+            if any(point_in_polygon(p, poly) for poly in SCENE_POLYS):
+                continue
+            sid, d = nearest_site(p, SCENE_POLYS, SCENE_W, SCENE_H)
+            # Stable index, not hash(): Python randomises string hashes per
+            # process, which would repaint the figure on every build.
+            if sid not in site_index:
+                site_index[sid] = len(site_index)
+            colour = site_colours[site_index[sid] % len(site_colours)]
+            regions.append('      <rect x="%g" y="%g" width="%g" height="%g" fill="%s"/>'
+                           % (p[0], p[1], step, step, colour))
+            ring = int(d // 12)
+            if ring < 5:
+                bands.append('      <rect x="%g" y="%g" width="%g" height="%g" fill="#0284c7" opacity="%.2f"/>'
+                             % (p[0], p[1], step, step, 0.30 - 0.055 * ring))
+
+    gvd = compute_gvd(SCENE_POLYS, SCENE_W, SCENE_H)
+    gvd_svg = '\n'.join('      <rect x="%g" y="%g" width="2.6" height="2.6" fill="#059669"/>' % (x, y)
+                        for x, y, _ in gvd)
+    polys_outline = _polys_svg(SCENE_POLYS, fill="#fecaca", stroke="#dc2626", width=1.6)
+
+    svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%%" height="100%%">
+  <rect width="100%%" height="100%%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <g transform="translate(24, 26)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Как строится диаграмма Вороного (волновой метод)</text>
+    <text x="0" y="17" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Стены карты — такое же препятствие, поэтому сеть доходит до краёв</text>
+  </g>
+
+  <g transform="translate(22, 52)">
+    <rect width="345" height="268" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="14" y="22" font-family="Inter, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">1. Пускаем волну от каждого препятствия</text>
+    <text x="14" y="38" font-family="Inter, sans-serif" font-size="10" fill="#64748b">Каждая точка запоминает, до какого препятствия ей ближе всего</text>
+    <g transform="translate(48, 50) scale(0.70)">
+%(bands)s
+%(polys)s
+    </g>
+    <rect x="12" y="232" width="321" height="24" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="20" y="248" font-family="Inter, sans-serif" font-size="10.5" fill="#334155">Это и есть поле расстояний: чем темнее, тем ближе стена</text>
+  </g>
+
+  <g transform="translate(395, 52)">
+    <rect width="345" height="268" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="14" y="22" font-family="Inter, sans-serif" font-size="12.5" font-weight="700" fill="#0f172a">2. Где волны встретились — там линия</text>
+    <text x="14" y="38" font-family="Inter, sans-serif" font-size="10" fill="#64748b">Цвет — «чьё» препятствие ближе; зелёное — граница между цветами</text>
+    <g transform="translate(48, 50) scale(0.70)">
+%(regions)s
+%(gvd)s
+%(polys2)s
+    </g>
+    <rect x="12" y="232" width="321" height="24" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="20" y="248" font-family="Inter, sans-serif" font-size="10.5" fill="#334155">Точек сети: %(n)d — по ним и прокладывают безопасный путь</text>
+  </g>
+</svg>''' % dict(bands='\n'.join(bands), regions='\n'.join(regions), gvd=gvd_svg,
+                 polys=polys_outline, polys2=polys_outline, n=len(gvd))
+
+    write_svg(filepath, svg)
+
+
+# -------------------------------------------------------------------------
+# Lecture 01 — schematic of an encoder-decoder used for scene representation
+# -------------------------------------------------------------------------
+def generate_encoder_decoder():
+    filepath = os.path.join(OUTPUT_DIR, 'lecture-01', 'encoder_decoder.svg')
+
+    # Trapezoid stacks: the encoder narrows, the decoder widens, and the
+    # bottleneck between them is the latent description the planner works on.
+    def stack(x0, widths, heights, colour, edge):
+        out = []
+        for i, (w, h) in enumerate(zip(widths, heights)):
+            x = x0 + sum(widths[:i]) + 9 * i
+            y = 150 - h / 2
+            out.append('    <rect x="%g" y="%g" width="%g" height="%g" rx="3" fill="%s" stroke="%s" stroke-width="1.4"/>'
+                       % (x, y, w, h, colour, edge))
+        return '\n'.join(out)
+
+    enc = stack(126, [20, 20, 20], [132, 100, 70], '#dbeafe', '#2563eb')
+    dec = stack(430, [20, 20, 20], [70, 100, 132], '#dcfce7', '#059669')
+
+    svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 300" width="100%%" height="100%%">
+  <rect width="100%%" height="100%%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <defs>
+    <marker id="ed-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+
+  <text x="24" y="30" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Автокодировщик: сжатие наблюдения в скрытое описание</text>
+  <text x="24" y="47" font-family="Inter, sans-serif" font-size="11" fill="#64748b">Кодировщик сжимает, декодировщик восстанавливает; планировщик работает с вектором z</text>
+
+  <!-- observation -->
+  <rect x="24" y="96" width="84" height="108" rx="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.4"/>
+  <text x="66" y="126" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#334155">Наблюдение</text>
+  <text x="66" y="146" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#64748b">кадр камеры</text>
+  <text x="66" y="161" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#64748b">облако точек</text>
+  <text x="66" y="184" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#475569">10^6 чисел</text>
+
+  <line x1="110" y1="150" x2="124" y2="150" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#ed-arrow)"/>
+%(enc)s
+  <text x="155" y="228" text-anchor="middle" font-family="Inter, sans-serif" font-size="11.5" font-weight="700" fill="#1d4ed8">Кодировщик</text>
+  <text x="155" y="243" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#64748b">свёртки, понижение размерности</text>
+
+  <line x1="205" y1="150" x2="222" y2="150" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#ed-arrow)"/>
+
+  <!-- bottleneck -->
+  <rect x="224" y="118" width="180" height="64" rx="6" fill="#fef3c7" stroke="#d97706" stroke-width="1.8"/>
+  <text x="314" y="140" text-anchor="middle" font-family="Inter, sans-serif" font-size="11.5" font-weight="700" fill="#92400e">Скрытое описание</text>
+  <text x="314" y="159" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700" fill="#b45309">z ∈ R^k,  k ~ 10^2</text>
+  <text x="314" y="174" text-anchor="middle" font-family="Inter, sans-serif" font-size="9.5" fill="#a16207">сжатие в 10 000 раз</text>
+
+  <line x1="406" y1="150" x2="428" y2="150" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#ed-arrow)"/>
+%(dec)s
+  <text x="459" y="228" text-anchor="middle" font-family="Inter, sans-serif" font-size="11.5" font-weight="700" fill="#047857">Декодировщик</text>
+  <text x="459" y="243" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#64748b">восстановление, повышение размерности</text>
+
+  <line x1="509" y1="150" x2="526" y2="150" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#ed-arrow)"/>
+
+  <!-- outputs -->
+  <rect x="528" y="96" width="206" height="108" rx="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.4"/>
+  <text x="631" y="120" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#334155">Выход задачи</text>
+  <text x="631" y="140" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#64748b">карта занятости или проходимости</text>
+  <text x="631" y="156" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#64748b">поле расстояний, семантика</text>
+  <text x="631" y="172" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#64748b">восстановленное наблюдение</text>
+
+  <!-- planner branch -->
+  <path d="M314,182 L314,262 L631,262 L631,208" stroke="#0284c7" stroke-width="1.8" fill="none" stroke-dasharray="5,4" marker-end="url(#ed-arrow)"/>
+  <rect x="360" y="250" width="216" height="24" rx="4" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.2"/>
+  <text x="468" y="266" text-anchor="middle" font-family="Inter, sans-serif" font-size="10.5" font-weight="600" fill="#0369a1">планировщик работает прямо с z</text>
+</svg>''' % dict(enc=enc, dec=dec)
+
+    write_svg(filepath, svg)
+
+
+# -------------------------------------------------------------------------
+# Lecture 02 — a grid *is* a graph: the same object drawn two ways
+# -------------------------------------------------------------------------
+def generate_grid_as_graph():
+    filepath = os.path.join(OUTPUT_DIR, 'lecture-02', 'grid_as_graph.svg')
+
+    cols, rows, cell = 4, 3, 58
+    blocked = {(2, 1)}
+    ox, oy = 26, 66
+
+    def free(c, r):
+        return 0 <= c < cols and 0 <= r < rows and (c, r) not in blocked
+
+    # 8-connected neighbours, no squeezing diagonally between two blocked cells
+    edges = []
+    for r in range(rows):
+        for c in range(cols):
+            if not free(c, r):
+                continue
+            for dc in (-1, 0, 1):
+                for dr in (-1, 0, 1):
+                    if dc == 0 and dr == 0:
+                        continue
+                    nc, nr = c + dc, r + dr
+                    if not free(nc, nr):
+                        continue
+                    if (c, r) > (nc, nr):
+                        continue
+                    if dc and dr and (not free(c + dc, r) or not free(c, r + dr)):
+                        continue
+                    edges.append(((c, r), (nc, nr), math.hypot(dc, dr)))
+
+    def cx(c):
+        return ox + c * cell + cell / 2
+
+    def cy(r):
+        return oy + r * cell + cell / 2
+
+    # --- left panel: the grid ---
+    grid_cells = []
+    for r in range(rows):
+        for c in range(cols):
+            fill = '#334155' if (c, r) in blocked else '#ffffff'
+            grid_cells.append(
+                '      <rect x="%g" y="%g" width="%g" height="%g" fill="%s" stroke="#cbd5e1" stroke-width="1.2"/>'
+                % (ox + c * cell, oy + r * cell, cell, cell, fill))
+            if (c, r) not in blocked:
+                grid_cells.append(
+                    '      <text x="%g" y="%g" text-anchor="middle" font-family="JetBrains Mono, monospace" '
+                    'font-size="11" fill="#94a3b8">%d,%d</text>' % (cx(c), cy(r) + 4, c, r))
+
+    # --- right panel: the same thing as nodes and weighted edges ---
+    graph_edges = []
+    for (a, b, w) in edges:
+        diag = abs(a[0] - b[0]) == 1 and abs(a[1] - b[1]) == 1
+        graph_edges.append(
+            '      <line x1="%g" y1="%g" x2="%g" y2="%g" stroke="%s" stroke-width="%s"/>'
+            % (cx(a[0]), cy(a[1]), cx(b[0]), cy(b[1]), '#f59e0b' if diag else '#64748b', 1.8 if diag else 1.6))
+
+    # label one straight and one diagonal edge, not all of them
+    labelled = []
+    for (a, b, w) in edges:
+        diag = abs(a[0] - b[0]) == 1 and abs(a[1] - b[1]) == 1
+        # Pick two edges in uncluttered corners so the chips clear the nodes.
+        if not diag and a == (2, 2) and b == (3, 2):
+            labelled.append((a, b, 'w = 1', '#475569'))
+        if diag and a == (0, 1) and b == (1, 2):
+            labelled.append((a, b, 'w = √2', '#b45309'))
+    edge_labels = []
+    for a, b, text, colour in labelled:
+        mx, my = (cx(a[0]) + cx(b[0])) / 2, (cy(a[1]) + cy(b[1])) / 2
+        # Offset perpendicular to the edge, otherwise the chip lands on a node.
+        ex, ey = cx(b[0]) - cx(a[0]), cy(b[1]) - cy(a[1])
+        n = math.hypot(ex, ey) or 1.0
+        mx += -ey / n * 18
+        my += ex / n * 18
+        edge_labels.append(
+            '      <rect x="%g" y="%g" width="46" height="16" rx="3" fill="#ffffff" stroke="#e2e8f0"/>'
+            % (mx - 23, my - 8))
+        edge_labels.append(
+            '      <text x="%g" y="%g" text-anchor="middle" font-family="JetBrains Mono, monospace" '
+            'font-size="10.5" font-weight="700" fill="%s">%s</text>' % (mx, my + 4, colour, text))
+
+    nodes = []
+    for r in range(rows):
+        for c in range(cols):
+            if (c, r) in blocked:
+                continue
+            nodes.append('      <circle cx="%g" cy="%g" r="15" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.8"/>'
+                         % (cx(c), cy(r)))
+            nodes.append('      <text x="%g" y="%g" text-anchor="middle" font-family="JetBrains Mono, monospace" '
+                         'font-size="10" font-weight="700" fill="#0369a1">%d,%d</text>' % (cx(c), cy(r) + 3.5, c, r))
+
+    # the one cell / one node correspondence, highlighted in both panels
+    hc, hr = 1, 1
+    highlight_cell = ('      <rect x="%g" y="%g" width="%g" height="%g" fill="none" stroke="#059669" '
+                      'stroke-width="3" rx="2"/>' % (ox + hc * cell, oy + hr * cell, cell, cell))
+    highlight_node = ('      <circle cx="%g" cy="%g" r="19" fill="none" stroke="#059669" stroke-width="3"/>'
+                      % (cx(hc), cy(hr)))
+
+    n_nodes = cols * rows - len(blocked)
+
+    svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 330" width="100%%" height="100%%">
+  <rect width="100%%" height="100%%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <defs>
+    <marker id="gg-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#0284c7"/>
+    </marker>
+  </defs>
+
+  <text x="24" y="28" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Сетка и граф — одна и та же структура</text>
+  <text x="24" y="45" font-family="Inter, sans-serif" font-size="11" fill="#64748b">Клетка соответствует вершине, допустимый переход — ребру с весом, равным длине шага</text>
+
+  <g transform="translate(8, 0)">
+    <rect x="14" y="56" width="286" height="216" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <g transform="translate(-6, -6)">
+%(cells)s
+%(hcell)s
+    </g>
+    <text x="157" y="292" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#334155">Представление сеткой</text>
+  </g>
+
+  <line x1="322" y1="164" x2="378" y2="164" stroke="#0284c7" stroke-width="2.2" marker-end="url(#gg-arrow)"/>
+  <text x="350" y="154" text-anchor="middle" font-family="Inter, sans-serif" font-size="10.5" font-weight="700" fill="#0369a1">то же</text>
+  <text x="350" y="184" text-anchor="middle" font-family="Inter, sans-serif" font-size="10.5" font-weight="700" fill="#0369a1">самое</text>
+
+  <g transform="translate(366, 0)">
+    <rect x="14" y="56" width="286" height="216" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <g transform="translate(-6, -6)">
+%(gedges)s
+%(elabels)s
+%(nodes)s
+%(hnode)s
+    </g>
+    <text x="157" y="292" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#334155">Представление графом</text>
+  </g>
+
+  <rect x="24" y="300" width="712" height="20" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="34" y="314" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#334155">вершин: %(nn)d  |  рёбер: %(ne)d  |  диагональ стоит √2 — иначе путь по диагонали оказался бы дешевле прямого</text>
+</svg>''' % dict(cells='\n'.join(grid_cells), hcell=highlight_cell,
+                 gedges='\n'.join(graph_edges), elabels='\n'.join(edge_labels),
+                 nodes='\n'.join(nodes), hnode=highlight_node,
+                 nn=n_nodes, ne=len(edges))
+
+    write_svg(filepath, svg)
+
+
 def main():
     print("=== Generating Rigorous Algorithmic Diagrams ===")
+    generate_roadmaps_overview()
+    generate_encoder_decoder()
+    generate_grid_as_graph()
+    generate_grids_overview()
+    generate_visibility_construction()
+    generate_voronoi_construction()
     generate_visibility_vs_voronoi()
     generate_theta_star_los()
     generate_minkowski_cspace()

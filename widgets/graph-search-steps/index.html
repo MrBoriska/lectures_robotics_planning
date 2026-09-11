@@ -13,11 +13,27 @@
   <link rel="stylesheet" href="../common/widget-base.css"
         onerror="this.onerror=null; this.href='common/widget-base.css';">
   <style>
+    .statusbar {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 4px 12px;
+      background: #f1f5f9;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+    .statusbar b { color: var(--text-main); font-variant-numeric: tabular-nums; }
+    .statusbar .sep { color: #cbd5e1; }
+    .goal-note { margin-left: auto; font-weight: 600; color: var(--accent-green); }
+
     .stage {
       flex: 1;
       min-height: 0;
       display: grid;
-      grid-template-columns: minmax(0, 1.85fr) minmax(170px, 0.55fr) minmax(230px, 0.85fr);
+      grid-template-columns: minmax(0, 1.9fr) minmax(150px, 0.5fr) minmax(230px, 0.85fr);
       gap: 8px;
       padding: 8px;
       background: var(--bg-widget);
@@ -36,137 +52,60 @@
     .pane-title {
       font-size: 10.5px;
       font-weight: 700;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.05em;
       text-transform: uppercase;
       color: var(--text-light);
       padding: 6px 10px 4px;
       border-bottom: 1px solid var(--border-color);
       flex-shrink: 0;
     }
+    .pane-title .g { color: #0284c7; }
+    .pane-title .h { color: #b45309; }
+    .pane-title .f { color: #0f172a; }
 
-    .pane-body {
-      flex: 1;
-      min-height: 0;
-      overflow: auto;
-      position: relative;
-    }
+    .pane-body { flex: 1; min-height: 0; overflow: auto; position: relative; }
 
     /* ---- OPEN priority queue ---- */
-    table.queue {
-      width: 100%;
-      border-collapse: collapse;
-      font-family: var(--font-mono);
-      font-size: 11px;
-    }
+    table.queue { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 11px; }
     table.queue th {
-      position: sticky;
-      top: 0;
-      background: var(--bg-control);
-      color: var(--text-muted);
-      font-weight: 600;
-      text-align: right;
-      padding: 3px 7px;
-      border-bottom: 1px solid var(--border-color);
+      position: sticky; top: 0; background: var(--bg-control); color: var(--text-muted);
+      font-weight: 600; text-align: right; padding: 3px 6px; border-bottom: 1px solid var(--border-color);
     }
     table.queue th:first-child { text-align: left; }
-    table.queue td {
-      padding: 2px 7px;
-      text-align: right;
-      border-bottom: 1px solid #f1f5f9;
-      color: #334155;
-    }
+    table.queue td { padding: 2px 6px; text-align: right; border-bottom: 1px solid #f1f5f9; color: #334155; }
     table.queue td:first-child { text-align: left; color: var(--text-main); }
-    table.queue tr.top td {
-      background: #e0f2fe;
-      color: #0369a1;
-      font-weight: 700;
-    }
-    table.queue tr.touched td { background: #fefce8; }
-    .queue-empty {
-      padding: 10px;
-      font-size: 11px;
-      color: var(--text-light);
-    }
+    table.queue tr.top td { background: #cffafe; color: #0e7490; font-weight: 700; }
+    table.queue tr.touched td { background: #fef3c7; color: #92400e; font-weight: 600; }
+    .queue-note { padding: 5px 8px; font-size: 10.5px; color: var(--text-light); }
 
     /* ---- pseudocode ---- */
-    ol.code {
-      list-style: none;
-      font-family: var(--font-mono);
-      font-size: 10.5px;
-      line-height: 1.5;
-      padding: 5px 0;
-      counter-reset: ln;
-    }
-    ol.code li {
-      counter-increment: ln;
-      padding: 0 8px 0 30px;
-      position: relative;
-      color: #475569;
-      white-space: pre;
-    }
+    ol.code { list-style: none; font-family: var(--font-mono); font-size: 10.5px; line-height: 1.5; padding: 5px 0; counter-reset: ln; }
+    ol.code li { counter-increment: ln; padding: 0 8px 0 28px; position: relative; color: #64748b; white-space: pre; }
     ol.code li::before {
-      content: counter(ln);
-      position: absolute;
-      left: 0;
-      width: 22px;
-      text-align: right;
-      color: var(--text-light);
-      font-size: 9.5px;
+      content: counter(ln); position: absolute; left: 0; width: 20px;
+      text-align: right; color: #cbd5e1; font-size: 9.5px;
     }
-    ol.code li.on {
-      background: #ecfdf5;
-      color: #065f46;
-      font-weight: 600;
-      box-shadow: inset 2px 0 0 var(--accent-green);
-    }
+    ol.code li.on { background: #ecfdf5; color: #065f46; font-weight: 600; box-shadow: inset 2px 0 0 var(--accent-green); }
 
     /* ---- narration ---- */
     .narration {
-      flex-shrink: 0;
-      border-top: 1px solid var(--border-color);
-      background: #f8fafc;
-      padding: 6px 10px;
-      font-size: 11.5px;
-      line-height: 1.35;
-      color: #334155;
-      min-height: 46px;
+      flex-shrink: 0; border-top: 1px solid var(--border-color); background: #f8fafc;
+      padding: 7px 10px; font-size: 11.5px; line-height: 1.4; color: #334155; min-height: 62px;
     }
-    .narration b { color: var(--text-main); }
+    .narration .title { display: block; font-weight: 700; color: var(--text-main); margin-bottom: 2px; }
     .narration .ok { color: var(--accent-green); font-weight: 600; }
     .narration .no { color: var(--accent-red); font-weight: 600; }
-    .narration code {
-      font-family: var(--font-mono);
-      background: #eef2f7;
-      border-radius: 3px;
-      padding: 0 3px;
-    }
-
-    .phase-tag {
-      display: inline-block;
-      font-size: 9.5px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      border-radius: 3px;
-      padding: 1px 5px;
-      margin-right: 5px;
-      vertical-align: 1px;
-    }
-    .p-pop { background: #e0f2fe; color: #0369a1; }
-    .p-relax { background: #fef3c7; color: #92400e; }
-    .p-los { background: #ede9fe; color: #5b21b6; }
-    .p-done { background: #dcfce7; color: #15803d; }
+    .narration .why { display: block; margin-top: 3px; color: var(--text-muted); font-size: 11px; }
+    .narration code { font-family: var(--font-mono); background: #eef2f7; border-radius: 3px; padding: 0 3px; }
 
     .legend { display: flex; gap: 9px; font-size: 10.5px; color: var(--text-muted); align-items: center; flex-wrap: wrap; }
     .legend-box { width: 10px; height: 10px; border-radius: 2px; display: inline-block; border: 1px solid transparent; }
-    .c-open { background: #cfe9fb; border-color: #0284c7; }
-    .c-closed { background: #fde8c8; border-color: #d97706; }
+    .c-open { background: #dceffb; border-color: #93c5ea; }
+    .c-closed { background: #fdedd3; border-color: #f0c893; }
     .c-cur { background: #a5f3fc; border-color: #0e7490; }
     .c-path { background: #059669; }
-    .c-wall { background: #334155; }
 
-    input[type="range"].scrub { flex: 1; min-width: 90px; accent-color: #0284c7; }
-    .step-counter { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+    input[type="range"].scrub { flex: 1; min-width: 70px; accent-color: #0284c7; }
   </style>
 </head>
 <body>
@@ -177,29 +116,40 @@
         <option value="astar" selected>A* (h = евклид)</option>
         <option value="theta">Theta* (any-angle)</option>
       </select>
-      <button id="back" class="btn">◀ Назад</button>
+      <button id="back" class="btn">◀</button>
       <button id="fwd" class="btn btn-primary">Шаг ▶</button>
-      <button id="play" class="btn btn-success">Авто ⏵</button>
-      <button id="end" class="btn">В конец ⏭</button>
+      <button id="nextIter" class="btn btn-success">Итерация ⏭</button>
+      <button id="play" class="btn">Авто ⏵</button>
+      <button id="end" class="btn">В конец</button>
       <button id="reset" class="btn btn-danger">Сброс</button>
       <input type="range" id="scrub" class="scrub" min="0" value="0">
-      <span class="step-counter" id="counter">0 / 0</span>
       <div class="legend">
-        <span><i class="legend-box c-cur"></i> текущий</span>
-        <span><i class="legend-box c-open"></i> OPEN</span>
-        <span><i class="legend-box c-closed"></i> CLOSED</span>
+        <span><i class="legend-box c-cur"></i> сейчас</span>
+        <span><i class="legend-box c-open"></i> в очереди</span>
+        <span><i class="legend-box c-closed"></i> готово</span>
         <span><i class="legend-box c-path"></i> путь</span>
       </div>
     </div>
 
+    <div class="statusbar">
+      <span>Итерация <b id="stIter">–</b></span>
+      <span class="sep">|</span>
+      <span>шаг внутри итерации <b id="stSub">–</b></span>
+      <span class="sep">|</span>
+      <span>раскрыто клеток <b id="stExp">0</b></span>
+      <span class="sep">|</span>
+      <span>в очереди <b id="stOpen">0</b></span>
+      <span class="goal-note" id="stGoal"></span>
+    </div>
+
     <div class="stage">
       <div class="pane">
-        <div class="pane-title">Сетка: g (сл.) · h (спр.) · f (в центре)</div>
+        <div class="pane-title" id="gridTitle"></div>
         <div class="pane-body"><canvas id="grid"></canvas></div>
       </div>
 
       <div class="pane">
-        <div class="pane-title">OPEN — очередь с приоритетом</div>
+        <div class="pane-title">Очередь OPEN</div>
         <div class="pane-body" id="queueBody"></div>
       </div>
 
@@ -223,7 +173,6 @@
   var WALLS = ['4,2', '4,3', '4,4', '5,4'];
   var START = { x: 0, y: 6 }, GOAL = { x: 9, y: 0 };
 
-  var SQRT2 = Math.SQRT2;
   var key = function (x, y) { return x + ',' + y; };
   var isWall = function (x, y) { return WALLS.indexOf(key(x, y)) !== -1; };
   var inside = function (x, y) { return x >= 0 && x < COLS && y >= 0 && y < ROWS; };
@@ -260,68 +209,67 @@
     return true;
   }
 
-  // ---------------------------------------------------------------------
-  // Trace builder. The whole search is run once up front and recorded as a
-  // list of immutable frames; the UI then just replays frame[i]. That makes
-  // stepping backwards and scrubbing exact rather than re-simulated.
-  // ---------------------------------------------------------------------
   var PSEUDO = {
     dijkstra: [
-      'OPEN ← {start},  g(start) ← 0',
-      'while OPEN ≠ ∅:',
-      '    s ← argmin g(n)   // h ≡ 0',
-      '    if s = goal: return path',
-      '    CLOSED ← CLOSED ∪ {s}',
-      '    for s\' in neighbours(s):',
-      '        if s\' in CLOSED: continue',
-      '        g_new ← g(s) + c(s, s\')',
-      '        if g_new < g(s\'):',
-      '            g(s\') ← g_new',
-      '            parent(s\') ← s',
-      '            push s\' into OPEN'
+      'OPEN ← {старт},  g(старт) ← 0',
+      'пока OPEN не пуста:',
+      '    s ← клетка с наименьшим g',
+      '    если s = цель: путь найден',
+      '    перенести s в CLOSED',
+      '    для каждого соседа s\' клетки s:',
+      '        если s\' в CLOSED: пропустить',
+      '        g_нов ← g(s) + длина(s, s\')',
+      '        если g_нов < g(s\'):',
+      '            g(s\') ← g_нов',
+      '            родитель(s\') ← s',
+      '            положить s\' в OPEN'
     ],
     astar: [
-      'OPEN ← {start},  g(start) ← 0',
-      'while OPEN ≠ ∅:',
-      '    s ← argmin f(n) = g(n) + h(n)',
-      '    if s = goal: return path',
-      '    CLOSED ← CLOSED ∪ {s}',
-      '    for s\' in neighbours(s):',
-      '        if s\' in CLOSED: continue',
-      '        g_new ← g(s) + c(s, s\')',
-      '        if g_new < g(s\'):',
-      '            g(s\') ← g_new',
-      '            parent(s\') ← s',
-      '            push s\' with f = g + h'
+      'OPEN ← {старт},  g(старт) ← 0',
+      'пока OPEN не пуста:',
+      '    s ← клетка с наименьшим f = g + h',
+      '    если s = цель: путь найден',
+      '    перенести s в CLOSED',
+      '    для каждого соседа s\' клетки s:',
+      '        если s\' в CLOSED: пропустить',
+      '        g_нов ← g(s) + длина(s, s\')',
+      '        если g_нов < g(s\'):',
+      '            g(s\') ← g_нов',
+      '            родитель(s\') ← s',
+      '            положить s\' в OPEN с f = g + h'
     ],
     theta: [
-      'OPEN ← {start},  g(start) ← 0',
-      'while OPEN ≠ ∅:',
-      '    s ← argmin f(n) = g(n) + h(n)',
-      '    if s = goal: return path',
-      '    CLOSED ← CLOSED ∪ {s}',
-      '    for s\' in neighbours(s):',
-      '        if s\' in CLOSED: continue',
-      '        // Path 2: try to skip s entirely',
-      '        if LineOfSight(parent(s), s\'):',
-      '            p ← parent(s)',
-      '        else:',
-      '            p ← s          // Path 1',
-      '        g_new ← g(p) + ‖p − s\'‖',
-      '        if g_new < g(s\'):',
-      '            g(s\') ← g_new;  parent(s\') ← p',
-      '            push s\' with f = g + h'
+      'OPEN ← {старт},  g(старт) ← 0',
+      'пока OPEN не пуста:',
+      '    s ← клетка с наименьшим f = g + h',
+      '    если s = цель: путь найден',
+      '    перенести s в CLOSED',
+      '    для каждого соседа s\' клетки s:',
+      '        если s\' в CLOSED: пропустить',
+      '        // Путь 2: попробовать срезать, минуя s',
+      '        если ЛучСвободен(родитель(s), s\'):',
+      '            p ← родитель(s)',
+      '        иначе:',
+      '            p ← s              // Путь 1',
+      '        g_нов ← g(p) + длина(p, s\')',
+      '        если g_нов < g(s\'):',
+      '            g(s\') ← g_нов;  родитель(s\') ← p',
+      '            положить s\' в OPEN с f = g + h'
     ]
   };
 
-  // Which pseudocode line each phase highlights, per algorithm.
   var LINE = {
-    dijkstra: { init: 0, pop: 2, goal: 3, close: 4, skip: 6, better: 8, worse: 8, push: 11 },
-    astar:    { init: 0, pop: 2, goal: 3, close: 4, skip: 6, better: 8, worse: 8, push: 11 },
-    theta:    { init: 0, pop: 2, goal: 3, close: 4, skip: 6, los: 8, path2: 9, path1: 11,
-                better: 13, worse: 13, push: 15 }
+    dijkstra: { init: 0, pop: 2, close: 4, skip: 6, better: 8, worse: 8, push: 11, done: 3 },
+    astar:    { init: 0, pop: 2, close: 4, skip: 6, better: 8, worse: 8, push: 11, done: 3 },
+    theta:    { init: 0, pop: 2, close: 4, skip: 6, los: 8, better: 13, worse: 13, push: 15, done: 3 }
   };
 
+  // ---------------------------------------------------------------------
+  // Trace builder. The search runs once up front and is recorded as frames,
+  // so stepping backwards and scrubbing are exact rather than re-simulated.
+  // Every frame carries the iteration it belongs to — that is what makes
+  // several hundred micro-steps navigable instead of an undifferentiated run.
+  // ---------------------------------------------------------------------
   function buildTrace(algo) {
     var anyAngle = algo === 'theta';
     var useH = algo !== 'dijkstra';
@@ -330,9 +278,11 @@
     var g = {}, parent = {}, closed = {}, open = [];
     var frames = [];
     var expanded = 0;
+    var iter = 0;
 
     function snapshot(extra) {
       var f = {
+        iter: iter,
         g: JSON.parse(JSON.stringify(g)),
         parent: JSON.parse(JSON.stringify(parent)),
         closed: Object.keys(closed),
@@ -358,22 +308,29 @@
     pushOpen(START.x, START.y, 0);
     snapshot({
       phase: 'init', cur: null, focus: null,
-      text: 'Инициализация: <code>g(start) = 0</code>, старт кладём в OPEN. ' +
-            (useH ? 'Приоритет — <code>f = g + h</code>.' : 'Приоритет — только <code>g</code>: эвристики нет.')
+      title: 'Подготовка',
+      text: 'Стоимость старта <code>g = 0</code>, кладём его в очередь OPEN.',
+      why: useH
+        ? 'OPEN всегда отсортирована по <code>f = g + h</code>: первой обрабатывается самая перспективная клетка.'
+        : 'Эвристики нет, <code>h = 0</code>, поэтому порядок задаёт только пройденное расстояние <code>g</code>.'
     });
 
     var guard = 0;
     while (open.length && guard++ < 4000) {
       open.sort(function (a, b) { return a.f - b.f || a.g - b.g; });
+      var queueSize = open.length;
       var cur = open.shift();
       expanded++;
+      iter++;
 
       var atGoal = cur.x === GOAL.x && cur.y === GOAL.y;
       snapshot({
         phase: 'pop', cur: cur, focus: null,
-        text: 'Извлекаем <b>' + cur.k + '</b> — минимальный ' + (useH ? 'f' : 'g') +
-              ' = <b>' + cur.f.toFixed(2) + '</b>' +
-              (useH ? ' (g = ' + cur.g.toFixed(2) + ', h = ' + cur.h.toFixed(2) + ')' : '') + '.'
+        title: 'Берём из очереди клетку ' + cur.k,
+        text: useH
+          ? 'g = ' + cur.g.toFixed(2) + ', h = ' + cur.h.toFixed(2) + ' → <b>f = ' + cur.f.toFixed(2) + '</b>.'
+          : '<b>g = ' + cur.g.toFixed(2) + '</b>.',
+        why: 'Это минимум среди ' + queueSize + ' клеток очереди — потому её и обрабатываем первой.'
       });
 
       if (atGoal) {
@@ -383,16 +340,20 @@
         path.reverse();
         snapshot({
           phase: 'done', cur: cur, focus: null, path: path,
-          text: 'Цель извлечена из OPEN — путь оптимален. Длина <b>' + cur.g.toFixed(2) +
-                '</b>, раскрыто вершин: <b>' + expanded + '</b>, изломов: <b>' + Math.max(0, path.length - 2) + '</b>.'
+          title: 'Готово: цель извлечена из очереди',
+          text: 'Длина пути <b>' + cur.g.toFixed(2) + '</b>, изломов <b>' + Math.max(0, path.length - 2) +
+                '</b>, раскрыто клеток <b>' + expanded + '</b>.',
+          why: 'Как только цель оказалась первой в очереди, более короткого пути уже быть не может — поиск останавливается.'
         });
-        return { frames: frames, algo: algo };
+        return { frames: frames, algo: algo, iterations: iter };
       }
 
       closed[cur.k] = true;
       snapshot({
         phase: 'close', cur: cur, focus: null,
-        text: '<b>' + cur.k + '</b> переносим в CLOSED: её значение g окончательное.'
+        title: 'Клетка ' + cur.k + ' закрыта',
+        text: 'Переносим её в CLOSED.',
+        why: 'Кратчайший путь до неё уже найден: маршрут короче всплыл бы в очереди раньше.'
       });
 
       for (var dx = -1; dx <= 1; dx++) {
@@ -404,24 +365,30 @@
           if (closed[nk]) {
             snapshot({
               phase: 'skip', cur: cur, focus: { x: nx, y: ny },
-              text: 'Сосед <b>' + nk + '</b> уже в CLOSED — <span class="no">пропускаем</span>.'
+              title: 'Сосед ' + nk + ' — пропускаем',
+              text: 'Он уже в CLOSED.',
+              why: 'Закрытые клетки не пересчитываются: их значение g окончательное.'
             });
             continue;
           }
 
-          var anchor = cur, tag = '', losOK = null;
+          var anchor = cur, tag = '', pnode = null;
           if (anyAngle) {
-            var pk = parent[cur.k].split(','),
-                pnode = { x: +pk[0], y: +pk[1] };
-            losOK = lineOfSight(pnode, { x: nx, y: ny });
+            var pk = parent[cur.k].split(',');
+            pnode = { x: +pk[0], y: +pk[1] };
+            var losOK = lineOfSight(pnode, { x: nx, y: ny });
             snapshot({
-              phase: 'los', cur: cur, focus: { x: nx, y: ny }, ray: [pnode, { x: nx, y: ny }], losOK: losOK,
-              text: '<code>LineOfSight(' + parent[cur.k] + ', ' + nk + ')</code> = ' +
-                    (losOK ? '<span class="ok">True</span> — можно подключить соседа сразу к прародителю (Path 2).'
-                           : '<span class="no">False</span> — луч задет препятствие, остаёмся на Path 1.')
+              phase: 'los', cur: cur, focus: { x: nx, y: ny },
+              ray: [pnode, { x: nx, y: ny }], losOK: losOK, grandparent: pnode,
+              title: 'Виден ли ' + nk + ' напрямую из ' + parent[cur.k] + '?',
+              text: losOK
+                ? '<span class="ok">Да, луч свободен</span> — соседа можно подцепить сразу к ' + parent[cur.k] +
+                  ', минуя ' + cur.k + '.'
+                : '<span class="no">Нет, луч задевает препятствие</span> — остаётся связь через ' + cur.k + '.',
+              why: 'Эта проверка и отличает Theta* от A*: она разрешает ребро под любым углом, а не только по рёбрам сетки.'
             });
-            if (losOK) { anchor = { k: parent[cur.k], x: pnode.x, y: pnode.y, g: g[parent[cur.k]] }; tag = ' (Path 2)'; }
-            else { tag = ' (Path 1)'; }
+            if (losOK) { anchor = { k: parent[cur.k], x: pnode.x, y: pnode.y }; tag = ' — срезаем угол'; }
+            else { tag = ' — через ' + cur.k; }
           }
 
           var step = dist(anchor, { x: nx, y: ny });
@@ -432,11 +399,14 @@
           snapshot({
             phase: better ? 'better' : 'worse',
             cur: cur, focus: { x: nx, y: ny }, edge: [anchor, { x: nx, y: ny }],
-            candidate: better ? { k: nk, g: gNew, h: h(nx, ny) } : null,
-            text: 'g(' + anchor.k + ') + ‖' + anchor.k + ' − ' + nk + '‖ = ' +
-                  g[anchor.k].toFixed(2) + ' + ' + step.toFixed(2) + ' = <b>' + gNew.toFixed(2) + '</b>' + tag +
-                  (better ? ' &lt; ' + (gOld === Infinity ? '∞' : gOld.toFixed(2)) + ' — <span class="ok">улучшение</span>.'
-                          : ' ≥ ' + gOld.toFixed(2) + ' — <span class="no">хуже, оставляем прежнего родителя</span>.')
+            grandparent: anyAngle ? pnode : null,
+            candidate: better ? { k: nk } : null,
+            title: 'Считаем стоимость соседа ' + nk + tag,
+            text: 'g(' + anchor.k + ') + ' + step.toFixed(2) + ' = <b>' + gNew.toFixed(2) + '</b>, ' +
+                  'сейчас у ' + nk + ' записано ' + (gOld === Infinity ? '∞' : gOld.toFixed(2)) + '.',
+            why: better
+              ? 'Новый маршрут короче — <span class="ok">запоминаем его</span>.'
+              : 'Новый маршрут не короче — <span class="no">оставляем прежнего родителя</span>.'
           });
 
           if (better) {
@@ -445,16 +415,22 @@
             pushOpen(nx, ny, gNew);
             snapshot({
               phase: 'push', cur: cur, focus: { x: nx, y: ny }, edge: [anchor, { x: nx, y: ny }],
-              text: '<code>parent(' + nk + ') ← ' + anchor.k + '</code>, кладём в OPEN с ' +
-                    (useH ? 'f = ' + (gNew + h(nx, ny)).toFixed(2) : 'g = ' + gNew.toFixed(2)) + '.'
+              candidate: { k: nk }, grandparent: anyAngle ? pnode : null,
+              title: 'Обновляем ' + nk,
+              text: 'родитель(' + nk + ') = ' + anchor.k + ', ' +
+                    (useH ? 'f = ' + (gNew + h(nx, ny)).toFixed(2) : 'g = ' + gNew.toFixed(2)) + '.',
+              why: 'Клетка встаёт в очередь на новое место — тем выше, чем меньше её оценка.'
             });
           }
         }
       }
     }
 
-    snapshot({ phase: 'done', cur: null, focus: null, text: 'OPEN пуст — цель недостижима.' });
-    return { frames: frames, algo: algo };
+    snapshot({
+      phase: 'done', cur: null, focus: null,
+      title: 'Очередь пуста', text: 'Цель недостижима.', why: ''
+    });
+    return { frames: frames, algo: algo, iterations: iter };
   }
 
   // ---------------------------------------------------------------------
@@ -466,17 +442,15 @@
   var codeEl = document.getElementById('code');
   var codeTitle = document.getElementById('codeTitle');
   var narration = document.getElementById('narration');
-  var counter = document.getElementById('counter');
   var scrub = document.getElementById('scrub');
+  var stIter = document.getElementById('stIter');
+  var stSub = document.getElementById('stSub');
+  var stExp = document.getElementById('stExp');
+  var stOpen = document.getElementById('stOpen');
+  var stGoal = document.getElementById('stGoal');
+  var gridTitle = document.getElementById('gridTitle');
 
   var trace = null, idx = 0, timer = null;
-
-  var PHASE_LABEL = {
-    init: ['ИНИЦИАЛИЗАЦИЯ', 'p-pop'], pop: ['POP', 'p-pop'], close: ['CLOSED', 'p-pop'],
-    skip: ['ПРОПУСК', 'p-relax'], los: ['LINE OF SIGHT', 'p-los'],
-    better: ['РЕЛАКСАЦИЯ', 'p-relax'], worse: ['РЕЛАКСАЦИЯ', 'p-relax'],
-    push: ['PUSH', 'p-relax'], done: ['ГОТОВО', 'p-done']
-  };
 
   function fit() {
     var box = canvas.parentElement;
@@ -485,6 +459,55 @@
     canvas.height = box.clientHeight * ratio;
     ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
     draw();
+  }
+
+  // ---------------------------------------------------------------------
+  // Canvas sizing guard.
+  //
+  // The canvas backing store is set from the container's clientWidth/Height.
+  // Inside a Marp slide the iframe is sometimes still unlaid-out when this
+  // first runs, so the measurement returns 0, the canvas is created 0x0 and
+  // the widget draws nothing at all — the toolbar shows, the picture never
+  // appears. A lone ResizeObserver is not enough to recover from that, so
+  // re-measure until the box reports a real size, and re-fit on every event
+  // that can change it.
+  // ---------------------------------------------------------------------
+  function autosize(element, onResize) {
+    if (!element) return;
+    var frameTries = 0;
+    var ticks = 0;
+    var poll = null;
+
+    function sized() {
+      return element.clientWidth > 0 && element.clientHeight > 0;
+    }
+
+    function attempt() {
+      onResize();
+      if (sized()) return;
+      if (frameTries++ < 240) {
+        window.requestAnimationFrame(attempt);
+      } else if (!poll) {
+        poll = setInterval(function () {
+          onResize();
+          if (sized() || ticks++ > 40) { clearInterval(poll); poll = null; }
+        }, 250);
+      }
+    }
+
+    // Deferred, never synchronous: the widget finishes building its state
+    // further down the script, and calling the draw path inline here would
+    // run it against half-initialised data.
+    window.requestAnimationFrame(attempt);
+    window.addEventListener('resize', onResize);
+    window.addEventListener('pageshow', onResize);
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden) onResize();
+    });
+    if (window.ResizeObserver) new window.ResizeObserver(onResize).observe(element);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(onResize).catch(function () {});
+    }
   }
 
   function geometry() {
@@ -507,8 +530,6 @@
     fr.open.forEach(function (n) { openKeys[n.k] = n; });
     var closedKeys = {};
     fr.closed.forEach(function (k) { closedKeys[k] = true; });
-    var pathKeys = {};
-    (fr.path || []).forEach(function (k) { pathKeys[k] = true; });
 
     for (var y = 0; y < ROWS; y++) {
       for (var x = 0; x < COLS; x++) {
@@ -525,53 +546,84 @@
         ctx.lineWidth = 1;
         ctx.strokeRect(px + 0.5, py + 0.5, cell - 1, cell - 1);
 
-        if (fr.focus && fr.focus.x === x && fr.focus.y === y) {
-          ctx.strokeStyle = '#d97706';
-          ctx.lineWidth = 2.5;
-          ctx.strokeRect(px + 1.5, py + 1.5, cell - 3, cell - 3);
-        }
-
-        // g / h / f readouts, the numbers the algorithm actually compares.
-        // g and h sit in the top corners at a size that keeps a two-digit h
-        // from colliding with g; f is the big number in the middle.
+        // g (blue, top-left), h (amber, top-right), f (black, centre) — the
+        // three numbers the algorithm actually compares, colour-coded so the
+        // arithmetic in the narration can be traced back to the picture.
         if (!isWall(x, y) && fr.g.hasOwnProperty(k) && cell >= 32) {
           var gv = fr.g[k];
           var hv = trace.algo === 'dijkstra' ? 0 : dist({ x: x, y: y }, GOAL);
-          ctx.fillStyle = '#64748b';
           ctx.font = Math.round(cell * 0.17) + 'px "JetBrains Mono", monospace';
+          ctx.fillStyle = '#0284c7';
           ctx.textAlign = 'left';
           ctx.fillText(gv.toFixed(1), px + 3, py + cell * 0.21);
           if (trace.algo !== 'dijkstra') {
+            ctx.fillStyle = '#b45309';
             ctx.textAlign = 'right';
             ctx.fillText(hv.toFixed(1), px + cell - 3, py + cell * 0.21);
           }
           ctx.fillStyle = '#0f172a';
-          ctx.font = '600 ' + Math.round(cell * 0.26) + 'px "JetBrains Mono", monospace';
+          ctx.font = '700 ' + Math.round(cell * 0.28) + 'px "JetBrains Mono", monospace';
           ctx.textAlign = 'center';
-          ctx.fillText((gv + hv).toFixed(1), px + cell / 2, py + cell * 0.62);
+          ctx.fillText((gv + hv).toFixed(1), px + cell / 2, py + cell * 0.64);
         }
       }
     }
 
-    // Parent pointers. Once the path is found they only add noise, so the
-    // final frame drops them and shows the solution alone.
-    ctx.strokeStyle = 'rgba(100, 116, 139, 0.28)';
-    ctx.lineWidth = 1.1;
-    if (!fr.path) Object.keys(fr.parent).forEach(function (k) {
-      var p = fr.parent[k];
-      if (p === k) return;
-      var a = k.split(','), b = p.split(',');
-      ctx.beginPath();
-      ctx.moveTo(cx(+a[0]), cy(+a[1]));
-      ctx.lineTo(cx(+b[0]), cy(+b[1]));
-      ctx.stroke();
-    });
+    // The parent chain from the current cell back to the start. This is what
+    // g measures, so drawing it turns the number into something visible.
+    if (fr.cur && !fr.path) {
+      var chain = [], node = fr.cur.k, guard = 0;
+      while (fr.parent[node] && node !== fr.parent[node] && guard++ < 200) {
+        chain.push(node);
+        node = fr.parent[node];
+      }
+      chain.push(node);
+      if (chain.length > 1) {
+        ctx.strokeStyle = 'rgba(2, 132, 199, 0.4)';
+        ctx.lineWidth = Math.max(2.5, cell * 0.07);
+        ctx.lineJoin = ctx.lineCap = 'round';
+        ctx.beginPath();
+        chain.forEach(function (kk, i) {
+          var a = kk.split(',');
+          ctx[i ? 'lineTo' : 'moveTo'](cx(+a[0]), cy(+a[1]));
+        });
+        ctx.stroke();
+      }
+    }
 
-    // the edge or ray under discussion this frame
+    // Theta*: name the grandparent the line-of-sight test is aimed from.
+    if (fr.grandparent) {
+      var gpx = ox + fr.grandparent.x * cell, gpy = oy + fr.grandparent.y * cell;
+      ctx.strokeStyle = '#7c3aed';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 3]);
+      ctx.strokeRect(gpx + 2, gpy + 2, cell - 4, cell - 4);
+      ctx.setLineDash([]);
+      // Above the cell when there is room: inside it the label collided with
+      // the S/G corner badge.
+      var lblY = gpy > 16 ? gpy - 5 : gpy + cell + 12;
+      var lblSize = Math.round(Math.min(cell * 0.19, 12));
+      ctx.font = '700 ' + lblSize + 'px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#ffffff';
+      ctx.strokeText('родитель(s)', gpx + cell / 2, lblY);
+      ctx.fillStyle = '#7c3aed';
+      ctx.fillText('родитель(s)', gpx + cell / 2, lblY);
+    }
+
+    // Neighbour currently under consideration.
+    if (fr.focus) {
+      var fx = ox + fr.focus.x * cell, fy = oy + fr.focus.y * cell;
+      ctx.strokeStyle = '#d97706';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(fx + 1.5, fy + 1.5, cell - 3, cell - 3);
+    }
+
     if (fr.ray) {
       ctx.strokeStyle = fr.losOK ? '#7c3aed' : '#dc2626';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([5, 4]);
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([6, 4]);
       ctx.beginPath();
       ctx.moveTo(cx(fr.ray[0].x), cy(fr.ray[0].y));
       ctx.lineTo(cx(fr.ray[1].x), cy(fr.ray[1].y));
@@ -579,7 +631,7 @@
       ctx.setLineDash([]);
     } else if (fr.edge) {
       ctx.strokeStyle = fr.phase === 'worse' ? '#dc2626' : '#d97706';
-      ctx.lineWidth = 2.5;
+      ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.moveTo(cx(fr.edge[0].x), cy(fr.edge[0].y));
       ctx.lineTo(cx(fr.edge[1].x), cy(fr.edge[1].y));
@@ -588,7 +640,7 @@
 
     if (fr.path) {
       ctx.strokeStyle = '#059669';
-      ctx.lineWidth = Math.max(3, cell * 0.09);
+      ctx.lineWidth = Math.max(3.5, cell * 0.1);
       ctx.lineJoin = ctx.lineCap = 'round';
       ctx.beginPath();
       fr.path.forEach(function (k, i) {
@@ -598,8 +650,6 @@
       ctx.stroke();
     }
 
-    // S and G are drawn as a corner badge plus a ring, so they never cover the
-    // f value in the middle of their own cell.
     [[START, '#0284c7', 'S'], [GOAL, '#dc2626', 'G']].forEach(function (m) {
       var px = ox + m[0].x * cell, py = oy + m[0].y * cell;
       ctx.strokeStyle = m[1];
@@ -619,23 +669,28 @@
     });
   }
 
+  var MAX_ROWS = 9;
+
   function renderQueue() {
     var fr = trace.frames[idx];
     if (!fr.open.length) {
-      queueBody.innerHTML = '<div class="queue-empty">OPEN пуст</div>';
+      queueBody.innerHTML = '<div class="queue-note">очередь пуста</div>';
       return;
     }
     var useH = trace.algo !== 'dijkstra';
-    var rows = fr.open.map(function (n, i) {
+    var shown = fr.open.slice(0, MAX_ROWS);
+    var rows = shown.map(function (n, i) {
       var cls = i === 0 ? ' class="top"' : (fr.candidate && fr.candidate.k === n.k ? ' class="touched"' : '');
       return '<tr' + cls + '><td>' + n.k + '</td><td>' + n.g.toFixed(2) + '</td>' +
              (useH ? '<td>' + n.h.toFixed(2) + '</td>' : '') +
              '<td>' + n.f.toFixed(2) + '</td></tr>';
     }).join('');
+    var more = fr.open.length - shown.length;
     queueBody.innerHTML =
-      '<table class="queue"><thead><tr><th>узел</th><th>g</th>' +
+      '<table class="queue"><thead><tr><th>клетка</th><th>g</th>' +
       (useH ? '<th>h</th>' : '') + '<th>' + (useH ? 'f' : 'ключ') + '</th></tr></thead><tbody>' +
-      rows + '</tbody></table>';
+      rows + '</tbody></table>' +
+      (more > 0 ? '<div class="queue-note">…и ещё ' + more + ' — дальше в очереди</div>' : '');
   }
 
   function renderCode() {
@@ -646,12 +701,25 @@
     });
   }
 
+  function iterBounds(i) {
+    var it = trace.frames[i].iter, from = i, to = i;
+    while (from > 0 && trace.frames[from - 1].iter === it) from--;
+    while (to < trace.frames.length - 1 && trace.frames[to + 1].iter === it) to++;
+    return { from: from, to: to };
+  }
+
   function render() {
     var fr = trace.frames[idx];
-    var lab = PHASE_LABEL[fr.phase] || ['', 'p-pop'];
-    narration.innerHTML = '<span class="phase-tag ' + lab[1] + '">' + lab[0] + '</span>' + fr.text;
-    counter.textContent = (idx + 1) + ' / ' + trace.frames.length +
-                          '  ·  раскрыто ' + fr.expanded;
+    narration.innerHTML = '<span class="title">' + fr.title + '</span>' + fr.text +
+                          (fr.why ? '<span class="why">' + fr.why + '</span>' : '');
+    var b = iterBounds(idx);
+    stIter.textContent = fr.iter === 0 ? '— подготовка' : fr.iter + ' из ' + trace.iterations;
+    stSub.textContent = (idx - b.from + 1) + ' из ' + (b.to - b.from + 1);
+    stExp.textContent = fr.expanded;
+    stOpen.textContent = fr.open.length;
+    stGoal.textContent = fr.path
+      ? 'путь ' + fr.g[key(GOAL.x, GOAL.y)].toFixed(2) + ' · изломов ' + Math.max(0, fr.path.length - 2)
+      : '';
     scrub.value = idx;
     renderQueue();
     renderCode();
@@ -664,6 +732,10 @@
     idx = 0;
     codeTitle.textContent = 'Псевдокод — ' +
       ({ dijkstra: 'Дейкстра', astar: 'A*', theta: 'Theta*' })[algo];
+    // Dijkstra shows no h, so promising one in the legend would be a lie.
+    gridTitle.innerHTML = algo === 'dijkstra'
+      ? 'В клетке: <span class="g">g — пройденное расстояние</span> · эвристики нет, <span class="h">h = 0</span>'
+      : 'В клетке: <span class="g">g — пройдено</span> · <span class="h">h — оценка до цели</span> · <span class="f">f = g + h</span>';
     codeEl.innerHTML = PSEUDO[algo].map(function (l) {
       return '<li>' + l.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</li>';
     }).join('');
@@ -676,13 +748,24 @@
     render();
   }
 
+  function jumpIteration() {
+    var it = trace.frames[idx].iter;
+    var i = idx;
+    while (i < trace.frames.length - 1 && trace.frames[i].iter === it) i++;
+    idx = i;
+    render();
+  }
+
   function stop() {
     if (timer) { clearInterval(timer); timer = null; }
-    document.getElementById('play').textContent = 'Авто ⏵';
+    var btn = document.getElementById('play');
+    btn.textContent = 'Авто ⏵';
+    btn.classList.remove('btn-danger');
   }
 
   document.getElementById('fwd').onclick = function () { stop(); go(1); };
   document.getElementById('back').onclick = function () { stop(); go(-1); };
+  document.getElementById('nextIter').onclick = function () { stop(); jumpIteration(); };
   document.getElementById('end').onclick = function () { stop(); idx = trace.frames.length - 1; render(); };
   document.getElementById('reset').onclick = function () { load(document.getElementById('algo').value); };
   document.getElementById('algo').onchange = function () { load(this.value); };
@@ -691,80 +774,26 @@
   document.getElementById('play').onclick = function () {
     if (timer) { stop(); return; }
     this.textContent = 'Пауза ⏸';
+    this.classList.add('btn-danger');
     var self = this;
     timer = setInterval(function () {
       if (idx >= trace.frames.length - 1) { stop(); self.textContent = 'Авто ⏵'; return; }
       go(1);
-    }, 260);
+    }, 240);
   };
 
   document.addEventListener('keydown', function (e) {
     if (e.key === 'ArrowRight') { stop(); go(1); }
     if (e.key === 'ArrowLeft') { stop(); go(-1); }
+    if (e.key === 'ArrowDown') { stop(); jumpIteration(); }
   });
-
-
-  // ---------------------------------------------------------------------
-  // Canvas sizing guard.
-  //
-  // The canvas backing store is set from the container's clientWidth/Height.
-  // Inside a Marp slide the iframe is sometimes still unlaid-out when this
-  // first runs, so the measurement returns 0, the canvas is created 0x0 and
-  // the widget draws nothing at all — the toolbar shows, the picture never
-  // appears. A lone ResizeObserver is not enough to recover from that, so
-  // re-measure until the box reports a real size, and re-fit on every event
-  // that can change it.
-  // ---------------------------------------------------------------------
-  function autosize(element, onResize) {
-    if (!element) return;
-    var frames = 0;
-    var ticks = 0;
-    var poll = null;
-
-    function sized() {
-    return element.clientWidth > 0 && element.clientHeight > 0;
-    }
-
-    function attempt() {
-    onResize();
-    if (sized()) return;
-    if (frames++ < 240) {
-      window.requestAnimationFrame(attempt);
-    } else if (!poll) {
-      // Slow fallback for a slide that only becomes visible later.
-      poll = setInterval(function () {
-        onResize();
-        if (sized() || ticks++ > 40) {
-          clearInterval(poll);
-          poll = null;
-        }
-      }, 250);
-    }
-    }
-
-    // Deferred, never synchronous: the widgets finish building their state
-    // (grids, trees, fields) further down the script, and calling the draw
-    // path inline here would run it against half-initialised data.
-    window.requestAnimationFrame(attempt);
-    window.addEventListener('resize', onResize);
-    window.addEventListener('pageshow', onResize);
-    document.addEventListener('visibilitychange', function () {
-    if (!document.hidden) onResize();
-    });
-    if (window.ResizeObserver) new window.ResizeObserver(onResize).observe(element);
-    if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(onResize).catch(function () {});
-    }
-  }
-
-  autosize(canvas.parentElement, fit);
 
   // A slide can deep-link to the algorithm it is about: .../index.html#theta
   var wanted = (location.hash || '').replace('#', '');
   if (!PSEUDO[wanted]) wanted = 'astar';
   document.getElementById('algo').value = wanted;
   load(wanted);
-  fit();
+  autosize(canvas.parentElement, fit);
 })();
 </script>
 </body>

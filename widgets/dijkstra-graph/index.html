@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Дейкстра на простом графе — по шагам</title>
+  <!-- Some static servers (e.g. `serve` with clean URLs on) answer
+       /widgets/<name>/index.html by rewriting the URL to /widgets/<name>.
+       That moves the document base up one level, so "../common/..." points
+       outside the widgets folder and the stylesheet 404s, leaving the
+       simulator unstyled and effectively blank. Fall back to the path that
+       is correct under the rewritten base. -->
+  <link rel="stylesheet" href="../common/widget-base.css"
+        onerror="this.onerror=null; this.href='common/widget-base.css';">
+  <style>
+    .statusbar {
+      flex-shrink: 0; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      padding: 4px 12px; background: #f1f5f9; border-bottom: 1px solid var(--border-color);
+      font-size: 11.5px; color: var(--text-muted);
+    }
+    .statusbar b { color: var(--text-main); font-variant-numeric: tabular-nums; }
+    .statusbar .sep { color: #cbd5e1; }
+    .goal-note { margin-left: auto; font-weight: 600; color: var(--accent-green); }
+
+    .stage {
+      flex: 1; min-height: 0; display: grid;
+      grid-template-columns: minmax(0, 1.6fr) minmax(210px, 0.68fr) minmax(235px, 0.82fr);
+      gap: 8px; padding: 8px; background: var(--bg-widget);
+    }
+
+    .pane {
+      background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 7px;
+      min-height: 0; display: flex; flex-direction: column; overflow: hidden;
+    }
+    .pane-title {
+      font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+      color: var(--text-light); padding: 6px 10px 4px; border-bottom: 1px solid var(--border-color);
+      flex-shrink: 0;
+    }
+    .pane-body { flex: 1; min-height: 0; overflow: auto; position: relative; }
+
+    /* ---- distance table: the classic way Dijkstra is taught by hand ---- */
+    table.dist { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 11.5px; }
+    table.dist th {
+      position: sticky; top: 0; background: var(--bg-control); color: var(--text-muted);
+      font-weight: 600; text-align: right; padding: 4px 7px; border-bottom: 1px solid var(--border-color);
+    }
+    table.dist th:first-child { text-align: left; }
+    table.dist td { padding: 3px 7px; text-align: right; border-bottom: 1px solid #f1f5f9; color: #334155; }
+    table.dist td:first-child { text-align: left; font-weight: 700; color: var(--text-main); }
+    table.dist tr.done td { background: #fdedd3; }
+    table.dist tr.inopen td { background: #dceffb; }
+    table.dist tr.cur td { background: #cffafe; color: #0e7490; font-weight: 700; }
+    table.dist tr.changed td { background: #fef3c7; color: #92400e; font-weight: 700; }
+    .tag { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+
+    /* ---- pseudocode ---- */
+    ol.code { list-style: none; font-family: var(--font-mono); font-size: 11px; line-height: 1.5; padding: 5px 0; counter-reset: ln; }
+    ol.code li { counter-increment: ln; padding: 0 8px 0 28px; position: relative; color: #64748b; white-space: pre-wrap; }
+    ol.code li::before {
+      content: counter(ln); position: absolute; left: 0; width: 20px; text-align: right;
+      color: #cbd5e1; font-size: 9.5px;
+    }
+    ol.code li.on { background: #ecfdf5; color: #065f46; font-weight: 600; box-shadow: inset 2px 0 0 var(--accent-green); }
+
+    .narration {
+      flex-shrink: 0; border-top: 1px solid var(--border-color); background: #f8fafc;
+      padding: 7px 10px; font-size: 11.5px; line-height: 1.4; color: #334155; min-height: 66px;
+    }
+    .narration .title { display: block; font-weight: 700; color: var(--text-main); margin-bottom: 2px; }
+    .narration .ok { color: var(--accent-green); font-weight: 600; }
+    .narration .no { color: var(--accent-red); font-weight: 600; }
+    .narration .why { display: block; margin-top: 3px; color: var(--text-muted); font-size: 11px; }
+    .narration code { font-family: var(--font-mono); background: #eef2f7; border-radius: 3px; padding: 0 3px; }
+
+    .legend { display: flex; gap: 9px; font-size: 10.5px; color: var(--text-muted); align-items: center; flex-wrap: wrap; }
+    .legend-box { width: 10px; height: 10px; border-radius: 2px; display: inline-block; border: 1px solid transparent; }
+    .c-cur { background: #a5f3fc; border-color: #0e7490; }
+    .c-open { background: #dceffb; border-color: #93c5ea; }
+    .c-done { background: #fdedd3; border-color: #f0c893; }
+    .c-path { background: #059669; }
+
+    input[type="range"].scrub { flex: 1; min-width: 70px; accent-color: #0284c7; }
+  </style>
+</head>
+<body>
+  <div class="widget-layout">
+    <div class="toolbar">
+      <button id="back" class="btn">◀</button>
+      <button id="fwd" class="btn btn-primary">Шаг ▶</button>
+      <button id="nextIter" class="btn btn-success">Итерация ⏭</button>
+      <button id="play" class="btn">Авто ⏵</button>
+      <button id="end" class="btn">В конец</button>
+      <button id="reset" class="btn btn-danger">Сброс</button>
+      <input type="range" id="scrub" class="scrub" min="0" value="0">
+      <div class="legend">
+        <span><i class="legend-box c-cur"></i> сейчас</span>
+        <span><i class="legend-box c-open"></i> в очереди</span>
+        <span><i class="legend-box c-done"></i> готово</span>
+        <span><i class="legend-box c-path"></i> путь</span>
+      </div>
+    </div>
+
+    <div class="statusbar">
+      <span>Итерация <b id="stIter">–</b></span>
+      <span class="sep">|</span>
+      <span>шаг внутри итерации <b id="stSub">–</b></span>
+      <span class="sep">|</span>
+      <span>обработано узлов <b id="stDone">0</b></span>
+      <span class="sep">|</span>
+      <span>в очереди <b id="stOpen">0</b></span>
+      <span class="goal-note" id="stGoal"></span>
+    </div>
+
+    <div class="stage">
+      <div class="pane">
+        <div class="pane-title">Граф: 6 узлов, 9 рёбер · число у ребра — его длина</div>
+        <div class="pane-body"><canvas id="graph"></canvas></div>
+      </div>
+
+      <div class="pane">
+        <div class="pane-title">Таблица расстояний</div>
+        <div class="pane-body" id="tableBody"></div>
+      </div>
+
+      <div class="pane">
+        <div class="pane-title">Псевдокод — Дейкстра</div>
+        <div class="pane-body"><ol class="code" id="code"></ol></div>
+        <div class="narration" id="narration"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ---------------------------------------------------------------------
+  // A deliberately small graph. It is chosen so that almost every node gets
+  // *improved* later: C drops 5 → 3, D drops 9 → 6, E drops 9 → 7, F drops
+  // 10 → 9. That is the whole point of relaxation, and on a grid it is hard
+  // to notice because all the edges look alike.
+  // ---------------------------------------------------------------------
+  var NODES = {
+    A: { x: 0.07, y: 0.50 },
+    B: { x: 0.30, y: 0.17 },
+    C: { x: 0.31, y: 0.83 },
+    D: { x: 0.56, y: 0.47 },
+    E: { x: 0.74, y: 0.84 },
+    F: { x: 0.93, y: 0.42 }
+  };
+  var EDGES = [
+    ['A', 'B', 2], ['A', 'C', 5], ['B', 'C', 1], ['B', 'D', 7],
+    ['C', 'D', 3], ['C', 'E', 6], ['D', 'E', 1], ['D', 'F', 4], ['E', 'F', 2]
+  ];
+  var START = 'A', GOAL = 'F';
+  var ORDER = Object.keys(NODES);
+
+  var adj = {};
+  ORDER.forEach(function (n) { adj[n] = []; });
+  EDGES.forEach(function (e) {
+    adj[e[0]].push({ to: e[1], w: e[2] });
+    adj[e[1]].push({ to: e[0], w: e[2] });
+  });
+
+  var PSEUDO = [
+    'd(v) ← ∞ для всех v,   d(старт) ← 0',
+    'OPEN ← все узлы',
+    'пока OPEN не пуста:',
+    '    u ← узел из OPEN с наименьшим d',
+    '    если u = цель: путь найден',
+    '    убрать u из OPEN  (его d окончателен)',
+    '    для каждого ребра (u, v) длины w:',
+    '        если v уже обработан: пропустить',
+    '        если d(u) + w < d(v):',
+    '            d(v) ← d(u) + w',
+    '            родитель(v) ← u'
+  ];
+  var LINE = { init: 0, pop: 3, close: 5, skip: 7, better: 8, worse: 8, push: 9, done: 4 };
+
+  // ---------------------------------------------------------------------
+  // Trace: run once, record frames, replay. Each pop opens a new iteration.
+  // ---------------------------------------------------------------------
+  function buildTrace() {
+    var d = {}, parent = {}, done = {}, open = {};
+    var frames = [], iter = 0, processed = 0;
+
+    ORDER.forEach(function (n) { d[n] = Infinity; parent[n] = null; open[n] = true; });
+    d[START] = 0;
+
+    function snapshot(extra) {
+      var f = {
+        iter: iter,
+        // Shallow copies: JSON round-tripping would turn Infinity into null,
+        // and "d = ∞" is exactly what the first frames need to show.
+        d: Object.assign({}, d),
+        parent: Object.assign({}, parent),
+        done: Object.keys(done),
+        open: Object.keys(open),
+        processed: processed
+      };
+      for (var p in extra) f[p] = extra[p];
+      frames.push(f);
+    }
+
+    snapshot({
+      phase: 'init', cur: null, focus: null,
+      title: 'Подготовка',
+      text: 'Всем узлам ставим <code>d = ∞</code>, старту — <code>d(A) = 0</code>.',
+      why: '∞ означает «пути пока не знаем». Любое найденное расстояние будет меньше, поэтому первая же проверка его заменит.'
+    });
+
+    var guard = 0;
+    while (guard++ < 200) {
+      var best = null;
+      Object.keys(open).forEach(function (n) {
+        if (d[n] === Infinity) return;
+        if (best === null || d[n] < d[best]) best = n;
+      });
+      if (best === null) break;
+
+      var queueSize = Object.keys(open).length;
+      iter++;
+      processed++;
+      var cur = best;
+
+      snapshot({
+        phase: 'pop', cur: cur, focus: null,
+        title: 'Берём узел ' + cur + ' — у него минимальное d',
+        text: 'd(' + cur + ') = <b>' + d[cur] + '</b>.',
+        why: 'Среди ' + queueSize + ' узлов очереди меньше нет. Значит до ' + cur +
+             ' короче уже не добраться: любой обход шёл бы через узел с бо́льшим d.'
+      });
+
+      if (cur === GOAL) {
+        var path = [], node = GOAL;
+        while (node) { path.push(node); node = parent[node]; }
+        path.reverse();
+        snapshot({
+          phase: 'done', cur: cur, focus: null, path: path,
+          title: 'Готово: цель ' + GOAL + ' извлечена',
+          text: 'Кратчайший путь <b>' + path.join(' → ') + '</b>, длина <b>' + d[GOAL] + '</b>.',
+          why: 'Путь читается с конца по родителям: ' + path.slice().reverse().join(' ← ') + '.'
+        });
+        return { frames: frames, iterations: iter };
+      }
+
+      delete open[cur];
+      done[cur] = true;
+      snapshot({
+        phase: 'close', cur: cur, focus: null,
+        title: 'Узел ' + cur + ' обработан',
+        text: 'Убираем его из очереди — значение d(' + cur + ') = ' + d[cur] + ' окончательное.',
+        why: 'Все веса рёбер неотрицательны, поэтому вернуться в ' + cur + ' более коротким путём невозможно.'
+      });
+
+      for (var i = 0; i < adj[cur].length; i++) {
+        var nb = adj[cur][i], v = nb.to, w = nb.w;
+        if (done[v]) {
+          snapshot({
+            phase: 'skip', cur: cur, focus: v, edge: [cur, v],
+            title: 'Сосед ' + v + ' — пропускаем',
+            text: 'Он уже обработан.',
+            why: 'Его d окончательно, пересчитывать нечего.'
+          });
+          continue;
+        }
+
+        var cand = d[cur] + w;
+        var old = d[v];
+        var better = cand < old;
+
+        snapshot({
+          phase: better ? 'better' : 'worse',
+          cur: cur, focus: v, edge: [cur, v], candidate: better ? v : null,
+          title: 'Ребро ' + cur + ' → ' + v + ' (длина ' + w + ')',
+          text: 'd(' + cur + ') + ' + w + ' = ' + d[cur] + ' + ' + w + ' = <b>' + cand + '</b>, ' +
+                'а у ' + v + ' сейчас d = ' + (old === Infinity ? '∞' : old) + '.',
+          why: better
+            ? (old === Infinity
+                ? 'Первый найденный путь до ' + v + ' — <span class="ok">записываем</span>.'
+                : 'Через ' + cur + ' короче, чем было (' + old + ') — <span class="ok">улучшаем</span>.')
+            : 'Не короче прежних ' + old + ' — <span class="no">оставляем как есть</span>.'
+        });
+
+        if (better) {
+          d[v] = cand;
+          parent[v] = cur;
+          snapshot({
+            phase: 'push', cur: cur, focus: v, edge: [cur, v], candidate: v,
+            title: 'Обновляем ' + v,
+            text: 'd(' + v + ') = <b>' + cand + '</b>, родитель(' + v + ') = ' + cur + '.',
+            why: 'Теперь ' + v + ' стоит в очереди с новым, меньшим ключом.'
+          });
+        }
+      }
+    }
+
+    snapshot({ phase: 'done', cur: null, focus: null, title: 'Очередь пуста', text: 'Цель недостижима.', why: '' });
+    return { frames: frames, iterations: iter };
+  }
+
+  // ---------------------------------------------------------------------
+  // Rendering
+  // ---------------------------------------------------------------------
+  var canvas = document.getElementById('graph');
+  var ctx = canvas.getContext('2d');
+  var tableBody = document.getElementById('tableBody');
+  var codeEl = document.getElementById('code');
+  var narration = document.getElementById('narration');
+  var scrub = document.getElementById('scrub');
+  var stIter = document.getElementById('stIter');
+  var stSub = document.getElementById('stSub');
+  var stDone = document.getElementById('stDone');
+  var stOpen = document.getElementById('stOpen');
+  var stGoal = document.getElementById('stGoal');
+
+  var trace = null, idx = 0, timer = null;
+
+  function fit() {
+    var box = canvas.parentElement;
+    var ratio = window.devicePixelRatio || 1;
+    canvas.width = box.clientWidth * ratio;
+    canvas.height = box.clientHeight * ratio;
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    draw();
+  }
+
+  // See widgets/graph-search-steps: an iframe inside a Marp slide can still be
+  // unlaid-out when the widget first measures it, which would leave a 0x0
+  // canvas that never recovers. Re-measure until the box reports a real size.
+  function autosize(element, onResize) {
+    if (!element) return;
+    var frameTries = 0, ticks = 0, poll = null;
+    function sized() { return element.clientWidth > 0 && element.clientHeight > 0; }
+    function attempt() {
+      onResize();
+      if (sized()) return;
+      if (frameTries++ < 240) {
+        window.requestAnimationFrame(attempt);
+      } else if (!poll) {
+        poll = setInterval(function () {
+          onResize();
+          if (sized() || ticks++ > 40) { clearInterval(poll); poll = null; }
+        }, 250);
+      }
+    }
+    window.requestAnimationFrame(attempt);
+    window.addEventListener('resize', onResize);
+    window.addEventListener('pageshow', onResize);
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden) onResize();
+    });
+    if (window.ResizeObserver) new window.ResizeObserver(onResize).observe(element);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(onResize).catch(function () {});
+    }
+  }
+
+  function layout() {
+    var W = canvas.clientWidth || canvas.parentElement.clientWidth;
+    var H = canvas.clientHeight || canvas.parentElement.clientHeight;
+    var pad = Math.max(38, Math.min(W, H) * 0.12);
+    var pos = {};
+    ORDER.forEach(function (n) {
+      pos[n] = {
+        x: pad + NODES[n].x * (W - 2 * pad),
+        y: pad + NODES[n].y * (H - 2 * pad)
+      };
+    });
+    return { pos: pos, r: Math.max(15, Math.min(W, H) * 0.055) };
+  }
+
+  function draw() {
+    var W = canvas.clientWidth, H = canvas.clientHeight;
+    ctx.clearRect(0, 0, W, H);
+    if (!trace) return;
+    var fr = trace.frames[idx];
+    var lay = layout(), pos = lay.pos, r = lay.r;
+
+    var doneSet = {}; fr.done.forEach(function (n) { doneSet[n] = true; });
+    var openSet = {}; fr.open.forEach(function (n) { openSet[n] = true; });
+    var pathEdges = {};
+    if (fr.path) {
+      for (var i = 0; i + 1 < fr.path.length; i++) {
+        pathEdges[fr.path[i] + '|' + fr.path[i + 1]] = true;
+        pathEdges[fr.path[i + 1] + '|' + fr.path[i]] = true;
+      }
+    }
+
+    // --- edges ---
+    EDGES.forEach(function (e) {
+      var a = pos[e[0]], b = pos[e[1]];
+      var isFocus = fr.edge && ((fr.edge[0] === e[0] && fr.edge[1] === e[1]) ||
+                                (fr.edge[0] === e[1] && fr.edge[1] === e[0]));
+      var isPath = pathEdges[e[0] + '|' + e[1]];
+      // The parent tree found so far, so the table's "родитель" column is visible.
+      var isTree = fr.parent[e[0]] === e[1] || fr.parent[e[1]] === e[0];
+
+      ctx.strokeStyle = isPath ? '#059669'
+                      : isFocus ? (fr.phase === 'worse' ? '#dc2626' : '#d97706')
+                      : isTree ? 'rgba(2, 132, 199, 0.55)' : '#cbd5e1';
+      ctx.lineWidth = isPath ? 5 : isFocus ? 4 : isTree ? 3 : 1.6;
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.stroke();
+
+      // weight label on a white chip so it stays readable over the edge
+      var mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+      var fs = Math.max(11, r * 0.62);
+      ctx.font = '700 ' + Math.round(fs) + 'px "JetBrains Mono", monospace';
+      var tw = ctx.measureText(String(e[2])).width;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(mx - tw / 2 - 4, my - fs / 2 - 3, tw + 8, fs + 6);
+      ctx.strokeStyle = isFocus ? '#d97706' : '#e2e8f0';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(mx - tw / 2 - 4, my - fs / 2 - 3, tw + 8, fs + 6);
+      ctx.fillStyle = isFocus ? '#b45309' : '#475569';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(e[2]), mx, my);
+    });
+
+    // --- nodes ---
+    ORDER.forEach(function (n) {
+      var p = pos[n];
+      var fill = '#ffffff', stroke = '#94a3b8', lw = 2;
+      if (fr.cur === n) { fill = '#a5f3fc'; stroke = '#0e7490'; lw = 3.5; }
+      else if (doneSet[n]) { fill = '#fdedd3'; stroke = '#d97706'; }
+      else if (openSet[n] && fr.d[n] !== null && fr.d[n] !== Infinity) { fill = '#dceffb'; stroke = '#0284c7'; }
+      if (fr.focus === n) { stroke = '#d97706'; lw = 3.5; }
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, 6.284);
+      ctx.fillStyle = fill;
+      ctx.fill();
+      ctx.strokeStyle = stroke;
+      ctx.lineWidth = lw;
+      ctx.stroke();
+
+      ctx.fillStyle = '#0f172a';
+      ctx.font = '700 ' + Math.round(r * 0.85) + 'px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(n, p.x, p.y - r * 0.12);
+
+      var dv = fr.d[n];
+      ctx.font = '700 ' + Math.round(r * 0.6) + 'px "JetBrains Mono", monospace';
+      ctx.fillStyle = dv === Infinity || dv === null ? '#94a3b8' : '#0284c7';
+      ctx.fillText(dv === Infinity || dv === null ? '∞' : String(dv), p.x, p.y + r * 0.52);
+
+      if (n === START || n === GOAL) {
+        ctx.fillStyle = n === START ? '#0284c7' : '#dc2626';
+        ctx.font = '700 ' + Math.round(r * 0.5) + 'px Inter, sans-serif';
+        ctx.fillText(n === START ? 'старт' : 'цель', p.x, p.y - r - Math.round(r * 0.42));
+      }
+    });
+    ctx.textBaseline = 'alphabetic';
+  }
+
+  function renderTable() {
+    var fr = trace.frames[idx];
+    var doneSet = {}; fr.done.forEach(function (n) { doneSet[n] = true; });
+    var rows = ORDER.map(function (n) {
+      var cls = fr.cur === n ? 'cur'
+              : (fr.candidate === n ? 'changed'
+              : (doneSet[n] ? 'done'
+              : (fr.d[n] !== Infinity ? 'inopen' : '')));
+      var status = doneSet[n] ? 'готово' : (fr.d[n] === Infinity ? '—' : 'в очереди');
+      return '<tr' + (cls ? ' class="' + cls + '"' : '') + '>' +
+             '<td>' + n + '</td>' +
+             '<td>' + (fr.d[n] === Infinity ? '∞' : fr.d[n]) + '</td>' +
+             '<td>' + (fr.parent[n] || '—') + '</td>' +
+             '<td class="tag">' + status + '</td></tr>';
+    }).join('');
+    tableBody.innerHTML =
+      '<table class="dist"><thead><tr><th>узел</th><th>d</th><th>родитель</th><th>статус</th></tr></thead>' +
+      '<tbody>' + rows + '</tbody></table>';
+  }
+
+  function renderCode() {
+    var line = LINE[trace.frames[idx].phase];
+    Array.prototype.forEach.call(codeEl.children, function (li, i) {
+      li.className = i === line ? 'on' : '';
+    });
+  }
+
+  function iterBounds(i) {
+    var it = trace.frames[i].iter, from = i, to = i;
+    while (from > 0 && trace.frames[from - 1].iter === it) from--;
+    while (to < trace.frames.length - 1 && trace.frames[to + 1].iter === it) to++;
+    return { from: from, to: to };
+  }
+
+  function render() {
+    var fr = trace.frames[idx];
+    narration.innerHTML = '<span class="title">' + fr.title + '</span>' + fr.text +
+                          (fr.why ? '<span class="why">' + fr.why + '</span>' : '');
+    var b = iterBounds(idx);
+    stIter.textContent = fr.iter === 0 ? '— подготовка' : fr.iter + ' из ' + trace.iterations;
+    stSub.textContent = (idx - b.from + 1) + ' из ' + (b.to - b.from + 1);
+    stDone.textContent = fr.done.length;
+    stOpen.textContent = fr.open.length;
+    stGoal.textContent = fr.path ? 'путь ' + fr.path.join(' → ') + ' · длина ' + fr.d[GOAL] : '';
+    scrub.value = idx;
+    renderTable();
+    renderCode();
+    draw();
+  }
+
+  function load() {
+    stop();
+    trace = buildTrace();
+    idx = 0;
+    codeEl.innerHTML = PSEUDO.map(function (l) {
+      return '<li>' + l.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</li>';
+    }).join('');
+    scrub.max = trace.frames.length - 1;
+    render();
+  }
+
+  function go(delta) {
+    idx = Math.max(0, Math.min(trace.frames.length - 1, idx + delta));
+    render();
+  }
+
+  function jumpIteration() {
+    var it = trace.frames[idx].iter, i = idx;
+    while (i < trace.frames.length - 1 && trace.frames[i].iter === it) i++;
+    idx = i;
+    render();
+  }
+
+  function stop() {
+    if (timer) { clearInterval(timer); timer = null; }
+    var btn = document.getElementById('play');
+    btn.textContent = 'Авто ⏵';
+    btn.classList.remove('btn-danger');
+  }
+
+  document.getElementById('fwd').onclick = function () { stop(); go(1); };
+  document.getElementById('back').onclick = function () { stop(); go(-1); };
+  document.getElementById('nextIter').onclick = function () { stop(); jumpIteration(); };
+  document.getElementById('end').onclick = function () { stop(); idx = trace.frames.length - 1; render(); };
+  document.getElementById('reset').onclick = function () { load(); };
+  scrub.oninput = function () { stop(); idx = +this.value; render(); };
+
+  document.getElementById('play').onclick = function () {
+    if (timer) { stop(); return; }
+    this.textContent = 'Пауза ⏸';
+    this.classList.add('btn-danger');
+    var self = this;
+    timer = setInterval(function () {
+      if (idx >= trace.frames.length - 1) { stop(); self.textContent = 'Авто ⏵'; return; }
+      go(1);
+    }, 700);
+  };
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight') { stop(); go(1); }
+    if (e.key === 'ArrowLeft') { stop(); go(-1); }
+    if (e.key === 'ArrowDown') { stop(); jumpIteration(); }
+  });
+
+  load();
+  autosize(canvas.parentElement, fit);
+})();
+</script>
+</body>
+</html>

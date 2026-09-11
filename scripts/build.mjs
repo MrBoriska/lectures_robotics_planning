@@ -414,6 +414,11 @@ const portalHtml = `<!DOCTYPE html>
             <p>Многоагентное планирование, предотвращение Vertex и Swap коллизий с помощью действий ожидания (WAIT) и таблицы резервирования.</p>
             <span class="lecture-num">Открыть симулятор →</span>
           </a>
+          <a href="widgets/dijkstra-graph/index.html" class="widget-link-card" target="_blank">
+            <h4>Дейкстра на простом графе</h4>
+            <p>Шесть узлов, девять рёбер: извлечение минимума, ослабление ребра и таблица расстояний — весь алгоритм за шесть итераций.</p>
+            <span class="lecture-num">Открыть симулятор →</span>
+          </a>
           <a href="widgets/graph-search-steps/index.html" class="widget-link-card" target="_blank">
             <h4>Пошаговый разбор: Dijkstra / A* / Theta*</h4>
             <p>Одна итерация за клик: извлечение из OPEN, релаксация ребра, проверка LineOfSight. Очередь с приоритетом и псевдокод синхронны с сеткой.</p>
