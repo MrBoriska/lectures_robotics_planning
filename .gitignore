@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
-package-lock.json
+# package-lock.json is intentionally committed: `actions/setup-node` with
+# cache: 'npm' fails without it, and `npm ci` needs it for reproducible builds.
 
 # Build output
 dist/

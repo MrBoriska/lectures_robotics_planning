@@ -22,21 +22,31 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
+      # lfs: true — the traversability photographs under assets/ are stored in
+      # Git LFS and are copied into dist/ by the build.
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+        with:
+          lfs: true
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci || npm install
+        run: npm ci
 
-      - name: Build Marp Presentations & Course Portal
-        run: |
-          npm run build:html
+      # The build regenerates every algorithmic SVG from source, so the figures
+      # in the deployed deck always match the generator in this commit.
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Build presentations and course portal
+        run: npm run build:html
         env:
           MARP_NO_SANDBOX: "true"
 
@@ -44,7 +54,7 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: './dist'
 

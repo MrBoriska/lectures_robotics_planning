@@ -2196,23 +2196,53 @@ def generate_voronoi_construction():
     site_index = {}
     regions = []
     bands = []
+
+    def flush(runs, row_y, emit):
+        """Emit one <rect> per horizontal run of identical cells.
+
+        Sampling every cell separately produced ~9 000 rects and a 660 KB file
+        that also took noticeable time to rasterise. Merging runs cuts both by
+        an order of magnitude without changing a single pixel.
+        """
+        for x0, x1, payload in runs:
+            emit(x0, row_y, x1 - x0 + step, payload)
+
+    def add_region(x, y, w, colour):
+        regions.append('      <rect x="%g" y="%g" width="%g" height="%g" fill="%s"/>'
+                       % (x, y, w, step, colour))
+
+    def add_band(x, y, w, opacity):
+        bands.append('      <rect x="%g" y="%g" width="%g" height="%g" fill="#0284c7" opacity="%.2f"/>'
+                     % (x, y, w, step, opacity))
+
     for r in range(rows):
+        row_y = r * step
+        region_runs, band_runs = [], []
         for c in range(cols):
-            p = (c * step, r * step)
-            if any(point_in_polygon(p, poly) for poly in SCENE_POLYS):
-                continue
-            sid, d = nearest_site(p, SCENE_POLYS, SCENE_W, SCENE_H)
-            # Stable index, not hash(): Python randomises string hashes per
-            # process, which would repaint the figure on every build.
-            if sid not in site_index:
-                site_index[sid] = len(site_index)
-            colour = site_colours[site_index[sid] % len(site_colours)]
-            regions.append('      <rect x="%g" y="%g" width="%g" height="%g" fill="%s"/>'
-                           % (p[0], p[1], step, step, colour))
-            ring = int(d // 12)
-            if ring < 5:
-                bands.append('      <rect x="%g" y="%g" width="%g" height="%g" fill="#0284c7" opacity="%.2f"/>'
-                             % (p[0], p[1], step, step, 0.30 - 0.055 * ring))
+            p = (c * step, row_y)
+            inside = any(point_in_polygon(p, poly) for poly in SCENE_POLYS)
+            colour, opacity = None, None
+            if not inside:
+                sid, d = nearest_site(p, SCENE_POLYS, SCENE_W, SCENE_H)
+                # Stable index, not hash(): Python randomises string hashes per
+                # process, which would repaint the figure on every build.
+                if sid not in site_index:
+                    site_index[sid] = len(site_index)
+                colour = site_colours[site_index[sid] % len(site_colours)]
+                ring = int(d // 12)
+                if ring < 5:
+                    opacity = round(0.30 - 0.055 * ring, 2)
+
+            for runs, value in ((region_runs, colour), (band_runs, opacity)):
+                if value is None:
+                    continue
+                if runs and runs[-1][2] == value and runs[-1][1] == p[0] - step:
+                    runs[-1] = (runs[-1][0], p[0], value)
+                else:
+                    runs.append((p[0], p[0], value))
+
+        flush(region_runs, row_y, add_region)
+        flush(band_runs, row_y, add_band)
 
     gvd = compute_gvd(SCENE_POLYS, SCENE_W, SCENE_H)
     gvd_svg = '\n'.join('      <rect x="%g" y="%g" width="2.6" height="2.6" fill="#059669"/>' % (x, y)

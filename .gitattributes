@@ -1,0 +1,26 @@
+# Git LFS
+#
+# Only binary assets that are large and never diffed go to LFS. Everything the
+# course is actually authored in — Markdown, CSS, the widgets, the generator
+# script and the SVGs it produces — stays as ordinary text so that diffs,
+# blame and review keep working.
+
+# Reference literature (LaValle, MIT, ETH): ~26 MB, read-only, never built from.
+*.pdf filter=lfs diff=lfs merge=lfs -text
+
+# Photographic illustrations (traversability slides). Generated SVG diagrams
+# are text and deliberately excluded.
+*.jpg  filter=lfs diff=lfs merge=lfs -text
+*.jpeg filter=lfs diff=lfs merge=lfs -text
+*.png  filter=lfs diff=lfs merge=lfs -text
+
+# Keep line endings sane for text assets across platforms.
+*.md    text eol=lf
+*.css   text eol=lf
+*.html  text eol=lf
+*.mjs   text eol=lf
+*.js    text eol=lf
+*.py    text eol=lf
+*.json  text eol=lf
+*.yml   text eol=lf
+*.svg   text eol=lf
