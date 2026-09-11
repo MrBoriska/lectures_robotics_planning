@@ -1,34 +1,36 @@
-# 🇺🇸 MIT: Материалы курсов по планированию автономных систем
+# MIT. Материалы по планированию
 
-В данной директории размещены лекции и научные публикации Массачусетского технологического института (MIT):
+## Лекции курса 16.410/16.413 «Principles of Autonomy and Decision Making»
 
-### Файлы в директории:
-1. [`mit_16_410_lec14_informed_search.pdf`](mit_16_410_lec14_informed_search.pdf)
-   * **Курс:** MIT 16.410/16.413 «Principles of Autonomy and Decision Making»
-   * **Лектор:** Prof. Emilio Frazzoli
-   * **Тема:** Информированный поиск, $A^*$, алгоритм ветвей и границ (Branch & Bound), построение монотонных эвристик.
-2. [`mit_16_410_lec15_sampling_based_planning.pdf`](mit_16_410_lec15_sampling_based_planning.pdf)
-   * **Курс:** MIT 16.410/16.413
-   * **Лектор:** Prof. Emilio Frazzoli
-   * **Тема:** Сэмплирующие алгоритмы планирования в $\mathcal{C}$-space, Probabilistic Roadmaps (PRM), Rapidly-exploring Random Trees (RRT), вероятностная полнота (Probabilistic Completeness).
-3. [`mit_16_410_lec18_milp_motion_planning.pdf`](mit_16_410_lec18_milp_motion_planning.pdf)
-   * **Курс:** MIT 16.410/16.413
-   * **Лектор:** Prof. Emilio Frazzoli
-   * **Тема:** Математическое программирование в планировании: смешанно-целочисленное линейное программирование (MILP / Big-M method) для гарантированного избежания столкновений и оптимизации траекторий.
-4. [`karaman_frazzoli_rrt_star_optimal_planning.pdf`](karaman_frazzoli_rrt_star_optimal_planning.pdf)
-   * **Авторы:** Sertac Karaman & Emilio Frazzoli (MIT Laboratory for Information and Decision Systems - LIDS)
-   * **Название:** *«Sampling-based Algorithms for Optimal Motion Planning»* (International Journal of Robotics Research - IJRR, 2011)
-   * **Значение:** Фундаментальная статья, доказавшая, что классические алгоритмы PRM и RRT **не сходятся к оптимальному пути** с вероятностью 1 (вероятность нахождения оптимума равна нулю!), и предложившая революционные алгоритмы **$RRT^*$** и **$PRM^*$** с доказательством асимптотической оптимальности через переподключение соседей (rewiring).
+Лектор — Emilio Frazzoli.
 
----
+**[`mit_16_410_lec14_informed_search.pdf`](mit_16_410_lec14_informed_search.pdf)
+— Информированный поиск.** Алгоритм $A^*$; построение допустимых и монотонных
+эвристик; метод ветвей и границ; соотношение между качеством эвристики и числом
+раскрытых вершин.
 
-## 🔬 Дополнительные ключевые курсы MIT для курса
+**[`mit_16_410_lec15_sampling_based_planning.pdf`](mit_16_410_lec15_sampling_based_planning.pdf)
+— Планирование, основанное на выборке.** Вероятностные дорожные карты (PRM);
+быстро исследующие случайные деревья (RRT); вероятностная полнота и её отличие
+от полноты разрешения.
 
-* **MIT 6.832: Underactuated Robotics (Prof. Russ Tedrake):**
-  - Оптимизация траекторий (Trajectory Optimization).
-  - Методы прямой коллокации (Direct Collocation) и прямого выстреливания (Direct Shooting).
-  - Неголономное планирование и дифференциальная плоскостность (Differential Flatness).
-  - Инвариантные трубки управляемости (Funnel Library / Hamilton-Jacobi Reachability).
-* **MIT 16.485: Visual Navigation for Autonomous Vehicles - VNAV (Prof. Luca Carlone):**
-  - Интеграция SLAM и Trajectory Planning в динамических средах.
-  - Построение локальных безопасных коридоров (Safe Flight Corridors) с помощью выпуклой оптимизации.
+**[`mit_16_410_lec18_milp_motion_planning.pdf`](mit_16_410_lec18_milp_motion_planning.pdf)
+— Математическое программирование в планировании.** Смешанно-целочисленное
+линейное программирование (MILP); формулировка условий непересечения препятствий
+методом «большого $M$»; оптимизация траектории при линейной динамике.
+
+## Статья
+
+**[`karaman_frazzoli_rrt_star_optimal_planning.pdf`](karaman_frazzoli_rrt_star_optimal_planning.pdf)**
+
+S. Karaman, E. Frazzoli. Sampling-based Algorithms for Optimal Motion Planning.
+*International Journal of Robotics Research*, 2011, vol. 30, no. 7, pp. 846–894.
+MIT Laboratory for Information and Decision Systems.
+
+Работа показывает, что PRM и RRT в исходной формулировке вероятностно полны, но
+не асимптотически оптимальны: вероятность сходимости решения RRT к оптимальному
+при $n \to \infty$ равна нулю. Авторы предлагают варианты $\text{PRM}^*$ и
+$\text{RRT}^*$, в которых радиус окрестности убывает как
+$r_n \propto (\log n / n)^{1/d}$, и доказывают их асимптотическую оптимальность.
+В $\text{RRT}^*$ вводятся две дополнительные процедуры — выбор родителя с
+наименьшей суммарной стоимостью и переподключение соседей (rewiring).

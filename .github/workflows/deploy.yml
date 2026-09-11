@@ -40,11 +40,7 @@ jobs:
 
       # The build regenerates every algorithmic SVG from source, so the figures
       # in the deployed deck always match the generator in this commit.
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
+      # python3 is preinstalled on ubuntu-latest — no setup action needed.
       - name: Build presentations and course portal
         run: npm run build:html
         env:
@@ -52,6 +48,8 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4

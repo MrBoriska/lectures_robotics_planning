@@ -1,56 +1,77 @@
-# 🤖 Курс лекций: Планирование движений и траекторий мобильных роботов
+# Планирование движений и траекторий мобильных роботов
 
-[![Marp](https://img.shields.io/badge/Presented_with-Marp-0284c7.svg)](https://marp.app/)
-[![DevContainer](https://img.shields.io/badge/VS_Code-DevContainer-2563eb.svg)](https://code.visualstudio.com/docs/devcontainers/containers)
-[![GitHub Pages](https://img.shields.io/badge/Deploy-GitHub_Pages-10b981.svg)](https://pages.github.com/)
-[![Lectures](https://img.shields.io/badge/Lectures-8_%C3%97_90_min-f59e0b.svg)](#структура-курса)
+Курс из восьми лекций по 90 минут. Презентации написаны на Markdown (Marp), в
+слайды встроены интерактивные модели алгоритмов. Сборка и разработка ведутся в
+Docker DevContainer, публикация — на GitHub Pages.
 
-Современный учебно-методический комплекс презентаций для 90-минутных лекций по планированию движений мобильных колесных роботов. Написан на **Markdown (Marp)** со встроенными интерактивными симуляторами алгоритмов, строгой математической формализацией ($\mathcal{C}$-space, суммы Минковского, неголономные связи, LQR, MPC, World Models), минималистичным дизайном и готовым **Docker DevContainer** для изолированной разработки.
+## Структура курса
 
----
+Тематический план, включая содержание ещё не переработанных лекций, —
+[`lectures/PLAN.md`](lectures/PLAN.md).
 
-## 📚 Структура курса (8 лекций по 90 минут)
+| | Тема | Файлы |
+| :--- | :--- | :--- |
+| 01 | Постановка задачи планирования и представление среды | [презентация](lectures/lecture-01/lecture-01.md) · [план](lectures/lecture-01/timing.md) |
+| 02 | Дискретное планирование на графах и сетках | [презентация](lectures/lecture-02/lecture-02.md) · [план](lectures/lecture-02/timing.md) |
+| 03 | Методы планирования, основанные на выборке | [презентация](lectures/lecture-03/lecture-03.md) · [план](lectures/lecture-03/timing.md) |
+| 04 | Выборочные методы с моделью движения: DWA и MPPI | [презентация](lectures/lecture-04/lecture-04.md) · [план](lectures/lecture-04/timing.md) |
+| 05 | Оптимальное управление: от принципа максимума к численным решателям | [презентация](lectures/lecture-05/lecture-05.md) · [план](lectures/lecture-05/timing.md) |
+| 06 | Управление с прогнозирующей моделью (MPC) | [презентация](lectures/lecture-06/lecture-06.md) · [план](lectures/lecture-06/timing.md) |
+| 07 | Учёт кинематических и динамических ограничений | [презентация](lectures/lecture-07/lecture-07.md) · [план](lectures/lecture-07/timing.md) |
+| 08 | Вычислительные аспекты и инженерные компромиссы | [презентация](lectures/lecture-08/lecture-08.md) · [план](lectures/lecture-08/timing.md) |
 
-Каждая лекция выстроена по строгому педагогическому регламенту: теория (45 мин), интерактивный симулятор (15 мин), прикладная робототехника / ROS 2 (20 мин) и Q&A (10 мин).
+Лекции 01 и 02 проработаны полностью. Остальные имеют актуальные названия;
+их содержание перерабатывается согласно `lectures/PLAN.md`.
 
-| Лекция | Файл презентации | План и тайминг | Ключевые темы и концепции |
-| :--- | :--- | :--- | :--- |
-| **Лекция 01** | [`lecture-01.md`](lectures/lecture-01/lecture-01.md) | [timing.md](lectures/lecture-01/timing.md) | **Постановка задачи планирования, репрезентация среды и ландшафт методов:** Path vs Trajectory, $\mathcal{C}$-space, сумма Минковского, профильная, опорная и семантическая проходимость, SOTA (nvblox, wavemap, elevation_mapping_cupy), SDF/ESDF, World Models. |
-| **Лекция 02** | [`lecture-02.md`](lectures/lecture-02/lecture-02.md) | [timing.md](lectures/lecture-02/timing.md) | **Дискретное планирование на графах и сетках:** 4/8-связные сетки, граф видимости, диаграммы Вороного, Dijkstra, $A^*$, допустимые и монотонные эвристики (Octile, Manhattan, Euclid), $D^*$ Lite, сглаживание траекторий. |
-| **Лекция 03** | [`lecture-03.md`](lectures/lecture-03/lecture-03.md) | [timing.md](lectures/lecture-03/timing.md) | **Планирование, основанное на выборке:** Проклятие размерности, PRM, RRT, доказательство неоптимальности базового RRT (Караман–Фраццоли), асимптотически оптимальный $RRT^*$ (Rewiring), Informed $RRT^*$, $k$-d tree, BVH. |
-| **Лекция 04** | [`lecture-04.md`](lectures/lecture-04/lecture-04.md) | [timing.md](lectures/lecture-04/timing.md) | **Реактивные и локальные методы:** Искусственные потенциальные поля (APF), гармонические поля (уравнение Лапласа $\Delta U = 0$), устранение U-ловушек, Dynamic Window Approach (DWA), Timed Elastic Band (TEB), Velocity Obstacles (VO/RVO). |
-| **Лекция 05** | [`lecture-05.md`](lectures/lecture-05/lecture-05.md) | [timing.md](lectures/lecture-05/timing.md) | **Оптимальное управление:** Вариационное исчисление, принцип максимума Понтрягина (Bang-Bang управление), уравнение HJB, LQR регулятор и уравнение Риккати, Direct Shooting vs Direct Collocation, кривые Дубинса и Ридса-Шеппа. |
-| **Лекция 06** | [`lecture-06.md`](lectures/lecture-06/lecture-06.md) | [timing.md](lectures/lecture-06/timing.md) | **Предиктивное управление (Model Predictive Control):** Принцип скользящего горизонта (Receding Horizon), линейный MPC (задача QP), нелинейный NMPC (Bicycle model, SQP, RTI, acados), Control Barrier Functions (CBF), Safe Flight Corridors. |
-| **Лекция 07** | [`lecture-07.md`](lectures/lecture-07/lecture-07.md) | [timing.md](lectures/lecture-07/timing.md) | **Учёт ограничений в алгоритмах планирования:** Геометрические, кинематические и динамические связи, неголономность (Пфафф $\omega \dot{q} = 0$), скобки Ли (Lie brackets), теорема Чоу–Рашевского, State Lattice, Kinodynamic RRT, конус трения шин, профилирование TOPP-RA. |
-| **Лекция 08** | [`lecture-08.md`](lectures/lecture-08/lecture-08.md) | [timing.md](lectures/lecture-08/timing.md) | **Вычислительные аспекты и инженерные компромиссы:** Многотактовая архитектура (1 Гц $\to$ 30 Гц $\to$ 1 кГц), компенсация задержки (Latency), алгоритм линейного EDT Фельзеншвальба, ROS 2 Nav2, Деревья поведения (Behavior Trees), восстановительные сценарии, Sim-to-Real. |
+## Интерактивные модели
 
----
+Автономные страницы на HTML5 Canvas без внешних зависимостей
+([`widgets/`](widgets/)). Встраиваются в слайды через `iframe` и открываются
+отдельно.
 
-## 🕹️ Интерактивные алгоритмические симуляторы (`widgets/`)
+| Модель | Назначение | Лекция |
+| :--- | :--- | :--- |
+| [`cspace-minkowski`](widgets/cspace-minkowski/index.html) | Построение $\mathcal{C}_{obs} = \mathcal{O} \oplus (-\mathcal{A})$ при повороте несимметричного робота | 01 |
+| [`dijkstra-graph`](widgets/dijkstra-graph/index.html) | Алгоритм Дейкстры по шагам на графе из 6 вершин: таблица расстояний, ослабление рёбер | 02 |
+| [`graph-search-steps`](widgets/graph-search-steps/index.html) | Разбор итерации Дейкстры, $A^*$ и $\text{Theta}^*$ на сетке: очередь, псевдокод, проверка прямой видимости | 02 |
+| [`astar-grid`](widgets/astar-grid/index.html) | Сравнение трёх алгоритмов на произвольной карте, рисование стен мышью | 02 |
+| [`mapf-spacetime`](widgets/mapf-spacetime/index.html) | Пространственно-временной $A^*$, конфликты и действие ожидания | 02 |
+| [`rrt-exploration`](widgets/rrt-exploration/index.html) | RRT и $\text{RRT}^*$, переподключение ветвей | 03 |
+| [`potential-field`](widgets/potential-field/index.html) | Потенциальные поля и захват в локальный минимум | 04 |
 
-В слайды интегрированы полнофункциональные автономные симуляторы (чистый HTML5 Canvas/JS):
-1. [**C-Space & Minkowski Sum**](widgets/cspace-minkowski/index.html) — визуализация формирования среза $\mathcal{C}_{obs} = \mathcal{O} \oplus (-\mathcal{A})$ при вращении некруглого робота $\theta$.
-2. [**A\* & Dijkstra Grid Search**](widgets/astar-grid/index.html) — интерактивная сетка, динамическое рисование стен, сравнение эвристик (Манхэттен, Евклид, Дейкстра $h=0$), анимация фронта волны.
-3. [**RRT / RRT\* Tree Exploration**](widgets/rrt-exploration/index.html) — случайный сэмплинг в непрерывном $\mathcal{C}$-space, демонстрация переподключения ребер (Rewiring) в $RRT^*$.
-4. [**Artificial Potential Fields (APF)**](widgets/potential-field/index.html) — векторы сил притяжения/отталкивания и наглядный захват робота в U-ловушку (локальный минимум).
+## Иллюстрации
 
----
+Схемы алгоритмов не рисуются вручную, а вычисляются:
+[`scripts/generate_algorithmic_diagrams.py`](scripts/generate_algorithmic_diagrams.py)
+строит их расчётом (реальная проверка прямой видимости, настоящий поиск на
+сетке, аналитические кривые Дубинса, диаграмма Вороного волновым методом) и
+сохраняет в `assets/images/`. Генератор запускается автоматически при каждой
+сборке, поэтому рисунок не может разойтись с текстом слайда.
 
-## 📖 Первоисточники в репозитории (`references/`)
+Фотографические иллюстрации и PDF литературы хранятся в Git LFS
+(см. [`.gitattributes`](.gitattributes)).
 
-* **Стивен М. Лаваль:** «Planning Algorithms» ([`references/lavalle_planning_algorithms/`](references/lavalle_planning_algorithms/)).
-* **ETH Zürich:** «Autonomous Mobile Robots» ([`references/eth_zurich/`](references/eth_zurich/)).
-* **MIT:** «Principles of Autonomy and Decision Making» + статья Karaman & Frazzoli по $RRT^*$ ([`references/mit/`](references/mit/)).
-* **Сводный анализ:** [`references/README.md`](references/README.md).
+## Команды
 
----
-
-## 🛠️ Скрипты и команды (внутри Docker / DevContainer)
-
-| Команда | Описание |
+| Команда | Действие |
 | :--- | :--- |
-| `npm run dev` | Запуск сервера Marp с автообновлением слайдов на лету |
-| `npm run build` | Полная сборка всех 8 презентаций в HTML, PDF и генерация портала курса |
-| `npm run build:html` | Быстрая сборка только HTML-версий |
-| `npm run build:pdf` | Экспорт всех лекций в PDF через Chromium |
-| `npm run preview` | Локальный сервер портала курса на порту `8080` |
+| `npm run widgets` | Сервер интерактивных моделей на порту `5599` — нужен для предпросмотра слайдов |
+| `npm run dev` | Сервер Marp с автообновлением слайдов |
+| `npm run build:html` | Сборка HTML-версий и портала курса в `dist/` |
+| `npm run build` | То же, что `build:html` |
+| `npm run build:pdf` | Экспорт лекций в PDF через Chromium |
+| `npm run generate:diagrams` | Перегенерация схем без полной сборки |
+| `npm run preview` | Сборка и локальный просмотр портала на порту `8080` |
+
+### Предпросмотр слайдов в VS Code
+
+Интерактивные вставки загружаются с `http://localhost:5599`, поэтому перед
+открытием предпросмотра нужно выполнить `npm run widgets`. Для отображения
+`iframe` в боковой панели однократно выполните команду
+**Markdown: Change Preview Security Settings** и выберите **Disable**.
+
+## Первоисточники
+
+Литература, на которую опирается курс, — в [`references/`](references/):
+монография LaValle, конспект курса ETH Zürich, лекции MIT 16.410 и статья
+Karaman & Frazzoli об асимптотической оптимальности.
