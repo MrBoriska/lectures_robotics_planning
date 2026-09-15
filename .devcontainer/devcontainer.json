@@ -9,9 +9,6 @@
     "vscode": {
       "extensions": [
         "marp-team.marp-vscode",
-        "yzhang.markdown-all-in-one",
-        "bierner.markdown-mermaid",
-        "ritwickdey.liveserver",
         "esbenp.prettier-vscode",
         "davidanson.vscode-markdownlint",
         "streetsidesoftware.code-spell-checker",
@@ -24,17 +21,23 @@
         "markdown.marp.enableHtml": true,
         "markdown.marp.outlineExtension": true,
         "markdown.marp.strictPath": false,
+        "markdown.preview.openMarkdownLinks": "inEditor",
+        "task.allowAutomaticTasks": "on",
         "editor.wordWrap": "on",
         "editor.formatOnSave": true,
         "files.eol": "\n"
       }
     }
   },
-  "forwardPorts": [8080, 5500, 37717],
+  "forwardPorts": [8080, 5599, 5500, 37717],
   "portsAttributes": {
     "8080": {
       "label": "Course Web Portal",
       "onAutoForward": "openBrowser"
+    },
+    "5599": {
+      "label": "Interactive Widgets Server",
+      "onAutoForward": "silent"
     },
     "5500": {
       "label": "Live Server (Interactive Widgets)",
@@ -45,5 +48,6 @@
       "onAutoForward": "silent"
     }
   },
-  "postCreateCommand": "npm install"
+  "postCreateCommand": "npm install",
+  "postStartCommand": "node scripts/ensure-widgets-server.mjs"
 }

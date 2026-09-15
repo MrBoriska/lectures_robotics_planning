@@ -5,6 +5,8 @@
   "markdown.marp.enableHtml": true,
   "markdown.marp.outlineExtension": true,
   "markdown.marp.strictPath": false,
+  "markdown.preview.openMarkdownLinks": "inEditor",
+  "task.allowAutomaticTasks": "on",
   "editor.wordWrap": "on",
   "editor.formatOnSave": true,
   "files.eol": "\n"
