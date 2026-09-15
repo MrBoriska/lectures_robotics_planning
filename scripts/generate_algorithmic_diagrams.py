@@ -964,6 +964,256 @@ def generate_informed_rrt_ellipse():
     write_svg(filepath, svg)
 
 # -------------------------------------------------------------------------
+# Diagram 6b: Lecture 03 - PRM Learning vs Query Phase
+# -------------------------------------------------------------------------
+def generate_prm_learning_query():
+    filepath = os.path.join(OUTPUT_DIR, 'lecture-03', 'prm_learning_query.svg')
+    ensure_dir(filepath)
+
+    svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- Left: Learning Phase -->
+  <g transform="translate(20, 20)">
+    <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#0f172a">1. Фаза построения (Learning Phase)</text>
+    <text x="16" y="40" font-family="Inter, sans-serif" font-size="10.5" fill="#64748b">Сэмплирование N точек в C_free, k-NN соединение ребрами</text>
+
+    <!-- Obstacles -->
+    <circle cx="110" cy="140" r="45" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5"/>
+    <circle cx="240" cy="220" r="50" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5"/>
+    <text x="110" y="145" text-anchor="middle" font-family="Inter" font-size="11" fill="#64748b">C_obs</text>
+    <text x="240" y="225" text-anchor="middle" font-family="Inter" font-size="11" fill="#64748b">C_obs</text>
+
+    <!-- Valid Graph Edges -->
+    <g stroke="#94a3b8" stroke-width="1.2" opacity="0.75">
+      <line x1="45" y1="80" x2="110" y2="60"/>
+      <line x1="110" y1="60" x2="190" y2="75"/>
+      <line x1="190" y1="75" x2="280" y2="90"/>
+      <line x1="280" y1="90" x2="310" y2="150"/>
+      <line x1="45" y1="80" x2="50" y2="210"/>
+      <line x1="50" y1="210" x2="115" y2="250"/>
+      <line x1="115" y1="250" x2="160" y2="210"/>
+      <line x1="190" y1="75" x2="170" y2="150"/>
+      <line x1="170" y1="150" x2="160" y2="210"/>
+      <line x1="170" y1="150" x2="300" y2="160"/>
+      <line x1="300" y1="160" x2="310" y2="270"/>
+    </g>
+
+    <!-- Collision Rejected Edges -->
+    <g stroke="#ef4444" stroke-width="1.2" stroke-dasharray="3,3" opacity="0.7">
+      <line x1="50" y1="210" x2="170" y2="150"/>
+      <line x1="160" y1="210" x2="310" y2="270"/>
+    </g>
+
+    <!-- Roadmap Vertices -->
+    <g fill="#0284c7">
+      <circle cx="45" cy="80" r="4"/><circle cx="110" cy="60" r="4"/><circle cx="190" cy="75" r="4"/>
+      <circle cx="280" cy="90" r="4"/><circle cx="310" cy="150" r="4"/><circle cx="50" cy="210" r="4"/>
+      <circle cx="115" cy="250" r="4"/><circle cx="160" cy="210" r="4"/><circle cx="170" cy="150" r="4"/>
+      <circle cx="300" cy="160" r="4"/><circle cx="310" cy="270" r="4"/>
+    </g>
+
+    <rect x="14" y="278" width="317" height="30" rx="4" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
+    <text x="22" y="297" font-family="Inter, sans-serif" font-size="10.5" fill="#1e40af">Граф G = (V, E) строится один раз для всего цеха</text>
+  </g>
+
+  <!-- Right: Query Phase -->
+  <g transform="translate(395, 20)">
+    <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#0f172a">2. Фаза запроса (Query Phase)</text>
+    <text x="16" y="40" font-family="Inter, sans-serif" font-size="10.5" fill="#64748b">Подключение qs и qg к дорожной карте, поиск A* / Dijkstra</text>
+
+    <!-- Obstacles -->
+    <circle cx="110" cy="140" r="45" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5"/>
+    <circle cx="240" cy="220" r="50" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5"/>
+
+    <!-- Background Graph Edges -->
+    <g stroke="#cbd5e1" stroke-width="1.2">
+      <line x1="45" y1="80" x2="110" y2="60"/><line x1="110" y1="60" x2="190" y2="75"/>
+      <line x1="190" y1="75" x2="280" y2="90"/><line x1="280" y1="90" x2="310" y2="150"/>
+      <line x1="45" y1="80" x2="50" y2="210"/><line x1="50" y1="210" x2="115" y2="250"/>
+      <line x1="115" y1="250" x2="160" y2="210"/><line x1="170" y1="150" x2="160" y2="210"/>
+      <line x1="300" y1="160" x2="310" y2="270"/>
+    </g>
+
+    <!-- Query Connecting Edges -->
+    <line x1="25" y1="150" x2="45" y2="80" stroke="#10b981" stroke-width="2" stroke-dasharray="4,3"/>
+    <line x1="25" y1="150" x2="50" y2="210" stroke="#10b981" stroke-width="2" stroke-dasharray="4,3"/>
+    <line x1="325" y1="210" x2="300" y2="160" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4,3"/>
+    <line x1="325" y1="210" x2="310" y2="270" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4,3"/>
+
+    <!-- Optimal Query Path Found by A* -->
+    <g stroke="#0284c7" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="25" y1="150" x2="45" y2="80"/>
+      <line x1="45" y1="80" x2="110" y2="60"/>
+      <line x1="110" y1="60" x2="190" y2="75"/>
+      <line x1="190" y1="75" x2="170" y2="150"/>
+      <line x1="170" y1="150" x2="300" y2="160"/>
+      <line x1="300" y1="160" x2="325" y2="210"/>
+    </g>
+
+    <!-- Roadmap Vertices -->
+    <g fill="#64748b">
+      <circle cx="45" cy="80" r="3.5"/><circle cx="110" cy="60" r="3.5"/><circle cx="190" cy="75" r="3.5"/>
+      <circle cx="280" cy="90" r="3.5"/><circle cx="310" cy="150" r="3.5"/><circle cx="50" cy="210" r="3.5"/>
+      <circle cx="115" cy="250" r="3.5"/><circle cx="160" cy="210" r="3.5"/><circle cx="170" cy="150" r="3.5"/>
+      <circle cx="300" cy="160" r="3.5"/><circle cx="310" cy="270" r="3.5"/>
+    </g>
+
+    <!-- Start and Goal -->
+    <circle cx="25" cy="150" r="7.5" fill="#10b981" stroke="#ffffff" stroke-width="2"/>
+    <text x="25" y="154" text-anchor="middle" font-family="Inter" font-size="10" font-weight="700" fill="#ffffff">S</text>
+    <text x="25" y="174" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" fill="#047857">q_start</text>
+
+    <circle cx="325" cy="210" r="7.5" fill="#f59e0b" stroke="#ffffff" stroke-width="2"/>
+    <text x="325" y="214" text-anchor="middle" font-family="Inter" font-size="10" font-weight="700" fill="#ffffff">G</text>
+    <text x="325" y="234" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" fill="#b45309">q_goal</text>
+
+    <rect x="14" y="278" width="317" height="30" rx="4" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1"/>
+    <text x="22" y="297" font-family="Inter, sans-serif" font-size="10.5" fill="#065f46">Запрос выполняется за единицы миллисекунд</text>
+  </g>
+</svg>'''
+    write_svg(filepath, svg)
+
+# -------------------------------------------------------------------------
+# Diagram 6c: Lecture 03 - Narrow Passage & Bridge Test
+# -------------------------------------------------------------------------
+def generate_narrow_passage_bridge():
+    filepath = os.path.join(OUTPUT_DIR, 'lecture-03', 'narrow_passage_bridge.svg')
+    ensure_dir(filepath)
+
+    svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- Left: The Narrow Passage Trap -->
+  <g transform="translate(20, 20)">
+    <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#0f172a">1. Равномерный сэмплинг (Trap)</text>
+    <text x="16" y="40" font-family="Inter, sans-serif" font-size="10.5" fill="#dc2626">Объем прохода μ(C_narrow) ≪ μ(C) → P(попадания) ≈ 0</text>
+
+    <!-- Two massive walls with a narrow slit -->
+    <rect x="135" y="55" width="75" height="95" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1.5"/>
+    <rect x="135" y="185" width="75" height="95" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1.5"/>
+    <text x="172" y="110" text-anchor="middle" font-family="Inter" font-size="11" font-weight="700" fill="#475569">C_obs</text>
+    <text x="172" y="240" text-anchor="middle" font-family="Inter" font-size="11" font-weight="700" fill="#475569">C_obs</text>
+
+    <!-- Slit indicator -->
+    <line x1="135" y1="150" x2="210" y2="150" stroke="#ef4444" stroke-width="1.2" stroke-dasharray="3,3"/>
+    <line x1="135" y1="185" x2="210" y2="185" stroke="#ef4444" stroke-width="1.2" stroke-dasharray="3,3"/>
+    <text x="172" y="172" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#dc2626">Щель ε</text>
+
+    <!-- Scattered points outside -->
+    <g fill="#94a3b8">
+      <circle cx="45" cy="80" r="3"/><circle cx="70" cy="120" r="3"/><circle cx="35" cy="180" r="3"/>
+      <circle cx="85" cy="220" r="3"/><circle cx="60" cy="260" r="3"/><circle cx="260" cy="75" r="3"/>
+      <circle cx="295" cy="115" r="3"/><circle cx="270" cy="190" r="3"/><circle cx="310" cy="240" r="3"/>
+      <circle cx="250" cy="270" r="3"/>
+    </g>
+
+    <rect x="14" y="284" width="317" height="24" rx="4" fill="#fef2f2"/>
+    <text x="22" y="300" font-family="Inter, sans-serif" font-size="10" fill="#991b1b">Деревья застревают с обеих сторон щели</text>
+  </g>
+
+  <!-- Right: Bridge Test Sampling -->
+  <g transform="translate(395, 20)">
+    <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#0f172a">2. Мостовой тест (Bridge Test)</text>
+    <text x="16" y="40" font-family="Inter, sans-serif" font-size="10.5" fill="#059669">q1, q2 ∈ C_obs, а их середина q_mid ∈ C_free → мост!</text>
+
+    <!-- Obstacles -->
+    <rect x="135" y="55" width="75" height="95" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1.5"/>
+    <rect x="135" y="185" width="75" height="95" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1.5"/>
+
+    <!-- Test Line across the slit -->
+    <line x1="172" y1="125" x2="172" y2="205" stroke="#059669" stroke-width="2"/>
+
+    <!-- Obstacle endpoints -->
+    <circle cx="172" cy="125" r="5" fill="#dc2626" stroke="#ffffff" stroke-width="1.5"/>
+    <text x="195" y="128" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#dc2626">q1 ∈ C_obs</text>
+
+    <circle cx="172" cy="205" r="5" fill="#dc2626" stroke="#ffffff" stroke-width="1.5"/>
+    <text x="195" y="208" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#dc2626">q2 ∈ C_obs</text>
+
+    <!-- Midpoint in passage -->
+    <circle cx="172" cy="165" r="6.5" fill="#059669" stroke="#ffffff" stroke-width="2"/>
+    <text x="60" y="169" font-family="JetBrains Mono" font-size="10.5" font-weight="700" fill="#059669">q_mid = (q1+q2)/2</text>
+
+    <g transform="translate(14, 235)">
+      <rect width="317" height="73" rx="5" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1"/>
+      <text x="12" y="20" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#065f46">Алгоритм генерации моста:</text>
+      <text x="12" y="38" font-family="Inter, sans-serif" font-size="10" fill="#047857">1. Выбираем q1 ∈ C_obs случайно</text>
+      <text x="12" y="52" font-family="Inter, sans-serif" font-size="10" fill="#047857">2. Шагаем q2 = q1 + d, d ~ N(0, σ²)</text>
+      <text x="12" y="66" font-family="Inter, sans-serif" font-size="10" fill="#047857">3. Если q2 ∈ C_obs и q_mid ∈ C_free → сохраняем q_mid!</text>
+    </g>
+  </g>
+</svg>'''
+    write_svg(filepath, svg)
+
+# -------------------------------------------------------------------------
+# Diagram 6d: Lecture 03 - Path Shortcutting & Smoothing
+# -------------------------------------------------------------------------
+def generate_path_shortcutting():
+    filepath = os.path.join(OUTPUT_DIR, 'lecture-03', 'path_shortcutting.svg')
+    ensure_dir(filepath)
+
+    svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <g transform="translate(30, 24)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Постобработка: Сглаживание траектории (Path Shortcutting)</text>
+    <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Устранение стохастических изломов RRT методом лучевого отсечения (Ray-casting)</text>
+  </g>
+
+  <!-- Obstacle -->
+  <rect x="260" y="110" width="160" height="130" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+  <text x="340" y="180" text-anchor="middle" font-family="Inter" font-size="13" font-weight="700" fill="#64748b">Препятствие</text>
+
+  <!-- Raw Jagged RRT Path (Orange) -->
+  <path d="M 60,260 L 110,210 L 140,240 L 180,180 L 220,130 L 250,75 L 340,65 L 440,75 L 490,140 L 550,190 L 620,170 L 680,220" 
+        stroke="#f59e0b" stroke-width="2.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+
+  <!-- Intermediate waypoints -->
+  <g fill="#f59e0b">
+    <circle cx="110" cy="210" r="4"/><circle cx="140" cy="240" r="4"/><circle cx="180" cy="180" r="4"/>
+    <circle cx="220" cy="130" r="4"/><circle cx="250" cy="75" r="4"/><circle cx="340" cy="65" r="4"/>
+    <circle cx="440" cy="75" r="4"/><circle cx="490" cy="140" r="4"/><circle cx="550" cy="190" r="4"/>
+    <circle cx="620" cy="170" r="4"/>
+  </g>
+
+  <!-- Shortcut Line of Sight (Raycast candidate) -->
+  <line x1="60" y1="260" x2="250" y2="75" stroke="#10b981" stroke-width="3" stroke-linecap="round"/>
+  <line x1="250" y1="75" x2="440" y2="75" stroke="#10b981" stroke-width="3" stroke-linecap="round"/>
+  <line x1="440" y1="75" x2="680" y2="220" stroke="#10b981" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Shortcut waypoints -->
+  <circle cx="60" cy="260" r="7.5" fill="#10b981" stroke="#ffffff" stroke-width="2"/>
+  <circle cx="250" cy="75" r="6" fill="#10b981" stroke="#ffffff" stroke-width="2"/>
+  <circle cx="440" cy="75" r="6" fill="#10b981" stroke="#ffffff" stroke-width="2"/>
+  <circle cx="680" cy="220" r="7.5" fill="#10b981" stroke="#ffffff" stroke-width="2"/>
+
+  <!-- Blocked raycast attempt (Dashed Red) -->
+  <line x1="60" y1="260" x2="440" y2="75" stroke="#ef4444" stroke-width="1.8" stroke-dasharray="4,4"/>
+  <text x="165" y="195" font-family="Inter" font-size="10.5" font-weight="700" fill="#dc2626">✗ Коллизия луча</text>
+
+  <!-- Start and Goal labels -->
+  <text x="40" y="285" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#047857">q_start</text>
+  <text x="670" y="245" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#047857">q_goal</text>
+
+  <!-- Legend Box -->
+  <g transform="translate(40, 60)">
+    <rect width="180" height="90" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <line x1="12" y1="24" x2="40" y2="24" stroke="#f59e0b" stroke-width="2.5"/>
+    <text x="48" y="28" font-family="Inter" font-size="10.5" fill="#334155">Сырой путь RRT (12 узлов)</text>
+    <line x1="12" y1="50" x2="40" y2="50" stroke="#10b981" stroke-width="3"/>
+    <text x="48" y="54" font-family="Inter" font-size="10.5" font-weight="700" fill="#047857">Сглаженный путь (4 узла)</text>
+    <line x1="12" y1="74" x2="40" y2="74" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4,3"/>
+    <text x="48" y="78" font-family="Inter" font-size="10.5" fill="#dc2626">Непроходимый луч</text>
+  </g>
+</svg>'''
+    write_svg(filepath, svg)
+
+# -------------------------------------------------------------------------
 # Diagram 7: Lecture 04 - APF U-Trap vs Harmonic Field
 # -------------------------------------------------------------------------
 def generate_apf_u_trap():
@@ -2521,6 +2771,9 @@ def main():
     generate_sdf_gradient()
     generate_rrt_star_rewire()
     generate_informed_rrt_ellipse()
+    generate_prm_learning_query()
+    generate_narrow_passage_bridge()
+    generate_path_shortcutting()
     generate_apf_u_trap()
     generate_dwa_space()
     generate_teb_elastic_band()

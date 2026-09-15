@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- Left: The Narrow Passage Trap -->
+  <g transform="translate(20, 20)">
+    <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#0f172a">1. Равномерный сэмплинг (Trap)</text>
+    <text x="16" y="40" font-family="Inter, sans-serif" font-size="10.5" fill="#dc2626">Объем прохода μ(C_narrow) ≪ μ(C) → P(попадания) ≈ 0</text>
+
+    <!-- Two massive walls with a narrow slit -->
+    <rect x="135" y="55" width="75" height="95" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1.5"/>
+    <rect x="135" y="185" width="75" height="95" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1.5"/>
+    <text x="172" y="110" text-anchor="middle" font-family="Inter" font-size="11" font-weight="700" fill="#475569">C_obs</text>
+    <text x="172" y="240" text-anchor="middle" font-family="Inter" font-size="11" font-weight="700" fill="#475569">C_obs</text>
+
+    <!-- Slit indicator -->
+    <line x1="135" y1="150" x2="210" y2="150" stroke="#ef4444" stroke-width="1.2" stroke-dasharray="3,3"/>
+    <line x1="135" y1="185" x2="210" y2="185" stroke="#ef4444" stroke-width="1.2" stroke-dasharray="3,3"/>
+    <text x="172" y="172" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#dc2626">Щель ε</text>
+
+    <!-- Scattered points outside -->
+    <g fill="#94a3b8">
+      <circle cx="45" cy="80" r="3"/><circle cx="70" cy="120" r="3"/><circle cx="35" cy="180" r="3"/>
+      <circle cx="85" cy="220" r="3"/><circle cx="60" cy="260" r="3"/><circle cx="260" cy="75" r="3"/>
+      <circle cx="295" cy="115" r="3"/><circle cx="270" cy="190" r="3"/><circle cx="310" cy="240" r="3"/>
+      <circle cx="250" cy="270" r="3"/>
+    </g>
+
+    <rect x="14" y="284" width="317" height="24" rx="4" fill="#fef2f2"/>
+    <text x="22" y="300" font-family="Inter, sans-serif" font-size="10" fill="#991b1b">Деревья застревают с обеих сторон щели</text>
+  </g>
+
+  <!-- Right: Bridge Test Sampling -->
+  <g transform="translate(395, 20)">
+    <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#0f172a">2. Мостовой тест (Bridge Test)</text>
+    <text x="16" y="40" font-family="Inter, sans-serif" font-size="10.5" fill="#059669">q1, q2 ∈ C_obs, а их середина q_mid ∈ C_free → мост!</text>
+
+    <!-- Obstacles -->
+    <rect x="135" y="55" width="75" height="95" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1.5"/>
+    <rect x="135" y="185" width="75" height="95" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1.5"/>
+
+    <!-- Test Line across the slit -->
+    <line x1="172" y1="125" x2="172" y2="205" stroke="#059669" stroke-width="2"/>
+
+    <!-- Obstacle endpoints -->
+    <circle cx="172" cy="125" r="5" fill="#dc2626" stroke="#ffffff" stroke-width="1.5"/>
+    <text x="195" y="128" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#dc2626">q1 ∈ C_obs</text>
+
+    <circle cx="172" cy="205" r="5" fill="#dc2626" stroke="#ffffff" stroke-width="1.5"/>
+    <text x="195" y="208" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#dc2626">q2 ∈ C_obs</text>
+
+    <!-- Midpoint in passage -->
+    <circle cx="172" cy="165" r="6.5" fill="#059669" stroke="#ffffff" stroke-width="2"/>
+    <text x="60" y="169" font-family="JetBrains Mono" font-size="10.5" font-weight="700" fill="#059669">q_mid = (q1+q2)/2</text>
+
+    <g transform="translate(14, 235)">
+      <rect width="317" height="73" rx="5" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1"/>
+      <text x="12" y="20" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#065f46">Алгоритм генерации моста:</text>
+      <text x="12" y="38" font-family="Inter, sans-serif" font-size="10" fill="#047857">1. Выбираем q1 ∈ C_obs случайно</text>
+      <text x="12" y="52" font-family="Inter, sans-serif" font-size="10" fill="#047857">2. Шагаем q2 = q1 + d, d ~ N(0, σ²)</text>
+      <text x="12" y="66" font-family="Inter, sans-serif" font-size="10" fill="#047857">3. Если q2 ∈ C_obs и q_mid ∈ C_free → сохраняем q_mid!</text>
+    </g>
+  </g>
+</svg>

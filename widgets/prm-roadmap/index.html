@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Интерактивный PRM / Lazy PRM Visualizer</title>
+  <link rel="stylesheet" href="../common/widget-base.css"
+        onerror="this.onerror=null; this.href='common/widget-base.css';">
+</head>
+<body>
+  <div class="widget-layout">
+    <div class="toolbar">
+      <select id="modeSelect" class="select-control">
+        <option value="prm">PRM (Классический)</option>
+        <option value="lazy">Lazy PRM (Отложенная проверка)</option>
+      </select>
+
+      <button id="btnBuild" class="btn btn-primary">🔨 Построить граф</button>
+      <button id="btnQuery" class="btn btn-success">🎯 Найти путь (Query)</button>
+      <button id="btnReset" class="btn">🔄 Сброс</button>
+      <button id="btnClearObs" class="btn">🧹 Очистить преграды</button>
+
+      <div class="slider-group">
+        <span>Узлы N:</span>
+        <input type="range" id="nodesSlider" min="20" max="140" value="60">
+        <span id="nodesVal">60</span>
+      </div>
+
+      <div class="slider-group">
+        <span>Соседей k:</span>
+        <input type="range" id="kSlider" min="2" max="8" value="4">
+        <span id="kVal">4</span>
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat-item">Узлы: <span id="statNodes">0</span></div>
+        <div class="stat-item">Рёбра: <span id="statEdges">0</span></div>
+        <div class="stat-item">Проверок коллизий: <span id="statChecks">0</span></div>
+        <div class="stat-item">Длина пути: <span id="statCost">-</span></div>
+      </div>
+    </div>
+
+    <div class="canvas-container">
+      <canvas id="prmCanvas"></canvas>
+      <div class="overlay-hint">Кликните и потяните мышью для создания круглых препятствий. Перетаскивайте S (старт) и G (цель).</div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('prmCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let width = 800;
+    let height = 500;
+
+    let start = null;
+    let goal = null;
+    let nodes = [];
+    let edges = []; // { u, v, length, verified, blocked }
+    let obstacles = [];
+    let solutionPath = null;
+    let collisionChecksCount = 0;
+
+    let isDrawingObstacle = false;
+    let newObsStart = null;
+    let draggingPoint = null;
+
+    function initEnvironment() {
+      if (!start) {
+        start = { x: Math.round(width * 0.12), y: Math.round(height * 0.5) };
+      }
+      if (!goal) {
+        goal = { x: Math.round(width * 0.88), y: Math.round(height * 0.5), radius: Math.min(26, Math.max(18, height * 0.055)) };
+      }
+      if (obstacles.length === 0) {
+        const rScale = Math.min(width, height) / 500;
+        obstacles = [
+          { x: width * 0.35, y: height * 0.30, r: 65 * rScale },
+          { x: width * 0.38, y: height * 0.72, r: 75 * rScale },
+          { x: width * 0.65, y: height * 0.48, r: 80 * rScale }
+        ];
+      }
+    }
+
+    function resize() {
+      const container = canvas.parentElement;
+      if (!container) return;
+      const prevW = width;
+      const prevH = height;
+      width = container.clientWidth;
+      height = container.clientHeight;
+      canvas.width = width;
+      canvas.height = height;
+
+      if (!start) {
+        initEnvironment();
+      } else if (prevW > 0 && prevH > 0 && (prevW !== width || prevH !== height)) {
+        const sx = width / prevW;
+        const sy = height / prevH;
+        start.x = Math.max(15, Math.min(width - 15, start.x * sx));
+        start.y = Math.max(15, Math.min(height - 15, start.y * sy));
+        goal.x = Math.max(15, Math.min(width - 15, goal.x * sx));
+        goal.y = Math.max(15, Math.min(height - 15, goal.y * sy));
+        for (const obs of obstacles) {
+          obs.x *= sx;
+          obs.y *= sy;
+          obs.r *= Math.min(sx, sy);
+        }
+        for (const n of nodes) {
+          n.x *= sx;
+          n.y *= sy;
+        }
+      }
+      draw();
+    }
+
+    function autosize(element, onResize) {
+      if (!element) return;
+      let frames = 0;
+      let ticks = 0;
+      let poll = null;
+
+      function sized() {
+        return element.clientWidth > 0 && element.clientHeight > 0;
+      }
+
+      function attempt() {
+        onResize();
+        if (sized()) return;
+        if (frames++ < 240) {
+          window.requestAnimationFrame(attempt);
+        } else if (!poll) {
+          poll = setInterval(function () {
+            onResize();
+            if (sized() || ticks++ > 40) {
+              clearInterval(poll);
+              poll = null;
+            }
+          }, 250);
+        }
+      }
+
+      window.requestAnimationFrame(attempt);
+      window.addEventListener('resize', onResize);
+      window.addEventListener('pageshow', onResize);
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) onResize();
+      });
+      if (window.ResizeObserver) new window.ResizeObserver(onResize).observe(element);
+    }
+
+    autosize(canvas.parentElement, resize);
+
+    function dist(p1, p2) {
+      return Math.hypot(p1.x - p2.x, p1.y - p2.y);
+    }
+
+    function isPointInObstacle(p, margin = 0) {
+      for (const obs of obstacles) {
+        if (dist(p, obs) <= obs.r + margin) return true;
+      }
+      return false;
+    }
+
+    function isSegmentColliding(p1, p2) {
+      collisionChecksCount++;
+      const d = dist(p1, p2);
+      const steps = Math.max(3, Math.ceil(d / 6));
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const pt = {
+          x: p1.x + (p2.x - p1.x) * t,
+          y: p1.y + (p2.y - p1.y) * t
+        };
+        if (isPointInObstacle(pt, 3)) return true;
+      }
+      return false;
+    }
+
+    function buildRoadmap() {
+      const targetN = Number(document.getElementById('nodesSlider').value);
+      const k = Number(document.getElementById('kSlider').value);
+      const mode = document.getElementById('modeSelect').value;
+
+      nodes = [];
+      edges = [];
+      solutionPath = null;
+      collisionChecksCount = 0;
+
+      let attempts = 0;
+      while (nodes.length < targetN && attempts < targetN * 10) {
+        attempts++;
+        const candidate = {
+          x: Math.random() * (width - 40) + 20,
+          y: Math.random() * (height - 40) + 20,
+          id: nodes.length
+        };
+        collisionChecksCount++;
+        if (!isPointInObstacle(candidate, 4)) {
+          nodes.push(candidate);
+        }
+      }
+
+      // Connect k-nearest neighbors
+      const edgeSet = new Set();
+      for (let i = 0; i < nodes.length; i++) {
+        const u = nodes[i];
+        const dists = [];
+        for (let j = 0; j < nodes.length; j++) {
+          if (i === j) continue;
+          dists.push({ node: nodes[j], d: dist(u, nodes[j]) });
+        }
+        dists.sort((a, b) => a.d - b.d);
+        const neighbors = dists.slice(0, k);
+
+        for (const { node: v, d } of neighbors) {
+          const key = Math.min(u.id, v.id) + '_' + Math.max(u.id, v.id);
+          if (edgeSet.has(key)) continue;
+          edgeSet.add(key);
+
+          if (mode === 'prm') {
+            const blocked = isSegmentColliding(u, v);
+            if (!blocked) {
+              edges.push({ u, v, length: d, verified: true, blocked: false });
+            }
+          } else {
+            // Lazy PRM: add edge without upfront collision check
+            edges.push({ u, v, length: d, verified: false, blocked: false });
+          }
+        }
+      }
+
+      updateStats();
+      draw();
+    }
+
+    function runQuery() {
+      if (nodes.length === 0) {
+        buildRoadmap();
+      }
+
+      const mode = document.getElementById('modeSelect').value;
+      const k = Number(document.getElementById('kSlider').value);
+
+      // Connect start and goal to roadmap
+      function connectTerminal(pt, name) {
+        const dists = nodes.map(n => ({ node: n, d: dist(pt, n) }));
+        dists.sort((a, b) => a.d - b.d);
+        const candidates = dists.slice(0, Math.max(k, 5));
+        const connectedEdges = [];
+        for (const { node, d } of candidates) {
+          if (mode === 'prm') {
+            if (!isSegmentColliding(pt, node)) {
+              connectedEdges.push({ u: pt, v: node, length: d, verified: true, blocked: false });
+            }
+          } else {
+            connectedEdges.push({ u: pt, v: node, length: d, verified: false, blocked: false });
+          }
+        }
+        return connectedEdges;
+      }
+
+      const startEdges = connectTerminal(start, 'start');
+      const goalEdges = connectTerminal(goal, 'goal');
+
+      const allGraphEdges = [...edges, ...startEdges, ...goalEdges];
+
+      function findPath() {
+        const adj = new Map();
+        function addAdj(a, b, edge) {
+          if (!adj.has(a)) adj.set(a, []);
+          adj.get(a).push({ neighbor: b, edge });
+        }
+        for (const e of allGraphEdges) {
+          if (e.blocked) continue;
+          addAdj(e.u, e.v, e);
+          addAdj(e.v, e.u, e);
+        }
+
+        const openSet = [{ node: start, cost: 0, f: dist(start, goal) }];
+        const gScore = new Map();
+        const parent = new Map();
+        const parentEdge = new Map();
+        gScore.set(start, 0);
+
+        while (openSet.length > 0) {
+          openSet.sort((a, b) => a.f - b.f);
+          const current = openSet.shift().node;
+
+          if (dist(current, goal) < 1e-4) {
+            const pathNodes = [];
+            const pathEdges = [];
+            let curr = goal;
+            while (curr !== start) {
+              pathNodes.push(curr);
+              const p = parent.get(curr);
+              const e = parentEdge.get(curr);
+              pathEdges.push(e);
+              curr = p;
+            }
+            pathNodes.push(start);
+            pathNodes.reverse();
+            pathEdges.reverse();
+            return { pathNodes, pathEdges };
+          }
+
+          const neighbors = adj.get(current) || [];
+          for (const { neighbor, edge } of neighbors) {
+            if (edge.blocked) continue;
+            const tentativeG = gScore.get(current) + edge.length;
+            if (!gScore.has(neighbor) || tentativeG < gScore.get(neighbor)) {
+              gScore.set(neighbor, tentativeG);
+              parent.set(neighbor, current);
+              parentEdge.set(neighbor, edge);
+              const f = tentativeG + dist(neighbor, goal);
+              const existing = openSet.find(item => item.node === neighbor);
+              if (!existing) {
+                openSet.push({ node: neighbor, cost: tentativeG, f });
+              } else {
+                existing.cost = tentativeG;
+                existing.f = f;
+              }
+            }
+          }
+        }
+        return null;
+      }
+
+      if (mode === 'prm') {
+        const res = findPath();
+        if (res) {
+          solutionPath = res.pathNodes;
+        } else {
+          solutionPath = null;
+        }
+      } else {
+        let resolved = false;
+        let iter = 0;
+        while (!resolved && iter < 40) {
+          iter++;
+          const res = findPath();
+          if (!res) {
+            solutionPath = null;
+            resolved = true;
+            break;
+          }
+
+          let hasCollision = false;
+          for (const e of res.pathEdges) {
+            if (!e.verified) {
+              const blocked = isSegmentColliding(e.u, e.v);
+              e.verified = true;
+              e.blocked = blocked;
+              if (blocked) {
+                hasCollision = true;
+                break;
+              }
+            }
+          }
+
+          if (!hasCollision) {
+            solutionPath = res.pathNodes;
+            resolved = true;
+          }
+        }
+      }
+
+      updateStats();
+      draw();
+    }
+
+    function resetAll() {
+      nodes = [];
+      edges = [];
+      solutionPath = null;
+      collisionChecksCount = 0;
+      updateStats();
+      draw();
+    }
+
+    function clearObstacles() {
+      obstacles = [];
+      resetAll();
+    }
+
+    function updateStats() {
+      document.getElementById('statNodes').textContent = nodes.length;
+      document.getElementById('statEdges').textContent = edges.length;
+      document.getElementById('statChecks').textContent = collisionChecksCount;
+      if (solutionPath && solutionPath.length > 1) {
+        let total = 0;
+        for (let i = 0; i < solutionPath.length - 1; i++) {
+          total += dist(solutionPath[i], solutionPath[i + 1]);
+        }
+        document.getElementById('statCost').textContent = Math.round(total) + ' px';
+      } else {
+        document.getElementById('statCost').textContent = solutionPath ? '0 px' : '-';
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, width, height);
+
+      for (const obs of obstacles) {
+        ctx.beginPath();
+        ctx.arc(obs.x, obs.y, obs.r, 0, Math.PI * 2);
+        ctx.fillStyle = '#cbd5e1';
+        ctx.fill();
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      if (isDrawingObstacle && newObsStart) {
+        ctx.beginPath();
+        ctx.arc(newObsStart.x, newObsStart.y, newObsStart.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(148, 163, 184, 0.4)';
+        ctx.fill();
+        ctx.strokeStyle = '#64748b';
+        ctx.setLineDash([4, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      for (const e of edges) {
+        ctx.beginPath();
+        ctx.moveTo(e.u.x, e.u.y);
+        ctx.lineTo(e.v.x, e.v.y);
+        if (e.blocked) {
+          ctx.strokeStyle = 'rgba(239, 68, 68, 0.6)';
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([2, 3]);
+        } else if (!e.verified) {
+          ctx.strokeStyle = 'rgba(148, 163, 184, 0.45)';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([3, 3]);
+        } else {
+          ctx.strokeStyle = 'rgba(100, 116, 139, 0.35)';
+          ctx.lineWidth = 1.2;
+          ctx.setLineDash([]);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      for (const n of nodes) {
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#64748b';
+        ctx.fill();
+      }
+
+      if (solutionPath && solutionPath.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(solutionPath[0].x, solutionPath[0].y);
+        for (let i = 1; i < solutionPath.length; i++) {
+          ctx.lineTo(solutionPath[i].x, solutionPath[i].y);
+        }
+        ctx.strokeStyle = '#0284c7';
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        for (const pt of solutionPath) {
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, 5, 0, Math.PI * 2);
+          ctx.fillStyle = '#0284c7';
+          ctx.fill();
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+      }
+
+      if (start) {
+        ctx.beginPath();
+        ctx.arc(start.x, start.y, 11, 0, Math.PI * 2);
+        ctx.fillStyle = '#10b981';
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 11px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('S', start.x, start.y);
+      }
+
+      if (goal) {
+        ctx.beginPath();
+        ctx.arc(goal.x, goal.y, 11, 0, Math.PI * 2);
+        ctx.fillStyle = '#f59e0b';
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 11px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('G', goal.x, goal.y);
+      }
+    }
+
+    document.getElementById('nodesSlider').addEventListener('input', (e) => {
+      document.getElementById('nodesVal').textContent = e.target.value;
+    });
+    document.getElementById('kSlider').addEventListener('input', (e) => {
+      document.getElementById('kVal').textContent = e.target.value;
+    });
+
+    document.getElementById('btnBuild').addEventListener('click', buildRoadmap);
+    document.getElementById('btnQuery').addEventListener('click', runQuery);
+    document.getElementById('btnReset').addEventListener('click', resetAll);
+    document.getElementById('btnClearObs').addEventListener('click', clearObstacles);
+
+    canvas.addEventListener('mousedown', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const pt = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+
+      if (start && dist(pt, start) <= 15) {
+        draggingPoint = 'start';
+        return;
+      }
+      if (goal && dist(pt, goal) <= 15) {
+        draggingPoint = 'goal';
+        return;
+      }
+
+      isDrawingObstacle = true;
+      newObsStart = { x: pt.x, y: pt.y, r: 5 };
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const pt = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+
+      if (draggingPoint === 'start') {
+        start.x = Math.max(10, Math.min(width - 10, pt.x));
+        start.y = Math.max(10, Math.min(height - 10, pt.y));
+        draw();
+        return;
+      }
+      if (draggingPoint === 'goal') {
+        goal.x = Math.max(10, Math.min(width - 10, pt.x));
+        goal.y = Math.max(10, Math.min(height - 10, pt.y));
+        draw();
+        return;
+      }
+
+      if (isDrawingObstacle && newObsStart) {
+        newObsStart.r = Math.max(10, dist(newObsStart, pt));
+        draw();
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (draggingPoint) {
+        draggingPoint = null;
+      }
+      if (isDrawingObstacle && newObsStart) {
+        if (newObsStart.r >= 12) {
+          obstacles.push({ x: newObsStart.x, y: newObsStart.y, r: newObsStart.r });
+          resetAll();
+        }
+        isDrawingObstacle = false;
+        newObsStart = null;
+        draw();
+      }
+    });
+
+    setTimeout(() => {
+      buildRoadmap();
+      runQuery();
+    }, 150);
+  </script>
+</body>
+</html>
