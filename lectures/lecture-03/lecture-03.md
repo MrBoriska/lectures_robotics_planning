@@ -710,11 +710,9 @@ $$P\left(\lim_{N \to \infty} \operatorname{Cost}(\mathcal{T}_N) = c^*\right) = 0
 
 ## Алгоритм RRT*: ChooseParent и Rewiring <span class="badge badge-time">48–52 мин</span>
 
-<div class="grid-2">
-
-<div class="col">
-
 Чтобы гарантировать сходимость к оптимальному пути, Karaman & Frazzoli ввели алгоритм **$RRT^*$** с локальной оптимизацией в шаре радиуса $r_N$:
+
+<div class="grid-2 mt-2">
 
 <div class="card card-accent">
 
@@ -724,26 +722,20 @@ $$q_{parent} = \arg\min_{u} \left( \operatorname{cost}(u) + \|u - q_{new}\| \rig
 
 </div>
 
-<div class="card card-success mt-2">
+<div class="card card-success">
 
 ### 2. Переподключение рёбер (Rewire):
-Для каждого соседа $v \in \operatorname{Near}(q_{new}, r_N)$, если путь через $q_{new}$ дешевле его текущего пути:
+Для соседа $v \in \operatorname{Near}(q_{new}, r_N)$, если путь через $q_{new}$ дешевле:
 $$\operatorname{cost}(q_{new}) + \|q_{new} - v\| < \operatorname{cost}(v)$$
-Старое ребро к $v$ удаляется, и $q_{new}$ становится новым родителем $v$!
+Старое ребро удаляется, и $q_{new}$ становится новым родителем $v$!
 
 </div>
 
 </div>
 
-<div class="col">
+<div class="diagram-box mt-4">
 
-<div class="diagram-box">
-
-<img src="../../assets/images/lecture-03/rrt_star_rewire.svg" alt="RRT* Rewiring" />
-
-</div>
-
-</div>
+<img src="../../assets/images/lecture-03/rrt_star_rewire.svg" alt="RRT* Rewiring" style="max-height: 320px; width: auto; margin: 0 auto; display: block;" />
 
 </div>
 
