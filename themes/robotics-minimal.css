@@ -31,9 +31,9 @@ section {
   font-family: var(--font-sans);
   background-color: var(--bg-primary);
   color: var(--text-main);
-  padding: 56px 48px 34px 48px;
-  font-size: 21px;
-  line-height: 1.42;
+  padding: 48px 46px 40px 46px;
+  font-size: 17.5px;
+  line-height: 1.38;
   letter-spacing: -0.01em;
   display: flex;
   flex-direction: column;
@@ -95,12 +95,12 @@ section::after {
 
 /* Typography */
 h1 {
-  font-size: 38px;
+  font-size: 34px;
   font-weight: 700;
   color: var(--text-main);
   letter-spacing: -0.025em;
   margin-top: 0;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -112,25 +112,25 @@ h1 strong, h2 strong, h3 strong {
 }
 
 h2 {
-  font-size: 27px;
+  font-size: 24px;
   font-weight: 600;
   color: var(--text-main);
   margin-top: 0;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   border-bottom: 2px solid var(--border-subtle);
-  padding-bottom: 6px;
+  padding-bottom: 4px;
 }
 
 h3 {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
   color: var(--text-muted);
   margin-top: 0;
-  margin-bottom: 6px;
+  margin-bottom: 5px;
 }
 
 h4 {
-  font-size: 17px;
+  font-size: 15.5px;
   font-weight: 600;
   margin-top: 0;
   margin-bottom: 4px;
@@ -138,17 +138,17 @@ h4 {
 
 p {
   margin-top: 0;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 ul, ol {
   margin-top: 0;
-  margin-bottom: 8px;
-  padding-left: 24px;
+  margin-bottom: 6px;
+  padding-left: 22px;
 }
 
 li {
-  margin-bottom: 4px;
+  margin-bottom: 2.5px;
 }
 
 li::marker {
@@ -202,19 +202,21 @@ pre code {
 }
 
 .katex-display {
-  margin: 6px 0 !important;
+  margin: 4px 0 !important;
 }
 
 .card {
   background: var(--bg-secondary);
   border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  padding: 12px 16px;
-  margin-bottom: 8px;
+  padding: 10px 14px;
+  margin-bottom: 6px;
   box-shadow: 0 2px 6px -2px rgba(15, 23, 42, 0.04);
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
+  font-size: 15.5px;
+  line-height: 1.36;
 }
 
 .card-accent {
@@ -236,10 +238,65 @@ pre code {
 }
 
 .card h3, .card-accent h3, .card-alert h3, .card-success h3 {
-  font-size: 18.5px;
+  font-size: 16.5px;
   font-weight: 700;
   margin-top: 0;
-  margin-bottom: 6px;
+  margin-bottom: 5px;
+}
+
+.card p, .card ul, .card ol {
+  font-size: 15px;
+  line-height: 1.35;
+  margin-top: 0;
+  margin-bottom: 4px;
+}
+
+.card li {
+  margin-bottom: 2.5px;
+}
+
+/* Adaptive multi-card column: when multiple cards stack inside a column */
+.col:has(> .card + .card) .card,
+.col > .card + .card,
+.col > .card:first-child:has(~ .card) {
+  padding: 8px 12px;
+  margin-bottom: 5px;
+  font-size: 14px;
+  line-height: 1.32;
+}
+
+.col:has(> .card + .card) .card h3,
+.col > .card + .card h3,
+.col > .card:first-child:has(~ .card) h3 {
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.col:has(> .card + .card) .card p,
+.col:has(> .card + .card) .card ul,
+.col:has(> .card + .card) .card ol,
+.col > .card + .card p,
+.col > .card + .card ul,
+.col > .card + .card ol,
+.col > .card:first-child:has(~ .card) p,
+.col > .card:first-child:has(~ .card) ul,
+.col > .card:first-child:has(~ .card) ol {
+  font-size: 13.5px;
+  line-height: 1.30;
+  margin-bottom: 3px;
+}
+
+.col:has(> .card + .card) .card li,
+.col > .card + .card li,
+.col > .card:first-child:has(~ .card) li {
+  margin-bottom: 2px;
+}
+
+.col:has(> .card + .card) .formula-box,
+.col > .card + .card .formula-box,
+.col > .card:first-child:has(~ .card) .formula-box {
+  padding: 4px 8px;
+  margin: 3px 0;
 }
 
 /* Grid System */
@@ -288,6 +345,7 @@ section > .diagram-box {
 .col {
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 
 /* Badges */
@@ -351,22 +409,24 @@ section > .diagram-box {
   background: #ffffff;
   border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  padding: 10px 14px;
+  padding: 8px 12px;
   display: flex;
   justify-content: center;
   align-items: center;
   box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.05);
-  margin: 6px 0;
+  margin: 4px 0;
   flex: 1;
   min-height: 0;
+  max-height: 540px;
+  box-sizing: border-box;
 }
 
-/* Fill the box in both directions and let object-fit preserve the aspect
-   ratio. `height: auto` used to cap the figure at its intrinsic size, which is
-   why the 760x360 diagrams rendered small inside a tall slot. */
+/* Fill the box within bounds and let object-fit preserve the aspect ratio */
 .diagram-box img, .diagram-box svg {
-  width: 100%;
-  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
   min-height: 0;
   object-fit: contain;
 }
@@ -450,8 +510,9 @@ section > .diagram-box {
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 18px;
-  margin: 10px 0;
+  font-size: 14px;
+  line-height: 1.32;
+  margin: 6px 0;
 }
 
 th {
@@ -459,13 +520,15 @@ th {
   color: #0f172a;
   font-weight: 600;
   text-align: left;
-  padding: 8px 12px;
+  padding: 6px 10px;
   border-bottom: 2px solid var(--border-subtle);
+  font-size: 14px;
 }
 
 td {
-  padding: 8px 12px;
+  padding: 5px 10px;
   border-bottom: 1px solid var(--border-subtle);
+  font-size: 13.5px;
 }
 
 tr:nth-child(even) td {
@@ -529,8 +592,8 @@ section.accent .diagram-box {
 /* Utility classes */
 .text-center { text-align: center; }
 .text-muted { color: var(--text-muted); }
-.text-sm { font-size: 18px; }
-.text-xs { font-size: 14px; }
+.text-sm { font-size: 15px; }
+.text-xs { font-size: 13px; }
 .mt-1 { margin-top: 4px; }
 .mt-2 { margin-top: 8px; }
 .mt-3 { margin-top: 12px; }
@@ -538,6 +601,39 @@ section.accent .diagram-box {
 .gap-2 { gap: 8px; }
 .gap-4 { gap: 16px; }
 .flex-1 { flex: 1; }
+
+/* Compact modifier for dense slides */
+section.compact {
+  font-size: 15px;
+  line-height: 1.34;
+  padding: 40px 42px 40px 42px;
+}
+
+section.compact h2 {
+  font-size: 21px;
+  margin-bottom: 6px;
+  padding-bottom: 3px;
+}
+
+section.compact .card {
+  padding: 8px 12px;
+  margin-bottom: 5px;
+  font-size: 13.5px;
+  line-height: 1.30;
+}
+
+section.compact .card h3 {
+  font-size: 14.5px;
+  margin-bottom: 3px;
+}
+
+section.compact .card p,
+section.compact .card ul,
+section.compact .card ol {
+  font-size: 13px;
+  line-height: 1.28;
+  margin-bottom: 3px;
+}
 
 /* Print & PDF Export Rules */
 @media print {
