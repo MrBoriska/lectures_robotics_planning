@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Интерактивный симулятор алгоритма BIT* (Batch Informed Trees)</title>
+  <link rel="stylesheet" href="../common/widget-base.css"
+        onerror="this.onerror=null; this.href='common/widget-base.css';">
+  <style>
+    .badge-hybrid {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      font-size: 11px;
+      padding: 3px 7px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="widget-layout">
+    <div class="toolbar">
+      <span class="badge-hybrid">BIT* (A* + Informed Sampling)</span>
+      <button id="btnBatch" class="btn">📦 Батч точек (+40)</button>
+      <button id="btnStep" class="btn">▶ Шаг A*</button>
+      <button id="btnRun" class="btn btn-primary">⚡ Запуск</button>
+      <button id="btnReset" class="btn">🔄 Сброс</button>
+      <button id="btnClearObs" class="btn">🧹 Очистить преграды</button>
+
+      <div class="slider-group">
+        <span>Радиус r:</span>
+        <input type="range" id="radiusSlider" min="50" max="180" value="95">
+      </div>
+
+      <div class="slider-group">
+        <span>Батч:</span>
+        <input type="range" id="batchSizeSlider" min="20" max="80" value="40">
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat-item">Батчи: <span id="statBatches">0</span></div>
+        <div class="stat-item">Сэмплы: <span id="statSamples">0</span></div>
+        <div class="stat-item">Проверки коллизий: <span id="statChecks">0</span></div>
+        <div class="stat-item">Длина пути: <span id="statCost">-</span></div>
+      </div>
+    </div>
+
+    <div class="canvas-container">
+      <canvas id="bitCanvas"></canvas>
+      <div class="overlay-hint">
+        <b>BIT*:</b> Генерация точек батчами + поиск рёбер через очередь приоритетов $A^*$ ($f = g + h$). 
+        После нахождения пути выборка запирается в сжимающийся эллипс $c_{\text{best}}$. Перетаскивайте S, G и преграды.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('bitCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let width = 800;
+    let height = 500;
+
+    let start = null;
+    let goal = null;
+    let obstacles = [];
+
+    // BIT* Data structures
+    let samples = [];       // All unexpanded sample vertices {x, y}
+    let tree = [];          // Vertices in spanning tree {x, y, parent, cost, id}
+    let edgeQueue = [];     // Priority queue of candidate edges {u, v, f}
+    let cBest = Infinity;
+    let bestPath = [];
+    let batchCount = 0;
+    let collisionChecks = 0;
+    let isRunning = false;
+    let animFrame = null;
+
+    let draggingPoint = null;
+    let isDrawingObstacle = false;
+    let newObsStart = null;
+
+    function dist(p1, p2) {
+      return Math.hypot(p1.x - p2.x, p1.y - p2.y);
+    }
+
+    function initEnvironment() {
+      start = { x: Math.round(width * 0.12), y: Math.round(height * 0.5), id: 0 };
+      goal = { x: Math.round(width * 0.88), y: Math.round(height * 0.5), radius: 20, id: 1 };
+      const rScale = Math.min(width, height) / 500;
+      obstacles = [
+        { x: width * 0.38, y: height * 0.35, r: 65 * rScale },
+        { x: width * 0.42, y: height * 0.72, r: 70 * rScale },
+        { x: width * 0.64, y: height * 0.50, r: 80 * rScale }
+      ];
+    }
+
+    function resetPlanner() {
+      if (animFrame) cancelAnimationFrame(animFrame);
+      isRunning = false;
+      document.getElementById('btnRun').textContent = '⚡ Запуск';
+      document.getElementById('btnRun').className = 'btn btn-primary';
+
+      if (!start || isNaN(start.x)) initEnvironment();
+      tree = [{ x: start.x, y: start.y, parent: null, cost: 0, id: 'start' }];
+      samples = [{ x: goal.x, y: goal.y, id: 'goal', isGoal: true }];
+      edgeQueue = [];
+      cBest = Infinity;
+      bestPath = [];
+      batchCount = 0;
+      collisionChecks = 0;
+
+      updateStats();
+      draw();
+    }
+
+    function isPointInObstacle(p, margin = 0) {
+      for (const obs of obstacles) {
+        if (dist(p, obs) <= obs.r + margin) return true;
+      }
+      return false;
+    }
+
+    function isSegmentColliding(p1, p2) {
+      collisionChecks++;
+      const d = dist(p1, p2);
+      const steps = Math.max(3, Math.ceil(d / 4));
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const pt = {
+          x: p1.x + (p2.x - p1.x) * t,
+          y: p1.y + (p2.y - p1.y) * t
+        };
+        if (isPointInObstacle(pt, 2)) return true;
+      }
+      return false;
+    }
+
+    // Informed Ellipse Sampling for BIT*
+    function samplePoint() {
+      const cMin = dist(start, goal);
+      if (cBest < Infinity && cBest > cMin) {
+        const a = cBest / 2;
+        const b = Math.sqrt(Math.max(1, cBest * cBest - cMin * cMin)) / 2;
+        const cx = (start.x + goal.x) / 2;
+        const cy = (start.y + goal.y) / 2;
+        const angle = Math.atan2(goal.y - start.y, goal.x - start.x);
+
+        // Sample in unit disk
+        const r = Math.sqrt(Math.random());
+        const phi = Math.random() * Math.PI * 2;
+        const u = r * Math.cos(phi);
+        const v = r * Math.sin(phi);
+
+        return {
+          x: cx + Math.cos(angle) * (u * a) - Math.sin(angle) * (v * b),
+          y: cy + Math.sin(angle) * (u * a) + Math.cos(angle) * (v * b)
+        };
+      } else {
+        return {
+          x: Math.random() * width,
+          y: Math.random() * height
+        };
+      }
+    }
+
+    function addBatch() {
+      batchCount++;
+      const batchSize = Number(document.getElementById('batchSizeSlider').value);
+      const rConnect = Number(document.getElementById('radiusSlider').value);
+
+      const newSamples = [];
+      let attempts = 0;
+      while (newSamples.length < batchSize && attempts < batchSize * 10) {
+        attempts++;
+        const p = samplePoint();
+        if (p.x >= 5 && p.x <= width - 5 && p.y >= 5 && p.y <= height - 5) {
+          if (!isPointInObstacle(p, 4)) {
+            p.id = 's_' + batchCount + '_' + newSamples.length;
+            newSamples.push(p);
+          }
+        }
+      }
+
+      samples.push(...newSamples);
+
+      // Connect tree nodes to new/unconnected samples with A* priority f = g + d + h
+      for (const u of tree) {
+        for (const v of samples) {
+          const d = dist(u, v);
+          if (d <= rConnect && d > 0.001) {
+            const f = u.cost + d + dist(v, goal);
+            if (f < cBest) {
+              edgeQueue.push({ u, v, d, f });
+            }
+          }
+        }
+      }
+
+      // Sort queue by lowest estimated f-cost (A* order!)
+      edgeQueue.sort((a, b) => a.f - b.f);
+
+      updateStats();
+      draw();
+    }
+
+    function stepSearch() {
+      if (edgeQueue.length === 0) {
+        // If queue is exhausted, generate a new batch!
+        addBatch();
+        return;
+      }
+
+      // Pop lowest f-cost edge
+      const edge = edgeQueue.shift();
+      if (edge.f >= cBest) return;
+
+      const { u, v, d } = edge;
+
+      // Lazy evaluation: check collision ONLY when edge is popped as best candidate!
+      if (!isSegmentColliding(u, v)) {
+        const tentativeCost = u.cost + d;
+
+        // Check if v is already in tree
+        const inTreeIdx = tree.findIndex(n => n.id === v.id);
+        if (inTreeIdx === -1) {
+          // Add v to tree
+          const newNode = { x: v.x, y: v.y, parent: u, cost: tentativeCost, id: v.id };
+          tree.push(newNode);
+
+          // Remove v from unexpanded samples
+          const sIdx = samples.findIndex(s => s.id === v.id);
+          if (sIdx !== -1) samples.splice(sIdx, 1);
+
+          // Connect newNode to remaining samples within radius
+          const rConnect = Number(document.getElementById('radiusSlider').value);
+          for (const s of samples) {
+            const distVs = dist(newNode, s);
+            if (distVs <= rConnect && distVs > 0.001) {
+              const f = newNode.cost + distVs + dist(s, goal);
+              if (f < cBest) {
+                edgeQueue.push({ u: newNode, v: s, d: distVs, f });
+              }
+            }
+          }
+          edgeQueue.sort((a, b) => a.f - b.f);
+
+          // Check if goal reached!
+          if (v.isGoal || dist(v, goal) <= goal.radius) {
+            if (tentativeCost < cBest) {
+              cBest = tentativeCost;
+              extractBestPath(newNode);
+              // Prune queue with updated cBest
+              edgeQueue = edgeQueue.filter(e => e.f < cBest);
+            }
+          }
+        } else {
+          // Rewire if cost is lower!
+          const existingNode = tree[inTreeIdx];
+          if (tentativeCost < existingNode.cost) {
+            existingNode.parent = u;
+            const diff = existingNode.cost - tentativeCost;
+            existingNode.cost = tentativeCost;
+            updateSubtreeCosts(existingNode, diff);
+            if (existingNode.id === 'goal' || existingNode.isGoal) {
+              cBest = existingNode.cost;
+              extractBestPath(existingNode);
+              edgeQueue = edgeQueue.filter(e => e.f < cBest);
+            }
+          }
+        }
+      }
+
+      updateStats();
+      draw();
+    }
+
+    function updateSubtreeCosts(parent, diff) {
+      for (const n of tree) {
+        if (n.parent === parent) {
+          n.cost -= diff;
+          updateSubtreeCosts(n, diff);
+        }
+      }
+    }
+
+    function extractBestPath(goalNode) {
+      bestPath = [];
+      let curr = goalNode;
+      while (curr) {
+        bestPath.unshift({ x: curr.x, y: curr.y });
+        curr = curr.parent;
+      }
+    }
+
+    function updateStats() {
+      document.getElementById('statBatches').textContent = batchCount;
+      document.getElementById('statSamples').textContent = samples.length + tree.length;
+      document.getElementById('statChecks').textContent = collisionChecks;
+      document.getElementById('statCost').textContent = (cBest < Infinity) ? cBest.toFixed(1) + ' px' : '-';
+    }
+
+    function runLoop() {
+      if (!isRunning) return;
+      for (let i = 0; i < 8; i++) {
+        stepSearch();
+      }
+      animFrame = requestAnimationFrame(runLoop);
+    }
+
+    function toggleRun() {
+      isRunning = !isRunning;
+      const btn = document.getElementById('btnRun');
+      if (isRunning) {
+        btn.textContent = '⏸ Пауза';
+        btn.className = 'btn btn-success';
+        if (tree.length <= 1 && samples.length <= 1) {
+          addBatch();
+        }
+        runLoop();
+      } else {
+        btn.textContent = '⚡ Запуск';
+        btn.className = 'btn btn-primary';
+        if (animFrame) cancelAnimationFrame(animFrame);
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, width, height);
+
+      // 1. Draw search space grid background
+      ctx.strokeStyle = '#f1f5f9';
+      ctx.lineWidth = 1;
+      const gridSize = 40;
+      for (let x = 0; x < width; x += gridSize) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
+      }
+      for (let y = 0; y < height; y += gridSize) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
+      }
+
+      // 2. Draw Informed Ellipse if path found
+      const cMin = dist(start, goal);
+      if (cBest < Infinity && cBest > cMin) {
+        const a = cBest / 2;
+        const b = Math.sqrt(Math.max(1, cBest * cBest - cMin * cMin)) / 2;
+        const cx = (start.x + goal.x) / 2;
+        const cy = (start.y + goal.y) / 2;
+        const angle = Math.atan2(goal.y - start.y, goal.x - start.x);
+
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(angle);
+
+        ctx.fillStyle = 'rgba(236, 253, 245, 0.45)';
+        ctx.strokeStyle = '#059669';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 4]);
+
+        ctx.beginPath();
+        ctx.ellipse(0, 0, a, b, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      // 3. Draw candidate edges in Queue (A* frontier)
+      if (edgeQueue.length > 0) {
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([2, 3]);
+        const numToDraw = Math.min(60, edgeQueue.length);
+        for (let i = 0; i < numToDraw; i++) {
+          const e = edgeQueue[i];
+          ctx.beginPath();
+          ctx.moveTo(e.u.x, e.u.y);
+          ctx.lineTo(e.v.x, e.v.y);
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+      }
+
+      // 4. Draw Tree Edges (Spanning tree)
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 1.6;
+      for (const n of tree) {
+        if (n.parent) {
+          ctx.beginPath();
+          ctx.moveTo(n.parent.x, n.parent.y);
+          ctx.lineTo(n.x, n.y);
+          ctx.stroke();
+        }
+      }
+
+      // 5. Draw Best Path
+      if (bestPath.length > 1) {
+        ctx.strokeStyle = '#059669';
+        ctx.lineWidth = 4.5;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(bestPath[0].x, bestPath[0].y);
+        for (let i = 1; i < bestPath.length; i++) {
+          ctx.lineTo(bestPath[i].x, bestPath[i].y);
+        }
+        ctx.stroke();
+      }
+
+      // 6. Draw Obstacles
+      for (const obs of obstacles) {
+        ctx.fillStyle = '#cbd5e1';
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(obs.x, obs.y, obs.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      }
+
+      // Draw obstacle being created
+      if (isDrawingObstacle && newObsStart) {
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.25)';
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([4, 3]);
+        ctx.beginPath();
+        ctx.arc(newObsStart.x, newObsStart.y, newObsStart.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      // 7. Draw Sample Dots
+      for (const s of samples) {
+        if (s.isGoal) continue;
+        ctx.fillStyle = '#94a3b8';
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Draw Tree Nodes
+      for (const n of tree) {
+        if (n.id === 'start') continue;
+        ctx.fillStyle = '#0284c7';
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // 8. Draw Start (S)
+      ctx.fillStyle = '#2563eb';
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(start.x, start.y, 11, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 11px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('S', start.x, start.y);
+
+      // 9. Draw Goal (G)
+      ctx.fillStyle = '#dc2626';
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(goal.x, goal.y, 11, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText('G', goal.x, goal.y);
+    }
+
+    function resize() {
+      const container = canvas.parentElement;
+      if (!container) return;
+      const newW = container.clientWidth;
+      const newH = container.clientHeight;
+      if (newW < 50 || newH < 50) return;
+
+      const prevW = width;
+      const prevH = height;
+      width = newW;
+      height = newH;
+      canvas.width = width;
+      canvas.height = height;
+
+      if (!start || isNaN(start.x) || (start.x <= 25 && start.y <= 25) || prevW < 50 || prevH < 50) {
+        initEnvironment();
+        resetPlanner();
+        return;
+      }
+
+      const sx = width / prevW;
+      const sy = height / prevH;
+      if (!isFinite(sx) || !isFinite(sy) || sx <= 0 || sy <= 0) {
+        initEnvironment();
+        resetPlanner();
+        return;
+      }
+
+      start.x = Math.max(15, Math.min(width - 15, start.x * sx));
+      start.y = Math.max(15, Math.min(height - 15, start.y * sy));
+      goal.x = Math.max(15, Math.min(width - 15, goal.x * sx));
+      goal.y = Math.max(15, Math.min(height - 15, goal.y * sy));
+      for (const obs of obstacles) {
+        obs.x *= sx;
+        obs.y *= sy;
+        obs.r *= Math.min(sx, sy);
+      }
+      for (const s of samples) {
+        s.x *= sx;
+        s.y *= sy;
+      }
+      for (const n of tree) {
+        n.x *= sx;
+        n.y *= sy;
+      }
+      draw();
+    }
+
+    function autosize(element, onResize) {
+      if (!element) return;
+      function sized() {
+        return element.clientWidth > 50 && element.clientHeight > 50;
+      }
+      function attempt() {
+        if (sized()) {
+          onResize();
+          return;
+        }
+        window.requestAnimationFrame(attempt);
+      }
+      window.requestAnimationFrame(attempt);
+      window.addEventListener('resize', onResize);
+      window.addEventListener('pageshow', onResize);
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden && sized()) onResize();
+      });
+      if (window.ResizeObserver) {
+        new window.ResizeObserver(() => {
+          if (sized()) onResize();
+        }).observe(element);
+      }
+    }
+
+    autosize(canvas.parentElement, resize);
+
+    // Event Listeners
+    document.getElementById('btnBatch').addEventListener('click', () => {
+      addBatch();
+    });
+
+    document.getElementById('btnStep').addEventListener('click', () => {
+      stepSearch();
+    });
+
+    document.getElementById('btnRun').addEventListener('click', toggleRun);
+
+    document.getElementById('btnReset').addEventListener('click', resetPlanner);
+
+    document.getElementById('btnClearObs').addEventListener('click', () => {
+      obstacles = [];
+      resetPlanner();
+    });
+
+    document.getElementById('radiusSlider').addEventListener('input', () => {
+      draw();
+    });
+
+    // Canvas Interactions: drag S, G, obstacles, or draw new obstacles
+    canvas.addEventListener('mousedown', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const m = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+
+      if (dist(m, start) <= 18) {
+        draggingPoint = 'start';
+        return;
+      }
+      if (dist(m, goal) <= 18) {
+        draggingPoint = 'goal';
+        return;
+      }
+      for (let i = 0; i < obstacles.length; i++) {
+        if (dist(m, obstacles[i]) <= obstacles[i].r) {
+          draggingPoint = { type: 'obstacle', index: i, offset: { x: obstacles[i].x - m.x, y: obstacles[i].y - m.y } };
+          return;
+        }
+      }
+
+      // Otherwise draw new obstacle
+      isDrawingObstacle = true;
+      newObsStart = { x: m.x, y: m.y, r: 0 };
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const m = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+
+      if (draggingPoint === 'start') {
+        start.x = Math.max(10, Math.min(width - 10, m.x));
+        start.y = Math.max(10, Math.min(height - 10, m.y));
+        resetPlanner();
+        return;
+      }
+      if (draggingPoint === 'goal') {
+        goal.x = Math.max(10, Math.min(width - 10, m.x));
+        goal.y = Math.max(10, Math.min(height - 10, m.y));
+        resetPlanner();
+        return;
+      }
+      if (draggingPoint && draggingPoint.type === 'obstacle') {
+        const obs = obstacles[draggingPoint.index];
+        obs.x = Math.max(obs.r, Math.min(width - obs.r, m.x + draggingPoint.offset.x));
+        obs.y = Math.max(obs.r, Math.min(height - obs.r, m.y + draggingPoint.offset.y));
+        resetPlanner();
+        return;
+      }
+      if (isDrawingObstacle && newObsStart) {
+        newObsStart.r = Math.round(dist(newObsStart, m));
+        draw();
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      draggingPoint = null;
+      if (isDrawingObstacle && newObsStart) {
+        if (newObsStart.r >= 14) {
+          obstacles.push({ x: newObsStart.x, y: newObsStart.y, r: newObsStart.r });
+          resetPlanner();
+        }
+        isDrawingObstacle = false;
+        newObsStart = null;
+        draw();
+      }
+    });
+
+    resetPlanner();
+  </script>
+</body>
+</html>
