@@ -208,7 +208,7 @@ $$\mathcal{C}_{obs} = \mathcal{O} \oplus (-\mathcal{A}(0)) = \{ p - a \mid p \in
 <span>Перетаскивайте робота мышью | Вращайте угол $\theta$ ползунком</span>
 
 </div>
-<iframe src="http://localhost:5599/widgets/cspace-minkowski/index.html" class="interactive-frame"></iframe>
+<iframe src="../../widgets/cspace-minkowski/index.html" class="interactive-frame"></iframe>
 
 </div>
 

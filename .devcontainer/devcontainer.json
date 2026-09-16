@@ -18,9 +18,11 @@
         "markdown.marp.themes": [
           "themes/robotics-minimal.css"
         ],
+        "markdown.marp.html": "all",
         "markdown.marp.enableHtml": true,
         "markdown.marp.outlineExtension": true,
         "markdown.marp.strictPath": false,
+        "markdown.marp.engine": "./scripts/marp-engine.cjs",
         "markdown.preview.openMarkdownLinks": "inEditor",
         "task.allowAutomaticTasks": "on",
         "editor.wordWrap": "on",

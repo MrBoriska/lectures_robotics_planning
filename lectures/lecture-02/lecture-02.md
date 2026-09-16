@@ -353,7 +353,7 @@ $$\mathcal{O}\big(|E| + |V| \log |V|\big)$$
 <span>Следите за $C$: сначала $d = 5$ через $A$, потом улучшается до $3$ через $B$</span>
 
 </div>
-<iframe src="http://localhost:5599/widgets/dijkstra-graph/index.html" class="interactive-frame"></iframe>
+<iframe src="../../widgets/dijkstra-graph/index.html" class="interactive-frame"></iframe>
 
 </div>
 
@@ -458,7 +458,7 @@ $$f(n) = g(n) + h(n)$$
 <span>При $h = 0$ алгоритм вырождается в Дейкстру: 66 итераций вместо 44 при той же длине пути</span>
 
 </div>
-<iframe src="http://localhost:5599/widgets/graph-search-steps/index.html#astar" class="interactive-frame"></iframe>
+<iframe src="../../widgets/graph-search-steps/index.html#astar" class="interactive-frame"></iframe>
 
 </div>
 
@@ -543,7 +543,7 @@ $$f(n) = g(n) + h(n)$$
 <span>Тот же граф, что на схеме выше: 29 итераций, $L = 11.91$, изломов 1 вместо 10</span>
 
 </div>
-<iframe src="http://localhost:5599/widgets/graph-search-steps/index.html#theta" class="interactive-frame"></iframe>
+<iframe src="../../widgets/graph-search-steps/index.html#theta" class="interactive-frame"></iframe>
 
 </div>
 
@@ -561,7 +561,7 @@ $$f(n) = g(n) + h(n)$$
 <span>Рисуйте стены мышью | Сравнивайте длину пути и число раскрытых ячеек</span>
 
 </div>
-<iframe src="http://localhost:5599/widgets/astar-grid/index.html" class="interactive-frame"></iframe>
+<iframe src="../../widgets/astar-grid/index.html" class="interactive-frame"></iframe>
 
 </div>
 
@@ -642,7 +642,7 @@ $$a_i(t) = a_j(t+1) \quad \text{и} \quad a_i(t+1) = a_j(t)$$
 <span>Переключайте режим: Столкновение vs Скоординированный пропуск</span>
 
 </div>
-<iframe src="http://localhost:5599/widgets/mapf-spacetime/index.html" class="interactive-frame"></iframe>
+<iframe src="../../widgets/mapf-spacetime/index.html" class="interactive-frame"></iframe>
 
 </div>
 

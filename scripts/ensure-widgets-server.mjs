@@ -23,8 +23,8 @@ async function main() {
   const is5599 = await checkPort(5599);
   const is5500 = await checkPort(5500);
 
-  if (is5599 || is5500) {
-    console.log(`✅ [Widgets Server] Сервер уже активен (5599: ${is5599}, 5500: ${is5500})`);
+  if (is5599) {
+    console.log(`✅ [Widgets Server] Сервер уже активен на порту 5599 (5500: ${is5500})`);
     process.exit(0);
   }
 
