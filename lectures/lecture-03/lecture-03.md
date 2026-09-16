@@ -372,7 +372,7 @@ $$\forall \tau \in [0, 1]: \operatorname{Clear}((1 - \tau)q + \tau u) == 1$$
 <span>Рисуйте круглые преграды | Перетаскивайте S и G | Варьируйте число узлов N и соседей k</span>
 
 </div>
-<iframe src="../../widgets/prm-roadmap/index.html" class="interactive-frame"></iframe>
+<iframe src="http://localhost:5599/widgets/prm-roadmap/index.html" class="interactive-frame"></iframe>
 
 </div>
 
@@ -647,7 +647,7 @@ def RRT_Connect(q_start, q_goal):
 <span>Переключите режим на «RRT-Connect» | Запустите симуляцию | Оцените скорость смыкания деревьев</span>
 
 </div>
-<iframe src="../../widgets/rrt-exploration/index.html#connect" class="interactive-frame"></iframe>
+<iframe src="http://localhost:5599/widgets/rrt-exploration/index.html#connect" class="interactive-frame"></iframe>
 
 </div>
 
@@ -810,7 +810,7 @@ $$r_N = \gamma_{\text{RRT}^*} \left( \frac{\log N}{N} \right)^{1/d}$$
 <span>Переключите селектор на «RRT*» | Запустите поиск | Нажмите «✂️ Сгладить (Shortcut)» для сравнения</span>
 
 </div>
-<iframe src="../../widgets/rrt-exploration/index.html#star" class="interactive-frame"></iframe>
+<iframe src="http://localhost:5599/widgets/rrt-exploration/index.html#star" class="interactive-frame"></iframe>
 
 </div>
 
@@ -945,7 +945,7 @@ $$C = U \operatorname{diag}(1, \dots, 1, \det(U)\det(V)) V^T$$
 <span>Выберите «Informed RRT*» | Дождитесь нахождения первого пути | Посмотрите, как выборка запирается внутри эллипса</span>
 
 </div>
-<iframe src="../../widgets/rrt-exploration/index.html#informed" class="interactive-frame"></iframe>
+<iframe src="http://localhost:5599/widgets/rrt-exploration/index.html#informed" class="interactive-frame"></iframe>
 
 </div>
 
@@ -1048,7 +1048,7 @@ $$P(q \in \mathcal{C}_{\text{narrow}}) = \frac{\mu(\mathcal{C}_{\text{narrow}})}
 <span>Переключите селектор на «Bridge Test» | Нажмите «⚡ Запуск» | Посмотрите, как точки концентрируются в щели</span>
 
 </div>
-<iframe src="../../widgets/narrow-passage/index.html" class="interactive-frame"></iframe>
+<iframe src="http://localhost:5599/widgets/narrow-passage/index.html" class="interactive-frame"></iframe>
 
 </div>
 
