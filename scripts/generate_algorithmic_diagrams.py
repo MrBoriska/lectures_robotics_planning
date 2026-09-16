@@ -885,10 +885,10 @@ def generate_informed_rrt_ellipse():
     filepath = os.path.join(OUTPUT_DIR, 'lecture-03', 'informed_rrt_ellipse.svg')
     ensure_dir(filepath)
 
-    x_s = (120, 160)
-    x_g = (460, 160)
+    x_s = (130, 175)
+    x_g = (390, 175)
     c_min = dist(x_s, x_g)
-    c_best = 400
+    c_best = 330
     a = c_best / 2
     b = math.sqrt(c_best**2 - c_min**2) / 2
     cx, cy = (x_s[0] + x_g[0]) / 2, (x_s[1] + x_g[1]) / 2
@@ -896,26 +896,29 @@ def generate_informed_rrt_ellipse():
     random.seed(42)
     samples_in = []
     samples_out = []
-    for _ in range(65):
-        rx = random.uniform(cx - a*1.25, cx + a*1.25)
-        ry = random.uniform(cy - b*1.35, cy + b*1.35)
+    for _ in range(60):
+        rx = random.uniform(cx - a*1.2, cx + a*1.2)
+        ry = random.uniform(cy - b*1.3, cy + b*1.3)
         val = ((rx - cx)/a)**2 + ((ry - cy)/b)**2
         if val <= 1.0:
             samples_in.append((rx, ry))
         else:
             samples_out.append((rx, ry))
 
-    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 560" width="100%" height="100%">
   <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
 
-  <g transform="translate(30, 24)">
+  <!-- Title & Legend -->
+  <g transform="translate(24, 28)">
     <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Informed RRT*: Сжатие выборки в эллипсоид C_best</text>
-    <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">После нахождения первого пути сэмплирование сужается до эллипсоида равной стоимости</text>
+    <text x="0" y="20" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">После первого пути выборка запирается в эллипсоид равной стоимости</text>
   </g>
 
-  <rect x="30" y="60" width="520" height="240" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="4,4"/>
-  <text x="40" y="78" font-family="Inter, sans-serif" font-size="11" fill="#94a3b8">Исходное пространство поиска X</text>
+  <!-- Search Space Box -->
+  <rect x="24" y="60" width="472" height="230" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="4,4"/>
+  <text x="36" y="80" font-family="Inter, sans-serif" font-size="11" fill="#94a3b8">Исходное пространство поиска X</text>
 
+  <!-- Outside rejected samples (Gray) -->
   <g fill="#cbd5e1">
 '''
     for x, y in samples_out:
@@ -923,8 +926,10 @@ def generate_informed_rrt_ellipse():
 
     svg += f'''  </g>
 
+  <!-- The Prolate Hyperspheroid / Ellipse -->
   <ellipse cx="{cx}" cy="{cy}" rx="{a}" ry="{b}" fill="#ecfdf5" stroke="#059669" stroke-width="2.5"/>
 
+  <!-- Inside accepted samples (Green) -->
   <g fill="#059669">
 '''
     for x, y in samples_in:
@@ -932,32 +937,36 @@ def generate_informed_rrt_ellipse():
 
     svg += f'''  </g>
 
+  <!-- Axes -->
   <line x1="{cx - a}" y1="{cy}" x2="{cx + a}" y2="{cy}" stroke="#059669" stroke-width="1" stroke-dasharray="3,3"/>
   <line x1="{cx}" y1="{cy - b}" x2="{cx}" y2="{cy + b}" stroke="#059669" stroke-width="1" stroke-dasharray="3,3"/>
 
-  <path d="M{x_s[0]},{x_s[1]} L190,110 L280,210 L380,120 L{x_g[0]},{x_g[1]}" stroke="#d97706" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+  <!-- Best path found so far -->
+  <path d="M{x_s[0]},{x_s[1]} L185,130 L260,220 L335,135 L{x_g[0]},{x_g[1]}" stroke="#d97706" stroke-width="2.2" fill="none" stroke-linecap="round"/>
 
+  <!-- Start (Focus 1) -->
   <circle cx="{x_s[0]}" cy="{x_s[1]}" r="6.5" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
-  <text x="{x_s[0]-14}" y="{x_s[1]+18}" font-family="Inter" font-size="11" font-weight="700" fill="#0284c7">x_start (Фокус 1)</text>
+  <text x="{x_s[0]-16}" y="{x_s[1]+18}" font-family="Inter" font-size="11" font-weight="700" fill="#0284c7">x_start (Фокус 1)</text>
 
+  <!-- Goal (Focus 2) -->
   <circle cx="{x_g[0]}" cy="{x_g[1]}" r="6.5" fill="#dc2626" stroke="#ffffff" stroke-width="2"/>
-  <text x="{x_g[0]-14}" y="{x_g[1]+18}" font-family="Inter" font-size="11" font-weight="700" fill="#dc2626">x_goal (Фокус 2)</text>
+  <text x="{x_g[0]-16}" y="{x_g[1]+18}" font-family="Inter" font-size="11" font-weight="700" fill="#dc2626">x_goal (Фокус 2)</text>
 
-  <g transform="translate(565, 60)">
-    <rect width="165" height="240" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
-    <text x="14" y="24" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#0f172a">Параметры эллипса:</text>
-    
-    <text x="14" y="50" font-family="JetBrains Mono" font-size="10" fill="#0f172a">• c_min = ||x_g - x_s||</text>
-    <text x="14" y="68" font-family="JetBrains Mono" font-size="10" fill="#d97706">• c_best = длина пути</text>
-    <text x="14" y="86" font-family="JetBrains Mono" font-size="10" fill="#059669">• Большая полуось a:</text>
-    <text x="24" y="102" font-family="JetBrains Mono" font-size="10.5" font-weight="700" fill="#059669">a = c_best / 2</text>
-    
-    <text x="14" y="124" font-family="JetBrains Mono" font-size="10" fill="#059669">• Малая полуось b:</text>
-    <text x="24" y="140" font-family="JetBrains Mono" font-size="10.5" font-weight="700" fill="#059669">b = √(c_best² - c_min²)/2</text>
+  <!-- Explanation Card (BELOW DIAGRAM) -->
+  <g transform="translate(24, 305)">
+    <rect width="472" height="235" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="18" y="24" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Параметры и геометрия эллипса равной стоимости:</text>
 
-    <rect x="10" y="165" width="145" height="60" rx="4" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1"/>
-    <text x="16" y="184" font-family="Inter, sans-serif" font-size="10.5" font-weight="700" fill="#065f46">Эффект сжатия:</text>
-    <text x="16" y="200" font-family="Inter, sans-serif" font-size="9.5" fill="#047857">Отсекает до 90% нерелевантного пространства!</text>
+    <rect x="16" y="36" width="440" height="74" rx="5" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
+    <text x="26" y="56" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#1e40af">• c_min = ||x_goal - x_start|| (фокальное расстояние)</text>
+    <text x="26" y="74" font-family="JetBrains Mono, monospace" font-size="10.5" fill="#d97706">• c_best = длина лучшего найденного пути</text>
+    <text x="26" y="94" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="700" fill="#059669">• Полуоси: a = c_best / 2,   b = √(c_best² - c_min²) / 2</text>
+
+    <rect x="16" y="120" width="440" height="98" rx="5" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1"/>
+    <text x="24" y="140" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#065f46">Эффект сжатия выборки (Informed Sampling):</text>
+    <text x="24" y="160" font-family="Inter, sans-serif" font-size="10.5" fill="#047857">1. Точки вне эллипса гарантированно не могут улучшить путь (cost &gt; c_best).</text>
+    <text x="24" y="178" font-family="Inter, sans-serif" font-size="10.5" fill="#047857">2. При каждом улучшении пути эллипс динамически сжимается к оптимуму.</text>
+    <text x="24" y="196" font-family="Inter, sans-serif" font-size="10.5" fill="#047857">3. В размерностях d ≥ 3 отсекает 95–99% объёма, ускоряя поиск в 10–100 раз.</text>
   </g>
 </svg>'''
 
@@ -1083,68 +1092,66 @@ def generate_narrow_passage_bridge():
     filepath = os.path.join(OUTPUT_DIR, 'lecture-03', 'narrow_passage_bridge.svg')
     ensure_dir(filepath)
 
-    svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+    svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 560" width="100%" height="100%">
   <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
 
-  <!-- Left: The Narrow Passage Trap -->
-  <g transform="translate(20, 20)">
-    <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
-    <text x="16" y="24" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#0f172a">1. Равномерный сэмплинг (Trap)</text>
-    <text x="16" y="40" font-family="Inter, sans-serif" font-size="10.5" fill="#dc2626">Объем прохода μ(C_narrow) ≪ μ(C) → P(попадания) ≈ 0</text>
+  <!-- Top: The Narrow Passage Trap -->
+  <g transform="translate(20, 15)">
+    <rect width="460" height="250" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#0f172a">1. Равномерный сэмплинг (Ловушка узкого прохода)</text>
+    <text x="16" y="40" font-family="Inter, sans-serif" font-size="10.5" fill="#dc2626">Объем прохода μ(C_narrow) ≪ μ(C) → вероятность попадания P ≈ 0</text>
 
     <!-- Two massive walls with a narrow slit -->
-    <rect x="135" y="55" width="75" height="95" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1.5"/>
-    <rect x="135" y="185" width="75" height="95" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1.5"/>
-    <text x="172" y="110" text-anchor="middle" font-family="Inter" font-size="11" font-weight="700" fill="#475569">C_obs</text>
-    <text x="172" y="240" text-anchor="middle" font-family="Inter" font-size="11" font-weight="700" fill="#475569">C_obs</text>
+    <rect x="190" y="55" width="80" height="65" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1.5"/>
+    <rect x="190" y="145" width="80" height="65" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1.5"/>
+    <text x="230" y="92" text-anchor="middle" font-family="Inter" font-size="11" font-weight="700" fill="#475569">C_obs</text>
+    <text x="230" y="182" text-anchor="middle" font-family="Inter" font-size="11" font-weight="700" fill="#475569">C_obs</text>
 
     <!-- Slit indicator -->
-    <line x1="135" y1="150" x2="210" y2="150" stroke="#ef4444" stroke-width="1.2" stroke-dasharray="3,3"/>
-    <line x1="135" y1="185" x2="210" y2="185" stroke="#ef4444" stroke-width="1.2" stroke-dasharray="3,3"/>
-    <text x="172" y="172" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#dc2626">Щель ε</text>
+    <line x1="190" y1="120" x2="270" y2="120" stroke="#ef4444" stroke-width="1.2" stroke-dasharray="3,3"/>
+    <line x1="190" y1="145" x2="270" y2="145" stroke="#ef4444" stroke-width="1.2" stroke-dasharray="3,3"/>
+    <text x="230" y="137" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" fill="#dc2626">Щель ε</text>
 
     <!-- Scattered points outside -->
     <g fill="#94a3b8">
-      <circle cx="45" cy="80" r="3"/><circle cx="70" cy="120" r="3"/><circle cx="35" cy="180" r="3"/>
-      <circle cx="85" cy="220" r="3"/><circle cx="60" cy="260" r="3"/><circle cx="260" cy="75" r="3"/>
-      <circle cx="295" cy="115" r="3"/><circle cx="270" cy="190" r="3"/><circle cx="310" cy="240" r="3"/>
-      <circle cx="250" cy="270" r="3"/>
+      <circle cx="55" cy="75" r="3"/><circle cx="95" cy="115" r="3"/><circle cx="45" cy="165" r="3"/>
+      <circle cx="110" cy="195" r="3"/><circle cx="150" cy="75" r="3"/><circle cx="140" cy="175" r="3"/>
+      <circle cx="310" cy="75" r="3"/><circle cx="355" cy="120" r="3"/><circle cx="410" cy="85" r="3"/>
+      <circle cx="330" cy="175" r="3"/><circle cx="385" cy="185" r="3"/><circle cx="420" cy="140" r="3"/>
     </g>
 
-    <rect x="14" y="284" width="317" height="24" rx="4" fill="#fef2f2"/>
-    <text x="22" y="300" font-family="Inter, sans-serif" font-size="10" fill="#991b1b">Деревья застревают с обеих сторон щели</text>
+    <rect x="14" y="218" width="432" height="22" rx="4" fill="#fef2f2"/>
+    <text x="22" y="233" font-family="Inter, sans-serif" font-size="10" fill="#991b1b">Деревья RRT застревают снаружи, не имея шанса попасть случайной точкой в проём</text>
   </g>
 
-  <!-- Right: Bridge Test Sampling -->
-  <g transform="translate(395, 20)">
-    <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
-    <text x="16" y="24" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#0f172a">2. Мостовой тест (Bridge Test)</text>
-    <text x="16" y="40" font-family="Inter, sans-serif" font-size="10.5" fill="#059669">q1, q2 ∈ C_obs, а их середина q_mid ∈ C_free → мост!</text>
+  <!-- Bottom: Bridge Test Sampling -->
+  <g transform="translate(20, 280)">
+    <rect width="460" height="265" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#0f172a">2. Решение: Мостовой тест (Bridge Test)</text>
+    <text x="16" y="40" font-family="Inter, sans-serif" font-size="10.5" fill="#059669">q1, q2 ∈ C_obs, а их середина q_mid ∈ C_free → мост перекинут через щель!</text>
 
     <!-- Obstacles -->
-    <rect x="135" y="55" width="75" height="95" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1.5"/>
-    <rect x="135" y="185" width="75" height="95" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1.5"/>
+    <rect x="190" y="55" width="80" height="65" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1.5"/>
+    <rect x="190" y="145" width="80" height="65" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1.5"/>
 
     <!-- Test Line across the slit -->
-    <line x1="172" y1="125" x2="172" y2="205" stroke="#059669" stroke-width="2"/>
+    <line x1="230" y1="95" x2="230" y2="175" stroke="#059669" stroke-width="2.5"/>
 
     <!-- Obstacle endpoints -->
-    <circle cx="172" cy="125" r="5" fill="#dc2626" stroke="#ffffff" stroke-width="1.5"/>
-    <text x="195" y="128" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#dc2626">q1 ∈ C_obs</text>
+    <circle cx="230" cy="95" r="5" fill="#dc2626" stroke="#ffffff" stroke-width="1.5"/>
+    <text x="280" y="98" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#dc2626">q1 ∈ C_obs</text>
 
-    <circle cx="172" cy="205" r="5" fill="#dc2626" stroke="#ffffff" stroke-width="1.5"/>
-    <text x="195" y="208" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#dc2626">q2 ∈ C_obs</text>
+    <circle cx="230" cy="175" r="5" fill="#dc2626" stroke="#ffffff" stroke-width="1.5"/>
+    <text x="280" y="178" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#dc2626">q2 ∈ C_obs</text>
 
     <!-- Midpoint in passage -->
-    <circle cx="172" cy="165" r="6.5" fill="#059669" stroke="#ffffff" stroke-width="2"/>
-    <text x="60" y="169" font-family="JetBrains Mono" font-size="10.5" font-weight="700" fill="#059669">q_mid = (q1+q2)/2</text>
+    <circle cx="230" cy="135" r="7" fill="#059669" stroke="#ffffff" stroke-width="2"/>
+    <text x="50" y="139" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#059669">q_mid = (q1+q2)/2</text>
 
-    <g transform="translate(14, 235)">
-      <rect width="317" height="73" rx="5" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1"/>
-      <text x="12" y="20" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#065f46">Алгоритм генерации моста:</text>
-      <text x="12" y="38" font-family="Inter, sans-serif" font-size="10" fill="#047857">1. Выбираем q1 ∈ C_obs случайно</text>
-      <text x="12" y="52" font-family="Inter, sans-serif" font-size="10" fill="#047857">2. Шагаем q2 = q1 + d, d ~ N(0, σ²)</text>
-      <text x="12" y="66" font-family="Inter, sans-serif" font-size="10" fill="#047857">3. Если q2 ∈ C_obs и q_mid ∈ C_free → сохраняем q_mid!</text>
+    <g transform="translate(14, 215)">
+      <rect width="432" height="42" rx="4" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1"/>
+      <text x="12" y="17" font-family="Inter, sans-serif" font-size="10.5" font-weight="700" fill="#065f46">Принцип Bridge Test:</text>
+      <text x="12" y="32" font-family="Inter, sans-serif" font-size="9.5" fill="#047857">1. Точка q1 в стене → 2. Случайный шаг q2 в стену → 3. Если середина свободна, сохраняем точку в проходе!</text>
     </g>
   </g>
 </svg>'''
@@ -1157,58 +1164,61 @@ def generate_path_shortcutting():
     filepath = os.path.join(OUTPUT_DIR, 'lecture-03', 'path_shortcutting.svg')
     ensure_dir(filepath)
 
-    svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+    svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 560" width="100%" height="100%">
   <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
 
-  <g transform="translate(30, 24)">
-    <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Постобработка: Сглаживание траектории (Path Shortcutting)</text>
-    <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Устранение стохастических изломов RRT методом лучевого отсечения (Ray-casting)</text>
+  <!-- Title & Legend -->
+  <g transform="translate(24, 28)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Сглаживание траектории (Path Shortcutting)</text>
+    <text x="0" y="20" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Устранение стохастических изломов методом лучевого отсечения</text>
   </g>
 
-  <!-- Obstacle -->
-  <rect x="260" y="110" width="160" height="130" rx="8" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
-  <text x="340" y="180" text-anchor="middle" font-family="Inter" font-size="13" font-weight="700" fill="#64748b">Препятствие</text>
+  <!-- Obstacle in the middle -->
+  <rect x="175" y="195" width="150" height="155" rx="10" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+  <text x="250" y="278" text-anchor="middle" font-family="Inter" font-size="13" font-weight="700" fill="#64748b">Препятствие C_obs</text>
 
-  <!-- Raw Jagged RRT Path (Orange) -->
-  <path d="M 60,260 L 110,210 L 140,240 L 180,180 L 220,130 L 250,75 L 340,65 L 440,75 L 490,140 L 550,190 L 620,170 L 680,220" 
+  <!-- Raw Jagged RRT Path (Orange, going from bottom q_start to top q_goal) -->
+  <path d="M 140,495 L 100,445 L 75,405 L 120,365 L 70,315 L 85,255 L 70,195 L 110,145 L 175,115 L 255,85 L 340,95" 
         stroke="#f59e0b" stroke-width="2.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
 
   <!-- Intermediate waypoints -->
   <g fill="#f59e0b">
-    <circle cx="110" cy="210" r="4"/><circle cx="140" cy="240" r="4"/><circle cx="180" cy="180" r="4"/>
-    <circle cx="220" cy="130" r="4"/><circle cx="250" cy="75" r="4"/><circle cx="340" cy="65" r="4"/>
-    <circle cx="440" cy="75" r="4"/><circle cx="490" cy="140" r="4"/><circle cx="550" cy="190" r="4"/>
-    <circle cx="620" cy="170" r="4"/>
+    <circle cx="100" cy="445" r="4"/><circle cx="75" cy="405" r="4"/><circle cx="120" cy="365" r="4"/>
+    <circle cx="70" cy="315" r="4"/><circle cx="85" cy="255" r="4"/><circle cx="70" cy="195" r="4"/>
+    <circle cx="110" cy="145" r="4"/><circle cx="175" cy="115" r="4"/><circle cx="255" cy="85" r="4"/>
   </g>
 
-  <!-- Shortcut Line of Sight (Raycast candidate) -->
-  <line x1="60" y1="260" x2="250" y2="75" stroke="#10b981" stroke-width="3" stroke-linecap="round"/>
-  <line x1="250" y1="75" x2="440" y2="75" stroke="#10b981" stroke-width="3" stroke-linecap="round"/>
-  <line x1="440" y1="75" x2="680" y2="220" stroke="#10b981" stroke-width="3" stroke-linecap="round"/>
+  <!-- Blocked raycast attempt (Dashed Red, cutting straight through obstacle) -->
+  <line x1="140" y1="495" x2="255" y2="85" stroke="#ef4444" stroke-width="2" stroke-dasharray="5,4"/>
+  <text x="215" y="380" font-family="Inter" font-size="10.5" font-weight="700" fill="#dc2626">✗ Коллизия луча</text>
+
+  <!-- Shortcut Lines of Sight (Green, valid direct rays) -->
+  <line x1="140" y1="495" x2="85" y2="255" stroke="#10b981" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="85" y1="255" x2="175" y2="115" stroke="#10b981" stroke-width="3.5" stroke-linecap="round"/>
+  <line x1="175" y1="115" x2="340" y2="95" stroke="#10b981" stroke-width="3.5" stroke-linecap="round"/>
 
   <!-- Shortcut waypoints -->
-  <circle cx="60" cy="260" r="7.5" fill="#10b981" stroke="#ffffff" stroke-width="2"/>
-  <circle cx="250" cy="75" r="6" fill="#10b981" stroke="#ffffff" stroke-width="2"/>
-  <circle cx="440" cy="75" r="6" fill="#10b981" stroke="#ffffff" stroke-width="2"/>
-  <circle cx="680" cy="220" r="7.5" fill="#10b981" stroke="#ffffff" stroke-width="2"/>
+  <circle cx="85" cy="255" r="6" fill="#10b981" stroke="#ffffff" stroke-width="2"/>
+  <circle cx="175" cy="115" r="6" fill="#10b981" stroke="#ffffff" stroke-width="2"/>
 
-  <!-- Blocked raycast attempt (Dashed Red) -->
-  <line x1="60" y1="260" x2="440" y2="75" stroke="#ef4444" stroke-width="1.8" stroke-dasharray="4,4"/>
-  <text x="165" y="195" font-family="Inter" font-size="10.5" font-weight="700" fill="#dc2626">✗ Коллизия луча</text>
+  <!-- Start (BOTTOM) -->
+  <circle cx="140" cy="495" r="8" fill="#10b981" stroke="#ffffff" stroke-width="2.5"/>
+  <text x="140" y="525" text-anchor="middle" font-family="JetBrains Mono" font-size="11.5" font-weight="700" fill="#047857">q_start (Старт)</text>
 
-  <!-- Start and Goal labels -->
-  <text x="40" y="285" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#047857">q_start</text>
-  <text x="670" y="245" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#047857">q_goal</text>
+  <!-- Goal (TOP) -->
+  <circle cx="340" cy="95" r="8" fill="#10b981" stroke="#ffffff" stroke-width="2.5"/>
+  <text x="340" y="72" text-anchor="middle" font-family="JetBrains Mono" font-size="11.5" font-weight="700" fill="#047857">q_goal (Финиш)</text>
 
-  <!-- Legend Box -->
-  <g transform="translate(40, 60)">
-    <rect width="180" height="90" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
-    <line x1="12" y1="24" x2="40" y2="24" stroke="#f59e0b" stroke-width="2.5"/>
-    <text x="48" y="28" font-family="Inter" font-size="10.5" fill="#334155">Сырой путь RRT (12 узлов)</text>
-    <line x1="12" y1="50" x2="40" y2="50" stroke="#10b981" stroke-width="3"/>
-    <text x="48" y="54" font-family="Inter" font-size="10.5" font-weight="700" fill="#047857">Сглаженный путь (4 узла)</text>
-    <line x1="12" y1="74" x2="40" y2="74" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4,3"/>
-    <text x="48" y="78" font-family="Inter" font-size="10.5" fill="#dc2626">Непроходимый луч</text>
+  <!-- Legend Box on the right bottom -->
+  <g transform="translate(240, 400)">
+    <rect width="215" height="110" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+    <line x1="14" y1="26" x2="42" y2="26" stroke="#f59e0b" stroke-width="2.5"/>
+    <text x="50" y="30" font-family="Inter" font-size="10.5" fill="#334155">Сырой путь RRT (11 узлов)</text>
+    <line x1="14" y1="52" x2="42" y2="52" stroke="#10b981" stroke-width="3.5"/>
+    <text x="50" y="56" font-family="Inter" font-size="10.5" font-weight="700" fill="#047857">Сглаженный путь (4 узла)</text>
+    <line x1="14" y1="78" x2="42" y2="78" stroke="#ef4444" stroke-width="2" stroke-dasharray="4,3"/>
+    <text x="50" y="82" font-family="Inter" font-size="10.5" fill="#dc2626">Непроходимый луч</text>
+    <text x="14" y="98" font-family="Inter" font-size="9.5" fill="#64748b">Длина: -28%, без изломов</text>
   </g>
 </svg>'''
     write_svg(filepath, svg)

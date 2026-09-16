@@ -76,54 +76,60 @@
     let draggingPoint = null;
 
     function initEnvironment() {
-      if (!start) {
-        start = { x: Math.round(width * 0.12), y: Math.round(height * 0.5) };
-      }
-      if (!goal) {
-        goal = { x: Math.round(width * 0.88), y: Math.round(height * 0.5), radius: Math.min(26, Math.max(18, height * 0.055)) };
-      }
-      if (obstacles.length === 0) {
-        const rScale = Math.min(width, height) / 500;
-        obstacles = [
-          { x: width * 0.38, y: height * 0.32, r: 65 * rScale },
-          { x: width * 0.40, y: height * 0.70, r: 75 * rScale },
-          { x: width * 0.64, y: height * 0.50, r: 85 * rScale }
-        ];
-      }
+      start = { x: Math.round(width * 0.12), y: Math.round(height * 0.5) };
+      goal = { x: Math.round(width * 0.88), y: Math.round(height * 0.5), radius: Math.min(26, Math.max(18, height * 0.055)) };
+      const rScale = Math.min(width, height) / 500;
+      obstacles = [
+        { x: width * 0.38, y: height * 0.32, r: 65 * rScale },
+        { x: width * 0.40, y: height * 0.70, r: 75 * rScale },
+        { x: width * 0.64, y: height * 0.50, r: 85 * rScale }
+      ];
     }
 
     function resize() {
       const container = canvas.parentElement;
       if (!container) return;
+      const newW = container.clientWidth;
+      const newH = container.clientHeight;
+      if (newW < 50 || newH < 50) return;
+
       const prevW = width;
       const prevH = height;
-      width = container.clientWidth;
-      height = container.clientHeight;
+      width = newW;
+      height = newH;
       canvas.width = width;
       canvas.height = height;
 
-      if (!start) {
+      if (!start || isNaN(start.x) || (start.x <= 25 && start.y <= 25) || prevW < 50 || prevH < 50) {
         initEnvironment();
-      } else if (prevW > 0 && prevH > 0 && (prevW !== width || prevH !== height)) {
-        const sx = width / prevW;
-        const sy = height / prevH;
-        start.x = Math.max(15, Math.min(width - 15, start.x * sx));
-        start.y = Math.max(15, Math.min(height - 15, start.y * sy));
-        goal.x = Math.max(15, Math.min(width - 15, goal.x * sx));
-        goal.y = Math.max(15, Math.min(height - 15, goal.y * sy));
-        for (const obs of obstacles) {
-          obs.x *= sx;
-          obs.y *= sy;
-          obs.r *= Math.min(sx, sy);
-        }
-        for (const n of nodes) {
-          n.x *= sx;
-          n.y *= sy;
-        }
-        for (const n of nodesB) {
-          n.x *= sx;
-          n.y *= sy;
-        }
+        resetTree();
+        return;
+      }
+
+      const sx = width / prevW;
+      const sy = height / prevH;
+      if (!isFinite(sx) || !isFinite(sy) || sx <= 0 || sy <= 0) {
+        initEnvironment();
+        resetTree();
+        return;
+      }
+
+      start.x = Math.max(15, Math.min(width - 15, start.x * sx));
+      start.y = Math.max(15, Math.min(height - 15, start.y * sy));
+      goal.x = Math.max(15, Math.min(width - 15, goal.x * sx));
+      goal.y = Math.max(15, Math.min(height - 15, goal.y * sy));
+      for (const obs of obstacles) {
+        obs.x *= sx;
+        obs.y *= sy;
+        obs.r *= Math.min(sx, sy);
+      }
+      for (const n of nodes) {
+        n.x *= sx;
+        n.y *= sy;
+      }
+      for (const n of nodesB) {
+        n.x *= sx;
+        n.y *= sy;
       }
       draw();
     }
@@ -135,32 +141,38 @@
       let poll = null;
 
       function sized() {
-        return element.clientWidth > 0 && element.clientHeight > 0;
+        return element.clientWidth > 50 && element.clientHeight > 50;
       }
 
       function attempt() {
-        onResize();
-        if (sized()) return;
-        if (frames++ < 240) {
-          window.requestAnimationFrame(attempt);
-        } else if (!poll) {
-          poll = setInterval(function () {
-            onResize();
-            if (sized() || ticks++ > 40) {
-              clearInterval(poll);
-              poll = null;
-            }
-          }, 250);
+        if (!sized()) {
+          if (frames++ < 240) {
+            window.requestAnimationFrame(attempt);
+          } else if (!poll) {
+            poll = setInterval(function () {
+              if (sized() || ticks++ > 40) {
+                clearInterval(poll);
+                poll = null;
+                if (sized()) onResize();
+              }
+            }, 250);
+          }
+          return;
         }
+        onResize();
       }
 
       window.requestAnimationFrame(attempt);
       window.addEventListener('resize', onResize);
       window.addEventListener('pageshow', onResize);
       document.addEventListener('visibilitychange', function () {
-        if (!document.hidden) onResize();
+        if (!document.hidden && sized()) onResize();
       });
-      if (window.ResizeObserver) new window.ResizeObserver(onResize).observe(element);
+      if (window.ResizeObserver) {
+        new window.ResizeObserver(() => {
+          if (sized()) onResize();
+        }).observe(element);
+      }
     }
 
     autosize(canvas.parentElement, resize);

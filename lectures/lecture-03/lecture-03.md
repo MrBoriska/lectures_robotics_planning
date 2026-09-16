@@ -1175,22 +1175,21 @@ $$\lim_{N \to \infty} P(\text{путь найден}) = 1$$
 
 <!-- _header: "Лекция 03 | Программные стандарты" -->
 
-## Программный стек сэмплинга: Архитектура OMPL <span class="badge badge-time">85–87 мин</span>
+## Программный стек сэмплинга: OMPL и cuRobo <span class="badge badge-time">85–87 мин</span>
 
 <div class="grid-2">
 
 <div class="col">
 
-**OMPL** (*Open Motion Planning Library*, Rice University / Kavraki Lab) — индустриальный стандарт библиотек сэмплирования в робототехнике (базис MoveIt и Nav2).
-
 <div class="card card-accent">
 
-### Ключевые абстракции OMPL:
+### OMPL: Золотой стандарт манипуляторов
+**OMPL** (*Open Motion Planning Library*) — открытая C++ библиотека, лежащая в основе **MoveIt 2** и **Nav2**:
 
-- `ob::StateSpace`: геометрия и метрика $\mathcal{C}$-пространства ($\mathbb{R}^2$, $SE(2)$, $SE(3)$, $SO(3)$).
-- `ob::StateValidityChecker`: функция $\operatorname{Clear}(q)$ (Black-Box коллизий).
-- `ob::MotionValidator`: проверка допустимости отрезка между двумя состояниями (дискретно или CCD).
-- `ob::OptimizationObjective`: критерий оптимизации пути (длина пути, клиренс от препятствий, механическая работа).
+- **Промышленные манипуляторы:** Мировой стандарт для управления роборуками (KUKA, ABB, Fanuc, Universal Robots, Franka Emika) с $d = 6\text{--}7+$ степенями свободы.
+- **Сложные 3D-сцены:** Обход препятствий в загроможденных цехах, операции сборки, сварки, укладки и захвата (*pick-and-place*).
+- **Более 30 алгоритмов:** Готовые реализации PRM, LazyPRM, RRT, RRT*, Informed RRT*, KPIECE, FMT* и др.
+- **Абстракция от физики:** Работает с абстрактным `StateSpace` ($SE(3), SO(3)$) и внешним «черным ящиком» коллизий `StateValidityChecker`.
 
 </div>
 
@@ -1198,30 +1197,15 @@ $$\lim_{N \to \infty} P(\text{путь найден}) = 1$$
 
 <div class="col">
 
-<div class="card">
+<div class="card card-success">
 
-### Пример настройки планировщика в OMPL (C++):
+### cuRobo (NVIDIA): Ускорение на GPU
+**cuRobo** (*CUDA Robotics*) — современный стек параллельного планирования движений от NVIDIA (2023–2026):
 
-```cpp
-auto space = std::make_shared<ob::SE2StateSpace>();
-ob::RealVectorBounds bounds(2);
-bounds.setLow(-10); bounds.setHigh(10);
-space->setBounds(bounds);
-
-auto si = std::make_shared<ob::SpaceInformation>(space);
-si->setStateValidityChecker(isStateValid);
-si->setup();
-
-auto pdef = std::make_shared<ob::ProblemDefinition>(si);
-pdef->setStartAndGoalStates(start, goal);
-
-// Выбор любого алгоритма в одну строчку!
-auto planner = std::make_shared<og::InformedRRTstar>(si);
-planner->setProblemDefinition(pdef);
-planner->setup();
-
-ob::PlannerStatus solved = planner->solve(1.0); // таймаут 1 секунда
-```
+- **Сэмплинг на тысячах ядер CUDA:** Параллельные реализации RRT, RRT* и траекторной оптимизации (MPPI), работающие на GPU.
+- **Миллионы проверок в секунду:** Массовая проверка коллизий геометрии робота с воксельными картами глубины (`nvblox`) прямо в видеопамяти.
+- **Реактивное быстродействие:** Время поиска пути для 7-звенного робота снижается с 200–500 мс до **1–5 миллисекунд**!
+- **Динамический отклик:** Перепланирование траекторий на лету на частоте 100+ Гц при появлении людей и препятствий.
 
 </div>
 
