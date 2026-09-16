@@ -1,10 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 540" width="100%" height="100%">
   <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
 
   <!-- Title & Legend -->
-  <g transform="translate(30, 24)">
+  <g transform="translate(20, 24)">
     <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Алгоритм переподключения RRT* (Rewiring Step)</text>
-    <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Окрестность радиуса r_RRT* вокруг q_new проверяется на оптимизацию стоимости пути c(v)</text>
+    <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Окрестность радиуса r_RRT* вокруг q_new проверяется</text>
+    <text x="0" y="32" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">на оптимизацию стоимости пути c(v)</text>
   </g>
 
   <!-- Rewiring Circle Area -->
@@ -50,7 +51,7 @@
   <text x="206" y="148" font-family="Inter" font-size="12" font-weight="700" fill="#0284c7">q_new</text>
 
   <!-- Mathematical explanation card -->
-  <g transform="translate(420, 80)">
+  <g transform="translate(65, 280)">
     <rect width="310" height="230" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
     <text x="16" y="24" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Условие переподключения (Rewire):</text>
     <rect x="14" y="36" width="282" height="42" rx="4" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
