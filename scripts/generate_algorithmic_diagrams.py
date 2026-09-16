@@ -806,73 +806,73 @@ def generate_rrt_star_rewire():
     filepath = os.path.join(OUTPUT_DIR, 'lecture-03', 'rrt_star_rewire.svg')
     ensure_dir(filepath)
 
-    q_new = (220, 160)
-    r_rewire = 90
+    q_new = (270, 185)
+    r_rewire = 95
 
-    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 550" width="100%" height="100%">
   <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
 
   <!-- Title & Legend -->
-  <g transform="translate(30, 24)">
+  <g transform="translate(24, 28)">
     <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Алгоритм переподключения RRT* (Rewiring Step)</text>
-    <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Окрестность радиуса r_RRT* вокруг q_new проверяется на оптимизацию стоимости пути c(v)</text>
+    <text x="0" y="20" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Окрестность радиуса r_RRT* вокруг q_new проверяется на оптимизацию c(v)</text>
   </g>
 
   <!-- Rewiring Circle Area -->
   <circle cx="{q_new[0]}" cy="{q_new[1]}" r="{r_rewire}" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5" stroke-dasharray="4,3"/>
-  <line x1="{q_new[0]}" y1="{q_new[1]}" x2="{q_new[0] + r_rewire * 0.7}" y2="{q_new[1] - r_rewire * 0.7}" stroke="#10b981" stroke-width="1.2"/>
-  <text x="{q_new[0] + 30}" y="{q_new[1] - 35}" font-family="JetBrains Mono, monospace" font-size="10" fill="#059669">r_RRT*</text>
+  <line x1="{q_new[0]}" y1="{q_new[1]}" x2="{q_new[0] + r_rewire * 0.707}" y2="{q_new[1] - r_rewire * 0.707}" stroke="#10b981" stroke-width="1.2"/>
+  <text x="{q_new[0] + 35}" y="{q_new[1] - 40}" font-family="JetBrains Mono, monospace" font-size="10" fill="#059669">r_RRT*</text>
 
   <!-- Existing Tree Edges -->
   <g stroke="#94a3b8" stroke-width="2">
-    <line x1="60" y1="160" x2="120" y2="110"/>
-    <line x1="60" y1="160" x2="130" y2="210"/>
-    <line x1="120" y1="110" x2="155" y2="140"/>
-    <line x1="130" y1="210" x2="280" y2="215"/>
+    <line x1="55" y1="185" x2="135" y2="125"/>
+    <line x1="55" y1="185" x2="145" y2="240"/>
+    <line x1="135" y1="125" x2="185" y2="160"/>
+    <line x1="145" y1="240" x2="330" y2="245"/>
   </g>
 
   <!-- OLD SUBOPTIMAL EDGE (TO BE DROPPED) -->
-  <line x1="120" y1="110" x2="285" y2="130" stroke="#ef4444" stroke-width="2.5" stroke-dasharray="5,3"/>
-  <text x="195" y="112" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#dc2626">✗ Старое ребро (c = 22.8)</text>
+  <line x1="135" y1="125" x2="345" y2="150" stroke="#ef4444" stroke-width="2.5" stroke-dasharray="5,3"/>
+  <text x="215" y="128" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#dc2626">✗ Старое ребро (c = 22.8)</text>
 
   <!-- NEW OPTIMAL EDGE TO q_new -->
-  <line x1="155" y1="140" x2="{q_new[0]}" y2="{q_new[1]}" stroke="#0284c7" stroke-width="3"/>
-  <text x="160" y="172" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#0369a1">c(q_new) = 13.8</text>
+  <line x1="185" y1="160" x2="{q_new[0]}" y2="{q_new[1]}" stroke="#0284c7" stroke-width="3.5"/>
+  <text x="195" y="195" font-family="JetBrains Mono, monospace" font-size="10" fill="#0369a1">c(q_new) = 13.8</text>
 
   <!-- NEW REWIRED EDGE (q_new -> v) -->
-  <line x1="{q_new[0]}" y1="{q_new[1]}" x2="285" y2="130" stroke="#059669" stroke-width="3.5" stroke-linecap="round"/>
-  <text x="235" y="140" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#059669">✓ Новое ребро (c = 17.5)</text>
+  <line x1="{q_new[0]}" y1="{q_new[1]}" x2="345" y2="150" stroke="#059669" stroke-width="3.5" stroke-linecap="round"/>
+  <text x="280" y="165" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#059669">✓ Новое ребро (c = 17.5)</text>
 
   <!-- Nodes -->
-  <circle cx="60" cy="160" r="6" fill="#0f172a"/>
-  <text x="40" y="180" font-family="JetBrains Mono" font-size="10" fill="#475569">q_start</text>
+  <circle cx="55" cy="185" r="6.5" fill="#0f172a"/>
+  <text x="35" y="208" font-family="JetBrains Mono" font-size="10.5" fill="#475569">q_start</text>
 
-  <circle cx="120" cy="110" r="5" fill="#64748b"/>
-  <circle cx="130" cy="210" r="5" fill="#64748b"/>
-  <circle cx="155" cy="140" r="5" fill="#0284c7"/>
-  <circle cx="280" cy="215" r="5" fill="#64748b"/>
+  <circle cx="135" cy="125" r="5" fill="#64748b"/>
+  <circle cx="145" cy="240" r="5" fill="#64748b"/>
+  <circle cx="185" cy="160" r="5" fill="#0284c7"/>
+  <circle cx="330" cy="245" r="5" fill="#64748b"/>
 
   <!-- Target Node v -->
-  <circle cx="285" cy="130" r="6.5" fill="#059669" stroke="#ffffff" stroke-width="2"/>
-  <text x="296" y="134" font-family="Inter" font-size="12" font-weight="700" fill="#059669">Вершина v</text>
+  <circle cx="345" cy="150" r="7" fill="#059669" stroke="#ffffff" stroke-width="2"/>
+  <text x="358" y="154" font-family="Inter" font-size="12" font-weight="700" fill="#059669">Вершина v</text>
 
   <!-- New Sample q_new -->
-  <circle cx="{q_new[0]}" cy="{q_new[1]}" r="7" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
-  <text x="{q_new[0]-14}" y="{q_new[1]-12}" font-family="Inter" font-size="12" font-weight="700" fill="#0284c7">q_new</text>
+  <circle cx="{q_new[0]}" cy="{q_new[1]}" r="7.5" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
+  <text x="{q_new[0]-16}" y="{q_new[1]-13}" font-family="Inter" font-size="12" font-weight="700" fill="#0284c7">q_new</text>
 
-  <!-- Mathematical explanation card -->
-  <g transform="translate(420, 80)">
-    <rect width="310" height="230" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
-    <text x="16" y="24" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#0f172a">Условие переподключения (Rewire):</text>
-    <rect x="14" y="36" width="282" height="42" rx="4" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
-    <text x="22" y="61" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700" fill="#1e40af">cost(q_new) + ||q_new - v|| &lt; cost(v)</text>
+  <!-- Mathematical explanation card (BELOW DIAGRAM) -->
+  <g transform="translate(24, 305)">
+    <rect width="472" height="220" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="18" y="26" font-family="Inter, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">Условие переподключения (Rewire):</text>
+    <rect x="18" y="38" width="436" height="40" rx="5" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
+    <text x="28" y="63" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700" fill="#1e40af">cost(q_new) + ||q_new - v|| &lt; cost(v)</text>
 
-    <text x="16" y="105" font-family="Inter, sans-serif" font-size="11.5" fill="#334155">1. <tspan font-weight="700">Выбор родителя:</tspan> q_new подключается к узлу окрестности с наименьшей суммарной стоимостью от старта.</text>
-    <text x="16" y="145" font-family="Inter, sans-serif" font-size="11.5" fill="#334155">2. <tspan font-weight="700">Переподключение:</tspan> все соседние вершины v перенаправляют родителя на q_new, если путь через него короче.</text>
-    <text x="16" y="185" font-family="Inter, sans-serif" font-size="11.5" fill="#334155">3. <tspan font-weight="700">Результат:</tspan> устраняются зигзаги, дерево асимптотически сходится к строго оптимальному пути.</text>
+    <text x="18" y="102" font-family="Inter, sans-serif" font-size="11" fill="#334155"><tspan font-weight="700">1. Выбор родителя:</tspan> q_new соединяется с узлом с мин. cost(u) + ||u - q_new||.</text>
+    <text x="18" y="128" font-family="Inter, sans-serif" font-size="11" fill="#334155"><tspan font-weight="700">2. Переподключение:</tspan> соседи v выбирают q_new, если это снижает cost(v).</text>
+    <text x="18" y="154" font-family="Inter, sans-serif" font-size="11" fill="#334155"><tspan font-weight="700">3. Результат:</tspan> распрямляются изломы, дерево сходится к оптимуму.</text>
 
-    <rect x="14" y="200" width="282" height="22" rx="3" fill="#fef2f2"/>
-    <text x="20" y="215" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#991b1b">P(lim_{{n→∞}} Cost(RRT*) = Cost*) = 1</text>
+    <rect x="18" y="176" width="436" height="26" rx="4" fill="#fef2f2" stroke="#fecaca" stroke-width="0.5"/>
+    <text x="26" y="193" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#991b1b">P(lim_{{n→∞}} Cost(RRT*) = Cost*) = 1</text>
   </g>
 </svg>'''
 
