@@ -1455,6 +1455,335 @@ def generate_path_shortcutting():
     write_svg(filepath, svg)
 
 # -------------------------------------------------------------------------
+# Diagram: Lecture 04 - Non-holonomic vs Holonomic Constraints
+# -------------------------------------------------------------------------
+def generate_nonholonomic_vs_holonomic():
+    filepath = os.path.join(OUTPUT_DIR, 'lecture-04', 'nonholonomic_vs_holonomic.svg')
+    ensure_dir(filepath)
+
+    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- Left: Holonomic -->
+  <g transform="translate(20, 20)">
+    <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">1. Голономная точка (A*, RRT)</text>
+    <text x="16" y="39" font-family="Inter, sans-serif" font-size="11" fill="#dc2626">Иллюзия: мгновенная смена направления (a = ∞)</text>
+
+    <!-- Grid lines -->
+    <path d="M40,70 H305 M40,110 H305 M40,150 H305 M40,190 H305 M40,230 H305" stroke="#f1f5f9" stroke-width="1"/>
+    <path d="M60,60 V240 M110,60 V240 M160,60 V240 M210,60 V240 M260,60 V240" stroke="#f1f5f9" stroke-width="1"/>
+
+    <!-- Sharp 90 deg geometric path -->
+    <path d="M60,210 L160,210 L160,80 L260,80" stroke="#ef4444" stroke-width="3.5" fill="none" stroke-linejoin="miter"/>
+    
+    <!-- Start & Goal -->
+    <circle cx="60" cy="210" r="7" fill="#059669" stroke="#ffffff" stroke-width="2"/>
+    <text x="45" y="232" font-family="Inter" font-size="11" font-weight="700" fill="#059669">Старт S</text>
+
+    <circle cx="260" cy="80" r="7" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
+    <text x="245" y="68" font-family="Inter" font-size="11" font-weight="700" fill="#0284c7">Цель G</text>
+
+    <!-- Sharp turn highlight -->
+    <circle cx="160" cy="210" r="14" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="3,3"/>
+    <text x="175" y="205" font-family="Inter" font-size="10.5" font-weight="700" fill="#dc2626">Излом 90°: v_y = 0 → v_y &gt; 0</text>
+    <text x="175" y="218" font-family="JetBrains Mono" font-size="9" fill="#991b1b">Требует бесконечного а_y</text>
+
+    <rect x="14" y="246" width="317" height="62" rx="5" fill="#fef2f2" stroke="#fca5a5" stroke-width="1"/>
+    <text x="22" y="266" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#991b1b">Геометрический путь физически невыполним</text>
+    <text x="22" y="283" font-family="Inter, sans-serif" font-size="10" fill="#7f1d1d">Колесный робот не может смещаться вбок без проскальзывания.</text>
+    <text x="22" y="297" font-family="Inter, sans-serif" font-size="10" fill="#7f1d1d">Попытка повторить угол ведет к срыву траектории или остановке.</text>
+  </g>
+
+  <!-- Right: Non-holonomic -->
+  <g transform="translate(395, 20)">
+    <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">2. Неголономный робот (Kinematic Car)</text>
+    <text x="16" y="39" font-family="Inter, sans-serif" font-size="11" fill="#059669">Связь Пфаффа: dy·cos θ - dx·sin θ = 0 (v_бок = 0)</text>
+
+    <!-- Smooth Dubins-like turning arcs -->
+    <path d="M60,210 C120,210 160,180 160,145 C160,110 200,80 260,80" stroke="#059669" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+
+    <!-- Car body at Start -->
+    <g transform="translate(60, 210)">
+      <rect x="-14" y="-8" width="28" height="16" rx="3" fill="#334155"/>
+      <line x1="14" y1="0" x2="26" y2="0" stroke="#059669" stroke-width="2.5"/>
+      <circle cx="0" cy="0" r="3" fill="#ffffff"/>
+    </g>
+    <text x="45" y="235" font-family="Inter" font-size="11" font-weight="700" fill="#059669">S (θ = 0°)</text>
+
+    <!-- Car body mid-turn -->
+    <g transform="translate(160, 145) rotate(-90)">
+      <rect x="-12" y="-7" width="24" height="14" rx="2" fill="#334155" opacity="0.8"/>
+      <line x1="12" y1="0" x2="22" y2="0" stroke="#059669" stroke-width="2"/>
+    </g>
+
+    <!-- Turning circle visualization -->
+    <circle cx="110" cy="160" r="50" fill="none" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="4,4"/>
+    <line x1="110" y1="160" x2="145" y2="195" stroke="#64748b" stroke-width="1"/>
+    <text x="115" y="180" font-family="JetBrains Mono" font-size="10" font-weight="600" fill="#475569">R_min</text>
+
+    <!-- Goal -->
+    <circle cx="260" cy="80" r="7" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
+    <line x1="260" y1="80" x2="285" y2="80" stroke="#0284c7" stroke-width="2.5"/>
+    <text x="245" y="68" font-family="Inter" font-size="11" font-weight="700" fill="#0284c7">G (θ = 0°)</text>
+
+    <rect x="14" y="246" width="317" height="62" rx="5" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1"/>
+    <text x="22" y="266" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#065f46">Физически осуществимая траектория</text>
+    <text x="22" y="283" font-family="Inter, sans-serif" font-size="10" fill="#047857">Траектория строится из дуг окружностей с кривизной |κ| ≤ 1/R_min.</text>
+    <text x="22" y="297" font-family="Inter, sans-serif" font-size="9.5" fill="#047857">R_min = L / tan(δ_max) — база L и предел угла колес δ.</text>
+  </g>
+</svg>'''
+    write_svg(filepath, svg)
+
+# -------------------------------------------------------------------------
+# Diagram: Lecture 04 - Hybrid A* Expansion & 3D Cell Discretization
+# -------------------------------------------------------------------------
+def generate_hybrid_astar_expansion():
+    filepath = os.path.join(OUTPUT_DIR, 'lecture-04', 'hybrid_astar_expansion.svg')
+    ensure_dir(filepath)
+
+    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- Left: Continuous primitives inside 3D discrete grid -->
+  <g transform="translate(20, 20)">
+    <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">1. Раскрытие узла (Expand) и сетка (x, y, θ)</text>
+    <text x="16" y="39" font-family="Inter, sans-serif" font-size="11" fill="#2563eb">Непрерывные координаты + 3D дискретизация для отсечения</text>
+
+    <!-- Discrete 2D cells -->
+    <path d="M40,70 H305 M40,115 H305 M40,160 H305 M40,205 H305 M40,245 H305" stroke="#e2e8f0" stroke-width="1.2"/>
+    <path d="M40,70 V245 M95,70 V245 M150,70 V245 M205,70 V245 M260,70 V245 M305,70 V245" stroke="#e2e8f0" stroke-width="1.2"/>
+
+    <!-- Cell coords text -->
+    <text x="44" y="85" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">(i, j)</text>
+    <text x="99" y="85" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">(i+1, j)</text>
+
+    <!-- Parent node -->
+    <circle cx="122" cy="182" r="5" fill="#0f172a"/>
+    <line x1="122" y1="182" x2="142" y2="182" stroke="#0f172a" stroke-width="2"/>
+    <text x="80" y="196" font-family="Inter" font-size="10.5" font-weight="700" fill="#0f172a">Узел (x, y, θ)</text>
+
+    <!-- Forward motion primitives -->
+    <path d="M122,182 Q150,182 178,160" stroke="#0284c7" stroke-width="2.5" fill="none"/>
+    <path d="M122,182 L182,182" stroke="#059669" stroke-width="2.5" fill="none"/>
+    <path d="M122,182 Q150,182 178,204" stroke="#0284c7" stroke-width="2.5" fill="none"/>
+
+    <!-- Reverse motion primitives (dashed) -->
+    <path d="M122,182 Q94,182 66,165" stroke="#d97706" stroke-width="1.8" stroke-dasharray="3,2" fill="none"/>
+    <path d="M122,182 L62,182" stroke="#d97706" stroke-width="1.8" stroke-dasharray="3,2" fill="none"/>
+    <path d="M122,182 Q94,182 66,199" stroke="#d97706" stroke-width="1.8" stroke-dasharray="3,2" fill="none"/>
+
+    <!-- Expanded child nodes -->
+    <circle cx="178" cy="160" r="4.5" fill="#0284c7"/>
+    <circle cx="182" cy="182" r="4.5" fill="#059669"/>
+    <circle cx="178" cy="204" r="4.5" fill="#0284c7"/>
+
+    <text x="186" y="158" font-family="JetBrains Mono" font-size="9" fill="#0284c7">+δ_max</text>
+    <text x="190" y="184" font-family="JetBrains Mono" font-size="9" fill="#059669">δ = 0</text>
+    <text x="186" y="210" font-family="JetBrains Mono" font-size="9" fill="#0284c7">-δ_max</text>
+
+    <rect x="14" y="250" width="317" height="58" rx="5" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1"/>
+    <text x="22" y="270" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#0369a1">Ячейка сетки хранит непрерывное состояние</text>
+    <text x="22" y="286" font-family="Inter, sans-serif" font-size="10" fill="#0284c7">Если новый конец дуги попадает в ту же ячейку (x_d, y_d, θ_d)</text>
+    <text x="22" y="298" font-family="Inter, sans-serif" font-size="10" fill="#0284c7">с большей стоимостью g, он отсекается (Pruning).</text>
+  </g>
+
+  <!-- Right: Analytical Shot & Dual Heuristic -->
+  <g transform="translate(395, 20)">
+    <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">2. Аналитический Shot и Двойная эвристика</text>
+    <text x="16" y="39" font-family="Inter, sans-serif" font-size="11" fill="#7c3aed">Reeds-Shepp shot + h(n) = max(h_kin, h_grid)</text>
+
+    <!-- Obstacle -->
+    <rect x="135" y="110" width="60" height="90" rx="6" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5"/>
+    <text x="142" y="158" font-family="Inter" font-size="11" font-weight="700" fill="#b91c1c">Преграда</text>
+
+    <!-- Tree expanding -->
+    <path d="M45,210 Q70,210 95,190" stroke="#94a3b8" stroke-width="1.8" fill="none"/>
+    <path d="M95,190 Q120,170 115,130" stroke="#94a3b8" stroke-width="1.8" fill="none"/>
+    <path d="M115,130 Q110,85 140,75" stroke="#94a3b8" stroke-width="1.8" fill="none"/>
+    <circle cx="140" cy="75" r="4.5" fill="#7c3aed"/>
+    <text x="110" y="65" font-family="Inter" font-size="10" font-weight="700" fill="#7c3aed">Узел q_shot</text>
+
+    <!-- Goal Pose -->
+    <circle cx="280" cy="85" r="6" fill="#059669" stroke="#ffffff" stroke-width="2"/>
+    <line x1="280" y1="85" x2="305" y2="85" stroke="#059669" stroke-width="2.5"/>
+    <text x="270" y="110" font-family="Inter" font-size="11" font-weight="700" fill="#059669">Цель G</text>
+
+    <!-- Analytic curve to goal (Reeds-Shepp shot) -->
+    <path d="M140,75 C180,60 230,60 280,85" stroke="#059669" stroke-width="3" stroke-dasharray="5,3" fill="none"/>
+    <text x="175" y="55" font-family="Inter" font-size="10.5" font-weight="700" fill="#059669">Аналитический RS-Shot</text>
+
+    <rect x="14" y="240" width="317" height="68" rx="5" fill="#f5f3ff" stroke="#ddd6fe" stroke-width="1"/>
+    <text x="22" y="260" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#6d28d9">Ускорение сходимости в 10–50 раз:</text>
+    <text x="22" y="278" font-family="Inter, sans-serif" font-size="10" fill="#5b21b6">Вместо долгого блуждания дугами вокруг цели, на каждом шаге</text>
+    <text x="22" y="292" font-family="Inter, sans-serif" font-size="10" fill="#5b21b6">пробуется точная кривая Дубинса/RS. Если чиста — цель достигнута!</text>
+  </g>
+</svg>'''
+    write_svg(filepath, svg)
+
+# -------------------------------------------------------------------------
+# Diagram: Lecture 04 - Kinodynamic RRT Forward Simulation vs BVP
+# -------------------------------------------------------------------------
+def generate_kinodynamic_rrt_forward_sim():
+    filepath = os.path.join(OUTPUT_DIR, 'lecture-04', 'kinodynamic_rrt_forward_sim.svg')
+    ensure_dir(filepath)
+
+    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- Left: Geometric vs Kinodynamic Steer -->
+  <g transform="translate(20, 20)">
+    <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">1. Прямое интегрирование (Forward Sim)</text>
+    <text x="16" y="39" font-family="Inter, sans-serif" font-size="11" fill="#0284c7">Сэмплирование управлений u ∈ U вместо геометрии</text>
+
+    <!-- State with velocity vector -->
+    <circle cx="70" cy="180" r="6" fill="#0f172a"/>
+    <line x1="70" y1="180" x2="115" y2="155" stroke="#0f172a" stroke-width="2.5"/>
+    <text x="45" y="205" font-family="JetBrains Mono" font-size="10.5" font-weight="700" fill="#0f172a">x_near = (p, v)</text>
+
+    <!-- Random sample in state space -->
+    <circle cx="260" cy="90" r="5" fill="#f59e0b" stroke="#ffffff" stroke-width="1.5"/>
+    <text x="250" y="75" font-family="JetBrains Mono" font-size="10.5" font-weight="700" fill="#d97706">x_rand</text>
+
+    <!-- Rollouts of candidate controls -->
+    <path d="M70,180 Q120,150 170,140" stroke="#cbd5e1" stroke-width="1.8" fill="none"/>
+    <text x="175" y="156" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">u₁ (газ)</text>
+
+    <path d="M70,180 Q110,130 160,95" stroke="#cbd5e1" stroke-width="1.8" fill="none"/>
+    <text x="165" y="95" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">u₂ (влево)</text>
+
+    <path d="M70,180 Q105,170 145,210" stroke="#cbd5e1" stroke-width="1.8" fill="none"/>
+    <text x="150" y="215" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">u₃ (тормоз)</text>
+
+    <!-- Best chosen rollout -->
+    <path d="M70,180 Q130,145 205,120" stroke="#059669" stroke-width="3" fill="none"/>
+    <circle cx="205" cy="120" r="5" fill="#059669"/>
+    <line x1="205" y1="120" x2="240" y2="105" stroke="#059669" stroke-width="2"/>
+    <text x="214" y="138" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#059669">x_new (u*)</text>
+
+    <!-- Distance to x_rand -->
+    <line x1="205" y1="120" x2="260" y2="90" stroke="#f59e0b" stroke-width="1.2" stroke-dasharray="3,3"/>
+    <text x="235" y="115" font-family="Inter" font-size="9" fill="#d97706">min d</text>
+
+    <rect x="14" y="246" width="317" height="62" rx="5" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1"/>
+    <text x="22" y="266" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#065f46">Все рёбра физически реализуемы</text>
+    <text x="22" y="283" font-family="Inter, sans-serif" font-size="10" fill="#047857">Интегрирование x(t+Δt) = ∫ f(x, u) dt гарантирует гладкость,</text>
+    <text x="22" y="297" font-family="Inter, sans-serif" font-size="10" fill="#047857">учет инерции, массы и ограничений тяги моторов.</text>
+  </g>
+
+  <!-- Right: The BVP problem -->
+  <g transform="translate(395, 20)">
+    <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">2. Барьер точного соединения (Two-Point BVP)</text>
+    <text x="16" y="39" font-family="Inter, sans-serif" font-size="11" fill="#dc2626">Почему в кинодинамике трудно сделать RRT* Rewiring?</text>
+
+    <circle cx="70" cy="110" r="6" fill="#0284c7"/>
+    <line x1="70" y1="110" x2="110" y2="100" stroke="#0284c7" stroke-width="2"/>
+    <text x="45" y="132" font-family="JetBrains Mono" font-size="10.5" font-weight="700" fill="#0284c7">x_A = (p_A, v_A)</text>
+
+    <circle cx="265" cy="170" r="6" fill="#dc2626"/>
+    <line x1="265" y1="170" x2="280" y2="205" stroke="#dc2626" stroke-width="2"/>
+    <text x="240" y="225" font-family="JetBrains Mono" font-size="10.5" font-weight="700" fill="#dc2626">x_B = (p_B, v_B)</text>
+
+    <path d="M70,110 C140,80 180,240 265,170" stroke="#ef4444" stroke-width="2.5" stroke-dasharray="4,4" fill="none"/>
+    <text x="145" y="160" font-family="Inter" font-size="11" font-weight="700" fill="#b91c1c">BVP: u(t) = ?</text>
+
+    <rect x="14" y="240" width="317" height="68" rx="5" fill="#fef2f2" stroke="#fca5a5" stroke-width="1"/>
+    <text x="22" y="260" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#991b1b">Краевая задача нелинейна и тяжела</text>
+    <text x="22" y="278" font-family="Inter, sans-serif" font-size="10" fill="#7f1d1d">Чтобы соединить два состояния, нужно решить оптимальное управление.</text>
+    <text x="22" y="292" font-family="Inter, sans-serif" font-size="10" fill="#7f1d1d">Решать BVP в каждом узле RRT* невозможно в реальном времени.</text>
+  </g>
+</svg>'''
+    write_svg(filepath, svg)
+
+# -------------------------------------------------------------------------
+# Diagram: Lecture 04 - MPPI Monte-Carlo Rollouts & Information Theoretic Weights
+# -------------------------------------------------------------------------
+def generate_mppi_rollouts_weights():
+    filepath = os.path.join(OUTPUT_DIR, 'lecture-04', 'mppi_rollouts_weights.svg')
+    ensure_dir(filepath)
+
+    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- Left: Stochastic Rollouts -->
+  <g transform="translate(20, 20)">
+    <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">1. Монте-Карло Rollouts (Шум δu ~ N(0, Σ))</text>
+    <text x="16" y="39" font-family="Inter, sans-serif" font-size="11" fill="#64748b">Параллельная генерация K=1000..10000 траекторий на GPU</text>
+
+    <!-- Obstacle -->
+    <circle cx="180" cy="140" r="32" fill="#fee2e2" stroke="#ef4444" stroke-width="2"/>
+    <text x="150" y="144" font-family="Inter" font-size="10.5" font-weight="700" fill="#b91c1c">Преграда</text>
+
+    <!-- Robot position -->
+    <rect x="40" y="130" width="22" height="14" rx="2" fill="#0f172a"/>
+    <line x1="62" y1="137" x2="74" y2="137" stroke="#0284c7" stroke-width="2"/>
+    <text x="35" y="160" font-family="Inter" font-size="10" font-weight="700" fill="#0f172a">x₀</text>
+
+    <!-- Goal -->
+    <circle cx="295" cy="80" r="7" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
+    <text x="285" y="65" font-family="Inter" font-size="11" font-weight="700" fill="#0284c7">Цель G</text>
+
+    <!-- Colliding rollouts (Red) -->
+    <path d="M55,137 Q120,137 170,140" stroke="#ef4444" stroke-width="1.2" opacity="0.6" fill="none"/>
+    <path d="M55,137 Q115,145 165,150" stroke="#ef4444" stroke-width="1.2" opacity="0.6" fill="none"/>
+    <path d="M55,137 Q125,130 160,130" stroke="#ef4444" stroke-width="1.2" opacity="0.6" fill="none"/>
+
+    <!-- Safe rollouts (Cyan/Blue fan) -->
+    <path d="M55,137 Q110,85 190,75 Q240,70 295,80" stroke="#38bdf8" stroke-width="1.2" opacity="0.5" fill="none"/>
+    <path d="M55,137 Q105,80 180,68 Q235,65 295,80" stroke="#38bdf8" stroke-width="1.2" opacity="0.5" fill="none"/>
+    <path d="M55,137 Q115,95 200,85 Q245,78 295,80" stroke="#38bdf8" stroke-width="1.2" opacity="0.5" fill="none"/>
+    <path d="M55,137 Q120,210 200,210 Q260,200 295,80" stroke="#38bdf8" stroke-width="1.2" opacity="0.4" fill="none"/>
+
+    <!-- Weighted optimal trajectory (Gold/Green) -->
+    <path d="M55,137 Q110,85 190,72 Q240,68 295,80" stroke="#059669" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <text x="180" y="55" font-family="Inter" font-size="10.5" font-weight="700" fill="#059669">Оптимальная траектория u*</text>
+
+    <rect x="14" y="250" width="317" height="58" rx="5" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="22" y="270" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#0f172a">V^k = U + δU^k,  δU ~ N(0, Σ)</text>
+    <text x="22" y="288" font-family="Inter" font-size="10" fill="#64748b">Стоимость S(V^k) включает расстояние до цели и штраф за преграды.</text>
+  </g>
+
+  <!-- Right: Information-Theoretic Weighting -->
+  <g transform="translate(395, 20)">
+    <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">2. Экспоненциальное взвешивание</text>
+    <text x="16" y="39" font-family="Inter, sans-serif" font-size="11" fill="#059669">Мягкий оптимум: Softmax по стоимостям траекторий</text>
+
+    <!-- Formula Box -->
+    <rect x="20" y="65" width="305" height="60" rx="6" fill="#f0fdf4" stroke="#86efac" stroke-width="1.2"/>
+    <text x="35" y="88" font-family="JetBrains Mono" font-size="11.5" font-weight="700" fill="#166534">w_k = exp(-S(V^k)/λ) / ∑ exp(-S/λ)</text>
+    <text x="35" y="110" font-family="JetBrains Mono" font-size="11.5" font-weight="700" fill="#059669">u*_t = u_t + ∑ w_k · δu^k_t</text>
+
+    <!-- Visual Weight Bars -->
+    <g transform="translate(30, 145)">
+      <text x="0" y="12" font-family="Inter" font-size="10" font-weight="600" fill="#334155">Траектория 1 (Чистая, быстрая):</text>
+      <rect x="0" y="18" width="220" height="12" rx="3" fill="#059669"/>
+      <text x="228" y="28" font-family="JetBrains Mono" font-size="9.5" font-weight="700" fill="#059669">w₁ = 0.62</text>
+
+      <text x="0" y="46" font-family="Inter" font-size="10" font-weight="600" fill="#334155">Траектория 2 (Безопасная, длинная):</text>
+      <rect x="0" y="52" width="110" height="12" rx="3" fill="#0284c7"/>
+      <text x="118" y="62" font-family="JetBrains Mono" font-size="9.5" font-weight="700" fill="#0284c7">w₂ = 0.31</text>
+
+      <text x="0" y="80" font-family="Inter" font-size="10" font-weight="600" fill="#334155">Траектория 3 (Коллизия с преградой):</text>
+      <rect x="0" y="86" width="6" height="12" rx="2" fill="#ef4444"/>
+      <text x="14" y="96" font-family="JetBrains Mono" font-size="9.5" font-weight="700" fill="#dc2626">w₃ = 0.0001</text>
+    </g>
+
+    <rect x="14" y="250" width="317" height="58" rx="5" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="22" y="270" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#0f172a">Без градиентов и без линеаризации!</text>
+    <text x="22" y="288" font-family="Inter, sans-serif" font-size="10" fill="#64748b">MPPI работает с любыми разрывными функциями стоимости,</text>
+    <text x="22" y="300" font-family="Inter, sans-serif" font-size="10" fill="#64748b">сложной физикой (песок, занос, дрифт) прямо в реальном времени.</text>
+  </g>
+</svg>'''
+    write_svg(filepath, svg)
+
+# -------------------------------------------------------------------------
 # Diagram 7: Lecture 04 - APF U-Trap vs Harmonic Field
 # -------------------------------------------------------------------------
 def generate_apf_u_trap():
@@ -3016,8 +3345,12 @@ def main():
     generate_prm_learning_query()
     generate_narrow_passage_bridge()
     generate_path_shortcutting()
+    generate_nonholonomic_vs_holonomic()
+    generate_hybrid_astar_expansion()
+    generate_kinodynamic_rrt_forward_sim()
     generate_apf_u_trap()
     generate_dwa_space()
+    generate_mppi_rollouts_weights()
     generate_teb_elastic_band()
     generate_dubins_words()
     generate_reeds_shepp_curves()

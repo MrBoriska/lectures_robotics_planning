@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- Left: Continuous primitives inside 3D discrete grid -->
+  <g transform="translate(20, 20)">
+    <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">1. Раскрытие узла (Expand) и сетка (x, y, θ)</text>
+    <text x="16" y="39" font-family="Inter, sans-serif" font-size="11" fill="#2563eb">Непрерывные координаты + 3D дискретизация для отсечения</text>
+
+    <!-- Discrete 2D cells -->
+    <path d="M40,70 H305 M40,115 H305 M40,160 H305 M40,205 H305 M40,245 H305" stroke="#e2e8f0" stroke-width="1.2"/>
+    <path d="M40,70 V245 M95,70 V245 M150,70 V245 M205,70 V245 M260,70 V245 M305,70 V245" stroke="#e2e8f0" stroke-width="1.2"/>
+
+    <!-- Cell coords text -->
+    <text x="44" y="85" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">(i, j)</text>
+    <text x="99" y="85" font-family="JetBrains Mono" font-size="9" fill="#94a3b8">(i+1, j)</text>
+
+    <!-- Parent node -->
+    <circle cx="122" cy="182" r="5" fill="#0f172a"/>
+    <line x1="122" y1="182" x2="142" y2="182" stroke="#0f172a" stroke-width="2"/>
+    <text x="80" y="196" font-family="Inter" font-size="10.5" font-weight="700" fill="#0f172a">Узел (x, y, θ)</text>
+
+    <!-- Forward motion primitives -->
+    <path d="M122,182 Q150,182 178,160" stroke="#0284c7" stroke-width="2.5" fill="none"/>
+    <path d="M122,182 L182,182" stroke="#059669" stroke-width="2.5" fill="none"/>
+    <path d="M122,182 Q150,182 178,204" stroke="#0284c7" stroke-width="2.5" fill="none"/>
+
+    <!-- Reverse motion primitives (dashed) -->
+    <path d="M122,182 Q94,182 66,165" stroke="#d97706" stroke-width="1.8" stroke-dasharray="3,2" fill="none"/>
+    <path d="M122,182 L62,182" stroke="#d97706" stroke-width="1.8" stroke-dasharray="3,2" fill="none"/>
+    <path d="M122,182 Q94,182 66,199" stroke="#d97706" stroke-width="1.8" stroke-dasharray="3,2" fill="none"/>
+
+    <!-- Expanded child nodes -->
+    <circle cx="178" cy="160" r="4.5" fill="#0284c7"/>
+    <circle cx="182" cy="182" r="4.5" fill="#059669"/>
+    <circle cx="178" cy="204" r="4.5" fill="#0284c7"/>
+
+    <text x="186" y="158" font-family="JetBrains Mono" font-size="9" fill="#0284c7">+δ_max</text>
+    <text x="190" y="184" font-family="JetBrains Mono" font-size="9" fill="#059669">δ = 0</text>
+    <text x="186" y="210" font-family="JetBrains Mono" font-size="9" fill="#0284c7">-δ_max</text>
+
+    <rect x="14" y="250" width="317" height="58" rx="5" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1"/>
+    <text x="22" y="270" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#0369a1">Ячейка сетки хранит непрерывное состояние</text>
+    <text x="22" y="286" font-family="Inter, sans-serif" font-size="10" fill="#0284c7">Если новый конец дуги попадает в ту же ячейку (x_d, y_d, θ_d)</text>
+    <text x="22" y="298" font-family="Inter, sans-serif" font-size="10" fill="#0284c7">с большей стоимостью g, он отсекается (Pruning).</text>
+  </g>
+
+  <!-- Right: Analytical Shot & Dual Heuristic -->
+  <g transform="translate(395, 20)">
+    <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">2. Аналитический Shot и Двойная эвристика</text>
+    <text x="16" y="39" font-family="Inter, sans-serif" font-size="11" fill="#7c3aed">Reeds-Shepp shot + h(n) = max(h_kin, h_grid)</text>
+
+    <!-- Obstacle -->
+    <rect x="135" y="110" width="60" height="90" rx="6" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5"/>
+    <text x="142" y="158" font-family="Inter" font-size="11" font-weight="700" fill="#b91c1c">Преграда</text>
+
+    <!-- Tree expanding -->
+    <path d="M45,210 Q70,210 95,190" stroke="#94a3b8" stroke-width="1.8" fill="none"/>
+    <path d="M95,190 Q120,170 115,130" stroke="#94a3b8" stroke-width="1.8" fill="none"/>
+    <path d="M115,130 Q110,85 140,75" stroke="#94a3b8" stroke-width="1.8" fill="none"/>
+    <circle cx="140" cy="75" r="4.5" fill="#7c3aed"/>
+    <text x="110" y="65" font-family="Inter" font-size="10" font-weight="700" fill="#7c3aed">Узел q_shot</text>
+
+    <!-- Goal Pose -->
+    <circle cx="280" cy="85" r="6" fill="#059669" stroke="#ffffff" stroke-width="2"/>
+    <line x1="280" y1="85" x2="305" y2="85" stroke="#059669" stroke-width="2.5"/>
+    <text x="270" y="110" font-family="Inter" font-size="11" font-weight="700" fill="#059669">Цель G</text>
+
+    <!-- Analytic curve to goal (Reeds-Shepp shot) -->
+    <path d="M140,75 C180,60 230,60 280,85" stroke="#059669" stroke-width="3" stroke-dasharray="5,3" fill="none"/>
+    <text x="175" y="55" font-family="Inter" font-size="10.5" font-weight="700" fill="#059669">Аналитический RS-Shot</text>
+
+    <rect x="14" y="240" width="317" height="68" rx="5" fill="#f5f3ff" stroke="#ddd6fe" stroke-width="1"/>
+    <text x="22" y="260" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#6d28d9">Ускорение сходимости в 10–50 раз:</text>
+    <text x="22" y="278" font-family="Inter, sans-serif" font-size="10" fill="#5b21b6">Вместо долгого блуждания дугами вокруг цели, на каждом шаге</text>
+    <text x="22" y="292" font-family="Inter, sans-serif" font-size="9.58" fill="#5b21b6">пробуется точная кривая Дубинса/RS. Если чиста — цель достигнута!</text>
+  </g>
+</svg>

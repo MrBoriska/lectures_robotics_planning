@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Интерактивный симулятор Hybrid A*</title>
+  <link rel="stylesheet" href="../common/widget-base.css"
+        onerror="this.onerror=null; this.href='common/widget-base.css';">
+  <style>
+    .badge-hybrid {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      font-size: 11px;
+      padding: 3px 7px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .toggle-active {
+      background: #e0e7ff !important;
+      border-color: #6366f1 !important;
+      color: #4338ca !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="widget-layout">
+    <div class="toolbar">
+      <span class="badge-hybrid">Hybrid A* (Kinematic State Search)</span>
+      <button id="btnStep" class="btn">▶ Шаг</button>
+      <button id="btnRun" class="btn btn-primary">⚡ Запуск</button>
+      <button id="btnShot" class="btn toggle-active">🎯 Аналит. Shot: ВКЛ</button>
+      <button id="btnReset" class="btn">🔄 Сброс</button>
+      <button id="btnClearObs" class="btn">🧹 Препятствия</button>
+
+      <div class="slider-group">
+        <span>Радиус R:</span>
+        <input type="range" id="radiusSlider" min="25" max="80" value="45">
+      </div>
+
+      <div class="slider-group">
+        <span>Шаг дуги:</span>
+        <input type="range" id="stepSlider" min="15" max="35" value="22">
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat-item">Open: <span id="statOpen">0</span></div>
+        <div class="stat-item">Closed (3D): <span id="statClosed">0</span></div>
+        <div class="stat-item">Длина: <span id="statCost">-</span></div>
+        <div class="stat-item">Статус: <span id="statStatus">Готов</span></div>
+      </div>
+    </div>
+
+    <div class="canvas-container">
+      <canvas id="hybridCanvas"></canvas>
+      <div class="overlay-hint">
+        <b>Hybrid A*:</b> Раскрытие узлов дугами кинематики велосипеда $(x, y, \theta)$ + отсечение в 3D-ячейках $(x_d, y_d, \theta_d)$.
+        Перетаскивайте <b>S</b> и <b>G</b> (тяните за стрелку для смены угла $\theta$). Клик и тяга по полю создают преграды.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('hybridCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let width = 800;
+    let height = 500;
+
+    let start = null; // {x, y, theta}
+    let goal = null;  // {x, y, theta}
+    let obstacles = [];
+
+    // Algorithm state
+    let openSet = [];      // Priority queue sorted by f = g + h
+    let cellClosed = {};   // 3D cell hash table: key -> lowest g
+    let treeNodes = [];    // For rendering explored kinematic arcs
+    let bestGoalNode = null;
+    let path = [];
+    let isRunning = false;
+    let animFrame = null;
+    let useAnalyticShot = true;
+
+    // Interaction state
+    let dragging = null; // {type: 'start'|'start_heading'|'goal'|'goal_heading'|'obs', target: ...}
+    let isDrawingObstacle = false;
+    let newObsStart = null;
+    let draggingPoint = null;
+
+    const CELL_XY = 18;       // spatial resolution (pixels)
+    const CELL_THETA = Math.PI / 8; // angular resolution (16 bins)
+
+    function normalizeAngle(a) {
+      let res = a % (2 * Math.PI);
+      if (res > Math.PI) res -= 2 * Math.PI;
+      if (res <= -Math.PI) res += 2 * Math.PI;
+      return res;
+    }
+
+    function dist(p1, p2) {
+      return Math.hypot(p1.x - p2.x, p1.y - p2.y);
+    }
+
+    function initEnvironment() {
+      start = {
+        x: Math.round(width * 0.12),
+        y: Math.round(height * 0.65),
+        theta: -Math.PI / 4
+      };
+      goal = {
+        x: Math.round(width * 0.88),
+        y: Math.round(height * 0.35),
+        theta: -Math.PI / 6
+      };
+      const rScale = Math.min(width, height) / 500;
+      obstacles = [
+        { x: width * 0.35, y: height * 0.45, r: 60 * rScale },
+        { x: width * 0.52, y: height * 0.70, r: 55 * rScale },
+        { x: width * 0.68, y: height * 0.35, r: 65 * rScale }
+      ];
+    }
+
+    function getCellKey(x, y, theta) {
+      const ix = Math.floor(x / CELL_XY);
+      const iy = Math.floor(y / CELL_XY);
+      const it = Math.floor((normalizeAngle(theta) + Math.PI) / CELL_THETA);
+      return `${ix}_${iy}_${it}`;
+    }
+
+    function isPointInObstacle(p, margin = 14) {
+      for (const obs of obstacles) {
+        if (dist(p, obs) <= obs.r + margin) return true;
+      }
+      return false;
+    }
+
+    function isArcColliding(arcPts, margin = 12) {
+      for (const pt of arcPts) {
+        if (pt.x < 10 || pt.x > width - 10 || pt.y < 10 || pt.y > height - 10) return true;
+        if (isPointInObstacle(pt, margin)) return true;
+      }
+      return false;
+    }
+
+    // Heuristic: Max of Holonomic (Euclidean) and Non-holonomic (Dubins-like heuristic)
+    function calcHeuristic(x, y, theta) {
+      const dEuclid = dist({ x, y }, goal);
+      const dTheta = Math.abs(normalizeAngle(theta - goal.theta));
+      const rMin = Number(document.getElementById('radiusSlider').value);
+      const hKin = dEuclid + rMin * dTheta * 0.6;
+      return Math.max(dEuclid, hKin);
+    }
+
+    function resetPlanner() {
+      if (animFrame) cancelAnimationFrame(animFrame);
+      isRunning = false;
+      document.getElementById('btnRun').textContent = '⚡ Запуск';
+      document.getElementById('btnRun').className = 'btn btn-primary';
+
+      if (!start || isNaN(start.x)) initEnvironment();
+
+      const startNode = {
+        x: start.x,
+        y: start.y,
+        theta: start.theta,
+        g: 0,
+        h: calcHeuristic(start.x, start.y, start.theta),
+        f: calcHeuristic(start.x, start.y, start.theta),
+        parent: null,
+        arc: [],
+        gear: 1
+      };
+
+      openSet = [startNode];
+      cellClosed = {};
+      cellClosed[getCellKey(start.x, start.y, start.theta)] = 0;
+      treeNodes = [startNode];
+      bestGoalNode = null;
+      path = [];
+
+      updateStats('Готов к поиску');
+      draw();
+    }
+
+    // Kinematic motion primitives: generate continuous arc
+    function simulatePrimitive(node, steerAngle, gear, arcLen, rMin) {
+      const subSteps = 6;
+      const dtLen = (arcLen * gear) / subSteps;
+      let currX = node.x;
+      let currY = node.y;
+      let currTheta = node.theta;
+      const pts = [{ x: currX, y: currY, theta: currTheta }];
+
+      for (let i = 0; i < subSteps; i++) {
+        // Bicycle kinematics: dtheta = ds * tan(delta) / L = ds / R
+        const curvature = steerAngle === 0 ? 0 : Math.tan(steerAngle) / rMin;
+        currX += dtLen * Math.cos(currTheta);
+        currY += dtLen * Math.sin(currTheta);
+        currTheta = normalizeAngle(currTheta + dtLen * curvature);
+        pts.push({ x: currX, y: currY, theta: currTheta });
+      }
+
+      return {
+        x: currX,
+        y: currY,
+        theta: currTheta,
+        arc: pts,
+        cost: arcLen * (gear > 0 ? 1.0 : 1.35)
+      };
+    }
+
+    // Try analytical Dubins/Reeds-Shepp shot directly to goal
+    function tryAnalyticShot(node) {
+      const d = dist(node, goal);
+      if (d > 160) return null;
+
+      const pts = [];
+      const numPts = Math.max(12, Math.ceil(d / 8));
+      const p0 = { x: node.x, y: node.y };
+      const p1 = { x: goal.x, y: goal.y };
+      const v0 = { x: Math.cos(node.theta) * d * 0.7, y: Math.sin(node.theta) * d * 0.7 };
+      const v1 = { x: Math.cos(goal.theta) * d * 0.7, y: Math.sin(goal.theta) * d * 0.7 };
+
+      for (let i = 1; i <= numPts; i++) {
+        const t = i / numPts;
+        const h00 = (1 + 2*t) * Math.pow(1 - t, 2);
+        const h10 = t * Math.pow(1 - t, 2);
+        const h01 = Math.pow(t, 2) * (3 - 2*t);
+        const h11 = Math.pow(t, 2) * (t - 1);
+
+        const x = h00 * p0.x + h10 * v0.x + h01 * p1.x + h11 * v1.x;
+        const y = h00 * p0.y + h10 * v0.y + h01 * p1.y + h11 * v1.y;
+
+        const dx = (6*t*t - 6*t)*p0.x + (3*t*t - 4*t + 1)*v0.x + (-6*t*t + 6*t)*p1.x + (3*t*t - 2*t)*v1.x;
+        const dy = (6*t*t - 6*t)*p0.y + (3*t*t - 4*t + 1)*v0.y + (-6*t*t + 6*t)*p1.y + (3*t*t - 2*t)*v1.y;
+        const th = Math.atan2(dy, dx);
+
+        pts.push({ x, y, theta: th });
+      }
+
+      if (isArcColliding(pts, 12)) return null;
+
+      return {
+        x: goal.x,
+        y: goal.y,
+        theta: goal.theta,
+        g: node.g + d * 1.1,
+        h: 0,
+        f: node.g + d * 1.1,
+        parent: node,
+        arc: pts,
+        isShot: true
+      };
+    }
+
+    function step() {
+      if (openSet.length === 0 || bestGoalNode) return false;
+
+      openSet.sort((a, b) => a.f - b.f);
+      const current = openSet.shift();
+
+      const dGoal = dist(current, goal);
+      const angleDiff = Math.abs(normalizeAngle(current.theta - goal.theta));
+      if (dGoal <= 20 && angleDiff <= 0.35) {
+        bestGoalNode = current;
+        reconstructPath(current);
+        updateStats('Цель достигнута напрямую!');
+        return false;
+      }
+
+      if (useAnalyticShot && dGoal < 150) {
+        const shotNode = tryAnalyticShot(current);
+        if (shotNode) {
+          bestGoalNode = shotNode;
+          treeNodes.push(shotNode);
+          reconstructPath(shotNode);
+          updateStats('🎯 Путь найден через Reeds-Shepp Shot!');
+          return false;
+        }
+      }
+
+      const rMin = Number(document.getElementById('radiusSlider').value);
+      const arcLen = Number(document.getElementById('stepSlider').value);
+      const maxSteer = 0.55;
+
+      const primitives = [
+        { steer: 0, gear: 1 },
+        { steer: maxSteer, gear: 1 },
+        { steer: -maxSteer, gear: 1 },
+        { steer: maxSteer * 0.5, gear: 1 },
+        { steer: -maxSteer * 0.5, gear: 1 },
+        { steer: 0, gear: -1 },
+        { steer: maxSteer, gear: -1 },
+        { steer: -maxSteer, gear: -1 }
+      ];
+
+      for (const prim of primitives) {
+        const sim = simulatePrimitive(current, prim.steer, prim.gear, arcLen, rMin);
+        if (isArcColliding(sim.arc, 10)) continue;
+
+        const nextG = current.g + sim.cost;
+        const cellKey = getCellKey(sim.x, sim.y, sim.theta);
+
+        if (cellClosed[cellKey] !== undefined && cellClosed[cellKey] <= nextG + 0.01) {
+          continue;
+        }
+
+        cellClosed[cellKey] = nextG;
+
+        const h = calcHeuristic(sim.x, sim.y, sim.theta);
+        const childNode = {
+          x: sim.x,
+          y: sim.y,
+          theta: sim.theta,
+          g: nextG,
+          h: h,
+          f: nextG + h,
+          parent: current,
+          arc: sim.arc,
+          gear: prim.gear
+        };
+
+        openSet.push(childNode);
+        treeNodes.push(childNode);
+      }
+
+      updateStats('Поиск...');
+      return true;
+    }
+
+    function reconstructPath(goalNode) {
+      path = [];
+      let curr = goalNode;
+      while (curr) {
+        if (curr.arc && curr.arc.length > 0) {
+          path.unshift(...curr.arc);
+        } else {
+          path.unshift({ x: curr.x, y: curr.y, theta: curr.theta });
+        }
+        curr = curr.parent;
+      }
+    }
+
+    function updateStats(statusText) {
+      document.getElementById('statOpen').textContent = openSet.length;
+      document.getElementById('statClosed').textContent = Object.keys(cellClosed).length;
+      document.getElementById('statCost').textContent = bestGoalNode ? bestGoalNode.g.toFixed(1) : '-';
+      if (statusText) document.getElementById('statStatus').textContent = statusText;
+    }
+
+    function drawCarBody(x, y, theta, color = '#334155', isGoal = false) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(theta);
+
+      ctx.fillStyle = color;
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(-14, -8, 28, 16, 3);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.strokeStyle = isGoal ? '#0284c7' : '#22c55e';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(8, 0);
+      ctx.lineTo(22, 0);
+      ctx.lineTo(17, -4);
+      ctx.moveTo(22, 0);
+      ctx.lineTo(17, 4);
+      ctx.stroke();
+
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(-11, -10, 6, 2.5);
+      ctx.fillRect(-11, 7.5, 6, 2.5);
+      ctx.fillRect(5, -10, 6, 2.5);
+      ctx.fillRect(5, 7.5, 6, 2.5);
+
+      ctx.restore();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, width, height);
+
+      ctx.strokeStyle = '#f1f5f9';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < width; x += CELL_XY) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+      }
+      for (let y = 0; y < height; y += CELL_XY) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+
+      for (const obs of obstacles) {
+        ctx.fillStyle = '#fee2e2';
+        ctx.strokeStyle = '#f87171';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(obs.x, obs.y, obs.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#ef4444';
+        ctx.font = '600 11px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Преграда', obs.x, obs.y + 4);
+      }
+
+      ctx.lineWidth = 1.2;
+      for (const n of treeNodes) {
+        if (!n.arc || n.arc.length === 0) continue;
+        ctx.strokeStyle = n.isShot ? '#8b5cf6' : (n.gear > 0 ? '#38bdf8' : '#f59e0b');
+        ctx.beginPath();
+        ctx.moveTo(n.arc[0].x, n.arc[0].y);
+        for (let i = 1; i < n.arc.length; i++) {
+          ctx.lineTo(n.arc[i].x, n.arc[i].y);
+        }
+        ctx.stroke();
+      }
+
+      if (path.length > 0) {
+        ctx.strokeStyle = '#059669';
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(path[0].x, path[0].y);
+        for (let i = 1; i < path.length; i++) {
+          ctx.lineTo(path[i].x, path[i].y);
+        }
+        ctx.stroke();
+
+        for (let i = 0; i < path.length; i += 7) {
+          const pt = path[i];
+          ctx.strokeStyle = '#047857';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(pt.x, pt.y);
+          ctx.lineTo(pt.x + Math.cos(pt.theta) * 10, pt.y + Math.sin(pt.theta) * 10);
+          ctx.stroke();
+        }
+      }
+
+      if (start) {
+        drawCarBody(start.x, start.y, start.theta, '#065f46', false);
+        ctx.fillStyle = '#059669';
+        ctx.font = '700 12px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Старт S', start.x, start.y + 24);
+      }
+
+      if (goal) {
+        drawCarBody(goal.x, goal.y, goal.theta, '#1e40af', true);
+        ctx.fillStyle = '#2563eb';
+        ctx.font = '700 12px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Цель G', goal.x, goal.y + 24);
+      }
+
+      if (isDrawingObstacle && newObsStart && draggingPoint) {
+        const curR = dist(newObsStart, draggingPoint);
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.25)';
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(newObsStart.x, newObsStart.y, Math.max(15, curR), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      }
+    }
+
+    function runLoop() {
+      if (!isRunning) return;
+      for (let i = 0; i < 4; i++) {
+        const canContinue = step();
+        if (!canContinue) {
+          isRunning = false;
+          document.getElementById('btnRun').textContent = '⚡ Запуск';
+          document.getElementById('btnRun').className = 'btn btn-primary';
+          draw();
+          return;
+        }
+      }
+      draw();
+      animFrame = requestAnimationFrame(runLoop);
+    }
+
+    canvas.addEventListener('mousedown', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+
+      const sArrowX = start.x + Math.cos(start.theta) * 22;
+      const sArrowY = start.y + Math.sin(start.theta) * 22;
+      if (Math.hypot(mx - sArrowX, my - sArrowY) <= 12) {
+        dragging = { type: 'start_heading' };
+        return;
+      }
+      if (Math.hypot(mx - start.x, my - start.y) <= 18) {
+        dragging = { type: 'start' };
+        return;
+      }
+
+      const gArrowX = goal.x + Math.cos(goal.theta) * 22;
+      const gArrowY = goal.y + Math.sin(goal.theta) * 22;
+      if (Math.hypot(mx - gArrowX, my - gArrowY) <= 12) {
+        dragging = { type: 'goal_heading' };
+        return;
+      }
+      if (Math.hypot(mx - goal.x, my - goal.y) <= 18) {
+        dragging = { type: 'goal' };
+        return;
+      }
+
+      for (const obs of obstacles) {
+        if (Math.hypot(mx - obs.x, my - obs.y) <= obs.r) {
+          dragging = { type: 'obs', target: obs };
+          return;
+        }
+      }
+
+      isDrawingObstacle = true;
+      newObsStart = { x: mx, y: my };
+      draggingPoint = { x: mx, y: my };
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+
+      if (dragging) {
+        if (dragging.type === 'start') {
+          start.x = Math.max(20, Math.min(width - 20, mx));
+          start.y = Math.max(20, Math.min(height - 20, my));
+          resetPlanner();
+        } else if (dragging.type === 'start_heading') {
+          start.theta = Math.atan2(my - start.y, mx - start.x);
+          resetPlanner();
+        } else if (dragging.type === 'goal') {
+          goal.x = Math.max(20, Math.min(width - 20, mx));
+          goal.y = Math.max(20, Math.min(height - 20, my));
+          resetPlanner();
+        } else if (dragging.type === 'goal_heading') {
+          goal.theta = Math.atan2(my - goal.y, mx - goal.x);
+          resetPlanner();
+        } else if (dragging.type === 'obs') {
+          dragging.target.x = mx;
+          dragging.target.y = my;
+          resetPlanner();
+        }
+      } else if (isDrawingObstacle) {
+        draggingPoint = { x: mx, y: my };
+        draw();
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isDrawingObstacle && newObsStart && draggingPoint) {
+        const r = Math.max(20, dist(newObsStart, draggingPoint));
+        obstacles.push({ x: newObsStart.x, y: newObsStart.y, r });
+        isDrawingObstacle = false;
+        newObsStart = null;
+        draggingPoint = null;
+        resetPlanner();
+      }
+      dragging = null;
+    });
+
+    document.getElementById('btnStep').addEventListener('click', () => {
+      step();
+      draw();
+    });
+
+    document.getElementById('btnRun').addEventListener('click', () => {
+      isRunning = !isRunning;
+      const btn = document.getElementById('btnRun');
+      if (isRunning) {
+        btn.textContent = '⏸ Пауза';
+        btn.className = 'btn btn-success';
+        runLoop();
+      } else {
+        btn.textContent = '⚡ Запуск';
+        btn.className = 'btn btn-primary';
+      }
+    });
+
+    document.getElementById('btnShot').addEventListener('click', () => {
+      useAnalyticShot = !useAnalyticShot;
+      const btn = document.getElementById('btnShot');
+      if (useAnalyticShot) {
+        btn.textContent = '🎯 Аналит. Shot: ВКЛ';
+        btn.className = 'btn toggle-active';
+      } else {
+        btn.textContent = '🎯 Аналит. Shot: ВЫКЛ';
+        btn.className = 'btn';
+      }
+      resetPlanner();
+    });
+
+    document.getElementById('btnReset').addEventListener('click', resetPlanner);
+    document.getElementById('btnClearObs').addEventListener('click', () => {
+      obstacles = [];
+      resetPlanner();
+    });
+
+    document.getElementById('radiusSlider').addEventListener('input', resetPlanner);
+    document.getElementById('stepSlider').addEventListener('input', resetPlanner);
+
+    function resize() {
+      const container = canvas.parentElement;
+      if (!container) return;
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      if (w < 50 || h < 50) return;
+
+      const prevW = width;
+      const prevH = height;
+      width = w;
+      height = h;
+      canvas.width = width;
+      canvas.height = height;
+
+      if (!start || isNaN(start.x) || prevW < 50 || prevH < 50) {
+        initEnvironment();
+        resetPlanner();
+        return;
+      }
+
+      const sx = width / prevW;
+      const sy = height / prevH;
+      if (!isFinite(sx) || !isFinite(sy) || sx <= 0 || sy <= 0) {
+        initEnvironment();
+        resetPlanner();
+        return;
+      }
+
+      start.x = Math.max(15, Math.min(width - 15, start.x * sx));
+      start.y = Math.max(15, Math.min(height - 15, start.y * sy));
+      goal.x = Math.max(15, Math.min(width - 15, goal.x * sx));
+      goal.y = Math.max(15, Math.min(height - 15, goal.y * sy));
+      for (const obs of obstacles) {
+        obs.x *= sx;
+        obs.y *= sy;
+        obs.r *= Math.min(sx, sy);
+      }
+      resetPlanner();
+    }
+
+    function autosize(element, onResize) {
+      let frames = 0;
+      let ticks = 0;
+      let poll = null;
+
+      function sized() {
+        return element.clientWidth > 50 && element.clientHeight > 50;
+      }
+
+      function attempt() {
+        if (!sized()) {
+          if (frames++ < 240) {
+            window.requestAnimationFrame(attempt);
+          } else if (!poll) {
+            poll = setInterval(function () {
+              if (sized() || ticks++ > 40) {
+                clearInterval(poll);
+                poll = null;
+                if (sized()) onResize();
+              }
+            }, 250);
+          }
+          return;
+        }
+        onResize();
+      }
+
+      window.requestAnimationFrame(attempt);
+      window.addEventListener('resize', onResize);
+      window.addEventListener('pageshow', onResize);
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden && sized()) onResize();
+      });
+      if (window.ResizeObserver) {
+        new window.ResizeObserver(() => {
+          if (sized()) onResize();
+        }).observe(element);
+      }
+    }
+
+    autosize(canvas.parentElement, resize);
+  </script>
+</body>
+</html>

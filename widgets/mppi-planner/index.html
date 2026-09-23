@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Интерактивный симулятор MPPI (Model Predictive Path Integral)</title>
+  <link rel="stylesheet" href="../common/widget-base.css"
+        onerror="this.onerror=null; this.href='common/widget-base.css';">
+  <style>
+    .badge-mppi {
+      background: #f0fdf4;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+      font-size: 11px;
+      padding: 3px 7px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="widget-layout">
+    <div class="toolbar">
+      <span class="badge-mppi">MPPI (Path Integral Sampling)</span>
+      <button id="btnStep" class="btn">▶ Шаг</button>
+      <button id="btnRun" class="btn btn-primary">⚡ Live MPPI</button>
+      <button id="btnReset" class="btn">🔄 Сброс</button>
+      <button id="btnClearObs" class="btn">🧹 Препятствия</button>
+
+      <div class="slider-group">
+        <span>Траектории K:</span>
+        <input type="range" id="kSlider" min="50" max="300" step="25" value="150">
+      </div>
+
+      <div class="slider-group">
+        <span>Температура λ:</span>
+        <input type="range" id="tempSlider" min="2" max="40" step="2" value="12">
+      </div>
+
+      <div class="slider-group">
+        <span>Шум σ:</span>
+        <input type="range" id="noiseSlider" min="0.4" max="2.0" step="0.1" value="1.0">
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat-item">Частота: <span id="statFps">60</span> Гц</div>
+        <div class="stat-item">Безопасных: <span id="statSafe">100%</span></div>
+        <div class="stat-item">Мин. Cost: <span id="statCost">-</span></div>
+        <div class="stat-item">Статус: <span id="statStatus">Готов</span></div>
+      </div>
+    </div>
+
+    <div class="canvas-container">
+      <canvas id="mppiCanvas"></canvas>
+      <div class="overlay-hint">
+        <b>MPPI:</b> Генерация $K$ случайных зашумленных траекторий управлений $\delta u \sim \mathcal{N}(0, \sigma^2)$ + экспоненциальное взвешивание $w_k \propto e^{-S/\lambda}$.
+        Зеленым показано итоговое усредненное управление $\mathbb{E}[U]$. Перетаскивайте робота, цель и преграды.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('mppiCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let width = 800;
+    let height = 500;
+
+    let robot = null;
+
+    let goal = { x: 700, y: 150, radius: 25 };
+    let obstacles = [];
+    let trail = [];
+
+    // MPPI Hyperparameters
+    const HORIZON = 22;     // Horizon steps H
+    const DT = 0.12;        // Simulation step dt
+    const V_CRUISE = 55;    // Target cruise speed (px/s)
+    const MAX_STEER = 1.4;  // Max angular velocity (rad/s)
+
+    // Nominal control sequence: array of H controls {v, w}
+    let nominalControls = [];
+
+    // Visualization buffers
+    let rolloutsData = []; // Array of { traj, cost, weight, safe }
+    let weightedMeanPath = [];
+
+    let isRunning = false;
+    let animFrame = null;
+    let lastTime = performance.now();
+    let frameCount = 0;
+    let fps = 60;
+
+    let dragging = null;
+    let isDrawingObstacle = false;
+    let newObsStart = null;
+    let draggingPoint = null;
+
+    function dist(p1, p2) {
+      return Math.hypot(p1.x - p2.x, p1.y - p2.y);
+    }
+
+    function normalizeAngle(a) {
+      let res = a % (2 * Math.PI);
+      if (res > Math.PI) res -= 2 * Math.PI;
+      if (res <= -Math.PI) res += 2 * Math.PI;
+      return res;
+    }
+
+    // Box-Muller Gaussian random generator
+    function randomGaussian(mean = 0, stdev = 1) {
+      let u = 1 - Math.random();
+      let v = Math.random();
+      let z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+      return mean + z * stdev;
+    }
+
+    function initEnvironment() {
+      robot = {
+        x: Math.round(width * 0.12),
+        y: Math.round(height * 0.70),
+        theta: -Math.PI / 4,
+        v: 0
+      };
+      goal = {
+        x: Math.round(width * 0.88),
+        y: Math.round(height * 0.30),
+        radius: 25
+      };
+      const rScale = Math.min(width, height) / 500;
+      obstacles = [
+        { x: width * 0.35, y: height * 0.45, r: 65 * rScale },
+        { x: width * 0.52, y: height * 0.72, r: 60 * rScale },
+        { x: width * 0.65, y: height * 0.35, r: 70 * rScale }
+      ];
+      trail = [{ x: robot.x, y: robot.y }];
+
+      // Initialize nominal control sequence pointing roughly towards goal
+      nominalControls = [];
+      const initDir = Math.atan2(goal.y - robot.y, goal.x - robot.x);
+      for (let t = 0; t < HORIZON; t++) {
+        nominalControls.push({
+          v: V_CRUISE,
+          w: normalizeAngle(initDir - robot.theta) * 0.8
+        });
+      }
+    }
+
+    function isPointInObstacle(p, margin = 12) {
+      for (const obs of obstacles) {
+        if (dist(p, obs) <= obs.r + margin) return true;
+      }
+      return false;
+    }
+
+    // Forward simulation step for unicycle dynamics
+    function stepDynamics(state, v, w, dt) {
+      const theta = normalizeAngle(state.theta + w * dt);
+      const x = state.x + v * Math.cos(theta) * dt;
+      const y = state.y + v * Math.sin(theta) * dt;
+      return { x, y, theta, v };
+    }
+
+    // MPPI Algorithm Core
+    function updateMPPI() {
+      const K = Number(document.getElementById('kSlider').value);
+      const lambda = Number(document.getElementById('tempSlider').value);
+      const noiseSigma = Number(document.getElementById('noiseSlider').value);
+
+      rolloutsData = [];
+      const costs = new Float64Array(K);
+      const perturbations = []; // Array of K control sequences of perturbations
+
+      let safeRolloutsCount = 0;
+      let minCost = Infinity;
+
+      for (let k = 0; k < K; k++) {
+        let simState = { ...robot };
+        const traj = [{ x: simState.x, y: simState.y }];
+        const pertSeq = [];
+        let cost = 0;
+        let safe = true;
+
+        for (let t = 0; t < HORIZON; t++) {
+          // Perturb nominal controls
+          const dV = randomGaussian(0, noiseSigma * 5);
+          const dW = randomGaussian(0, noiseSigma * 0.8);
+          pertSeq.push({ dV, dW });
+
+          const v = Math.max(10, Math.min(80, nominalControls[t].v + dV));
+          const w = Math.max(-MAX_STEER, Math.min(MAX_STEER, nominalControls[t].w + dW));
+
+          simState = stepDynamics(simState, v, w, DT);
+          traj.push({ x: simState.x, y: simState.y });
+
+          // State Cost: Distance to Goal
+          const dGoal = dist(simState, goal);
+          cost += dGoal * 0.35;
+
+          // Obstacle collision penalty
+          if (simState.x < 10 || simState.x > width - 10 || simState.y < 10 || simState.y > height - 10 || isPointInObstacle(simState, 12)) {
+            cost += 1500; // Big penalty
+            safe = false;
+          } else {
+            // Proximity cost near obstacle boundaries
+            for (const obs of obstacles) {
+              const dObs = dist(simState, obs) - obs.r;
+              if (dObs < 40) {
+                cost += Math.pow((40 - dObs), 2) * 0.6;
+              }
+            }
+          }
+        }
+
+        // Terminal Cost
+        cost += dist(simState, goal) * 2.0;
+
+        costs[k] = cost;
+        perturbations.push(pertSeq);
+        if (safe) safeRolloutsCount++;
+        if (cost < minCost) minCost = cost;
+
+        rolloutsData.push({ traj, cost, safe });
+      }
+
+      // Compute Softmax Weights: w_k = exp(-(S_k - S_min) / lambda) / sum(...)
+      let sumExp = 0;
+      const weights = new Float64Array(K);
+      for (let k = 0; k < K; k++) {
+        const expVal = Math.exp(-(costs[k] - minCost) / lambda);
+        weights[k] = expVal;
+        sumExp += expVal;
+        rolloutsData[k].weight = expVal;
+      }
+
+      for (let k = 0; k < K; k++) {
+        weights[k] /= (sumExp || 1);
+        rolloutsData[k].weight = weights[k];
+      }
+
+      // Update Nominal Control Sequence: u_t = u_t + sum_k(w_k * du_t^k)
+      for (let t = 0; t < HORIZON; t++) {
+        let deltaV = 0;
+        let deltaW = 0;
+        for (let k = 0; k < K; k++) {
+          deltaV += weights[k] * perturbations[k][t].dV;
+          deltaW += weights[k] * perturbations[k][t].dW;
+        }
+        nominalControls[t].v = Math.max(10, Math.min(80, nominalControls[t].v + deltaV));
+        nominalControls[t].w = Math.max(-MAX_STEER, Math.min(MAX_STEER, nominalControls[t].w + deltaW));
+      }
+
+      // Simulate weighted mean path for visualization
+      weightedMeanPath = [{ x: robot.x, y: robot.y }];
+      let meanState = { ...robot };
+      for (let t = 0; t < HORIZON; t++) {
+        meanState = stepDynamics(meanState, nominalControls[t].v, nominalControls[t].w, DT);
+        weightedMeanPath.push({ x: meanState.x, y: meanState.y });
+      }
+
+      // Update UI Stats
+      const safePct = Math.round((safeRolloutsCount / K) * 100);
+      document.getElementById('statSafe').textContent = safePct + '%';
+      document.getElementById('statCost').textContent = minCost.toFixed(0);
+
+      return nominalControls[0];
+    }
+
+    function step() {
+      if (dist(robot, goal) <= goal.radius) {
+        updateStats('🎯 Цель достигнута!');
+        return false;
+      }
+
+      // Run MPPI optimization step
+      const u0 = updateMPPI();
+
+      // Apply first control u0 to real robot
+      robot = stepDynamics(robot, u0.v, u0.w, DT);
+      trail.push({ x: robot.x, y: robot.y });
+      if (trail.length > 500) trail.shift();
+
+      // Shift control horizon: u[0..H-2] = u[1..H-1], and duplicate last control
+      for (let t = 0; t < HORIZON - 1; t++) {
+        nominalControls[t] = { ...nominalControls[t + 1] };
+      }
+      nominalControls[HORIZON - 1] = { ...nominalControls[HORIZON - 2] };
+
+      updateStats('Движение...');
+      return true;
+    }
+
+    function updateStats(statusText) {
+      if (statusText) document.getElementById('statStatus').textContent = statusText;
+    }
+
+    function resetPlanner() {
+      if (animFrame) cancelAnimationFrame(animFrame);
+      isRunning = false;
+      document.getElementById('btnRun').textContent = '⚡ Live MPPI';
+      document.getElementById('btnRun').className = 'btn btn-primary';
+
+      initEnvironment();
+      updateMPPI();
+      updateStats('Готов');
+      draw();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, width, height);
+
+      // Grid
+      ctx.strokeStyle = '#f8fafc';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < width; x += 30) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+      }
+      for (let y = 0; y < height; y += 30) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+      }
+
+      // Trail
+      if (trail.length > 1) {
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        ctx.moveTo(trail[0].x, trail[0].y);
+        for (let i = 1; i < trail.length; i++) {
+          ctx.lineTo(trail[i].x, trail[i].y);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      // Obstacles
+      for (const obs of obstacles) {
+        ctx.fillStyle = '#fee2e2';
+        ctx.strokeStyle = '#f87171';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(obs.x, obs.y, obs.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#ef4444';
+        ctx.font = '600 11px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Преграда', obs.x, obs.y + 4);
+      }
+
+      // Goal
+      ctx.fillStyle = 'rgba(2, 132, 199, 0.15)';
+      ctx.strokeStyle = '#0284c7';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(goal.x, goal.y, goal.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#0284c7';
+      ctx.font = '700 12px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Цель G', goal.x, goal.y + 4);
+
+      // MPPI Rollouts Fan
+      for (const r of rolloutsData) {
+        if (!r.safe) {
+          ctx.strokeStyle = 'rgba(239, 68, 68, 0.18)';
+          ctx.lineWidth = 1;
+        } else {
+          // Opacity scaled by normalized weight
+          const alpha = Math.min(0.65, Math.max(0.08, r.weight * 6));
+          ctx.strokeStyle = `rgba(56, 189, 248, ${alpha})`;
+          ctx.lineWidth = 1.2;
+        }
+        ctx.beginPath();
+        ctx.moveTo(r.traj[0].x, r.traj[0].y);
+        for (let i = 1; i < r.traj.length; i++) {
+          ctx.lineTo(r.traj[i].x, r.traj[i].y);
+        }
+        ctx.stroke();
+      }
+
+      // Exponentially-Weighted Mean Trajectory E[U] (Thick Glowing Green)
+      if (weightedMeanPath.length > 1) {
+        ctx.strokeStyle = '#059669';
+        ctx.lineWidth = 4.5;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(weightedMeanPath[0].x, weightedMeanPath[0].y);
+        for (let i = 1; i < weightedMeanPath.length; i++) {
+          ctx.lineTo(weightedMeanPath[i].x, weightedMeanPath[i].y);
+        }
+        ctx.stroke();
+      }
+
+      // Robot Body
+      ctx.save();
+      ctx.translate(robot.x, robot.y);
+      ctx.rotate(robot.theta);
+
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.roundRect(-14, -8, 28, 16, 3);
+      ctx.fill();
+
+      // Heading arrow
+      ctx.strokeStyle = '#34d399';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(8, 0);
+      ctx.lineTo(20, 0);
+      ctx.lineTo(15, -4);
+      ctx.moveTo(20, 0);
+      ctx.lineTo(15, 4);
+      ctx.stroke();
+
+      ctx.restore();
+
+      // Drag preview for new obstacle
+      if (isDrawingObstacle && newObsStart && draggingPoint) {
+        const curR = dist(newObsStart, draggingPoint);
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.25)';
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(newObsStart.x, newObsStart.y, Math.max(15, curR), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      }
+    }
+
+    function runLoop() {
+      if (!isRunning) return;
+
+      const canContinue = step();
+      draw();
+
+      frameCount++;
+      const now = performance.now();
+      if (now - lastTime >= 1000) {
+        fps = frameCount;
+        frameCount = 0;
+        lastTime = now;
+        document.getElementById('statFps').textContent = fps;
+      }
+
+      if (!canContinue) {
+        isRunning = false;
+        document.getElementById('btnRun').textContent = '⚡ Live MPPI';
+        document.getElementById('btnRun').className = 'btn btn-primary';
+        return;
+      }
+      animFrame = requestAnimationFrame(runLoop);
+    }
+
+    canvas.addEventListener('mousedown', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+
+      if (Math.hypot(mx - robot.x, my - robot.y) <= 20) {
+        dragging = { type: 'robot' };
+        return;
+      }
+      if (Math.hypot(mx - goal.x, my - goal.y) <= goal.radius) {
+        dragging = { type: 'goal' };
+        return;
+      }
+
+      for (const obs of obstacles) {
+        if (Math.hypot(mx - obs.x, my - obs.y) <= obs.r) {
+          dragging = { type: 'obs', target: obs };
+          return;
+        }
+      }
+
+      isDrawingObstacle = true;
+      newObsStart = { x: mx, y: my };
+      draggingPoint = { x: mx, y: my };
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+
+      if (dragging) {
+        if (dragging.type === 'robot') {
+          robot.x = Math.max(20, Math.min(width - 20, mx));
+          robot.y = Math.max(20, Math.min(height - 20, my));
+          updateMPPI();
+          draw();
+        } else if (dragging.type === 'goal') {
+          goal.x = Math.max(20, Math.min(width - 20, mx));
+          goal.y = Math.max(20, Math.min(height - 20, my));
+          updateMPPI();
+          draw();
+        } else if (dragging.type === 'obs') {
+          dragging.target.x = mx;
+          dragging.target.y = my;
+          updateMPPI();
+          draw();
+        }
+      } else if (isDrawingObstacle) {
+        draggingPoint = { x: mx, y: my };
+        draw();
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isDrawingObstacle && newObsStart && draggingPoint) {
+        const r = Math.max(20, dist(newObsStart, draggingPoint));
+        obstacles.push({ x: newObsStart.x, y: newObsStart.y, r });
+        isDrawingObstacle = false;
+        newObsStart = null;
+        draggingPoint = null;
+        updateMPPI();
+        draw();
+      }
+      dragging = null;
+    });
+
+    document.getElementById('btnStep').addEventListener('click', () => {
+      step();
+      draw();
+    });
+
+    document.getElementById('btnRun').addEventListener('click', () => {
+      isRunning = !isRunning;
+      const btn = document.getElementById('btnRun');
+      if (isRunning) {
+        btn.textContent = '⏸ Пауза';
+        btn.className = 'btn btn-success';
+        runLoop();
+      } else {
+        btn.textContent = '⚡ Live MPPI';
+        btn.className = 'btn btn-primary';
+      }
+    });
+
+    document.getElementById('btnReset').addEventListener('click', resetPlanner);
+    document.getElementById('btnClearObs').addEventListener('click', () => {
+      obstacles = [];
+      updateMPPI();
+      draw();
+    });
+
+    document.getElementById('kSlider').addEventListener('input', () => { updateMPPI(); draw(); });
+    document.getElementById('tempSlider').addEventListener('input', () => { updateMPPI(); draw(); });
+    document.getElementById('noiseSlider').addEventListener('input', () => { updateMPPI(); draw(); });
+
+    function resize() {
+      const container = canvas.parentElement;
+      if (!container) return;
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      if (w < 50 || h < 50) return;
+
+      const prevW = width;
+      const prevH = height;
+      width = w;
+      height = h;
+      canvas.width = width;
+      canvas.height = height;
+
+      if (!robot || isNaN(robot.x) || prevW < 50 || prevH < 50) {
+        initEnvironment();
+        updateMPPI();
+        draw();
+        return;
+      }
+
+      const sx = width / prevW;
+      const sy = height / prevH;
+      if (!isFinite(sx) || !isFinite(sy) || sx <= 0 || sy <= 0) {
+        initEnvironment();
+        updateMPPI();
+        draw();
+        return;
+      }
+
+      robot.x = Math.max(15, Math.min(width - 15, robot.x * sx));
+      robot.y = Math.max(15, Math.min(height - 15, robot.y * sy));
+      goal.x = Math.max(15, Math.min(width - 15, goal.x * sx));
+      goal.y = Math.max(15, Math.min(height - 15, goal.y * sy));
+      for (const obs of obstacles) {
+        obs.x *= sx;
+        obs.y *= sy;
+        obs.r *= Math.min(sx, sy);
+      }
+      updateMPPI();
+      draw();
+    }
+
+    function autosize(element, onResize) {
+      let frames = 0;
+      let ticks = 0;
+      let poll = null;
+
+      function sized() {
+        return element.clientWidth > 50 && element.clientHeight > 50;
+      }
+
+      function attempt() {
+        if (!sized()) {
+          if (frames++ < 240) {
+            window.requestAnimationFrame(attempt);
+          } else if (!poll) {
+            poll = setInterval(function () {
+              if (sized() || ticks++ > 40) {
+                clearInterval(poll);
+                poll = null;
+                if (sized()) onResize();
+              }
+            }, 250);
+          }
+          return;
+        }
+        onResize();
+      }
+
+      window.requestAnimationFrame(attempt);
+      window.addEventListener('resize', onResize);
+      window.addEventListener('pageshow', onResize);
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden && sized()) onResize();
+      });
+      if (window.ResizeObserver) {
+        new window.ResizeObserver(() => {
+          if (sized()) onResize();
+        }).observe(element);
+      }
+    }
+
+    autosize(canvas.parentElement, resize);
+  </script>
+</body>
+</html>

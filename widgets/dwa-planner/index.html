@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Интерактивный симулятор DWA (Dynamic Window Approach)</title>
+  <link rel="stylesheet" href="../common/widget-base.css"
+        onerror="this.onerror=null; this.href='common/widget-base.css';">
+  <style>
+    .badge-dwa {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      font-size: 11px;
+      padding: 3px 7px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .vel-panel {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 190px;
+      height: 190px;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      display: flex;
+      flex-direction: column;
+      padding: 8px;
+      z-index: 10;
+      backdrop-filter: blur(4px);
+    }
+    .vel-panel-title {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: 4px;
+      text-align: center;
+    }
+    #velCanvas {
+      width: 100%;
+      height: 100%;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="widget-layout">
+    <div class="toolbar">
+      <span class="badge-dwa">DWA (Dynamic Window Approach)</span>
+      <button id="btnStep" class="btn">▶ Шаг</button>
+      <button id="btnRun" class="btn btn-primary">⚡ Запуск</button>
+      <button id="btnReset" class="btn">🔄 Сброс</button>
+      <button id="btnClearObs" class="btn">🧹 Препятствия</button>
+
+      <div class="slider-group">
+        <span>α (Цель):</span>
+        <input type="range" id="alphaSlider" min="0.1" max="1.0" step="0.05" value="0.45">
+      </div>
+
+      <div class="slider-group">
+        <span>β (Зазор):</span>
+        <input type="range" id="betaSlider" min="0.1" max="1.5" step="0.05" value="0.75">
+      </div>
+
+      <div class="slider-group">
+        <span>γ (Скорость):</span>
+        <input type="range" id="gammaSlider" min="0.05" max="0.5" step="0.05" value="0.15">
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat-item">v: <span id="statV">0.0</span> px/s</div>
+        <div class="stat-item">ω: <span id="statW">0.0</span> rad/s</div>
+        <div class="stat-item">Окно Vr: <span id="statVr">0</span></div>
+        <div class="stat-item">Статус: <span id="statStatus">Готов</span></div>
+      </div>
+    </div>
+
+    <div class="canvas-container">
+      <canvas id="arenaCanvas"></canvas>
+
+      <!-- Inset: Velocity Space (v, w) -->
+      <div class="vel-panel">
+        <div class="vel-panel-title">Окно скоростей Vr = Vs ∩ Vd ∩ Va</div>
+        <canvas id="velCanvas" width="174" height="155"></canvas>
+      </div>
+
+      <div class="overlay-hint">
+        <b>DWA:</b> Перебор допустимых дуг скоростей $(v, \omega)$ в динамическом окне $V_d$, ограниченном ускорением моторов.
+        В правом окне показано окно $V_d$ (синее) и выбранная точка $(v^*, \omega^*)$. Перетаскивайте робота, цель и преграды.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const arenaCanvas = document.getElementById('arenaCanvas');
+    const arenaCtx = arenaCanvas.getContext('2d');
+    const velCanvas = document.getElementById('velCanvas');
+    const velCtx = velCanvas.getContext('2d');
+
+    let width = 800;
+    let height = 500;
+
+    let robot = null;
+    let goal = null;
+    let obstacles = [];
+    let trail = [];
+
+    // Hardware and dynamic constraints
+    const V_MAX = 75;        // max forward linear vel (px/s)
+    const V_MIN = 0;         // forward only
+    const W_MAX = 2.2;       // max angular vel (rad/s)
+    const ACC_MAX = 35;      // max linear acceleration (px/s^2)
+    const ALPHA_MAX = 2.5;   // max angular acceleration (rad/s^2)
+    const DT = 0.25;         // control cycle dt (s)
+    const SIM_TIME = 1.6;    // trajectory rollout horizon (s)
+
+    // Current candidate rollouts and best control
+    let currentRollouts = [];
+    let bestControl = { v: 0, w: 0, score: -Infinity, traj: [] };
+    let isRunning = false;
+    let animFrame = null;
+    let dragging = null;
+    let isDrawingObstacle = false;
+    let newObsStart = null;
+    let draggingPoint = null;
+
+    function dist(p1, p2) {
+      return Math.hypot(p1.x - p2.x, p1.y - p2.y);
+    }
+
+    function normalizeAngle(a) {
+      let res = a % (2 * Math.PI);
+      if (res > Math.PI) res -= 2 * Math.PI;
+      if (res <= -Math.PI) res += 2 * Math.PI;
+      return res;
+    }
+
+    function initEnvironment() {
+      robot = {
+        x: Math.round(width * 0.12),
+        y: Math.round(height * 0.70),
+        theta: -Math.PI / 4,
+        v: 0,
+        w: 0
+      };
+      goal = {
+        x: Math.round(width * 0.88),
+        y: Math.round(height * 0.30),
+        radius: 25
+      };
+      const rScale = Math.min(width, height) / 500;
+      obstacles = [
+        { x: width * 0.35, y: height * 0.45, r: 65 * rScale },
+        { x: width * 0.52, y: height * 0.72, r: 60 * rScale },
+        { x: width * 0.65, y: height * 0.35, r: 70 * rScale }
+      ];
+      trail = [{ x: robot.x, y: robot.y }];
+    }
+
+    function isPointInObstacle(p, margin = 12) {
+      for (const obs of obstacles) {
+        if (dist(p, obs) <= obs.r + margin) return true;
+      }
+      return false;
+    }
+
+    // Forward simulate circular arc under constant (v, w)
+    function simulateArc(v, w, simTime = SIM_TIME) {
+      const subSteps = 14;
+      const dt = simTime / subSteps;
+      let { x, y, theta } = robot;
+      const traj = [{ x, y, theta }];
+      let minObsDist = Infinity;
+      let collided = false;
+
+      for (let i = 0; i < subSteps; i++) {
+        theta = normalizeAngle(theta + w * dt);
+        x += v * Math.cos(theta) * dt;
+        y += v * Math.sin(theta) * dt;
+        traj.push({ x, y, theta });
+
+        if (x < 10 || x > width - 10 || y < 10 || y > height - 10 || isPointInObstacle({ x, y }, 12)) {
+          collided = true;
+          break;
+        }
+
+        // Track closest clearance to obstacle
+        for (const obs of obstacles) {
+          const d = dist({ x, y }, obs) - obs.r;
+          if (d < minObsDist) minObsDist = d;
+        }
+      }
+
+      return {
+        traj: traj,
+        endState: { x, y, theta },
+        minObsDist: minObsDist === Infinity ? 120 : minObsDist,
+        collided: collided
+      };
+    }
+
+    // DWA Evaluation function
+    function evaluateDWA() {
+      const alpha = Number(document.getElementById('alphaSlider').value);
+      const beta = Number(document.getElementById('betaSlider').value);
+      const gamma = Number(document.getElementById('gammaSlider').value);
+
+      // Dynamic Window Vd
+      const vMinD = Math.max(V_MIN, robot.v - ACC_MAX * DT);
+      const vMaxD = Math.min(V_MAX, robot.v + ACC_MAX * DT);
+      const wMinD = Math.max(-W_MAX, robot.w - ALPHA_MAX * DT);
+      const wMaxD = Math.min(W_MAX, robot.w + ALPHA_MAX * DT);
+
+      const vSamples = 12;
+      const wSamples = 18;
+      const dv = (vMaxD - vMinD) / Math.max(1, vSamples - 1);
+      const dw = (wMaxD - wMinD) / Math.max(1, wSamples - 1);
+
+      currentRollouts = [];
+      bestControl = { v: 0, w: 0, score: -Infinity, traj: [] };
+      let validCount = 0;
+
+      for (let i = 0; i < vSamples; i++) {
+        const v = vMinD + i * dv;
+        for (let j = 0; j < wSamples; j++) {
+          const w = wMinD + j * dw;
+
+          const sim = simulateArc(v, w);
+          if (sim.collided) {
+            currentRollouts.push({ v, w, score: -1, traj: sim.traj, safe: false });
+            continue;
+          }
+
+          validCount++;
+
+          // 1. Heading score (alignment with goal)
+          const angleToGoal = Math.atan2(goal.y - sim.endState.y, goal.x - sim.endState.x);
+          const headingDiff = Math.abs(normalizeAngle(angleToGoal - sim.endState.theta));
+          const headingScore = Math.PI - headingDiff; // Larger is better
+
+          // 2. Clearance score (distance to obstacle)
+          const clearanceScore = Math.min(100, sim.minObsDist);
+
+          // 3. Velocity score (prefer high cruise speed)
+          const velScore = v;
+
+          // Normalized weighted sum
+          const totalScore = alpha * (headingScore / Math.PI) * 100 +
+                             beta * clearanceScore +
+                             gamma * velScore;
+
+          const rollout = { v, w, score: totalScore, traj: sim.traj, safe: true };
+          currentRollouts.push(rollout);
+
+          if (totalScore > bestControl.score) {
+            bestControl = rollout;
+          }
+        }
+      }
+
+      document.getElementById('statVr').textContent = validCount;
+      return bestControl;
+    }
+
+    function step() {
+      if (dist(robot, goal) <= goal.radius) {
+        updateStats('🎯 Цель достигнута!');
+        return false;
+      }
+
+      const ctrl = evaluateDWA();
+      if (!ctrl || ctrl.score === -Infinity) {
+        robot.v = 0;
+        robot.w = 0;
+        updateStats('⚠️ Стопор: нет безопасных дуг');
+        return false;
+      }
+
+      // Apply chosen optimal control to real robot
+      robot.v = ctrl.v;
+      robot.w = ctrl.w;
+      robot.theta = normalizeAngle(robot.theta + robot.w * DT);
+      robot.x += robot.v * Math.cos(robot.theta) * DT;
+      robot.y += robot.v * Math.sin(robot.theta) * DT;
+
+      trail.push({ x: robot.x, y: robot.y });
+      if (trail.length > 500) trail.shift();
+
+      evaluateDWA();
+
+      updateStats('Движение...');
+      return true;
+    }
+
+    function updateStats(statusText) {
+      document.getElementById('statV').textContent = robot.v.toFixed(1);
+      document.getElementById('statW').textContent = robot.w.toFixed(2);
+      if (statusText) document.getElementById('statStatus').textContent = statusText;
+    }
+
+    function resetPlanner() {
+      if (animFrame) cancelAnimationFrame(animFrame);
+      isRunning = false;
+      document.getElementById('btnRun').textContent = '⚡ Запуск';
+      document.getElementById('btnRun').className = 'btn btn-primary';
+
+      initEnvironment();
+      evaluateDWA();
+      updateStats('Готов');
+      draw();
+    }
+
+    // Draw Velocity Space Inset
+    function drawVelocitySpace() {
+      const vw = velCanvas.width;
+      const vh = velCanvas.height;
+      velCtx.clearRect(0, 0, vw, vh);
+
+      // Axes: horizontal = w (-W_MAX to W_MAX), vertical = v (0 to V_MAX)
+      const toCanvasX = (w) => (w + W_MAX) / (2 * W_MAX) * (vw - 20) + 10;
+      const toCanvasY = (v) => vh - 15 - (v / V_MAX) * (vh - 30);
+
+      // Background grid
+      velCtx.strokeStyle = '#e2e8f0';
+      velCtx.lineWidth = 1;
+      const cx = toCanvasX(0);
+      velCtx.beginPath();
+      velCtx.moveTo(cx, 10);
+      velCtx.lineTo(cx, vh - 10);
+      velCtx.moveTo(10, toCanvasY(0));
+      velCtx.lineTo(vw - 10, toCanvasY(0));
+      velCtx.stroke();
+
+      // Labels
+      velCtx.fillStyle = '#94a3b8';
+      velCtx.font = '8.5px JetBrains Mono';
+      velCtx.fillText('ω', vw - 14, toCanvasY(0) + 10);
+      velCtx.fillText('v', cx + 4, 15);
+
+      // Hardware limits Vs (Motor limits)
+      velCtx.strokeStyle = '#cbd5e1';
+      velCtx.lineWidth = 1.2;
+      velCtx.strokeRect(toCanvasX(-W_MAX), toCanvasY(V_MAX), toCanvasX(W_MAX) - toCanvasX(-W_MAX), toCanvasY(0) - toCanvasY(V_MAX));
+      velCtx.fillStyle = '#64748b';
+      velCtx.fillText('Vs', toCanvasX(-W_MAX) + 3, toCanvasY(V_MAX) + 10);
+
+      // Dynamic Window Vd
+      const vMinD = Math.max(V_MIN, robot.v - ACC_MAX * DT);
+      const vMaxD = Math.min(V_MAX, robot.v + ACC_MAX * DT);
+      const wMinD = Math.max(-W_MAX, robot.w - ALPHA_MAX * DT);
+      const wMaxD = Math.min(W_MAX, robot.w + ALPHA_MAX * DT);
+
+      const x1 = toCanvasX(wMinD);
+      const x2 = toCanvasX(wMaxD);
+      const y1 = toCanvasY(vMaxD);
+      const y2 = toCanvasY(vMinD);
+
+      velCtx.fillStyle = 'rgba(59, 130, 246, 0.15)';
+      velCtx.fillRect(x1, y1, x2 - x1, y2 - y1);
+      velCtx.strokeStyle = '#2563eb';
+      velCtx.lineWidth = 1.5;
+      velCtx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+      velCtx.fillStyle = '#1d4ed8';
+      velCtx.fillText('Vd', x1 + 2, y1 + 10);
+
+      // Current robot velocity point
+      velCtx.fillStyle = '#0f172a';
+      velCtx.beginPath();
+      velCtx.arc(toCanvasX(robot.w), toCanvasY(robot.v), 3.5, 0, Math.PI * 2);
+      velCtx.fill();
+
+      // Optimal control velocity point
+      if (bestControl && bestControl.score > -Infinity) {
+        velCtx.fillStyle = '#059669';
+        velCtx.beginPath();
+        velCtx.arc(toCanvasX(bestControl.w), toCanvasY(bestControl.v), 5, 0, Math.PI * 2);
+        velCtx.fill();
+        velCtx.strokeStyle = '#ffffff';
+        velCtx.lineWidth = 1.5;
+        velCtx.stroke();
+      }
+    }
+
+    function draw() {
+      arenaCtx.clearRect(0, 0, width, height);
+
+      // Grid
+      arenaCtx.strokeStyle = '#f8fafc';
+      arenaCtx.lineWidth = 1;
+      for (let x = 0; x < width; x += 30) {
+        arenaCtx.beginPath();
+        arenaCtx.moveTo(x, 0);
+        arenaCtx.lineTo(x, height);
+        arenaCtx.stroke();
+      }
+      for (let y = 0; y < height; y += 30) {
+        arenaCtx.beginPath();
+        arenaCtx.moveTo(0, y);
+        arenaCtx.lineTo(width, y);
+        arenaCtx.stroke();
+      }
+
+      // Trail
+      if (trail.length > 1) {
+        arenaCtx.strokeStyle = '#94a3b8';
+        arenaCtx.lineWidth = 2.5;
+        arenaCtx.setLineDash([3, 3]);
+        arenaCtx.beginPath();
+        arenaCtx.moveTo(trail[0].x, trail[0].y);
+        for (let i = 1; i < trail.length; i++) {
+          arenaCtx.lineTo(trail[i].x, trail[i].y);
+        }
+        arenaCtx.stroke();
+        arenaCtx.setLineDash([]);
+      }
+
+      // Obstacles
+      for (const obs of obstacles) {
+        arenaCtx.fillStyle = '#fee2e2';
+        arenaCtx.strokeStyle = '#f87171';
+        arenaCtx.lineWidth = 2;
+        arenaCtx.beginPath();
+        arenaCtx.arc(obs.x, obs.y, obs.r, 0, Math.PI * 2);
+        arenaCtx.fill();
+        arenaCtx.stroke();
+
+        arenaCtx.fillStyle = '#ef4444';
+        arenaCtx.font = '600 11px Inter, sans-serif';
+        arenaCtx.textAlign = 'center';
+        arenaCtx.fillText('Преграда', obs.x, obs.y + 4);
+      }
+
+      // Goal
+      arenaCtx.fillStyle = 'rgba(2, 132, 199, 0.15)';
+      arenaCtx.strokeStyle = '#0284c7';
+      arenaCtx.lineWidth = 2;
+      arenaCtx.beginPath();
+      arenaCtx.arc(goal.x, goal.y, goal.radius, 0, Math.PI * 2);
+      arenaCtx.fill();
+      arenaCtx.stroke();
+
+      arenaCtx.fillStyle = '#0284c7';
+      arenaCtx.font = '700 12px Inter, sans-serif';
+      arenaCtx.textAlign = 'center';
+      arenaCtx.fillText('Цель G', goal.x, goal.y + 4);
+
+      // Candidate Rollouts (Arcs)
+      for (const r of currentRollouts) {
+        if (!r.safe) {
+          arenaCtx.strokeStyle = 'rgba(239, 68, 68, 0.25)';
+          arenaCtx.lineWidth = 1;
+        } else {
+          arenaCtx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
+          arenaCtx.lineWidth = 1.3;
+        }
+        arenaCtx.beginPath();
+        arenaCtx.moveTo(r.traj[0].x, r.traj[0].y);
+        for (let i = 1; i < r.traj.length; i++) {
+          arenaCtx.lineTo(r.traj[i].x, r.traj[i].y);
+        }
+        arenaCtx.stroke();
+      }
+
+      // Best chosen arc (Bold Green)
+      if (bestControl && bestControl.traj.length > 1) {
+        arenaCtx.strokeStyle = '#059669';
+        arenaCtx.lineWidth = 4;
+        arenaCtx.lineCap = 'round';
+        arenaCtx.beginPath();
+        arenaCtx.moveTo(bestControl.traj[0].x, bestControl.traj[0].y);
+        for (let i = 1; i < bestControl.traj.length; i++) {
+          arenaCtx.lineTo(bestControl.traj[i].x, bestControl.traj[i].y);
+        }
+        arenaCtx.stroke();
+      }
+
+      // Robot Body (Differential Drive)
+      arenaCtx.save();
+      arenaCtx.translate(robot.x, robot.y);
+      arenaCtx.rotate(robot.theta);
+
+      arenaCtx.fillStyle = '#0f172a';
+      arenaCtx.beginPath();
+      arenaCtx.arc(0, 0, 14, 0, Math.PI * 2);
+      arenaCtx.fill();
+
+      // Wheels
+      arenaCtx.fillStyle = '#334155';
+      arenaCtx.fillRect(-7, -18, 14, 4);
+      arenaCtx.fillRect(-7, 14, 14, 4);
+
+      // Heading arrow
+      arenaCtx.strokeStyle = '#38bdf8';
+      arenaCtx.lineWidth = 2.5;
+      arenaCtx.beginPath();
+      arenaCtx.moveTo(0, 0);
+      arenaCtx.lineTo(18, 0);
+      arenaCtx.lineTo(13, -4);
+      arenaCtx.moveTo(18, 0);
+      arenaCtx.lineTo(13, 4);
+      arenaCtx.stroke();
+
+      arenaCtx.restore();
+
+      // Drag preview for new obstacle
+      if (isDrawingObstacle && newObsStart && draggingPoint) {
+        const curR = dist(newObsStart, draggingPoint);
+        arenaCtx.fillStyle = 'rgba(239, 68, 68, 0.25)';
+        arenaCtx.strokeStyle = '#ef4444';
+        arenaCtx.lineWidth = 2;
+        arenaCtx.beginPath();
+        arenaCtx.arc(newObsStart.x, newObsStart.y, Math.max(15, curR), 0, Math.PI * 2);
+        arenaCtx.fill();
+        arenaCtx.stroke();
+      }
+
+      drawVelocitySpace();
+    }
+
+    function runLoop() {
+      if (!isRunning) return;
+      const canContinue = step();
+      draw();
+      if (!canContinue) {
+        isRunning = false;
+        document.getElementById('btnRun').textContent = '⚡ Запуск';
+        document.getElementById('btnRun').className = 'btn btn-primary';
+        return;
+      }
+      animFrame = requestAnimationFrame(runLoop);
+    }
+
+    arenaCanvas.addEventListener('mousedown', (e) => {
+      const rect = arenaCanvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+
+      if (Math.hypot(mx - robot.x, my - robot.y) <= 20) {
+        dragging = { type: 'robot' };
+        return;
+      }
+      if (Math.hypot(mx - goal.x, my - goal.y) <= goal.radius) {
+        dragging = { type: 'goal' };
+        return;
+      }
+
+      for (const obs of obstacles) {
+        if (Math.hypot(mx - obs.x, my - obs.y) <= obs.r) {
+          dragging = { type: 'obs', target: obs };
+          return;
+        }
+      }
+
+      isDrawingObstacle = true;
+      newObsStart = { x: mx, y: my };
+      draggingPoint = { x: mx, y: my };
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      const rect = arenaCanvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+
+      if (dragging) {
+        if (dragging.type === 'robot') {
+          robot.x = Math.max(20, Math.min(width - 20, mx));
+          robot.y = Math.max(20, Math.min(height - 20, my));
+          robot.v = 0;
+          robot.w = 0;
+          evaluateDWA();
+          draw();
+        } else if (dragging.type === 'goal') {
+          goal.x = Math.max(20, Math.min(width - 20, mx));
+          goal.y = Math.max(20, Math.min(height - 20, my));
+          evaluateDWA();
+          draw();
+        } else if (dragging.type === 'obs') {
+          dragging.target.x = mx;
+          dragging.target.y = my;
+          evaluateDWA();
+          draw();
+        }
+      } else if (isDrawingObstacle) {
+        draggingPoint = { x: mx, y: my };
+        draw();
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isDrawingObstacle && newObsStart && draggingPoint) {
+        const r = Math.max(20, dist(newObsStart, draggingPoint));
+        obstacles.push({ x: newObsStart.x, y: newObsStart.y, r });
+        isDrawingObstacle = false;
+        newObsStart = null;
+        draggingPoint = null;
+        evaluateDWA();
+        draw();
+      }
+      dragging = null;
+    });
+
+    document.getElementById('btnStep').addEventListener('click', () => {
+      step();
+      draw();
+    });
+
+    document.getElementById('btnRun').addEventListener('click', () => {
+      isRunning = !isRunning;
+      const btn = document.getElementById('btnRun');
+      if (isRunning) {
+        btn.textContent = '⏸ Пауза';
+        btn.className = 'btn btn-success';
+        runLoop();
+      } else {
+        btn.textContent = '⚡ Запуск';
+        btn.className = 'btn btn-primary';
+      }
+    });
+
+    document.getElementById('btnReset').addEventListener('click', resetPlanner);
+    document.getElementById('btnClearObs').addEventListener('click', () => {
+      obstacles = [];
+      evaluateDWA();
+      draw();
+    });
+
+    document.getElementById('alphaSlider').addEventListener('input', () => { evaluateDWA(); draw(); });
+    document.getElementById('betaSlider').addEventListener('input', () => { evaluateDWA(); draw(); });
+    document.getElementById('gammaSlider').addEventListener('input', () => { evaluateDWA(); draw(); });
+
+    function resize() {
+      const container = arenaCanvas.parentElement;
+      if (!container) return;
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      if (w < 50 || h < 50) return;
+
+      const prevW = width;
+      const prevH = height;
+      width = w;
+      height = h;
+      arenaCanvas.width = width;
+      arenaCanvas.height = height;
+
+      if (!robot || isNaN(robot.x) || prevW < 50 || prevH < 50) {
+        initEnvironment();
+        evaluateDWA();
+        draw();
+        return;
+      }
+
+      const sx = width / prevW;
+      const sy = height / prevH;
+      if (!isFinite(sx) || !isFinite(sy) || sx <= 0 || sy <= 0) {
+        initEnvironment();
+        evaluateDWA();
+        draw();
+        return;
+      }
+
+      robot.x = Math.max(15, Math.min(width - 15, robot.x * sx));
+      robot.y = Math.max(15, Math.min(height - 15, robot.y * sy));
+      goal.x = Math.max(15, Math.min(width - 15, goal.x * sx));
+      goal.y = Math.max(15, Math.min(height - 15, goal.y * sy));
+      for (const obs of obstacles) {
+        obs.x *= sx;
+        obs.y *= sy;
+        obs.r *= Math.min(sx, sy);
+      }
+      evaluateDWA();
+      draw();
+    }
+
+    function autosize(element, onResize) {
+      let frames = 0;
+      let ticks = 0;
+      let poll = null;
+
+      function sized() {
+        return element.clientWidth > 50 && element.clientHeight > 50;
+      }
+
+      function attempt() {
+        if (!sized()) {
+          if (frames++ < 240) {
+            window.requestAnimationFrame(attempt);
+          } else if (!poll) {
+            poll = setInterval(function () {
+              if (sized() || ticks++ > 40) {
+                clearInterval(poll);
+                poll = null;
+                if (sized()) onResize();
+              }
+            }, 250);
+          }
+          return;
+        }
+        onResize();
+      }
+
+      window.requestAnimationFrame(attempt);
+      window.addEventListener('resize', onResize);
+      window.addEventListener('pageshow', onResize);
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden && sized()) onResize();
+      });
+      if (window.ResizeObserver) {
+        new window.ResizeObserver(() => {
+          if (sized()) onResize();
+        }).observe(element);
+      }
+    }
+
+    autosize(arenaCanvas.parentElement, resize);
+  </script>
+</body>
+</html>
