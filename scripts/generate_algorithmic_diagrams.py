@@ -800,83 +800,302 @@ def generate_sdf_gradient():
     write_svg(filepath, svg)
 
 # -------------------------------------------------------------------------
-# Diagram 5: Lecture 03 - RRT* Rewiring
+# -------------------------------------------------------------------------
+# Diagram 5a: Lecture 03 - RRT* ChooseParent
+# -------------------------------------------------------------------------
+def generate_rrt_star_choose_parent():
+    filepath = os.path.join(OUTPUT_DIR, 'lecture-03', 'rrt_star_choose_parent.svg')
+    ensure_dir(filepath)
+
+    q_start = (55, 220)
+    node_A = (120, 140)
+    node_B = (120, 300)
+    node_u_star = (195, 160)
+    node_D = (275, 80)
+    node_C = (195, 330)
+    node_q_near = (275, 305)
+    q_new = (285, 215)
+    r_ball = 125
+
+    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 500" width="100%" height="100%">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- Title & Subtitle -->
+  <g transform="translate(22, 20)">
+    <rect x="-4" y="-14" width="165" height="18" rx="4" fill="#e0f2fe"/>
+    <text x="4" y="-1" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#0369a1">ШАГ 1: ВЫБОР РОДИТЕЛЯ</text>
+    <text x="0" y="17" font-family="Inter, sans-serif" font-size="14.5" font-weight="700" fill="#0f172a">Оператор ChooseParent в шаре Near(q_new, r)</text>
+    <text x="0" y="31" font-family="Inter, sans-serif" font-size="10.5" fill="#64748b">Сравнение: геометрически ближайший узел (RRT) vs оптимальный родитель (RRT*)</text>
+  </g>
+
+  <!-- Search Radius Circle Near(q_new, r) -->
+  <circle cx="{q_new[0]}" cy="{q_new[1]}" r="{r_ball}" fill="#f0f9ff" fill-opacity="0.45" stroke="#38bdf8" stroke-width="1.8" stroke-dasharray="5,4"/>
+  <line x1="{q_new[0]}" y1="{q_new[1]}" x2="{q_new[0] + r_ball * 0.866}" y2="{q_new[1] - r_ball * 0.5}" stroke="#0284c7" stroke-width="1.2" stroke-dasharray="3,3"/>
+  <rect x="350" y="132" width="70" height="18" rx="3" fill="#ffffff" stroke="#bae6fd" stroke-width="1"/>
+  <text x="355" y="145" font-family="JetBrains Mono, monospace" font-size="9.5" font-weight="600" fill="#0284c7">r_RRT* = 125</text>
+
+  <!-- Existing Tree Edges -->
+  <g stroke="#94a3b8" stroke-width="2" stroke-linecap="round">
+    <line x1="{q_start[0]}" y1="{q_start[1]}" x2="{node_A[0]}" y2="{node_A[1]}"/>
+    <line x1="{q_start[0]}" y1="{q_start[1]}" x2="{node_B[0]}" y2="{node_B[1]}"/>
+    <line x1="{node_A[0]}" y1="{node_A[1]}" x2="{node_u_star[0]}" y2="{node_u_star[1]}"/>
+    <line x1="{node_A[0]}" y1="{node_A[1]}" x2="{node_D[0]}" y2="{node_D[1]}"/>
+    <line x1="{node_B[0]}" y1="{node_B[1]}" x2="{node_C[0]}" y2="{node_C[1]}"/>
+    <line x1="{node_C[0]}" y1="{node_C[1]}" x2="{node_q_near[0]}" y2="{node_q_near[1]}"/>
+  </g>
+
+  <!-- CANDIDATE 1: Nearest (Classic RRT choice) - Suboptimal -->
+  <line x1="{node_q_near[0]}" y1="{node_q_near[1]}" x2="{q_new[0]}" y2="{q_new[1]}" stroke="#ef4444" stroke-width="2.5" stroke-dasharray="5,4"/>
+  
+  <!-- Distance label d=2.5 -->
+  <rect x="290" y="255" width="38" height="16" rx="3" fill="#ffffff" stroke="#fecaca" stroke-width="1"/>
+  <text x="294" y="267" font-family="JetBrains Mono, monospace" font-size="9.5" font-weight="600" fill="#dc2626">d=2.5</text>
+
+  <!-- Candidate 1 Callout Badge (in open lower-right area) -->
+  <g transform="translate(315, 305)" filter="url(#shadow)">
+    <rect width="195" height="46" rx="6" fill="#fef2f2" stroke="#fecaca" stroke-width="1.2"/>
+    <text x="10" y="17" font-family="Inter, sans-serif" font-size="10.5" font-weight="700" fill="#dc2626">✗ Выбор RRT (Nearest):</text>
+    <text x="10" y="34" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="600" fill="#991b1b">13.0 + 2.5 = 15.5 (хуже)</text>
+  </g>
+
+  <!-- CANDIDATE 2: u* (RRT* ChooseParent choice) - Optimal -->
+  <line x1="{node_u_star[0]}" y1="{node_u_star[1]}" x2="{q_new[0]}" y2="{q_new[1]}" stroke="#0284c7" stroke-width="3.5" stroke-linecap="round"/>
+
+  <!-- Distance label d=3.0 -->
+  <rect x="236" y="172" width="38" height="16" rx="3" fill="#ffffff" stroke="#bae6fd" stroke-width="1"/>
+  <text x="240" y="184" font-family="JetBrains Mono, monospace" font-size="9.5" font-weight="600" fill="#0284c7">d=3.0</text>
+
+  <!-- Candidate 2 Callout Badge (in open upper-left area) -->
+  <g transform="translate(18, 56)" filter="url(#shadow)">
+    <rect width="195" height="44" rx="6" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1.5"/>
+    <text x="8" y="16" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#0369a1">✓ Выбор RRT* (ChooseParent):</text>
+    <text x="8" y="32" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="700" fill="#0284c7">7.0 + 3.0 = 10.0 (МИНИМУМ)</text>
+  </g>
+
+  <!-- Tree Nodes -->
+  <!-- q_start -->
+  <circle cx="{q_start[0]}" cy="{q_start[1]}" r="7.5" fill="#0f172a" stroke="#ffffff" stroke-width="2"/>
+  <text x="{q_start[0] - 18}" y="{q_start[1] + 20}" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#0f172a">q_start</text>
+  <text x="{q_start[0] - 12}" y="{q_start[1] + 32}" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#64748b">c = 0.0</text>
+
+  <!-- Node A -->
+  <circle cx="{node_A[0]}" cy="{node_A[1]}" r="5" fill="#64748b" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="{node_A[0] - 25}" y="{node_A[1] - 8}" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#64748b">c=4.0</text>
+
+  <!-- Node B -->
+  <circle cx="{node_B[0]}" cy="{node_B[1]}" r="5" fill="#64748b" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="{node_B[0] - 25}" y="{node_B[1] + 16}" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#64748b">c=5.0</text>
+
+  <!-- Node D -->
+  <circle cx="{node_D[0]}" cy="{node_D[1]}" r="5" fill="#64748b" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="{node_D[0] - 10}" y="{node_D[1] - 8}" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#64748b">D(c=9.5)</text>
+
+  <!-- Node C -->
+  <circle cx="{node_C[0]}" cy="{node_C[1]}" r="5" fill="#64748b" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="{node_C[0] - 14}" y="{node_C[1] + 16}" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#64748b">c=8.5</text>
+
+  <!-- Node u* (Optimal Parent) -->
+  <circle cx="{node_u_star[0]}" cy="{node_u_star[1]}" r="8" fill="#0284c7" stroke="#ffffff" stroke-width="2.5" filter="url(#shadow)"/>
+  <text x="{node_u_star[0] - 15}" y="{node_u_star[1] - 12}" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#0284c7">u* (родитель)</text>
+  <text x="{node_u_star[0] - 15}" y="{node_u_star[1] + 20}" font-family="JetBrains Mono, monospace" font-size="9.5" font-weight="600" fill="#0369a1">cost=7.0</text>
+
+  <!-- Node q_nearest -->
+  <circle cx="{node_q_near[0]}" cy="{node_q_near[1]}" r="7" fill="#ef4444" stroke="#ffffff" stroke-width="2"/>
+  <text x="{node_q_near[0] - 78}" y="{node_q_near[1] + 4}" font-family="Inter, sans-serif" font-size="10.5" font-weight="600" fill="#dc2626">q_nearest</text>
+  <text x="{node_q_near[0] - 74}" y="{node_q_near[1] + 16}" font-family="JetBrains Mono, monospace" font-size="9" fill="#dc2626">cost=13.0</text>
+
+  <!-- Node q_new -->
+  <circle cx="{q_new[0]}" cy="{q_new[1]}" r="8.5" fill="#0f172a" stroke="#ffffff" stroke-width="2.5" filter="url(#shadow)"/>
+  <circle cx="{q_new[0]}" cy="{q_new[1]}" r="12" fill="none" stroke="#0f172a" stroke-width="1.2" stroke-dasharray="3,2"/>
+  <text x="{q_new[0] + 16}" y="{q_new[1] + 4}" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#0f172a">q_new</text>
+  <text x="{q_new[0] + 16}" y="{q_new[1] + 17}" font-family="Inter, sans-serif" font-size="9" fill="#64748b">(новая вершина)</text>
+
+  <!-- Bottom Summary Card -->
+  <g transform="translate(18, 395)">
+    <rect width="504" height="90" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    
+    <!-- Formula -->
+    <rect x="12" y="8" width="480" height="28" rx="4" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
+    <text x="20" y="27" font-family="JetBrains Mono, monospace" font-size="11.5" font-weight="700" fill="#1e40af">q_parent = argmin_{{u ∈ Near}} ( cost(u) + ||u - q_new|| )</text>
+
+    <!-- Key takeaways -->
+    <text x="14" y="54" font-family="Inter, sans-serif" font-size="10.2" fill="#334155">
+      <tspan font-weight="700" fill="#dc2626">• Обычный RRT:</tspan> соединил бы с q_nearest (d=2.5), получив накопленный путь 15.5.
+    </text>
+    <text x="14" y="72" font-family="Inter, sans-serif" font-size="10.2" fill="#334155">
+      <tspan font-weight="700" fill="#059669">• RRT* (ChooseParent):</tspan> выбирает узел u* (d=3.0) с минимальным путем от старта = 10.0!
+    </text>
+  </g>
+</svg>'''
+
+    write_svg(filepath, svg)
+
+# -------------------------------------------------------------------------
+# Diagram 5b: Lecture 03 - RRT* Rewiring
 # -------------------------------------------------------------------------
 def generate_rrt_star_rewire():
     filepath = os.path.join(OUTPUT_DIR, 'lecture-03', 'rrt_star_rewire.svg')
     ensure_dir(filepath)
 
-    q_new = (270, 185)
-    r_rewire = 95
+    q_start = (55, 220)
+    node_A = (120, 140)
+    node_B = (120, 300)
+    node_u_star = (195, 160)
+    node_D = (275, 80)
+    node_C = (195, 330)
+    node_q_near = (275, 305)
+    q_new = (285, 215)
+    node_v1 = (395, 145)
+    node_w1 = (475, 125)
+    node_w2 = (475, 175)
+    node_v2 = (370, 275)
+    r_ball = 125
 
-    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 550" width="100%" height="100%">
+    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 500" width="100%" height="100%">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
   <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
 
-  <!-- Title & Legend -->
-  <g transform="translate(24, 28)">
-    <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Алгоритм переподключения RRT* (Rewiring Step)</text>
-    <text x="0" y="20" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Окрестность радиуса r_RRT* вокруг q_new проверяется на оптимизацию c(v)</text>
+  <!-- Title & Subtitle -->
+  <g transform="translate(22, 20)">
+    <rect x="-4" y="-14" width="165" height="18" rx="4" fill="#ecfdf5"/>
+    <text x="4" y="-1" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#047857">ШАГ 2: ПЕРЕПОДКЛЮЧЕНИЕ</text>
+    <text x="0" y="17" font-family="Inter, sans-serif" font-size="14.5" font-weight="700" fill="#0f172a">Оператор Rewiring окрестности Near(q_new, r)</text>
+    <text x="0" y="31" font-family="Inter, sans-serif" font-size="10.5" fill="#64748b">Проверка соседей v: если путь через q_new короче, ребро переподключается</text>
   </g>
 
-  <!-- Rewiring Circle Area -->
-  <circle cx="{q_new[0]}" cy="{q_new[1]}" r="{r_rewire}" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5" stroke-dasharray="4,3"/>
-  <line x1="{q_new[0]}" y1="{q_new[1]}" x2="{q_new[0] + r_rewire * 0.707}" y2="{q_new[1] - r_rewire * 0.707}" stroke="#10b981" stroke-width="1.2"/>
-  <text x="{q_new[0] + 35}" y="{q_new[1] - 40}" font-family="JetBrains Mono, monospace" font-size="10" fill="#059669">r_RRT*</text>
+  <!-- Search Radius Circle Near(q_new, r) -->
+  <circle cx="{q_new[0]}" cy="{q_new[1]}" r="{r_ball}" fill="#ecfdf5" fill-opacity="0.45" stroke="#34d399" stroke-width="1.8" stroke-dasharray="5,4"/>
 
   <!-- Existing Tree Edges -->
-  <g stroke="#94a3b8" stroke-width="2">
-    <line x1="55" y1="185" x2="135" y2="125"/>
-    <line x1="55" y1="185" x2="145" y2="240"/>
-    <line x1="135" y1="125" x2="185" y2="160"/>
-    <line x1="145" y1="240" x2="330" y2="245"/>
+  <g stroke="#94a3b8" stroke-width="2" stroke-linecap="round">
+    <line x1="{q_start[0]}" y1="{q_start[1]}" x2="{node_A[0]}" y2="{node_A[1]}"/>
+    <line x1="{q_start[0]}" y1="{q_start[1]}" x2="{node_B[0]}" y2="{node_B[1]}"/>
+    <line x1="{node_A[0]}" y1="{node_A[1]}" x2="{node_u_star[0]}" y2="{node_u_star[1]}"/>
+    <line x1="{node_A[0]}" y1="{node_A[1]}" x2="{node_D[0]}" y2="{node_D[1]}"/>
+    <line x1="{node_B[0]}" y1="{node_B[1]}" x2="{node_C[0]}" y2="{node_C[1]}"/>
+    <line x1="{node_C[0]}" y1="{node_C[1]}" x2="{node_q_near[0]}" y2="{node_q_near[1]}"/>
+    <!-- Unaffected neighbor v2 edge -->
+    <line x1="{node_q_near[0]}" y1="{node_q_near[1]}" x2="{node_v2[0]}" y2="{node_v2[1]}"/>
   </g>
 
-  <!-- OLD SUBOPTIMAL EDGE (TO BE DROPPED) -->
-  <line x1="135" y1="125" x2="345" y2="150" stroke="#ef4444" stroke-width="2.5" stroke-dasharray="5,3"/>
-  <text x="215" y="128" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#dc2626">✗ Старое ребро (c = 22.8)</text>
+  <!-- Established edge to q_new from Step 1 -->
+  <line x1="{node_u_star[0]}" y1="{node_u_star[1]}" x2="{q_new[0]}" y2="{q_new[1]}" stroke="#0284c7" stroke-width="3" stroke-linecap="round"/>
 
-  <!-- NEW OPTIMAL EDGE TO q_new -->
-  <line x1="185" y1="160" x2="{q_new[0]}" y2="{q_new[1]}" stroke="#0284c7" stroke-width="3.5"/>
-  <text x="195" y="195" font-family="JetBrains Mono, monospace" font-size="10" fill="#0369a1">c(q_new) = 13.8</text>
+  <!-- Subtree edges from v1 to children w1, w2 -->
+  <g stroke="#059669" stroke-width="1.8" stroke-dasharray="3,2">
+    <line x1="{node_v1[0]}" y1="{node_v1[1]}" x2="{node_w1[0]}" y2="{node_w1[1]}"/>
+    <line x1="{node_v1[0]}" y1="{node_v1[1]}" x2="{node_w2[0]}" y2="{node_w2[1]}"/>
+  </g>
 
-  <!-- NEW REWIRED EDGE (q_new -> v) -->
-  <line x1="{q_new[0]}" y1="{q_new[1]}" x2="345" y2="150" stroke="#059669" stroke-width="3.5" stroke-linecap="round"/>
-  <text x="280" y="165" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#059669">✓ Новое ребро (c = 17.5)</text>
+  <!-- OLD SUBOPTIMAL EDGE (D -> v1) TO BE DROPPED -->
+  <line x1="{node_D[0]}" y1="{node_D[1]}" x2="{node_v1[0]}" y2="{node_v1[1]}" stroke="#ef4444" stroke-width="2.5" stroke-dasharray="5,4"/>
+  <!-- Cross icon on old edge -->
+  <circle cx="{(node_D[0] + node_v1[0])/2}" cy="{(node_D[1] + node_v1[1])/2}" r="11" fill="#fef2f2" stroke="#f87171" stroke-width="1.5"/>
+  <text x="{(node_D[0] + node_v1[0])/2 - 5}" y="{(node_D[1] + node_v1[1])/2 + 4}" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#dc2626">✗</text>
 
-  <!-- Nodes -->
-  <circle cx="55" cy="185" r="6.5" fill="#0f172a"/>
-  <text x="35" y="208" font-family="JetBrains Mono" font-size="10.5" fill="#475569">q_start</text>
+  <!-- Old edge dropped label (above the edge) -->
+  <g transform="translate(290, 60)" filter="url(#shadow)">
+    <rect width="190" height="24" rx="4" fill="#fef2f2" stroke="#fecaca" stroke-width="1"/>
+    <text x="8" y="16" font-family="Inter, sans-serif" font-size="9" font-weight="700" fill="#dc2626">✗ Старое ребро: c=15.5 (отсекается)</text>
+  </g>
 
-  <circle cx="135" cy="125" r="5" fill="#64748b"/>
-  <circle cx="145" cy="240" r="5" fill="#64748b"/>
-  <circle cx="185" cy="160" r="5" fill="#0284c7"/>
-  <circle cx="330" cy="245" r="5" fill="#64748b"/>
+  <!-- NEW REWIRED EDGE (q_new -> v1) -->
+  <line x1="{q_new[0]}" y1="{q_new[1]}" x2="{node_v1[0]}" y2="{node_v1[1]}" stroke="#059669" stroke-width="3.5" stroke-linecap="round"/>
 
-  <!-- Target Node v -->
-  <circle cx="345" cy="150" r="7" fill="#059669" stroke="#ffffff" stroke-width="2"/>
-  <text x="358" y="154" font-family="Inter" font-size="12" font-weight="700" fill="#059669">Вершина v</text>
+  <!-- Distance label d=2.5 on rewired edge -->
+  <rect x="322" y="168" width="36" height="15" rx="3" fill="#ffffff" stroke="#a7f3d0" stroke-width="1"/>
+  <text x="325" y="179" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600" fill="#059669">d=2.5</text>
 
-  <!-- New Sample q_new -->
-  <circle cx="{q_new[0]}" cy="{q_new[1]}" r="7.5" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
-  <text x="{q_new[0]-16}" y="{q_new[1]-13}" font-family="Inter" font-size="12" font-weight="700" fill="#0284c7">q_new</text>
+  <!-- Rewired Edge Callout Badge -->
+  <g transform="translate(150, 255)" filter="url(#shadow)">
+    <rect width="195" height="42" rx="6" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1.5"/>
+    <text x="8" y="16" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#047857">✓ Переподключение (Rewire):</text>
+    <text x="8" y="31" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#059669">10.0 + 2.5 = 12.5 &lt; 15.5</text>
+  </g>
 
-  <!-- Mathematical explanation card (BELOW DIAGRAM) -->
-  <g transform="translate(24, 305)">
-    <rect width="472" height="220" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
-    <text x="18" y="26" font-family="Inter, sans-serif" font-size="13.5" font-weight="700" fill="#0f172a">Условие переподключения (Rewire):</text>
-    <rect x="18" y="38" width="436" height="40" rx="5" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
-    <text x="28" y="63" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700" fill="#1e40af">cost(q_new) + ||q_new - v|| &lt; cost(v)</text>
+  <!-- Cascade aura around subtree w1, w2 -->
+  <rect x="445" y="94" width="85" height="104" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1" stroke-dasharray="3,3"/>
+  <text x="451" y="108" font-family="Inter, sans-serif" font-size="9" font-weight="700" fill="#047857">Поддерево v1</text>
+  <text x="451" y="190" font-family="Inter, sans-serif" font-size="8.5" font-weight="700" fill="#059669">Выигрыш Δ = -3.0</text>
 
-    <text x="18" y="102" font-family="Inter, sans-serif" font-size="11" fill="#334155"><tspan font-weight="700">1. Выбор родителя:</tspan> q_new соединяется с узлом с мин. cost(u) + ||u - q_new||.</text>
-    <text x="18" y="128" font-family="Inter, sans-serif" font-size="11" fill="#334155"><tspan font-weight="700">2. Переподключение:</tspan> соседи v выбирают q_new, если это снижает cost(v).</text>
-    <text x="18" y="154" font-family="Inter, sans-serif" font-size="11" fill="#334155"><tspan font-weight="700">3. Результат:</tspan> распрямляются изломы, дерево сходится к оптимуму.</text>
+  <!-- Unchanged Neighbor v2 check (Grey dashed line) -->
+  <line x1="{q_new[0]}" y1="{q_new[1]}" x2="{node_v2[0]}" y2="{node_v2[1]}" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3"/>
+  <rect x="310" y="318" width="205" height="26" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="316" y="330" font-family="Inter, sans-serif" font-size="8.5" fill="#475569">Сосед v2 (c=11.0):</text>
+  <text x="316" y="339" font-family="JetBrains Mono, monospace" font-size="8" fill="#64748b">10.0 + 2.5 = 12.5 ≥ 11.0 → Без изменений</text>
 
-    <rect x="18" y="176" width="436" height="26" rx="4" fill="#fef2f2" stroke="#fecaca" stroke-width="0.5"/>
-    <text x="26" y="193" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#991b1b">P(lim_{{n→∞}} Cost(RRT*) = Cost*) = 1</text>
+  <!-- Tree Nodes -->
+  <!-- q_start -->
+  <circle cx="{q_start[0]}" cy="{q_start[1]}" r="7.5" fill="#0f172a" stroke="#ffffff" stroke-width="2"/>
+  <text x="{q_start[0] - 18}" y="{q_start[1] + 20}" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#0f172a">q_start</text>
+
+  <!-- Nodes A, B, C, D -->
+  <circle cx="{node_A[0]}" cy="{node_A[1]}" r="5" fill="#64748b" stroke="#ffffff" stroke-width="1.5"/>
+  <circle cx="{node_B[0]}" cy="{node_B[1]}" r="5" fill="#64748b" stroke="#ffffff" stroke-width="1.5"/>
+  <circle cx="{node_C[0]}" cy="{node_C[1]}" r="5" fill="#64748b" stroke="#ffffff" stroke-width="1.5"/>
+  <circle cx="{node_D[0]}" cy="{node_D[1]}" r="5.5" fill="#64748b" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="{node_D[0] - 10}" y="{node_D[1] - 8}" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#64748b">D(c=9.5)</text>
+
+  <!-- Node u* -->
+  <circle cx="{node_u_star[0]}" cy="{node_u_star[1]}" r="6.5" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
+  <text x="{node_u_star[0] - 14}" y="{node_u_star[1] - 10}" font-family="JetBrains Mono, monospace" font-size="9" fill="#0284c7">u*(7.0)</text>
+
+  <!-- Node q_new (now member of tree) -->
+  <circle cx="{q_new[0]}" cy="{q_new[1]}" r="8.5" fill="#0284c7" stroke="#ffffff" stroke-width="2.5" filter="url(#shadow)"/>
+  <text x="{q_new[0] + 15}" y="{q_new[1] + 2}" font-family="Inter, sans-serif" font-size="11.5" font-weight="700" fill="#0284c7">q_new</text>
+  <text x="{q_new[0] + 15}" y="{q_new[1] + 15}" font-family="JetBrains Mono, monospace" font-size="9" font-weight="700" fill="#0369a1">cost=10.0</text>
+
+  <!-- Target Rewired Node v1 with backdrop badge -->
+  <circle cx="{node_v1[0]}" cy="{node_v1[1]}" r="8" fill="#059669" stroke="#ffffff" stroke-width="2.5" filter="url(#shadow)"/>
+  <g transform="translate({node_v1[0] - 45}, {node_v1[1] - 28})">
+    <rect width="105" height="18" rx="3" fill="#ffffff" stroke="#a7f3d0" stroke-width="1"/>
+    <text x="6" y="13" font-family="Inter, sans-serif" font-size="9.5" font-weight="700" fill="#047857">v1: c = 15.5 → 12.5</text>
+  </g>
+
+  <!-- Subtree children w1, w2 -->
+  <circle cx="{node_w1[0]}" cy="{node_w1[1]}" r="4.5" fill="#059669" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="{node_w1[0] + 7}" y="{node_w1[1] + 3}" font-family="JetBrains Mono, monospace" font-size="8" fill="#059669">w1</text>
+
+  <circle cx="{node_w2[0]}" cy="{node_w2[1]}" r="4.5" fill="#059669" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="{node_w2[0] + 7}" y="{node_w2[1] + 3}" font-family="JetBrains Mono, monospace" font-size="8" fill="#059669">w2</text>
+
+  <!-- Node v2 -->
+  <circle cx="{node_v2[0]}" cy="{node_v2[1]}" r="5.5" fill="#64748b" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="{node_v2[0] + 8}" y="{node_v2[1] + 4}" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#64748b">v2(11.0)</text>
+
+  <!-- Bottom Summary Card -->
+  <g transform="translate(18, 395)">
+    <rect width="504" height="90" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    
+    <!-- Formula -->
+    <rect x="12" y="8" width="480" height="28" rx="4" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1"/>
+    <text x="20" y="27" font-family="JetBrains Mono, monospace" font-size="11.5" font-weight="700" fill="#065f46">if cost(q_new) + ||q_new - v|| &lt; cost(v) ⟹ v.parent = q_new</text>
+
+    <!-- Key takeaways -->
+    <text x="14" y="54" font-family="Inter, sans-serif" font-size="10.2" fill="#334155">
+      <tspan font-weight="700" fill="#059669">• Переподключение v1:</tspan> путь через q_new короче (12.5 &lt; 15.5), старое ребро отсекается.
+    </text>
+    <text x="14" y="72" font-family="Inter, sans-serif" font-size="10.2" fill="#334155">
+      <tspan font-weight="700" fill="#0284c7">• Каскадный выигрыш:</tspan> стоимость всех потомков v1 падает на Δ = -3.0. Дерево сходится к оптимуму!
+    </text>
   </g>
 </svg>'''
 
     write_svg(filepath, svg)
+
 
 # -------------------------------------------------------------------------
 # Diagram 6: Lecture 03 - Informed RRT* Ellipsoid
@@ -2779,6 +2998,7 @@ def main():
     generate_theta_star_los()
     generate_minkowski_cspace()
     generate_sdf_gradient()
+    generate_rrt_star_choose_parent()
     generate_rrt_star_rewire()
     generate_informed_rrt_ellipse()
     generate_prm_learning_query()

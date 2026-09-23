@@ -708,7 +708,7 @@ $$P\left(\lim_{N \to \infty} \operatorname{Cost}(\mathcal{T}_N) = c^*\right) = 0
 
 <!-- _header: "Лекция 03 | Асимптотически оптимальный поиск" -->
 
-## Алгоритм RRT*: ChooseParent и Rewiring <span class="badge badge-time">48–52 мин</span>
+## Алгоритм RRT*: Шаг 1 — Выбор родителя (ChooseParent) <span class="badge badge-time">48–50 мин</span>
 
 <div class="grid-2">
 
@@ -716,18 +716,63 @@ $$P\left(\lim_{N \to \infty} \operatorname{Cost}(\mathcal{T}_N) = c^*\right) = 0
 
 <div class="card card-accent">
 
-### 1. Выбор лучшего родителя (ChooseParent)
-Для $q_{new}$ родителем выбирается сосед $u \in \operatorname{Near}(q_{new}, r_N)$ с минимальной суммарной стоимостью:
-$$q_{parent} = \arg\min_{u} \left( \operatorname{cost}(u) + \|u - q_{new}\| \right)$$
+### 1. Дефект RRT: «Жадный» Nearest
+В классическом RRT новая вершина $q_{new}$ слепо соединяется с геометрически ближайшим узлом $q_{nearest} = \arg\min_u \|u - q_{rand}\|$:
+- Игнорируется накопленная стоимость пути от старта $\operatorname{cost}(u)$;
+- Ранние зигзаги и случайные обходы навсегда цементируются в дереве.
 
 </div>
 
 <div class="card card-success">
 
-### 2. Переподключение рёбер (Rewire)
-Для каждого соседа $v \in \operatorname{Near}(q_{new}, r_N)$, если путь через $q_{new}$ дешевле:
+### Решение RRT*: Оператор ChooseParent
+Вместо одного узла опрашиваются все соседи в шаре $u \in \operatorname{Near}(q_{new}, r_N)$:
+$$q_{parent} = \arg\min_{u \in \operatorname{Near}} \Big( \operatorname{cost}(u) + \|u - q_{new}\| \Big)$$
+- $q_{new}$ подключается к узлу $u^*$, дающему **кратчайший суммарный путь от старта**;
+- Геометрически более далекий узел может быть в разы выгоднее из-за прямой траектории к корню!
+
+</div>
+
+</div>
+
+<div class="col">
+
+<div class="diagram-box">
+
+<img src="../../assets/images/lecture-03/rrt_star_choose_parent.svg" alt="RRT* ChooseParent" />
+
+</div>
+
+</div>
+
+</div>
+
+---
+
+<!-- _header: "Лекция 03 | Асимптотически оптимальный поиск" -->
+
+## Алгоритм RRT*: Шаг 2 — Переподключение ветвей (Rewire) <span class="badge badge-time">50–52 мин</span>
+
+<div class="grid-2">
+
+<div class="col">
+
+<div class="card card-accent">
+
+### 2. Зачем нужно переподключение (Rewiring)?
+Точка $q_{new}$ уже подключена к лучшему родителю с оптимальной стоимостью $\operatorname{cost}(q_{new})$.
+- Соседние вершины могли быть добавлены ранее по длинным обходным путям;
+- Новая вершина $q_{new}$ способна служить более выгодным «транзитным мостом» для своих соседей!
+
+</div>
+
+<div class="card card-success">
+
+### Критерий локальной оптимизации
+Для каждого соседа $v \in \operatorname{Near}(q_{new}, r_N)$ проверяется условие:
 $$\operatorname{cost}(q_{new}) + \|q_{new} - v\| < \operatorname{cost}(v)$$
-ребро к $v$ переподключается, и $q_{new}$ становится новым родителем.
+- **Если путь через $q_{new}$ короче:** старое ребро к $v$ отсекается, новым родителем $v$ назначается $q_{new}$;
+- **Каскадный эффект:** стоимость всего поддерева потомков $v$ мгновенно падает на дельту $\Delta c$!
 
 </div>
 
