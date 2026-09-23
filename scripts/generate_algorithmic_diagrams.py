@@ -944,19 +944,19 @@ def generate_rrt_star_rewire():
     filepath = os.path.join(OUTPUT_DIR, 'lecture-03', 'rrt_star_rewire.svg')
     ensure_dir(filepath)
 
-    q_start = (55, 220)
-    node_A = (120, 140)
-    node_B = (120, 300)
-    node_u_star = (195, 160)
-    node_D = (275, 80)
-    node_C = (195, 330)
-    node_q_near = (275, 305)
-    q_new = (285, 215)
-    node_v1 = (395, 145)
-    node_w1 = (475, 125)
-    node_w2 = (475, 175)
-    node_v2 = (370, 275)
-    r_ball = 125
+    q_start = (45, 230)
+    node_A = (110, 165)
+    node_u_star = (185, 190)
+    node_p_old = (245, 125)
+    q_new = (265, 230)
+    node_v = (385, 165)
+    node_w1 = (475, 142)
+    node_w2 = (475, 178)
+    node_B = (110, 310)
+    node_C = (185, 338)
+    node_q_near = (265, 335)
+    node_v2 = (365, 310)
+    r_ball = 145
 
     svg = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 500" width="100%" height="100%">
   <defs>
@@ -968,112 +968,124 @@ def generate_rrt_star_rewire():
   <!-- Background -->
   <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
 
-  <!-- Title & Subtitle -->
-  <g transform="translate(22, 20)">
-    <rect x="-4" y="-14" width="165" height="18" rx="4" fill="#ecfdf5"/>
-    <text x="4" y="-1" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#047857">ШАГ 2: ПЕРЕПОДКЛЮЧЕНИЕ</text>
-    <text x="0" y="17" font-family="Inter, sans-serif" font-size="14.5" font-weight="700" fill="#0f172a">Оператор Rewiring окрестности Near(q_new, r)</text>
-    <text x="0" y="31" font-family="Inter, sans-serif" font-size="10.5" fill="#64748b">Проверка соседей v: если путь через q_new короче, ребро переподключается</text>
+  <!-- Header -->
+  <g transform="translate(20, 20)">
+    <rect x="-2" y="-14" width="170" height="18" rx="4" fill="#ecfdf5"/>
+    <text x="6" y="-1" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#047857">ШАГ 2: ПЕРЕПОДКЛЮЧЕНИЕ</text>
+    <text x="0" y="17" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Оператор Rewire: оптимизация дерева через q_new</text>
+    <text x="0" y="31" font-family="Inter, sans-serif" font-size="10.5" fill="#64748b">Проверка соседей v ∈ Near: если путь через q_new короче, ребро заменяется</text>
   </g>
 
-  <!-- Search Radius Circle Near(q_new, r) -->
-  <circle cx="{q_new[0]}" cy="{q_new[1]}" r="{r_ball}" fill="#ecfdf5" fill-opacity="0.45" stroke="#34d399" stroke-width="1.8" stroke-dasharray="5,4"/>
+  <!-- Ball of radius r Near(q_new, r) -->
+  <circle cx="{q_new[0]}" cy="{q_new[1]}" r="{r_ball}" fill="#ecfdf5" fill-opacity="0.3" stroke="#34d399" stroke-width="1.8" stroke-dasharray="5,4"/>
+  <text x="{q_new[0] - 55}" y="{q_new[1] + r_ball + 15}" font-family="JetBrains Mono, monospace" font-size="9.5" font-weight="600" fill="#059669">шар окрестности r_RRT* = 145</text>
 
-  <!-- Existing Tree Edges -->
-  <g stroke="#94a3b8" stroke-width="2" stroke-linecap="round">
-    <line x1="{q_start[0]}" y1="{q_start[1]}" x2="{node_A[0]}" y2="{node_A[1]}"/>
+  <!-- Inactive tree branches (Gray) -->
+  <g stroke="#cbd5e1" stroke-width="2" stroke-linecap="round">
     <line x1="{q_start[0]}" y1="{q_start[1]}" x2="{node_B[0]}" y2="{node_B[1]}"/>
-    <line x1="{node_A[0]}" y1="{node_A[1]}" x2="{node_u_star[0]}" y2="{node_u_star[1]}"/>
-    <line x1="{node_A[0]}" y1="{node_A[1]}" x2="{node_D[0]}" y2="{node_D[1]}"/>
     <line x1="{node_B[0]}" y1="{node_B[1]}" x2="{node_C[0]}" y2="{node_C[1]}"/>
     <line x1="{node_C[0]}" y1="{node_C[1]}" x2="{node_q_near[0]}" y2="{node_q_near[1]}"/>
-    <!-- Unaffected neighbor v2 edge -->
     <line x1="{node_q_near[0]}" y1="{node_q_near[1]}" x2="{node_v2[0]}" y2="{node_v2[1]}"/>
+    <line x1="{node_A[0]}" y1="{node_A[1]}" x2="{node_p_old[0]}" y2="{node_p_old[1]}"/>
   </g>
 
-  <!-- Established edge to q_new from Step 1 -->
-  <line x1="{node_u_star[0]}" y1="{node_u_star[1]}" x2="{q_new[0]}" y2="{q_new[1]}" stroke="#0284c7" stroke-width="3" stroke-linecap="round"/>
-
-  <!-- Subtree edges from v1 to children w1, w2 -->
-  <g stroke="#059669" stroke-width="1.8" stroke-dasharray="3,2">
-    <line x1="{node_v1[0]}" y1="{node_v1[1]}" x2="{node_w1[0]}" y2="{node_w1[1]}"/>
-    <line x1="{node_v1[0]}" y1="{node_v1[1]}" x2="{node_w2[0]}" y2="{node_w2[1]}"/>
+  <!-- Optimal Path to q_new (Blue) -->
+  <g stroke="#0284c7" stroke-width="3.2" stroke-linecap="round">
+    <line x1="{q_start[0]}" y1="{q_start[1]}" x2="{node_A[0]}" y2="{node_A[1]}"/>
+    <line x1="{node_A[0]}" y1="{node_A[1]}" x2="{node_u_star[0]}" y2="{node_u_star[1]}"/>
+    <line x1="{node_u_star[0]}" y1="{node_u_star[1]}" x2="{q_new[0]}" y2="{q_new[1]}"/>
   </g>
 
-  <!-- OLD SUBOPTIMAL EDGE (D -> v1) TO BE DROPPED -->
-  <line x1="{node_D[0]}" y1="{node_D[1]}" x2="{node_v1[0]}" y2="{node_v1[1]}" stroke="#ef4444" stroke-width="2.5" stroke-dasharray="5,4"/>
-  <!-- Cross icon on old edge -->
-  <circle cx="{(node_D[0] + node_v1[0])/2}" cy="{(node_D[1] + node_v1[1])/2}" r="11" fill="#fef2f2" stroke="#f87171" stroke-width="1.5"/>
-  <text x="{(node_D[0] + node_v1[0])/2 - 5}" y="{(node_D[1] + node_v1[1])/2 + 4}" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#dc2626">✗</text>
-
-  <!-- Old edge dropped label (above the edge) -->
-  <g transform="translate(290, 60)" filter="url(#shadow)">
-    <rect width="190" height="24" rx="4" fill="#fef2f2" stroke="#fecaca" stroke-width="1"/>
-    <text x="8" y="16" font-family="Inter, sans-serif" font-size="9" font-weight="700" fill="#dc2626">✗ Старое ребро: c=15.5 (отсекается)</text>
-  </g>
-
-  <!-- NEW REWIRED EDGE (q_new -> v1) -->
-  <line x1="{q_new[0]}" y1="{q_new[1]}" x2="{node_v1[0]}" y2="{node_v1[1]}" stroke="#059669" stroke-width="3.5" stroke-linecap="round"/>
-
-  <!-- Distance label d=2.5 on rewired edge -->
-  <rect x="322" y="168" width="36" height="15" rx="3" fill="#ffffff" stroke="#a7f3d0" stroke-width="1"/>
-  <text x="325" y="179" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600" fill="#059669">d=2.5</text>
-
-  <!-- Rewired Edge Callout Badge -->
-  <g transform="translate(150, 255)" filter="url(#shadow)">
-    <rect width="195" height="42" rx="6" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1.5"/>
-    <text x="8" y="16" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#047857">✓ Переподключение (Rewire):</text>
-    <text x="8" y="31" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#059669">10.0 + 2.5 = 12.5 &lt; 15.5</text>
+  <!-- Subtree edges from v to children w1, w2 (Green dashed) -->
+  <g stroke="#059669" stroke-width="2" stroke-dasharray="3,2">
+    <line x1="{node_v[0]}" y1="{node_v[1]}" x2="{node_w1[0]}" y2="{node_w1[1]}"/>
+    <line x1="{node_v[0]}" y1="{node_v[1]}" x2="{node_w2[0]}" y2="{node_w2[1]}"/>
   </g>
 
   <!-- Cascade aura around subtree w1, w2 -->
-  <rect x="445" y="94" width="85" height="104" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1" stroke-dasharray="3,3"/>
-  <text x="451" y="108" font-family="Inter, sans-serif" font-size="9" font-weight="700" fill="#047857">Поддерево v1</text>
-  <text x="451" y="190" font-family="Inter, sans-serif" font-size="8.5" font-weight="700" fill="#059669">Выигрыш Δ = -3.0</text>
+  <rect x="440" y="105" width="94" height="112" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1.2" stroke-dasharray="3,3"/>
+  <text x="447" y="122" font-family="Inter, sans-serif" font-size="9" font-weight="700" fill="#047857">Поддерево v</text>
+  <text x="447" y="206" font-family="Inter, sans-serif" font-size="8.5" font-weight="700" fill="#059669">Выигрыш Δ = -3.0</text>
 
-  <!-- Unchanged Neighbor v2 check (Grey dashed line) -->
-  <line x1="{q_new[0]}" y1="{q_new[1]}" x2="{node_v2[0]}" y2="{node_v2[1]}" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3"/>
-  <rect x="310" y="318" width="205" height="26" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
-  <text x="316" y="330" font-family="Inter, sans-serif" font-size="8.5" fill="#475569">Сосед v2 (c=11.0):</text>
-  <text x="316" y="339" font-family="JetBrains Mono, monospace" font-size="8" fill="#64748b">10.0 + 2.5 = 12.5 ≥ 11.0 → Без изменений</text>
+  <!-- OLD SUBOPTIMAL EDGE (p_old -> v) - CUT OFF -->
+  <line x1="{node_p_old[0]}" y1="{node_p_old[1]}" x2="{node_v[0]}" y2="{node_v[1]}" stroke="#ef4444" stroke-width="2.5" stroke-dasharray="5,4"/>
+  <!-- Cross icon on old edge -->
+  <circle cx="{(node_p_old[0] + node_v[0])/2}" cy="{(node_p_old[1] + node_v[1])/2}" r="11" fill="#fef2f2" stroke="#f87171" stroke-width="1.5"/>
+  <text x="{(node_p_old[0] + node_v[0])/2 - 5}" y="{(node_p_old[1] + node_v[1])/2 + 4}" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#dc2626">✗</text>
 
-  <!-- Tree Nodes -->
+  <!-- CALLOUT 1: NEW OPTIMAL PATH BADGE (In open top-left area) -->
+  <g transform="translate(18, 58)" filter="url(#shadow)">
+    <rect width="220" height="44" rx="6" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+    <text x="8" y="17" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#047857">✓ Новый путь через q_new:</text>
+    <text x="8" y="33" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="700" fill="#059669">10.0 + 2.5 = 12.5 (ЛУЧШЕ на -3.0!)</text>
+  </g>
+
+  <!-- CALLOUT 2: OLD SUBOPTIMAL PATH BADGE (Above old edge) -->
+  <g transform="translate(258, 58)" filter="url(#shadow)">
+    <rect width="220" height="44" rx="6" fill="#fef2f2" stroke="#fecaca" stroke-width="1.5"/>
+    <text x="8" y="17" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#dc2626">✗ Старый путь через p_old:</text>
+    <text x="8" y="33" font-family="JetBrains Mono, monospace" font-size="10.5" font-weight="700" fill="#991b1b">9.5 + 6.0 = 15.5 (ОТСЕКАЕТСЯ)</text>
+  </g>
+
+  <!-- NEW REWIRED EDGE (q_new -> v) -->
+  <line x1="{q_new[0]}" y1="{q_new[1]}" x2="{node_v[0]}" y2="{node_v[1]}" stroke="#059669" stroke-width="3.5" stroke-linecap="round"/>
+
+  <!-- Distance d=2.5 badge on rewired edge -->
+  <rect x="306" y="196" width="38" height="16" rx="3" fill="#ffffff" stroke="#a7f3d0" stroke-width="1"/>
+  <text x="310" y="208" font-family="JetBrains Mono, monospace" font-size="9.5" font-weight="600" fill="#059669">d=2.5</text>
+
+  <!-- Node v status pill (centered above node v) -->
+  <g transform="translate({node_v[0] - 56}, {node_v[1] - 34})" filter="url(#shadow)">
+    <rect width="112" height="19" rx="4" fill="#ffffff" stroke="#34d399" stroke-width="1.2"/>
+    <text x="56" y="13" text-anchor="middle" font-family="Inter, sans-serif" font-size="9.5" font-weight="700" fill="#047857">v (сосед: c=12.5)</text>
+  </g>
+
+  <!-- Unchanged Neighbor v2 check -->
+  <line x1="{q_new[0]}" y1="{q_new[1]}" x2="{node_v2[0]}" y2="{node_v2[1]}" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3,3"/>
+  <g transform="translate(270, 335)">
+    <rect width="245" height="24" rx="4" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="8" y="12" font-family="Inter, sans-serif" font-size="8.5" fill="#475569">Сосед v2 (c=11.0):</text>
+    <text x="8" y="21" font-family="JetBrains Mono, monospace" font-size="8" fill="#64748b">10.0 + 2.5 = 12.5 ≥ 11.0 → Без изменений (—)</text>
+  </g>
+
+  <!-- Nodes -->
   <!-- q_start -->
   <circle cx="{q_start[0]}" cy="{q_start[1]}" r="7.5" fill="#0f172a" stroke="#ffffff" stroke-width="2"/>
   <text x="{q_start[0] - 18}" y="{q_start[1] + 20}" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#0f172a">q_start</text>
 
-  <!-- Nodes A, B, C, D -->
-  <circle cx="{node_A[0]}" cy="{node_A[1]}" r="5" fill="#64748b" stroke="#ffffff" stroke-width="1.5"/>
-  <circle cx="{node_B[0]}" cy="{node_B[1]}" r="5" fill="#64748b" stroke="#ffffff" stroke-width="1.5"/>
-  <circle cx="{node_C[0]}" cy="{node_C[1]}" r="5" fill="#64748b" stroke="#ffffff" stroke-width="1.5"/>
-  <circle cx="{node_D[0]}" cy="{node_D[1]}" r="5.5" fill="#64748b" stroke="#ffffff" stroke-width="1.5"/>
-  <text x="{node_D[0] - 10}" y="{node_D[1] - 8}" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#64748b">D(c=9.5)</text>
+  <!-- Node A -->
+  <circle cx="{node_A[0]}" cy="{node_A[1]}" r="5" fill="#0284c7" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="{node_A[0] - 22}" y="{node_A[1] - 8}" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#0284c7">c=4.0</text>
+
+  <!-- Node B, C, q_near -->
+  <circle cx="{node_B[0]}" cy="{node_B[1]}" r="4.5" fill="#94a3b8" stroke="#ffffff" stroke-width="1.5"/>
+  <circle cx="{node_C[0]}" cy="{node_C[1]}" r="4.5" fill="#94a3b8" stroke="#ffffff" stroke-width="1.5"/>
+  <circle cx="{node_q_near[0]}" cy="{node_q_near[1]}" r="4.5" fill="#94a3b8" stroke="#ffffff" stroke-width="1.5"/>
+
+  <!-- Old parent p_old -->
+  <circle cx="{node_p_old[0]}" cy="{node_p_old[1]}" r="6" fill="#ef4444" stroke="#ffffff" stroke-width="1.8"/>
+  <text x="{node_p_old[0] - 25}" y="{node_p_old[1] - 10}" font-family="Inter, sans-serif" font-size="9" font-weight="600" fill="#dc2626">p_old (c=9.5)</text>
 
   <!-- Node u* -->
   <circle cx="{node_u_star[0]}" cy="{node_u_star[1]}" r="6.5" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
-  <text x="{node_u_star[0] - 14}" y="{node_u_star[1] - 10}" font-family="JetBrains Mono, monospace" font-size="9" fill="#0284c7">u*(7.0)</text>
+  <text x="{node_u_star[0] - 12}" y="{node_u_star[1] + 18}" font-family="JetBrains Mono, monospace" font-size="9" fill="#0284c7">u*(7.0)</text>
 
-  <!-- Node q_new (now member of tree) -->
+  <!-- Node q_new -->
   <circle cx="{q_new[0]}" cy="{q_new[1]}" r="8.5" fill="#0284c7" stroke="#ffffff" stroke-width="2.5" filter="url(#shadow)"/>
-  <text x="{q_new[0] + 15}" y="{q_new[1] + 2}" font-family="Inter, sans-serif" font-size="11.5" font-weight="700" fill="#0284c7">q_new</text>
-  <text x="{q_new[0] + 15}" y="{q_new[1] + 15}" font-family="JetBrains Mono, monospace" font-size="9" font-weight="700" fill="#0369a1">cost=10.0</text>
+  <text x="{q_new[0] - 18}" y="{q_new[1] + 20}" font-family="Inter, sans-serif" font-size="11.5" font-weight="700" fill="#0284c7">q_new</text>
+  <text x="{q_new[0] - 22}" y="{q_new[1] + 32}" font-family="JetBrains Mono, monospace" font-size="9" font-weight="700" fill="#0369a1">cost=10.0</text>
 
-  <!-- Target Rewired Node v1 with backdrop badge -->
-  <circle cx="{node_v1[0]}" cy="{node_v1[1]}" r="8" fill="#059669" stroke="#ffffff" stroke-width="2.5" filter="url(#shadow)"/>
-  <g transform="translate({node_v1[0] - 45}, {node_v1[1] - 28})">
-    <rect width="105" height="18" rx="3" fill="#ffffff" stroke="#a7f3d0" stroke-width="1"/>
-    <text x="6" y="13" font-family="Inter, sans-serif" font-size="9.5" font-weight="700" fill="#047857">v1: c = 15.5 → 12.5</text>
-  </g>
+  <!-- Target Rewired Node v -->
+  <circle cx="{node_v[0]}" cy="{node_v[1]}" r="8" fill="#059669" stroke="#ffffff" stroke-width="2.5" filter="url(#shadow)"/>
 
   <!-- Subtree children w1, w2 -->
   <circle cx="{node_w1[0]}" cy="{node_w1[1]}" r="4.5" fill="#059669" stroke="#ffffff" stroke-width="1.5"/>
-  <text x="{node_w1[0] + 7}" y="{node_w1[1] + 3}" font-family="JetBrains Mono, monospace" font-size="8" fill="#059669">w1</text>
-
+  <text x="{node_w1[0] + 7}" y="{node_w1[1] + 4}" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#059669">w1</text>
   <circle cx="{node_w2[0]}" cy="{node_w2[1]}" r="4.5" fill="#059669" stroke="#ffffff" stroke-width="1.5"/>
-  <text x="{node_w2[0] + 7}" y="{node_w2[1] + 3}" font-family="JetBrains Mono, monospace" font-size="8" fill="#059669">w2</text>
+  <text x="{node_w2[0] + 7}" y="{node_w2[1] + 4}" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#059669">w2</text>
 
   <!-- Node v2 -->
-  <circle cx="{node_v2[0]}" cy="{node_v2[1]}" r="5.5" fill="#64748b" stroke="#ffffff" stroke-width="1.5"/>
+  <circle cx="{node_v2[0]}" cy="{node_v2[1]}" r="5.5" fill="#94a3b8" stroke="#ffffff" stroke-width="1.5"/>
   <text x="{node_v2[0] + 8}" y="{node_v2[1] + 4}" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#64748b">v2(11.0)</text>
 
   <!-- Bottom Summary Card -->
@@ -1086,10 +1098,10 @@ def generate_rrt_star_rewire():
 
     <!-- Key takeaways -->
     <text x="14" y="54" font-family="Inter, sans-serif" font-size="10.2" fill="#334155">
-      <tspan font-weight="700" fill="#059669">• Переподключение v1:</tspan> путь через q_new короче (12.5 &lt; 15.5), старое ребро отсекается.
+      <tspan font-weight="700" fill="#059669">• Переподключение v:</tspan> путь через q_new короче (12.5 &lt; 15.5), старое ребро отсекается.
     </text>
     <text x="14" y="72" font-family="Inter, sans-serif" font-size="10.2" fill="#334155">
-      <tspan font-weight="700" fill="#0284c7">• Каскадный выигрыш:</tspan> стоимость всех потомков v1 падает на Δ = -3.0. Дерево сходится к оптимуму!
+      <tspan font-weight="700" fill="#0284c7">• Каскадный выигрыш:</tspan> стоимость всех потомков v падает на Δ = -3.0. Дерево сходится к оптимуму!
     </text>
   </g>
 </svg>'''
