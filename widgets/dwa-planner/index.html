@@ -18,31 +18,55 @@
     }
     .vel-panel {
       position: absolute;
-      top: 12px;
+      bottom: 12px;
       right: 12px;
-      width: 190px;
-      height: 190px;
-      background: rgba(255, 255, 255, 0.94);
+      width: 270px;
+      height: 260px;
+      background: rgba(255, 255, 255, 0.96);
       border: 1px solid #cbd5e1;
       border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.14);
       display: flex;
       flex-direction: column;
       padding: 8px;
       z-index: 10;
-      backdrop-filter: blur(4px);
+      backdrop-filter: blur(6px);
+      user-select: none;
+    }
+    .vel-panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: move;
+      margin-bottom: 4px;
+      padding: 2px 4px;
+      background: #f1f5f9;
+      border-radius: 4px;
     }
     .vel-panel-title {
-      font-size: 10.5px;
+      font-size: 11px;
       font-weight: 700;
-      color: #334155;
-      margin-bottom: 4px;
-      text-align: center;
+      color: #1e293b;
+    }
+    .vel-panel-hint {
+      font-size: 9.5px;
+      color: #64748b;
     }
     #velCanvas {
       width: 100%;
-      height: 100%;
+      height: 185px;
       border-radius: 4px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+    }
+    .vel-legend {
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      margin-top: 4px;
+      color: #475569;
+      font-weight: 600;
+      padding: 0 2px;
     }
   </style>
 </head>
@@ -53,21 +77,22 @@
       <button id="btnStep" class="btn">▶ Шаг</button>
       <button id="btnRun" class="btn btn-primary">⚡ Запуск</button>
       <button id="btnReset" class="btn">🔄 Сброс</button>
-      <button id="btnClearObs" class="btn">🧹 Препятствия</button>
+      <button id="btnToggleGlobal" class="btn btn-outline" title="Переключить глобальный ориентир A*">🗺️ Путь: ВКЛ</button>
+      <button id="btnClearObs" class="btn">🧹 Очистить</button>
 
       <div class="slider-group">
         <span>α (Цель):</span>
-        <input type="range" id="alphaSlider" min="0.1" max="1.0" step="0.05" value="0.45">
+        <input type="range" id="alphaSlider" min="0.1" max="1.5" step="0.05" value="0.55">
       </div>
 
       <div class="slider-group">
         <span>β (Зазор):</span>
-        <input type="range" id="betaSlider" min="0.1" max="1.5" step="0.05" value="0.75">
+        <input type="range" id="betaSlider" min="0.1" max="1.5" step="0.05" value="0.30">
       </div>
 
       <div class="slider-group">
         <span>γ (Скорость):</span>
-        <input type="range" id="gammaSlider" min="0.05" max="0.5" step="0.05" value="0.15">
+        <input type="range" id="gammaSlider" min="0.05" max="0.8" step="0.05" value="0.35">
       </div>
 
       <div class="stats-bar">
@@ -82,14 +107,22 @@
       <canvas id="arenaCanvas"></canvas>
 
       <!-- Inset: Velocity Space (v, w) -->
-      <div class="vel-panel">
-        <div class="vel-panel-title">Окно скоростей Vr = Vs ∩ Vd ∩ Va</div>
-        <canvas id="velCanvas" width="174" height="155"></canvas>
+      <div class="vel-panel" id="velPanel">
+        <div class="vel-panel-header" id="velPanelHeader">
+          <span class="vel-panel-title">Окно скоростей Vr = Vs ∩ Vd ∩ Va</span>
+          <span class="vel-panel-hint">✥ переместить</span>
+        </div>
+        <canvas id="velCanvas" width="254" height="185"></canvas>
+        <div class="vel-legend">
+          <span style="color:#2563eb">■ Vd (ускорение)</span>
+          <span style="color:#ef4444">■ Va (коллизия)</span>
+          <span style="color:#059669">★ Оптимум (v*, ω*)</span>
+        </div>
       </div>
 
       <div class="overlay-hint">
-        <b>DWA:</b> Перебор допустимых дуг скоростей $(v, \omega)$ в динамическом окне $V_d$, ограниченном ускорением моторов.
-        В правом окне показано окно $V_d$ (синее) и выбранная точка $(v^*, \omega^*)$. Перетаскивайте робота, цель и преграды.
+        <b>DWA в замкнутом контуре:</b> Локальный контроллер на частоте 30 Гц выбирает дугу $(v^*, \omega^*)$ внутри динамического окна $V_d$, огибая препятствия по коридору глобального пути.
+        Окно скоростей можно перетаскивать. Перемещайте робота, цель и преграды мышь!
       </div>
     </div>
   </div>
@@ -99,6 +132,8 @@
     const arenaCtx = arenaCanvas.getContext('2d');
     const velCanvas = document.getElementById('velCanvas');
     const velCtx = velCanvas.getContext('2d');
+    const velPanel = document.getElementById('velPanel');
+    const velPanelHeader = document.getElementById('velPanelHeader');
 
     let width = 800;
     let height = 500;
@@ -107,15 +142,19 @@
     let goal = null;
     let obstacles = [];
     let trail = [];
+    let globalPath = [];
+    let useGlobalPath = true;
 
-    // Hardware and dynamic constraints
-    const V_MAX = 75;        // max forward linear vel (px/s)
-    const V_MIN = 0;         // forward only
-    const W_MAX = 2.2;       // max angular vel (rad/s)
-    const ACC_MAX = 35;      // max linear acceleration (px/s^2)
-    const ALPHA_MAX = 2.5;   // max angular acceleration (rad/s^2)
-    const DT = 0.25;         // control cycle dt (s)
-    const SIM_TIME = 1.6;    // trajectory rollout horizon (s)
+    // Physical and Dynamic limits
+    const V_MAX = 80;        // max forward linear vel (px/s)
+    const V_MIN = -15;       // small reverse speed allowed for recovery
+    const W_MAX = 2.5;       // max angular vel (rad/s)
+    const ACC_MAX = 45;      // max linear acceleration (px/s^2)
+    const ALPHA_MAX = 3.2;   // max angular acceleration (rad/s^2)
+    const BRAKE_ACC = 60;    // emergency braking deceleration (px/s^2)
+    const DT = 0.15;         // control loop cycle (s)
+    const SIM_TIME = 2.0;    // trajectory prediction horizon (s)
+    const ROBOT_R = 16;      // robot physical radius (px)
 
     // Current candidate rollouts and best control
     let currentRollouts = [];
@@ -158,46 +197,159 @@
         { x: width * 0.65, y: height * 0.35, r: 70 * rScale }
       ];
       trail = [{ x: robot.x, y: robot.y }];
+      updateGlobalPath();
     }
 
-    function isPointInObstacle(p, margin = 12) {
-      for (const obs of obstacles) {
-        if (dist(p, obs) <= obs.r + margin) return true;
+    // 2D Grid A* for Global Guidance Path
+    function updateGlobalPath() {
+      if (!robot || !goal) return;
+      const cellSize = 22;
+      const cols = Math.floor(width / cellSize);
+      const rows = Math.floor(height / cellSize);
+      const grid = new Uint8Array(cols * rows);
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const cx = c * cellSize + cellSize / 2;
+          const cy = r * cellSize + cellSize / 2;
+          for (const obs of obstacles) {
+            if (Math.hypot(cx - obs.x, cy - obs.y) <= obs.r + ROBOT_R + 10) {
+              grid[r * cols + c] = 1;
+              break;
+            }
+          }
+        }
       }
-      return false;
+
+      const startC = Math.max(0, Math.min(cols - 1, Math.floor(robot.x / cellSize)));
+      const startR = Math.max(0, Math.min(rows - 1, Math.floor(robot.y / cellSize)));
+      const goalC = Math.max(0, Math.min(cols - 1, Math.floor(goal.x / cellSize)));
+      const goalR = Math.max(0, Math.min(rows - 1, Math.floor(goal.y / cellSize)));
+
+      const open = [{ c: startC, r: startR, g: 0, f: Math.hypot(startC - goalC, startR - goalR) }];
+      const cameFrom = new Int32Array(cols * rows).fill(-1);
+      const gScore = new Float32Array(cols * rows).fill(Infinity);
+      gScore[startR * cols + startC] = 0;
+
+      let found = false;
+      while (open.length > 0) {
+        open.sort((a, b) => a.f - b.f);
+        const curr = open.shift();
+        if (curr.c === goalC && curr.r === goalR) {
+          found = true;
+          break;
+        }
+
+        const dirs = [[1,0], [-1,0], [0,1], [0,-1], [1,1], [1,-1], [-1,1], [-1,-1]];
+        for (const [dc, dr] of dirs) {
+          const nc = curr.c + dc;
+          const nr = curr.r + dr;
+          if (nc < 0 || nc >= cols || nr < 0 || nr >= rows) continue;
+          if (grid[nr * cols + nc] === 1) continue;
+
+          const stepCost = (dc !== 0 && dr !== 0) ? 1.414 : 1.0;
+          const tentG = curr.g + stepCost;
+          const idx = nr * cols + nc;
+          if (tentG < gScore[idx]) {
+            cameFrom[idx] = curr.r * cols + curr.c;
+            gScore[idx] = tentG;
+            const h = Math.hypot(nc - goalC, nr - goalR);
+            open.push({ c: nc, r: nr, g: tentG, f: tentG + h });
+          }
+        }
+      }
+
+      if (!found) {
+        globalPath = [{ x: robot.x, y: robot.y }, { x: goal.x, y: goal.y }];
+        return;
+      }
+
+      const path = [];
+      let currIdx = goalR * cols + goalC;
+      while (currIdx !== -1) {
+        const c = currIdx % cols;
+        const r = Math.floor(currIdx / cols);
+        path.unshift({ x: c * cellSize + cellSize / 2, y: r * cellSize + cellSize / 2 });
+        currIdx = cameFrom[currIdx];
+      }
+      path[0] = { x: robot.x, y: robot.y };
+      path[path.length - 1] = { x: goal.x, y: goal.y };
+      globalPath = path;
+    }
+
+    // Extract carrot waypoint along global path ahead of robot
+    function getCarrotWaypoint(lookaheadDist = 75) {
+      if (!useGlobalPath || globalPath.length < 2) return goal;
+
+      let closestIdx = 0;
+      let minDist = Infinity;
+      for (let i = 0; i < globalPath.length; i++) {
+        const d = dist(robot, globalPath[i]);
+        if (d < minDist) {
+          minDist = d;
+          closestIdx = i;
+        }
+      }
+
+      let accDist = 0;
+      for (let i = closestIdx; i < globalPath.length - 1; i++) {
+        const segDist = dist(globalPath[i], globalPath[i + 1]);
+        if (accDist + segDist >= lookaheadDist) {
+          const remain = lookaheadDist - accDist;
+          const t = remain / segDist;
+          return {
+            x: globalPath[i].x + t * (globalPath[i + 1].x - globalPath[i].x),
+            y: globalPath[i].y + t * (globalPath[i + 1].y - globalPath[i].y)
+          };
+        }
+        accDist += segDist;
+      }
+      return globalPath[globalPath.length - 1];
     }
 
     // Forward simulate circular arc under constant (v, w)
     function simulateArc(v, w, simTime = SIM_TIME) {
-      const subSteps = 14;
+      const subSteps = 20;
       const dt = simTime / subSteps;
       let { x, y, theta } = robot;
       const traj = [{ x, y, theta }];
+      let distToCollision = Infinity;
       let minObsDist = Infinity;
       let collided = false;
+      let s = 0;
 
       for (let i = 0; i < subSteps; i++) {
         theta = normalizeAngle(theta + w * dt);
         x += v * Math.cos(theta) * dt;
         y += v * Math.sin(theta) * dt;
+        s += Math.abs(v) * dt;
         traj.push({ x, y, theta });
 
-        if (x < 10 || x > width - 10 || y < 10 || y > height - 10 || isPointInObstacle({ x, y }, 12)) {
+        // Boundary check
+        if (x < ROBOT_R || x > width - ROBOT_R || y < ROBOT_R || y > height - ROBOT_R) {
           collided = true;
+          distToCollision = s;
           break;
         }
 
-        // Track closest clearance to obstacle
+        // Obstacles check
         for (const obs of obstacles) {
           const d = dist({ x, y }, obs) - obs.r;
           if (d < minObsDist) minObsDist = d;
+          if (d <= ROBOT_R) {
+            collided = true;
+            distToCollision = s;
+            break;
+          }
         }
+        if (collided) break;
       }
 
       return {
         traj: traj,
         endState: { x, y, theta },
-        minObsDist: minObsDist === Infinity ? 120 : minObsDist,
+        distToCollision: distToCollision,
+        minObsDist: minObsDist === Infinity ? 200 : minObsDist,
         collided: collided
       };
     }
@@ -208,16 +360,18 @@
       const beta = Number(document.getElementById('betaSlider').value);
       const gamma = Number(document.getElementById('gammaSlider').value);
 
-      // Dynamic Window Vd
+      // Dynamic Window Vd based on current velocity and motor accelerations
       const vMinD = Math.max(V_MIN, robot.v - ACC_MAX * DT);
       const vMaxD = Math.min(V_MAX, robot.v + ACC_MAX * DT);
       const wMinD = Math.max(-W_MAX, robot.w - ALPHA_MAX * DT);
       const wMaxD = Math.min(W_MAX, robot.w + ALPHA_MAX * DT);
 
-      const vSamples = 12;
-      const wSamples = 18;
+      const vSamples = 14;
+      const wSamples = 23;
       const dv = (vMaxD - vMinD) / Math.max(1, vSamples - 1);
       const dw = (wMaxD - wMinD) / Math.max(1, wSamples - 1);
+
+      const carrot = getCarrotWaypoint(80);
 
       currentRollouts = [];
       bestControl = { v: 0, w: 0, score: -Infinity, traj: [] };
@@ -229,28 +383,48 @@
           const w = wMinD + j * dw;
 
           const sim = simulateArc(v, w);
+
+          // Va window: Safe braking distance constraint
+          // Robot must be capable of coming to a full stop before collision point
+          let safe = true;
           if (sim.collided) {
+            const safeBrakingDist = (v * v) / (2 * BRAKE_ACC);
+            if (safeBrakingDist >= sim.distToCollision - 4) {
+              safe = false; // Cannot brake safely in time
+            }
+          }
+
+          if (!safe) {
             currentRollouts.push({ v, w, score: -1, traj: sim.traj, safe: false });
             continue;
           }
 
           validCount++;
 
-          // 1. Heading score (alignment with goal)
-          const angleToGoal = Math.atan2(goal.y - sim.endState.y, goal.x - sim.endState.x);
-          const headingDiff = Math.abs(normalizeAngle(angleToGoal - sim.endState.theta));
-          const headingScore = Math.PI - headingDiff; // Larger is better
+          // 1. Heading score (alignment of arc end state with carrot/goal)
+          const effectiveTheta = v < 0 ? normalizeAngle(sim.endState.theta + Math.PI) : sim.endState.theta;
+          const angleToTgt = Math.atan2(carrot.y - sim.endState.y, carrot.x - sim.endState.x);
+          const headingDiff = Math.abs(normalizeAngle(angleToTgt - effectiveTheta));
+          const headingNorm = (Math.PI - headingDiff) / Math.PI; // normalized [0, 1]
 
-          // 2. Clearance score (distance to obstacle)
-          const clearanceScore = Math.min(100, sim.minObsDist);
+          // 2. Clearance score: distance to collision along arc + clearance margin
+          const maxHorizonDist = V_MAX * SIM_TIME;
+          let clearanceNorm = sim.collided ? Math.min(1.0, sim.distToCollision / maxHorizonDist) : 1.0;
+          if (sim.minObsDist < 30) {
+            clearanceNorm *= Math.max(0.2, (sim.minObsDist - ROBOT_R) / (30 - ROBOT_R));
+          }
 
-          // 3. Velocity score (prefer high cruise speed)
-          const velScore = v;
+          // 3. Velocity score (normalized to max cruise speed)
+          const velNorm = Math.max(0, v) / V_MAX;
 
-          // Normalized weighted sum
-          const totalScore = alpha * (headingScore / Math.PI) * 100 +
-                             beta * clearanceScore +
-                             gamma * velScore;
+          // Slight penalty for standing still if not at goal
+          const stationaryPenalty = (v < 2.0 && dist(robot, goal) > goal.radius + 10) ? -0.25 : 0;
+
+          // Weighted sum
+          const totalScore = alpha * headingNorm +
+                             beta * clearanceNorm +
+                             gamma * velNorm +
+                             stationaryPenalty;
 
           const rollout = { v, w, score: totalScore, traj: sim.traj, safe: true };
           currentRollouts.push(rollout);
@@ -268,6 +442,8 @@
     function step() {
       if (dist(robot, goal) <= goal.radius) {
         updateStats('🎯 Цель достигнута!');
+        robot.v = 0;
+        robot.w = 0;
         return false;
       }
 
@@ -279,7 +455,7 @@
         return false;
       }
 
-      // Apply chosen optimal control to real robot
+      // Apply chosen optimal control (first step of receding horizon)
       robot.v = ctrl.v;
       robot.w = ctrl.w;
       robot.theta = normalizeAngle(robot.theta + robot.w * DT);
@@ -291,7 +467,8 @@
 
       evaluateDWA();
 
-      updateStats('Движение...');
+      const status = ctrl.v < 8 ? 'Обход препятствия...' : 'Движение к цели...';
+      updateStats(status);
       return true;
     }
 
@@ -313,81 +490,131 @@
       draw();
     }
 
-    // Draw Velocity Space Inset
+    // Draw Velocity Space (v, w) Inset
     function drawVelocitySpace() {
       const vw = velCanvas.width;
       const vh = velCanvas.height;
       velCtx.clearRect(0, 0, vw, vh);
 
-      // Axes: horizontal = w (-W_MAX to W_MAX), vertical = v (0 to V_MAX)
-      const toCanvasX = (w) => (w + W_MAX) / (2 * W_MAX) * (vw - 20) + 10;
-      const toCanvasY = (v) => vh - 15 - (v / V_MAX) * (vh - 30);
+      const padX = 24;
+      const padY = 20;
 
-      // Background grid
-      velCtx.strokeStyle = '#e2e8f0';
+      // Coordinate mapping: w (-W_MAX to W_MAX), v (V_MIN to V_MAX)
+      const toCanvasX = (w) => padX + ((w + W_MAX) / (2 * W_MAX)) * (vw - 2 * padX);
+      const totalV = V_MAX - V_MIN;
+      const toCanvasY = (v) => vh - padY - ((v - V_MIN) / totalV) * (vh - 2 * padY);
+
+      // Axes lines
+      velCtx.strokeStyle = '#cbd5e1';
       velCtx.lineWidth = 1;
       const cx = toCanvasX(0);
+      const cy = toCanvasY(0);
+
       velCtx.beginPath();
-      velCtx.moveTo(cx, 10);
-      velCtx.lineTo(cx, vh - 10);
-      velCtx.moveTo(10, toCanvasY(0));
-      velCtx.lineTo(vw - 10, toCanvasY(0));
+      velCtx.moveTo(cx, padY - 5);
+      velCtx.lineTo(cx, vh - padY + 5);
+      velCtx.moveTo(padX - 5, cy);
+      velCtx.lineTo(vw - padX + 5, cy);
       velCtx.stroke();
 
-      // Labels
-      velCtx.fillStyle = '#94a3b8';
-      velCtx.font = '8.5px JetBrains Mono';
-      velCtx.fillText('ω', vw - 14, toCanvasY(0) + 10);
-      velCtx.fillText('v', cx + 4, 15);
-
-      // Hardware limits Vs (Motor limits)
-      velCtx.strokeStyle = '#cbd5e1';
-      velCtx.lineWidth = 1.2;
-      velCtx.strokeRect(toCanvasX(-W_MAX), toCanvasY(V_MAX), toCanvasX(W_MAX) - toCanvasX(-W_MAX), toCanvasY(0) - toCanvasY(V_MAX));
+      // Axis labels
       velCtx.fillStyle = '#64748b';
-      velCtx.fillText('Vs', toCanvasX(-W_MAX) + 3, toCanvasY(V_MAX) + 10);
+      velCtx.font = '9px JetBrains Mono, monospace';
+      velCtx.fillText('ω', vw - 14, cy + 11);
+      velCtx.fillText('v', cx + 5, padY - 6);
 
-      // Dynamic Window Vd
+      // Ticks for w (-W_MAX, 0, W_MAX)
+      velCtx.fillText(`-${W_MAX.toFixed(1)}`, padX - 8, cy + 11);
+      velCtx.fillText(`+${W_MAX.toFixed(1)}`, vw - padX - 14, cy + 11);
+
+      // Ticks for v (V_MAX, 0, V_MIN)
+      velCtx.fillText(`${V_MAX}`, cx + 5, padY + 4);
+      velCtx.fillText(`${V_MIN}`, cx + 5, vh - padY);
+
+      // 1. Motor Specification Limits Vs
+      const vsX1 = toCanvasX(-W_MAX);
+      const vsX2 = toCanvasX(W_MAX);
+      const vsY1 = toCanvasY(V_MAX);
+      const vsY2 = toCanvasY(V_MIN);
+
+      velCtx.strokeStyle = '#94a3b8';
+      velCtx.lineWidth = 1.2;
+      velCtx.strokeRect(vsX1, vsY1, vsX2 - vsX1, vsY2 - vsY1);
+      velCtx.fillStyle = '#94a3b8';
+      velCtx.fillText('Vs', vsX1 + 4, vsY1 + 12);
+
+      // 2. Dynamic Window Vd (Acceleration bounds)
       const vMinD = Math.max(V_MIN, robot.v - ACC_MAX * DT);
       const vMaxD = Math.min(V_MAX, robot.v + ACC_MAX * DT);
       const wMinD = Math.max(-W_MAX, robot.w - ALPHA_MAX * DT);
       const wMaxD = Math.min(W_MAX, robot.w + ALPHA_MAX * DT);
 
-      const x1 = toCanvasX(wMinD);
-      const x2 = toCanvasX(wMaxD);
-      const y1 = toCanvasY(vMaxD);
-      const y2 = toCanvasY(vMinD);
+      const vdX1 = toCanvasX(wMinD);
+      const vdX2 = toCanvasX(wMaxD);
+      const vdY1 = toCanvasY(vMaxD);
+      const vdY2 = toCanvasY(vMinD);
 
-      velCtx.fillStyle = 'rgba(59, 130, 246, 0.15)';
-      velCtx.fillRect(x1, y1, x2 - x1, y2 - y1);
+      velCtx.fillStyle = 'rgba(59, 130, 246, 0.18)';
+      velCtx.fillRect(vdX1, vdY1, vdX2 - vdX1, vdY2 - vdY1);
       velCtx.strokeStyle = '#2563eb';
       velCtx.lineWidth = 1.5;
-      velCtx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+      velCtx.strokeRect(vdX1, vdY1, vdX2 - vdX1, vdY2 - vdY1);
       velCtx.fillStyle = '#1d4ed8';
-      velCtx.fillText('Vd', x1 + 2, y1 + 10);
+      velCtx.font = '700 9.5px Inter, sans-serif';
+      velCtx.fillText('Vd', vdX1 + 3, vdY1 + 11);
 
-      // Current robot velocity point
+      // 3. Draw Inadmissible / Collision candidates (Va constraint)
+      for (const r of currentRollouts) {
+        const px = toCanvasX(r.w);
+        const py = toCanvasY(r.v);
+        if (!r.safe) {
+          velCtx.fillStyle = 'rgba(239, 68, 68, 0.6)';
+          velCtx.beginPath();
+          velCtx.arc(px, py, 2, 0, Math.PI * 2);
+          velCtx.fill();
+        } else {
+          velCtx.fillStyle = 'rgba(56, 189, 248, 0.4)';
+          velCtx.beginPath();
+          velCtx.arc(px, py, 1.5, 0, Math.PI * 2);
+          velCtx.fill();
+        }
+      }
+
+      // 4. Current robot state (vc, wc)
+      const curX = toCanvasX(robot.w);
+      const curY = toCanvasY(robot.v);
       velCtx.fillStyle = '#0f172a';
       velCtx.beginPath();
-      velCtx.arc(toCanvasX(robot.w), toCanvasY(robot.v), 3.5, 0, Math.PI * 2);
+      velCtx.arc(curX, curY, 4, 0, Math.PI * 2);
       velCtx.fill();
+      velCtx.strokeStyle = '#ffffff';
+      velCtx.lineWidth = 1;
+      velCtx.stroke();
 
-      // Optimal control velocity point
+      // 5. Optimal control point (v*, w*)
       if (bestControl && bestControl.score > -Infinity) {
+        const optX = toCanvasX(bestControl.w);
+        const optY = toCanvasY(bestControl.v);
+
         velCtx.fillStyle = '#059669';
         velCtx.beginPath();
-        velCtx.arc(toCanvasX(bestControl.w), toCanvasY(bestControl.v), 5, 0, Math.PI * 2);
+        velCtx.arc(optX, optY, 6, 0, Math.PI * 2);
         velCtx.fill();
         velCtx.strokeStyle = '#ffffff';
-        velCtx.lineWidth = 1.5;
+        velCtx.lineWidth = 1.8;
         velCtx.stroke();
+
+        // Value tooltip text in canvas
+        velCtx.fillStyle = '#065f46';
+        velCtx.font = '700 9px JetBrains Mono, monospace';
+        velCtx.fillText(`(${bestControl.v.toFixed(0)}, ${bestControl.w.toFixed(2)})`, Math.min(vw - 68, optX + 7), Math.max(16, optY - 4));
       }
     }
 
     function draw() {
       arenaCtx.clearRect(0, 0, width, height);
 
-      // Grid
+      // Arena Grid
       arenaCtx.strokeStyle = '#f8fafc';
       arenaCtx.lineWidth = 1;
       for (let x = 0; x < width; x += 30) {
@@ -403,7 +630,31 @@
         arenaCtx.stroke();
       }
 
-      // Trail
+      // Global Guidance Path (if enabled)
+      if (useGlobalPath && globalPath.length > 1) {
+        arenaCtx.strokeStyle = 'rgba(245, 158, 11, 0.45)';
+        arenaCtx.lineWidth = 3;
+        arenaCtx.setLineDash([6, 6]);
+        arenaCtx.beginPath();
+        arenaCtx.moveTo(globalPath[0].x, globalPath[0].y);
+        for (let i = 1; i < globalPath.length; i++) {
+          arenaCtx.lineTo(globalPath[i].x, globalPath[i].y);
+        }
+        arenaCtx.stroke();
+        arenaCtx.setLineDash([]);
+
+        // Carrot waypoint
+        const carrot = getCarrotWaypoint(80);
+        arenaCtx.fillStyle = '#f59e0b';
+        arenaCtx.beginPath();
+        arenaCtx.arc(carrot.x, carrot.y, 4.5, 0, Math.PI * 2);
+        arenaCtx.fill();
+        arenaCtx.strokeStyle = '#ffffff';
+        arenaCtx.lineWidth = 1.5;
+        arenaCtx.stroke();
+      }
+
+      // Robot Trail
       if (trail.length > 1) {
         arenaCtx.strokeStyle = '#94a3b8';
         arenaCtx.lineWidth = 2.5;
@@ -419,6 +670,13 @@
 
       // Obstacles
       for (const obs of obstacles) {
+        // Safety buffer zone
+        arenaCtx.fillStyle = 'rgba(254, 226, 226, 0.4)';
+        arenaCtx.beginPath();
+        arenaCtx.arc(obs.x, obs.y, obs.r + ROBOT_R, 0, Math.PI * 2);
+        arenaCtx.fill();
+
+        // Obstacle body
         arenaCtx.fillStyle = '#fee2e2';
         arenaCtx.strokeStyle = '#f87171';
         arenaCtx.lineWidth = 2;
@@ -450,10 +708,10 @@
       // Candidate Rollouts (Arcs)
       for (const r of currentRollouts) {
         if (!r.safe) {
-          arenaCtx.strokeStyle = 'rgba(239, 68, 68, 0.25)';
+          arenaCtx.strokeStyle = 'rgba(239, 68, 68, 0.22)';
           arenaCtx.lineWidth = 1;
         } else {
-          arenaCtx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
+          arenaCtx.strokeStyle = 'rgba(56, 189, 248, 0.40)';
           arenaCtx.lineWidth = 1.3;
         }
         arenaCtx.beginPath();
@@ -482,25 +740,26 @@
       arenaCtx.translate(robot.x, robot.y);
       arenaCtx.rotate(robot.theta);
 
+      // Body circle
       arenaCtx.fillStyle = '#0f172a';
       arenaCtx.beginPath();
-      arenaCtx.arc(0, 0, 14, 0, Math.PI * 2);
+      arenaCtx.arc(0, 0, ROBOT_R, 0, Math.PI * 2);
       arenaCtx.fill();
 
       // Wheels
       arenaCtx.fillStyle = '#334155';
-      arenaCtx.fillRect(-7, -18, 14, 4);
-      arenaCtx.fillRect(-7, 14, 14, 4);
+      arenaCtx.fillRect(-7, -ROBOT_R - 4, 14, 5);
+      arenaCtx.fillRect(-7, ROBOT_R - 1, 14, 5);
 
       // Heading arrow
       arenaCtx.strokeStyle = '#38bdf8';
       arenaCtx.lineWidth = 2.5;
       arenaCtx.beginPath();
       arenaCtx.moveTo(0, 0);
-      arenaCtx.lineTo(18, 0);
-      arenaCtx.lineTo(13, -4);
-      arenaCtx.moveTo(18, 0);
-      arenaCtx.lineTo(13, 4);
+      arenaCtx.lineTo(20, 0);
+      arenaCtx.lineTo(15, -4);
+      arenaCtx.moveTo(20, 0);
+      arenaCtx.lineTo(15, 4);
       arenaCtx.stroke();
 
       arenaCtx.restore();
@@ -533,16 +792,94 @@
       animFrame = requestAnimationFrame(runLoop);
     }
 
+    // Draggable Velocity Panel logic
+    let isPanelDragging = false;
+    let panelDragOffset = { x: 0, y: 0 };
+
+    velPanelHeader.addEventListener('mousedown', (e) => {
+      isPanelDragging = true;
+      const rect = velPanel.getBoundingClientRect();
+      panelDragOffset.x = e.clientX - rect.left;
+      panelDragOffset.y = e.clientY - rect.top;
+      e.stopPropagation();
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (isPanelDragging) {
+        const containerRect = arenaCanvas.parentElement.getBoundingClientRect();
+        let newX = e.clientX - containerRect.left - panelDragOffset.x;
+        let newY = e.clientY - containerRect.top - panelDragOffset.y;
+
+        newX = Math.max(8, Math.min(containerRect.width - velPanel.offsetWidth - 8, newX));
+        newY = Math.max(8, Math.min(containerRect.height - velPanel.offsetHeight - 8, newY));
+
+        velPanel.style.left = `${newX}px`;
+        velPanel.style.top = `${newY}px`;
+        velPanel.style.right = 'auto';
+        velPanel.style.bottom = 'auto';
+        return;
+      }
+
+      const rect = arenaCanvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+
+      if (dragging) {
+        if (dragging.type === 'robot') {
+          robot.x = Math.max(20, Math.min(width - 20, mx));
+          robot.y = Math.max(20, Math.min(height - 20, my));
+          robot.v = 0;
+          robot.w = 0;
+          updateGlobalPath();
+          evaluateDWA();
+          draw();
+        } else if (dragging.type === 'goal') {
+          goal.x = Math.max(20, Math.min(width - 20, mx));
+          goal.y = Math.max(20, Math.min(height - 20, my));
+          updateGlobalPath();
+          evaluateDWA();
+          draw();
+        } else if (dragging.type === 'obs') {
+          dragging.target.x = mx;
+          dragging.target.y = my;
+          updateGlobalPath();
+          evaluateDWA();
+          draw();
+        }
+      } else if (isDrawingObstacle) {
+        draggingPoint = { x: mx, y: my };
+        draw();
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isPanelDragging) {
+        isPanelDragging = false;
+        return;
+      }
+      if (isDrawingObstacle && newObsStart && draggingPoint) {
+        const r = Math.max(20, dist(newObsStart, draggingPoint));
+        obstacles.push({ x: newObsStart.x, y: newObsStart.y, r });
+        isDrawingObstacle = false;
+        newObsStart = null;
+        draggingPoint = null;
+        updateGlobalPath();
+        evaluateDWA();
+        draw();
+      }
+      dragging = null;
+    });
+
     arenaCanvas.addEventListener('mousedown', (e) => {
       const rect = arenaCanvas.getBoundingClientRect();
       const mx = e.clientX - rect.left;
       const my = e.clientY - rect.top;
 
-      if (Math.hypot(mx - robot.x, my - robot.y) <= 20) {
+      if (Math.hypot(mx - robot.x, my - robot.y) <= 22) {
         dragging = { type: 'robot' };
         return;
       }
-      if (Math.hypot(mx - goal.x, my - goal.y) <= goal.radius) {
+      if (Math.hypot(mx - goal.x, my - goal.y) <= goal.radius + 6) {
         dragging = { type: 'goal' };
         return;
       }
@@ -557,49 +894,6 @@
       isDrawingObstacle = true;
       newObsStart = { x: mx, y: my };
       draggingPoint = { x: mx, y: my };
-    });
-
-    window.addEventListener('mousemove', (e) => {
-      const rect = arenaCanvas.getBoundingClientRect();
-      const mx = e.clientX - rect.left;
-      const my = e.clientY - rect.top;
-
-      if (dragging) {
-        if (dragging.type === 'robot') {
-          robot.x = Math.max(20, Math.min(width - 20, mx));
-          robot.y = Math.max(20, Math.min(height - 20, my));
-          robot.v = 0;
-          robot.w = 0;
-          evaluateDWA();
-          draw();
-        } else if (dragging.type === 'goal') {
-          goal.x = Math.max(20, Math.min(width - 20, mx));
-          goal.y = Math.max(20, Math.min(height - 20, my));
-          evaluateDWA();
-          draw();
-        } else if (dragging.type === 'obs') {
-          dragging.target.x = mx;
-          dragging.target.y = my;
-          evaluateDWA();
-          draw();
-        }
-      } else if (isDrawingObstacle) {
-        draggingPoint = { x: mx, y: my };
-        draw();
-      }
-    });
-
-    window.addEventListener('mouseup', () => {
-      if (isDrawingObstacle && newObsStart && draggingPoint) {
-        const r = Math.max(20, dist(newObsStart, draggingPoint));
-        obstacles.push({ x: newObsStart.x, y: newObsStart.y, r });
-        isDrawingObstacle = false;
-        newObsStart = null;
-        draggingPoint = null;
-        evaluateDWA();
-        draw();
-      }
-      dragging = null;
     });
 
     document.getElementById('btnStep').addEventListener('click', () => {
@@ -621,8 +915,24 @@
     });
 
     document.getElementById('btnReset').addEventListener('click', resetPlanner);
+
+    document.getElementById('btnToggleGlobal').addEventListener('click', () => {
+      useGlobalPath = !useGlobalPath;
+      const btn = document.getElementById('btnToggleGlobal');
+      if (useGlobalPath) {
+        btn.textContent = '🗺️ Путь: ВКЛ';
+        btn.className = 'btn btn-outline';
+      } else {
+        btn.textContent = '🗺️ Путь: ВЫКЛ';
+        btn.className = 'btn';
+      }
+      evaluateDWA();
+      draw();
+    });
+
     document.getElementById('btnClearObs').addEventListener('click', () => {
       obstacles = [];
+      updateGlobalPath();
       evaluateDWA();
       draw();
     });
@@ -670,6 +980,7 @@
         obs.y *= sy;
         obs.r *= Math.min(sx, sy);
       }
+      updateGlobalPath();
       evaluateDWA();
       draw();
     }
@@ -718,3 +1029,4 @@
   </script>
 </body>
 </html>
+
