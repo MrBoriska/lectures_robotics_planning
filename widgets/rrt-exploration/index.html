@@ -17,11 +17,11 @@
         <option value="informed-rrt-star">Informed RRT* (Эллипсоидный сэмплинг)</option>
       </select>
 
-      <button id="btnStep" class="btn">▶ Шаг (Сэмплинг)</button>
+      <button id="btnStep" class="btn">▶ Шаг</button>
       <button id="btnRun" class="btn btn-primary">⚡ Запуск</button>
-      <button id="btnShortcut" class="btn btn-success">✂️ Сгладить (Shortcut)</button>
-      <button id="btnReset" class="btn">🔄 Сброс дерева</button>
-      <button id="btnClearObs" class="btn">🧹 Очистить преграды</button>
+      <button id="btnShortcut" class="btn btn-success">✂️ Сгладить</button>
+      <button id="btnReset" class="btn">🔄 Сброс</button>
+      <button id="btnClearObs" class="btn">🧹 Препятствия</button>
 
       <div class="slider-group">
         <span>Шаг:</span>
@@ -225,7 +225,7 @@
         return connectMeetingNodes.a.cost + connectMeetingNodes.b.cost + dist(connectMeetingNodes.a, connectMeetingNodes.b);
       }
       if (pathFoundNode) {
-        return pathFoundNode.cost;
+        return pathFoundNode.cost + dist(pathFoundNode, goal);
       }
       return Infinity;
     }
@@ -236,7 +236,7 @@
       const cMin = dist(start, goal);
 
       // Informed RRT*: sample in prolate hyperspheroid (ellipse in 2D) if path found
-      if (algo === 'informed-rrt-star' && cBest < Infinity && cBest > cMin) {
+      if (algo === 'informed-rrt-star' && cBest < Infinity && cBest >= cMin) {
         const a = cBest / 2;
         const b = Math.sqrt(Math.max(1, cBest * cBest - cMin * cMin)) / 2;
         const cx = (start.x + goal.x) / 2;
@@ -294,6 +294,19 @@
       };
     }
 
+    function propagateSubtreeCost(rootNode, delta) {
+      const queue = [rootNode];
+      while (queue.length > 0) {
+        const curr = queue.shift();
+        for (let i = 0; i < nodes.length; i++) {
+          if (nodes[i].parent === curr) {
+            nodes[i].cost += delta;
+            queue.push(nodes[i]);
+          }
+        }
+      }
+    }
+
     function step() {
       iterations++;
       const maxStep = Number(document.getElementById('stepSizeSlider').value);
@@ -337,24 +350,30 @@
         };
         nodes.push(newNode);
 
-        // RRT* Rewiring
+        // RRT* Rewiring with cascade subtree propagation
         if (isStar) {
           for (const node of nodes) {
             if (node === parent) continue;
             const d = dist(newNode, node);
             if (d <= rStar && newNode.cost + d < node.cost) {
               if (!isSegmentColliding(newNode, node)) {
+                const delta = (newNode.cost + d) - node.cost;
                 node.parent = newNode;
                 node.cost = newNode.cost + d;
+                propagateSubtreeCost(node, delta);
               }
             }
           }
         }
 
-        // Check if goal reached
-        if (dist(newNode, goal) <= goal.radius) {
-          if (!pathFoundNode || newNode.cost < pathFoundNode.cost) {
-            pathFoundNode = newNode;
+        // Check if goal reached or improved
+        const dGoal = dist(newNode, goal);
+        if (dGoal <= Math.max(goal.radius, maxStep)) {
+          if (!isSegmentColliding(newNode, goal)) {
+            const totalCost = newNode.cost + dGoal;
+            if (!pathFoundNode || totalCost < getBestCost()) {
+              pathFoundNode = newNode;
+            }
           }
         }
       }
@@ -477,7 +496,15 @@
       document.getElementById('statNodes').textContent = totalNodes;
       document.getElementById('statIter').textContent = iterations;
       const c = getBestCost();
-      document.getElementById('statCost').textContent = c < Infinity ? c.toFixed(1) : '-';
+      const algo = document.getElementById('algoSelect').value;
+      let costStr = '-';
+      if (c < Infinity) {
+        costStr = c.toFixed(1);
+        if (algo === 'informed-rrt-star') {
+          costStr += ' (эллипс C_best)';
+        }
+      }
+      document.getElementById('statCost').textContent = costStr;
     }
 
     function draw() {
@@ -520,7 +547,7 @@
       const algo = document.getElementById('algoSelect').value;
       const cBest = getBestCost();
       const cMin = dist(start, goal);
-      if (algo === 'informed-rrt-star' && cBest < Infinity && cBest > cMin) {
+      if (algo === 'informed-rrt-star' && cBest < Infinity && cBest >= cMin) {
         const a = cBest / 2;
         const b = Math.sqrt(Math.max(1, cBest * cBest - cMin * cMin)) / 2;
         const cx = (start.x + goal.x) / 2;
@@ -538,6 +565,14 @@
         ctx.lineWidth = 2;
         ctx.setLineDash([5, 4]);
         ctx.stroke();
+
+        // Label on ellipse boundary
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#059669';
+        ctx.font = '600 11px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Эллипсоид C_best = ${cBest.toFixed(1)}`, 0, -b - 6);
+
         ctx.restore();
       }
 
