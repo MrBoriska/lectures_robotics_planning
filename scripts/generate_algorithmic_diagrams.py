@@ -1590,11 +1590,11 @@ def generate_hybrid_astar_expansion():
     <text x="22" y="298" font-family="Inter, sans-serif" font-size="10" fill="#0284c7">с большей стоимостью g, он отсекается (Pruning).</text>
   </g>
 
-  <!-- Right: Analytical Shot & Dual Heuristic -->
+  <!-- Right: Analytical Expansion & Dual Heuristic -->
   <g transform="translate(395, 20)">
     <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
-    <text x="16" y="24" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">2. Аналитический Shot и Двойная эвристика</text>
-    <text x="16" y="39" font-family="Inter, sans-serif" font-size="11" fill="#7c3aed">Reeds-Shepp shot + h(n) = max(h_kin, h_grid)</text>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">2. Аналитическое расширение (Analytic Expansion)</text>
+    <text x="16" y="39" font-family="Inter, sans-serif" font-size="11" fill="#7c3aed">Кривая Ридса-Шеппа + h(n) = max(h_kin, h_grid)</text>
 
     <!-- Obstacle -->
     <rect x="135" y="110" width="60" height="90" rx="6" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5"/>
@@ -1605,21 +1605,21 @@ def generate_hybrid_astar_expansion():
     <path d="M95,190 Q120,170 115,130" stroke="#94a3b8" stroke-width="1.8" fill="none"/>
     <path d="M115,130 Q110,85 140,75" stroke="#94a3b8" stroke-width="1.8" fill="none"/>
     <circle cx="140" cy="75" r="4.5" fill="#7c3aed"/>
-    <text x="110" y="65" font-family="Inter" font-size="10" font-weight="700" fill="#7c3aed">Узел q_shot</text>
+    <text x="96" y="65" font-family="Inter" font-size="10" font-weight="700" fill="#7c3aed">Узел q_expand</text>
 
     <!-- Goal Pose -->
     <circle cx="280" cy="85" r="6" fill="#059669" stroke="#ffffff" stroke-width="2"/>
     <line x1="280" y1="85" x2="305" y2="85" stroke="#059669" stroke-width="2.5"/>
     <text x="270" y="110" font-family="Inter" font-size="11" font-weight="700" fill="#059669">Цель G</text>
 
-    <!-- Analytic curve to goal (Reeds-Shepp shot) -->
+    <!-- Analytic curve to goal (Reeds-Shepp expansion) -->
     <path d="M140,75 C180,60 230,60 280,85" stroke="#059669" stroke-width="3" stroke-dasharray="5,3" fill="none"/>
-    <text x="175" y="55" font-family="Inter" font-size="10.5" font-weight="700" fill="#059669">Аналитический RS-Shot</text>
+    <text x="155" y="55" font-family="Inter" font-size="10.5" font-weight="700" fill="#059669">Кривая Ридса-Шеппа</text>
 
     <rect x="14" y="240" width="317" height="68" rx="5" fill="#f5f3ff" stroke="#ddd6fe" stroke-width="1"/>
     <text x="22" y="260" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#6d28d9">Ускорение сходимости в 10–50 раз:</text>
     <text x="22" y="278" font-family="Inter, sans-serif" font-size="10" fill="#5b21b6">Вместо долгого блуждания дугами вокруг цели, на каждом шаге</text>
-    <text x="22" y="292" font-family="Inter, sans-serif" font-size="10" fill="#5b21b6">пробуется точная кривая Дубинса/RS. Если чиста — цель достигнута!</text>
+    <text x="22" y="292" font-family="Inter, sans-serif" font-size="10" fill="#5b21b6">аналитически строится кривая RS/Дубинса. Если чиста — финиш!</text>
   </g>
 </svg>'''
     write_svg(filepath, svg)
