@@ -64,19 +64,19 @@ math: katex
 
 <div class="card card-alert">
 
-### Часть 1: Кинодинамическое глобальное планирование (45 мин)
-1. **Проблема геометрии:** Голономность vs Неголономность, радиус поворота $R_{min}$.
-2. **Hybrid $A^*$:** Примитивы движения, 3D-сетка $(x_d, y_d, \theta_d)$, двойная эвристика и Reeds-Shepp shot.
-3. **Интерактивный симулятор:** Исследование алгоритма Hybrid $A^*$.
-4. **Kinodynamic RRT:** Сэмплирование управлений $u \in U$ и прямое интегрирование (Forward Simulation).
-5. **Интерактивный симулятор:** Исследование алгоритма Kinodynamic RRT.
+### Часть 1: Модели и глобальное кинодинамическое планирование (48 мин)
+1. **Проблема геометрии:** Неголономность, иллюзия материальной точки.
+2. **Иерархия моделей:** Кинематические (Unicycle, Bicycle), кинодинамические и динамические. Сравнение плюсов и минусов.
+3. **Hybrid $A^*$:** Кинематические примитивы, 3D-сетка $(x, y, \theta)$, Reeds-Shepp shot.
+4. **Интерактивный симулятор:** Hybrid $A^*$.
+5. **Kinodynamic RRT:** Сэмплирование управлений, проблема метрики в фазовом пространстве, Forward Simulation.
 6. **Краевая задача (BVP):** Барьер точного соединения и переход к локальному MPC.
 
 </div>
 
 <div class="card card-success">
 
-### Часть 2: Предиктивные локальные методы (MPC) (45 мин)
+### Часть 2: Предиктивные локальные методы (MPC) (42 мин)
 7. **Концепция Receding Horizon (MPC):** Замкнутый контур и предикция.
 8. **Dynamic Window Approach (DWA):** Пространство скоростей $V_r = V_s \cap V_d \cap V_a$, целевая функция $G(v, \omega)$.
 9. **Интерактивный симулятор:** Исследование алгоритма DWA.
@@ -150,9 +150,101 @@ $$a_n = \lim_{\Delta t \to 0} \frac{v \cdot \Delta \theta}{\Delta t} = \infty$$
 
 ---
 
+<!-- _header: "Лекция 04 | Иерархия физических моделей" -->
+
+## 2. Иерархия моделей: кинематика, кинодинамика, динамика <span class="badge badge-time">10–14 мин</span>
+
+<div class="grid-3">
+
+<div class="card">
+
+### 1. Кинематические (Скорости)
+Описывают геометрию движения **без учета сил и масс**: $\dot{q} = G(q) u$.
+
+- **Unicycle (Дифференциальный привод):**
+  $$\dot{x} = v \cos\theta, \quad \dot{y} = v \sin\theta, \quad \dot{\theta} = \omega$$
+  Управление: $u = (v, \omega)$. Разворот на месте ($R=0$).
+- **Bicycle / Ackermann (Автомобиль):**
+  $$\dot{\theta} = \frac{v}{L} \tan\delta, \quad R_{\min} = \frac{L}{\tan\delta_{\max}}$$
+  Управление: $u = (v, \delta)$. Радиус строго ограничен.
+- **Омниколеса:** $\dot{x}=v_x, \dot{y}=v_y, \dot{\theta}=\omega$ (голономный).
+
+</div>
+
+<div class="card card-accent">
+
+### 2. Кинодинамические (Ускорения)
+Добавляют к кинематике **ограничения приводов второго порядка**:
+
+- Состояние расширяется скоростями:
+  $$x = (p_x, p_y, \theta, v, \omega) \in \mathbb{R}^2 \times S^1 \times \mathbb{R}^2$$
+- Управление — ускорения моторов:
+  $$u = (a, \alpha) \in \mathbb{R}^2, \quad \dot{v} = a, \quad \dot{\omega} = \alpha$$
+- Ограничения приводов:
+  $$|a| \le a_{\max}, \quad |\alpha| \le \alpha_{\max}, \quad |v| \le v_{\max}$$
+- Учитывается **тормозной путь**: $s_{\text{brake}} = \frac{v^2}{2 a_{\text{brake}}}$.
+
+</div>
+
+<div class="card card-alert">
+
+### 3. Динамические (Силы и моменты)
+Уравнения Лагранжа/Ньютона с учетом **массы, инерции и шин**:
+
+$$M(q)\ddot{q} + C(q, \dot{q})\dot{q} = B(q)\tau + F_{\text{tire}}$$
+
+- **Управление:** крутящие моменты $\tau$ и руль $\delta$.
+- **Боковой увод шин (Slip Angle):**
+  $$\alpha_f = \delta - \arctan\left(\frac{v_y + l_f r}{v_x}\right)$$
+  Боковая сила $F_y = f_{\text{Pacejka}}(\alpha, \mu, F_z)$ нелинейна!
+- Физически адекватны при дрифте и скоростях $> 5$–10 м/с.
+
+</div>
+
+</div>
+
+---
+
+<!-- _header: "Лекция 04 | Анализ моделей" -->
+
+## Сравнительный анализ моделей мобильных платформ <span class="badge badge-time">14–18 мин</span>
+
+<div class="table-container text-xs">
+
+| Класс модели | Управление $u$ | Размерность $x$ | Преимущества | Недостатки | Где применяется |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Кинематическая (Unicycle)** | $(v, \omega)$ | 3D $(x, y, \theta)$ | Разворот на месте ($R=0$), быстрая симуляция | Не учитывает инерцию, скачки ускорения ($a=\infty$) | AGV, складские роботы, Hybrid $A^*$ |
+| **Кинематическая (Bicycle)** | $(v, \delta)$ | 3D $(x, y, \theta)$ | Точна для автомобилей на малых скоростях | $R_{\min} > 0$, невозможен разворот на месте | Автономные авто, парковка, Reeds-Shepp |
+| **Кинодинамическая** | $(a, \alpha)$ | 5D $(p, \theta, v, \omega)$ | $C^1$-гладкие пути, учет тормозного пути $s_{\text{brake}}$ | Удвоение размерности, нет эффекта проскальзывания | Kinodynamic RRT, DWA ($V_d$), LQR |
+| **Динамическая (Pacejka)** | $(\tau, \delta)$ | 6D–10D | Предельная точность на скорости $> 10$ м/с, дрифт | Жесткие нелинейные ODE, зависимость от $\mu$ дороги | MPPI, NMPC (гонки, ралли, скольжение) |
+
+</div>
+
+<div class="grid-2 mt-2 text-sm">
+
+<div class="card card-success">
+
+**💡 Практическое правило выбора модели:**
+- Скорость $v < 1.5$–2 м/с $\implies$ достаточно **кинематики** (Hybrid $A^*$).
+- Скорость $v \in [2, 5]$ м/с $\implies$ необходима **кинодинамика** (DWA, Kinodynamic RRT).
+- Скорость $v > 5$ м/с, резкие маневры, лед/мокрый асфальт $\implies$ только **динамика шин** (MPPI, NMPC).
+
+</div>
+
+<div class="card">
+
+**⚠️ Плата за физическую строгость:**
+Каждый шаг вверх по иерархии моделей увеличивает размерность фазового пространства. Попытка применить динамическую модель в классическом $A^*$ вызовет мгновенный комбинаторный взрыв сетки.
+
+</div>
+
+</div>
+
+---
+
 <!-- _header: "Лекция 04 | Поиск на графе с кинематикой" -->
 
-## 2. Алгоритм Hybrid $A^*$: синтез непрерывного и дискретного <span class="badge badge-time">10–16 мин</span>
+## 3. Алгоритм Hybrid $A^*$: синтез непрерывного и дискретного <span class="badge badge-time">18–23 мин</span>
 
 <div class="grid-2">
 
@@ -232,7 +324,7 @@ $$h(q) = \max \left( h_{\text{non-holonomic}}(q), h_{\text{holonomic}}(q) \right
 
 <!-- _header: "Лекция 04 | Сэмплирование в пространстве состояний" -->
 
-## 3. Kinodynamic RRT: Выборка в пространстве управлений <span class="badge badge-time">25–31 мин</span>
+## 4. Kinodynamic RRT: Выборка в пространстве управлений <span class="badge badge-time">30–35 мин</span>
 
 <div class="grid-2">
 
@@ -276,7 +368,7 @@ $$x_i(t + \Delta t) = x_{near} + \int_0^{\Delta t} f(x(\tau), u_i) d\tau$$
 
 <!-- _header: "Лекция 04 | Краевая задача" -->
 
-## Разбор: прямое интегрирование vs барьер краевой задачи (BVP) <span class="badge badge-time">31–35 мин</span>
+## Разбор: прямое интегрирование vs барьер краевой задачи (BVP) <span class="badge badge-time">35–38 мин</span>
 
 <div class="diagram-box">
 
@@ -286,9 +378,61 @@ $$x_i(t + \Delta t) = x_{near} + \int_0^{\Delta t} f(x(\tau), u_i) d\tau$$
 
 ---
 
+<!-- _header: "Лекция 04 | Метрика и свойства Kinodynamic RRT" -->
+
+## Метрика фазового пространства и анализ Kinodynamic RRT <span class="badge badge-time">38–42 мин</span>
+
+<div class="grid-2">
+
+<div class="col">
+
+<div class="card card-alert">
+
+### Проблема метрики расстояния в $\mathcal{X}$
+
+В фазовом пространстве $x = (p_x, p_y, \theta, v, \omega)$ **евклидова метрика бессмысленна**:
+$$\sqrt{\Delta x^2 + \Delta y^2 + \Delta \theta^2 + \Delta v^2} \quad \text{— сложение метров, радианов и м/с!}$$
+
+- **Кинематическая недостижимость:** Точка в $0.5$ м позади робота, движущегося вперед со скоростью $5$ м/с, геометрически близка, но кинодинамически требует торможения, петли и нескольких секунд времени.
+- **Решение:** Взвешенная квадратичная метрика $\Delta x^T Q \Delta x$ или функция времени достижения (**Time-to-Reach**) на основе линеаризованного LQR.
+
+</div>
+
+</div>
+
+<div class="col">
+
+<div class="grid-1">
+
+<div class="card card-success text-xs">
+
+**✅ Преимущества Kinodynamic RRT:**
+- **Black-Box интеграция:** Не требует аналитической обратимости уравнений. Работает с любым симулятором физики (Bullet, MuJoCo).
+- **Динамическая реализуемость:** Каждое ребро — результат применения реальных моментов моторов. Путь не требует сглаживания.
+- **Сложные маневры:** Находит маневры раскачки (swing-up) и скольжения.
+
+</div>
+
+<div class="card card-alert text-xs">
+
+**❌ Недостатки Kinodynamic RRT:**
+- **Барьер Two-Point BVP:** Нельзя сделать эффективный RRT* Rewiring $\implies$ нет гарантии асимптотической оптимальности.
+- **Проклятие размерности:** В 5D–6D фазовом пространстве требуется в сотни раз больше сэмплов для покрытия объема.
+- **Искажение Voronoi Bias:** Управление $u \in \mathcal{U}$ не может мгновенно изменить траекторию, замедляя рост дерева.
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+---
+
 <!-- _header: "ИНТЕРАКТИВНАЯ ПРАКТИКА | KINODYNAMIC RRT" -->
 
-## Интерактивный симулятор: Kinodynamic RRT <span class="badge badge-time">35–40 мин</span>
+## Интерактивный симулятор: Kinodynamic RRT <span class="badge badge-time">42–46 мин</span>
 
 <div class="interactive-container">
 
@@ -313,7 +457,7 @@ $$x_i(t + \Delta t) = x_{near} + \int_0^{\Delta t} f(x(\tau), u_i) d\tau$$
 
 <!-- _header: "Лекция 04 | Проблема краевой задачи" -->
 
-## 4. Почему глобальная кинодинамика уступает место MPC? <span class="badge badge-time">40–45 мин</span>
+## 5. Почему глобальная кинодинамика уступает место MPC? <span class="badge badge-time">46–50 мин</span>
 
 <div class="grid-2">
 
@@ -357,7 +501,7 @@ $$\min_{u(t)} \int_0^T L(x, u) dt \quad \text{при} \quad \dot{x} = f(x, u), \
 
 <!-- _header: "Лекция 04 | Часть 2: Локальное предиктивное планирование" -->
 
-## 5. Введение в Model Predictive Control (MPC) <span class="badge badge-time">45–50 мин</span>
+## 6. Введение в Model Predictive Control (MPC) <span class="badge badge-time">50–55 мин</span>
 
 <div class="grid-2">
 
@@ -399,7 +543,7 @@ $$U = \{ u_0, u_1, \dots, u_{H-1} \}$$
 
 <!-- _header: "Лекция 04 | Метод динамического окна" -->
 
-## 6. Dynamic Window Approach (DWA): выборка скоростей <span class="badge badge-time">50–56 мин</span>
+## 7. Dynamic Window Approach (DWA): выборка скоростей <span class="badge badge-time">55–60 мин</span>
 
 <div class="grid-2">
 
@@ -446,7 +590,7 @@ $$V_r = V_s \cap V_d \cap V_a$$
 
 <!-- _header: "Лекция 04 | Целевая функция DWA" -->
 
-## Целевая функция DWA: поиск оптимума на сетке <span class="badge badge-time">56–60 мин</span>
+## Целевая функция DWA: поиск оптимума на сетке <span class="badge badge-time">60–63 мин</span>
 
 <div class="grid-1">
 
@@ -478,7 +622,7 @@ $$G(v, \omega) = \alpha \cdot \operatorname{heading}(v, \omega) + \beta \cdot \o
 
 <!-- _header: "Лекция 04 | Пространство скоростей DWA" -->
 
-## Разбор: динамическое окно $V_r$ и семейство дуг в пространстве <span class="badge badge-time">60–63 мин</span>
+## Разбор: динамическое окно $V_r$ и семейство дуг в пространстве <span class="badge badge-time">63–66 мин</span>
 
 <div class="diagram-box">
 
@@ -490,14 +634,14 @@ $$G(v, \omega) = \alpha \cdot \operatorname{heading}(v, \omega) + \beta \cdot \o
 
 <!-- _header: "ИНТЕРАКТИВНАЯ ПРАКТИКА | DWA" -->
 
-## Интерактивный симулятор: Контроллер DWA <span class="badge badge-time">63–68 мин</span>
+## Интерактивный симулятор: Контроллер DWA <span class="badge badge-time">66–70 мин</span>
 
 <div class="interactive-container">
 
 <div class="interactive-header">
 
 <span><i class="interactive-dot"></i> Исследование DWA: дуги предикции в декартовом пространстве и окно скоростей Vr = Vs ∩ Vd ∩ Va</span>
-<span>Перемещайте робота или преграды | Наблюдайте изменение окна Vd в правом верхнем окне | Запустите «⚡ Запуск»</span>
+<span>Перемещайте робота или преграды | Наблюдайте изменение окна Vd в правом нижнем окне | Запустите «⚡ Запуск»</span>
 
 </div>
 <iframe src="http://localhost:5599/widgets/dwa-planner/index.html" class="interactive-frame"></iframe>
@@ -506,17 +650,17 @@ $$G(v, \omega) = \alpha \cdot \operatorname{heading}(v, \omega) + \beta \cdot \o
 
 <!-- 
 Методические указания лектору:
-1. Обратите внимание на инсет «Окно скоростей» в правом верхнем углу: серое поле — Vs, синий прямоугольник — Vd вокруг текущей скорости (черная точка).
+1. Обратите внимание на инсет «Окно скоростей» в правом нижнем углу (можно перетаскивать мышь за шапку): серое поле — Vs, синий прямоугольник — Vd вокруг текущей скорости (черная точка).
 2. Зеленая точка на инсете — оптимальная пара скоростей (v*, w*). В основном окне ей соответствует жирная зеленая дуга.
-3. Подвигайте препятствие ближе к роботу: покажите, как часть дуг отсекается (становится опасной), а окно Va ограничивает максимальную безопасную скорость.
-4. Нажмите «⚡ Запуск»: робот динамично выруливает по дугам к цели на частоте 40 Гц.
+3. Подвигайте препятствие ближе к роботу: покажите, как часть дуг отсекается (становится красной), а окно Va ограничивает максимальную безопасную скорость.
+4. Нажмите «⚡ Запуск»: робот динамично выруливает по дугам к цели по глобальному коридору на частоте 30–40 Гц.
 -->
 
 ---
 
 <!-- _header: "Лекция 04 | Стохастический MPC" -->
 
-## 7. Model Predictive Path Integral (MPPI): революция сэмплинга <span class="badge badge-time">68–74 мин</span>
+## 8. Model Predictive Path Integral (MPPI): революция сэмплинга <span class="badge badge-time">70–75 мин</span>
 
 <div class="grid-2">
 
@@ -561,7 +705,7 @@ $$U = (u_0, u_1, \dots, u_{H-1})$$
 
 <!-- _header: "Лекция 04 | Экспоненциальное взвешивание MPPI" -->
 
-## Экспоненциальное взвешивание в MPPI <span class="badge badge-time">74–78 мин</span>
+## Экспоненциальное взвешивание в MPPI <span class="badge badge-time">75–79 мин</span>
 
 <div class="grid-1">
 
@@ -588,7 +732,7 @@ $$w_k = \frac{\exp\left(-\frac{1}{\lambda} \left(S(V^k) - S_{\min}\right)\right)
 
 <!-- _header: "Лекция 04 | Разбор MPPI" -->
 
-## Разбор: параллельные Rollouts и агрегация весов в MPPI <span class="badge badge-time">78–81 мин</span>
+## Разбор: параллельные Rollouts и агрегация весов в MPPI <span class="badge badge-time">79–82 мин</span>
 
 <div class="diagram-box">
 
@@ -600,7 +744,7 @@ $$w_k = \frac{\exp\left(-\frac{1}{\lambda} \left(S(V^k) - S_{\min}\right)\right)
 
 <!-- _header: "ИНТЕРАКТИВНАЯ ПРАКТИКА | MPPI" -->
 
-## Интерактивный симулятор: Стохастический контроллер MPPI <span class="badge badge-time">81–85 мин</span>
+## Интерактивный симулятор: Стохастический контроллер MPPI <span class="badge badge-time">82–86 мин</span>
 
 <div class="interactive-container">
 
@@ -626,7 +770,7 @@ $$w_k = \frac{\exp\left(-\frac{1}{\lambda} \left(S(V^k) - S_{\min}\right)\right)
 
 <!-- _header: "Лекция 04 | Сравнительный анализ" -->
 
-## Сравнительный анализ кинодинамических методов <span class="badge badge-time">85–88 мин</span>
+## Сравнительный анализ кинодинамических методов <span class="badge badge-time">86–88 мин</span>
 
 <div class="table-container text-xs">
 
