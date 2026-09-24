@@ -2326,6 +2326,248 @@ def generate_reeds_shepp_curves():
     write_svg(filepath, svg)
 
 # -------------------------------------------------------------------------
+# Diagram: Lecture 04 - Dubins and Reeds-Shepp Paths (Analytical BVP)
+# -------------------------------------------------------------------------
+def generate_dubins_and_reeds_shepp_lecture04():
+    # 1. Dubins mini (340x115)
+    R = 25.0
+    start_d = (0.0, 0.0, math.radians(40))
+    goal_d = (110.0, 30.0, math.radians(-20))
+    pts_dub, len_dub = _dubins_csc(start_d, goal_d, R, False, True)
+    c0 = _turn_center(start_d, R, False)
+    c1 = _turn_center(goal_d, R, True)
+
+    xs_d = [p[0] for p in pts_dub] + [c0[0]-R, c0[0]+R, c1[0]-R, c1[0]+R]
+    ys_d = [p[1] for p in pts_dub] + [c0[1]-R, c0[1]+R, c1[1]-R, c1[1]+R]
+    min_x, max_x = min(xs_d), max(xs_d)
+    min_y, max_y = min(ys_d), max(ys_d)
+    bw, bh = 295.0, 74.0
+    bx, by = 22.0, 30.0
+    k_d = min(bw / max(max_x - min_x, 1e-6), bh / max(max_y - min_y, 1e-6))
+    cx0, cy0 = (min_x + max_x) / 2, (min_y + max_y) / 2
+
+    def td(p):
+        return (bx + bw / 2 + (p[0] - cx0) * k_d, by + bh / 2 - (p[1] - cy0) * k_d)
+
+    p_s = td(start_d[:2])
+    p_g = td(goal_d[:2])
+    p_c0 = td(c0)
+    p_c1 = td(c1)
+    r_px = R * k_d
+    d_path_d = 'M ' + ' L '.join(f'{td(p)[0]:.1f},{td(p)[1]:.1f}' for p in pts_dub)
+
+    svg_dub = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 115" width="100%" height="100%">
+  <defs>
+    <marker id="arr-dub-navy" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#0f172a"/>
+    </marker>
+    <marker id="arr-dub-green" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#059669"/>
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+  
+  <text x="12" y="15" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#0f172a">Кривая Дубинса: RSL (CSC)</text>
+  <text x="328" y="15" text-anchor="end" font-family="Inter, sans-serif" font-size="9" fill="#0284c7">только вперёд (v &gt; 0)</text>
+
+  <!-- Turning circles -->
+  <circle cx="{p_c0[0]:.1f}" cy="{p_c0[1]:.1f}" r="{r_px:.1f}" fill="none" stroke="#cbd5e1" stroke-width="1.1" stroke-dasharray="3,3"/>
+  <circle cx="{p_c1[0]:.1f}" cy="{p_c1[1]:.1f}" r="{r_px:.1f}" fill="none" stroke="#cbd5e1" stroke-width="1.1" stroke-dasharray="3,3"/>
+  <circle cx="{p_c0[0]:.1f}" cy="{p_c0[1]:.1f}" r="2.2" fill="#94a3b8"/>
+  <circle cx="{p_c1[0]:.1f}" cy="{p_c1[1]:.1f}" r="2.2" fill="#94a3b8"/>
+
+  <!-- Trajectory -->
+  <path d="{d_path_d}" stroke="#0284c7" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Annotations -->
+  <text x="{p_c0[0]-18:.1f}" y="{p_c0[1]+r_px+9:.1f}" font-family="JetBrains Mono" font-size="8.5" font-weight="700" fill="#0284c7">Дуга R</text>
+  <text x="{bx + bw*0.48:.1f}" y="{by + bh*0.38:.1f}" font-family="JetBrains Mono" font-size="8.5" font-weight="700" fill="#059669">Прямая S</text>
+  <text x="{p_c1[0]+8:.1f}" y="{p_c1[1]-r_px+1:.1f}" font-family="JetBrains Mono" font-size="8.5" font-weight="700" fill="#0284c7">Дуга L</text>
+
+  <!-- Poses -->
+  <circle cx="{p_s[0]:.1f}" cy="{p_s[1]:.1f}" r="4" fill="#0f172a"/>
+  <line x1="{p_s[0]:.1f}" y1="{p_s[1]:.1f}" x2="{p_s[0]+math.cos(start_d[2])*16:.1f}" y2="{p_s[1]-math.sin(start_d[2])*16:.1f}" stroke="#0f172a" stroke-width="2" marker-end="url(#arr-dub-navy)"/>
+  <text x="{p_s[0]-4:.1f}" y="{p_s[1]+15:.1f}" font-family="Inter" font-size="9" font-weight="700" fill="#0f172a">q_s</text>
+
+  <circle cx="{p_g[0]:.1f}" cy="{p_g[1]:.1f}" r="4" fill="#059669"/>
+  <line x1="{p_g[0]:.1f}" y1="{p_g[1]:.1f}" x2="{p_g[0]+math.cos(goal_d[2])*16:.1f}" y2="{p_g[1]-math.sin(goal_d[2])*16:.1f}" stroke="#059669" stroke-width="2" marker-end="url(#arr-dub-green)"/>
+  <text x="{p_g[0]+10:.1f}" y="{p_g[1]+12:.1f}" font-family="Inter" font-size="9" font-weight="700" fill="#059669">q_g</text>
+</svg>'''
+    write_svg(os.path.join(OUTPUT_DIR, 'lecture-04', 'dubins_path.svg'), svg_dub)
+
+    # 2. Reeds-Shepp mini (340x115)
+    R_rs = 32.0
+    p0 = (0.0, 0.0, math.radians(20))
+    seg1, p1 = rs_segment(p0, +1, +1, R_rs * math.radians(70), R_rs)
+    seg2, p2 = rs_segment(p1, -1, -1, R_rs * math.radians(95), R_rs)
+    seg3, p3 = rs_segment(p2, +1, +1, R_rs * math.radians(65), R_rs)
+
+    allp = seg1 + seg2 + seg3
+    xs_r = [q[0] for q in allp]
+    ys_r = [q[1] for q in allp]
+    min_x, max_x = min(xs_r), max(xs_r)
+    min_y, max_y = min(ys_r), max(ys_r)
+    bw, bh = 285.0, 74.0
+    bx, by = 26.0, 30.0
+    k_r = min(bw / max(max_x - min_x, 1e-6), bh / max(max_y - min_y, 1e-6))
+    cx0, cy0 = (min_x + max_x) / 2, (min_y + max_y) / 2
+
+    def trs(q):
+        return (bx + bw / 2 + (q[0] - cx0) * k_r, by + bh / 2 - (q[1] - cy0) * k_r)
+
+    d1 = 'M ' + ' L '.join(f'{trs(q)[0]:.1f},{trs(q)[1]:.1f}' for q in seg1)
+    d2 = 'M ' + ' L '.join(f'{trs(q)[0]:.1f},{trs(q)[1]:.1f}' for q in seg2)
+    d3 = 'M ' + ' L '.join(f'{trs(q)[0]:.1f},{trs(q)[1]:.1f}' for q in seg3)
+
+    ps = trs(p0[:2])
+    pg = trs(p3[:2])
+    c_p1 = trs(p1[:2])
+    c_p2 = trs(p2[:2])
+
+    svg_rs = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 115" width="100%" height="100%">
+  <defs>
+    <marker id="arr-rs-navy" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#0f172a"/>
+    </marker>
+    <marker id="arr-rs-green" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#059669"/>
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+  
+  <text x="12" y="15" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#0f172a">Кривая Ридса–Шеппа: L⁺ | R⁻ | L⁺</text>
+  <text x="328" y="15" text-anchor="end" font-family="Inter, sans-serif" font-size="9" fill="#dc2626">с реверсом (v = ±1)</text>
+
+  <!-- Segments -->
+  <path d="{d1}" stroke="#0284c7" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="{d2}" stroke="#dc2626" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="5,3"/>
+  <path d="{d3}" stroke="#0284c7" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+  <!-- Cusps -->
+  <circle cx="{c_p1[0]:.1f}" cy="{c_p1[1]:.1f}" r="4.5" fill="#d97706" stroke="#ffffff" stroke-width="1.2"/>
+  <text x="{c_p1[0]-9:.1f}" y="{c_p1[1]+3:.1f}" text-anchor="end" font-family="Inter" font-size="9" font-weight="700" fill="#d97706">Cusp 1</text>
+
+  <circle cx="{c_p2[0]:.1f}" cy="{c_p2[1]:.1f}" r="4.5" fill="#d97706" stroke="#ffffff" stroke-width="1.2"/>
+  <text x="{c_p2[0]+18:.1f}" y="{c_p2[1]+3:.1f}" font-family="Inter" font-size="9" font-weight="700" fill="#d97706">Cusp 2</text>
+
+  <!-- Labels -->
+  <text x="{trs(seg1[len(seg1)//2])[0]-24:.1f}" y="{trs(seg1[len(seg1)//2])[1]+3:.1f}" font-family="JetBrains Mono" font-size="9" font-weight="700" fill="#0284c7">L⁺</text>
+  <text x="{trs(seg2[len(seg2)//2])[0]+8:.1f}" y="{trs(seg2[len(seg2)//2])[1]+12:.1f}" font-family="JetBrains Mono" font-size="9" font-weight="700" fill="#dc2626">R⁻ (назад)</text>
+  <text x="{trs(seg3[len(seg3)//2])[0]-20:.1f}" y="{trs(seg3[len(seg3)//2])[1]-5:.1f}" font-family="JetBrains Mono" font-size="9" font-weight="700" fill="#0284c7">L⁺</text>
+
+  <!-- Poses -->
+  <circle cx="{ps[0]:.1f}" cy="{ps[1]:.1f}" r="4" fill="#0f172a"/>
+  <line x1="{ps[0]:.1f}" y1="{ps[1]:.1f}" x2="{ps[0]+math.cos(p0[2])*16:.1f}" y2="{ps[1]-math.sin(p0[2])*16:.1f}" stroke="#0f172a" stroke-width="2" marker-end="url(#arr-rs-navy)"/>
+  <text x="{ps[0]-20:.1f}" y="{ps[1]+15:.1f}" font-family="Inter" font-size="9" font-weight="700" fill="#0f172a">q_s</text>
+
+  <circle cx="{pg[0]:.1f}" cy="{pg[1]:.1f}" r="4" fill="#059669"/>
+  <line x1="{pg[0]:.1f}" y1="{pg[1]:.1f}" x2="{pg[0]+math.cos(p3[2])*16:.1f}" y2="{pg[1]-math.sin(p3[2])*16:.1f}" stroke="#059669" stroke-width="2" marker-end="url(#arr-rs-green)"/>
+  <text x="{pg[0]+8:.1f}" y="{pg[1]+15:.1f}" font-family="Inter" font-size="9" font-weight="700" fill="#059669">q_g</text>
+</svg>'''
+    write_svg(os.path.join(OUTPUT_DIR, 'lecture-04', 'reeds_shepp_path.svg'), svg_rs)
+
+    # 3. Combined Dubins & Reeds-Shepp master diagram (760x360)
+    def td_comb(p):
+        return (20 + 25 + 290/2 + (p[0] - cx0) * k_d, 50 + 40 + 110/2 - (p[1] - cy0) * k_d)
+
+    p_sd_c = td_comb(start_d[:2])
+    p_gd_c = td_comb(goal_d[:2])
+    p_c0_c = td_comb(c0)
+    p_c1_c = td_comb(c1)
+    d_path_c = 'M ' + ' L '.join(f'{td_comb(p)[0]:.1f},{td_comb(p)[1]:.1f}' for p in pts_dub)
+
+    def trs_comb(q):
+        return (390 + 35 + 270/2 + (q[0] - cx0) * k_r, 50 + 40 + 110/2 - (q[1] - cy0) * k_r)
+
+    d1_c = 'M ' + ' L '.join(f'{trs_comb(q)[0]:.1f},{trs_comb(q)[1]:.1f}' for q in seg1)
+    d2_c = 'M ' + ' L '.join(f'{trs_comb(q)[0]:.1f},{trs_comb(q)[1]:.1f}' for q in seg2)
+    d3_c = 'M ' + ' L '.join(f'{trs_comb(q)[0]:.1f},{trs_comb(q)[1]:.1f}' for q in seg3)
+    ps_rc = trs_comb(p0[:2])
+    pg_rc = trs_comb(p3[:2])
+    cp1_rc = trs_comb(p1[:2])
+    cp2_rc = trs_comb(p2[:2])
+
+    svg_comb = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <defs>
+    <marker id="arr-c-navy" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#0f172a"/>
+    </marker>
+    <marker id="arr-c-green" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#059669"/>
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <g transform="translate(25, 20)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">Аналитическое решение краевой задачи (BVP): Дубинс vs Ридс–Шеппа</text>
+    <text x="0" y="16" font-family="Inter, sans-serif" font-size="10.5" fill="#64748b">Замкнутый расчет кратчайшего пути для колесной кинематики без препятствий за &lt; 1 мкс</text>
+  </g>
+
+  <!-- Left: Dubins -->
+  <g transform="translate(20, 50)">
+    <rect width="350" height="225" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="14" y="22" font-family="Inter" font-size="12" font-weight="700" fill="#0f172a">1. Кривые Дубинса (Dubins, 1957)</text>
+    <text x="14" y="37" font-family="Inter" font-size="10" fill="#0284c7">Движение только вперёд (v &gt; 0) • БПЛА, самолёты</text>
+
+    <!-- Circles -->
+    <circle cx="{p_c0_c[0]-20:.1f}" cy="{p_c0_c[1]-50:.1f}" r="{r_px:.1f}" fill="none" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="3,3"/>
+    <circle cx="{p_c1_c[0]-20:.1f}" cy="{p_c1_c[1]-50:.1f}" r="{r_px:.1f}" fill="none" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="3,3"/>
+
+    <path d="M {(' L '.join(f'{td_comb(p)[0]-20:.1f},{td_comb(p)[1]-50:.1f}' for p in pts_dub))}" stroke="#0284c7" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <!-- Start / Goal -->
+    <circle cx="{p_sd_c[0]-20:.1f}" cy="{p_sd_c[1]-50:.1f}" r="4.5" fill="#0f172a"/>
+    <line x1="{p_sd_c[0]-20:.1f}" y1="{p_sd_c[1]-50:.1f}" x2="{p_sd_c[0]-20+math.cos(start_d[2])*18:.1f}" y2="{p_sd_c[1]-50-math.sin(start_d[2])*18:.1f}" stroke="#0f172a" stroke-width="2" marker-end="url(#arr-c-navy)"/>
+    <text x="{p_sd_c[0]-24:.1f}" y="{p_sd_c[1]-34:.1f}" font-family="Inter" font-size="9" font-weight="700" fill="#0f172a">Старт q_s</text>
+
+    <circle cx="{p_gd_c[0]-20:.1f}" cy="{p_gd_c[1]-50:.1f}" r="4.5" fill="#059669"/>
+    <line x1="{p_gd_c[0]-20:.1f}" y1="{p_gd_c[1]-50:.1f}" x2="{p_gd_c[0]-20+math.cos(goal_d[2])*18:.1f}" y2="{p_gd_c[1]-50-math.sin(goal_d[2])*18:.1f}" stroke="#059669" stroke-width="2" marker-end="url(#arr-c-green)"/>
+    <text x="{p_gd_c[0]-34:.1f}" y="{p_gd_c[1]-34:.1f}" font-family="Inter" font-size="9" font-weight="700" fill="#059669">Цель q_g</text>
+
+    <rect x="12" y="190" width="326" height="24" rx="4" fill="#eff6ff" stroke="#bfdbfe" stroke-width="0.8"/>
+    <text x="175" y="206" text-anchor="middle" font-family="Inter" font-size="9" font-weight="600" fill="#1e40af">6 слов: CSC (LSL, RSR, LSR, RSL) и CCC (LRL, RLR)</text>
+  </g>
+
+  <!-- Right: Reeds-Shepp -->
+  <g transform="translate(390, 50)">
+    <rect width="350" height="225" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="14" y="22" font-family="Inter" font-size="12" font-weight="700" fill="#0f172a">2. Кривые Ридса–Шеппа (1990)</text>
+    <text x="14" y="37" font-family="Inter" font-size="10" fill="#dc2626">Вперёд и назад (v = ±1) • Колёсные роботы, авто</text>
+
+    <path d="M {(' L '.join(f'{trs_comb(q)[0]-390:.1f},{trs_comb(q)[1]-50:.1f}' for q in seg1))}" stroke="#0284c7" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M {(' L '.join(f'{trs_comb(q)[0]-390:.1f},{trs_comb(q)[1]-50:.1f}' for q in seg2))}" stroke="#dc2626" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="5,3"/>
+    <path d="M {(' L '.join(f'{trs_comb(q)[0]-390:.1f},{trs_comb(q)[1]-50:.1f}' for q in seg3))}" stroke="#0284c7" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+    <!-- Cusps -->
+    <circle cx="{cp1_rc[0]-390:.1f}" cy="{cp1_rc[1]-50:.1f}" r="5" fill="#d97706" stroke="#ffffff" stroke-width="1.5"/>
+    <text x="{cp1_rc[0]-390:.1f}" y="{cp1_rc[1]-58:.1f}" text-anchor="middle" font-family="Inter" font-size="8.5" font-weight="700" fill="#d97706">Cusp 1</text>
+    <circle cx="{cp2_rc[0]-390:.1f}" cy="{cp2_rc[1]-50:.1f}" r="5" fill="#d97706" stroke="#ffffff" stroke-width="1.5"/>
+    <text x="{cp2_rc[0]-390+18:.1f}" y="{cp2_rc[1]-46:.1f}" text-anchor="middle" font-family="Inter" font-size="8.5" font-weight="700" fill="#d97706">Cusp 2</text>
+
+    <!-- Start / Goal -->
+    <circle cx="{ps_rc[0]-390:.1f}" cy="{ps_rc[1]-50:.1f}" r="4.5" fill="#0f172a"/>
+    <line x1="{ps_rc[0]-390:.1f}" y1="{ps_rc[1]-50:.1f}" x2="{ps_rc[0]-390+math.cos(p0[2])*18:.1f}" y2="{ps_rc[1]-50-math.sin(p0[2])*18:.1f}" stroke="#0f172a" stroke-width="2" marker-end="url(#arr-c-navy)"/>
+    <text x="{ps_rc[0]-414:.1f}" y="{ps_rc[1]-34:.1f}" font-family="Inter" font-size="9" font-weight="700" fill="#0f172a">Старт q_s</text>
+
+    <circle cx="{pg_rc[0]-390:.1f}" cy="{pg_rc[1]-50:.1f}" r="4.5" fill="#059669"/>
+    <line x1="{pg_rc[0]-390:.1f}" y1="{pg_rc[1]-50:.1f}" x2="{pg_rc[0]-390+math.cos(p3[2])*18:.1f}" y2="{pg_rc[1]-50-math.sin(p3[2])*18:.1f}" stroke="#059669" stroke-width="2" marker-end="url(#arr-c-green)"/>
+    <text x="{pg_rc[0]-382:.1f}" y="{pg_rc[1]-34:.1f}" font-family="Inter" font-size="9" font-weight="700" fill="#059669">Цель q_g</text>
+
+    <rect x="12" y="190" width="326" height="24" rx="4" fill="#fff1f2" stroke="#fecdd3" stroke-width="0.8"/>
+    <text x="175" y="206" text-anchor="middle" font-family="Inter" font-size="9" font-weight="600" fill="#9f1239">48 шаблонов (9 семейств): C|C|C, CSC, CC|C, C|CC ...</text>
+  </g>
+
+  <!-- Bottom Banner: Role in Hybrid A* -->
+  <g transform="translate(20, 287)">
+    <rect width="720" height="58" rx="6" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1"/>
+    <text x="16" y="20" font-family="Inter" font-size="11" font-weight="700" fill="#065f46">🎯 Роль в Hybrid A*: почему это критично для планирования?</text>
+    <text x="16" y="36" font-family="Inter" font-size="9.5" fill="#047857">1. Допустимая эвристика h_nonhol(q): точная аналитическая длина Ридса–Шеппа в SE(2) без препятствий направляет поиск.</text>
+    <text x="16" y="50" font-family="Inter" font-size="9.5" fill="#047857">2. Аналитическое расширение (Analytic Expansion): мгновенное прямое попадание в цель q_goal при отсутствии коллизий (&lt; 1 мкс)!</text>
+  </g>
+</svg>'''
+    write_svg(os.path.join(OUTPUT_DIR, 'lecture-04', 'dubins_reeds_shepp.svg'), svg_comb)
+
+# -------------------------------------------------------------------------
 # Diagram 12: Lecture 06 - Receding Horizon MPC
 # -------------------------------------------------------------------------
 def generate_receding_horizon():
@@ -3360,6 +3602,7 @@ def main():
     generate_lie_bracket_commutator()
     generate_realtime_stack_hierarchy()
     generate_nav2_bt_tree()
+    generate_dubins_and_reeds_shepp_lecture04()
     print("=== All Algorithmic Diagrams Successfully Generated! ===")
 
 if __name__ == '__main__':

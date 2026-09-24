@@ -24,3 +24,7 @@ Thumbs.db
 !.vscode/settings.json
 !.vscode/extensions.json
 !.vscode/tasks.json
+
+# Python
+__pycache__/
+*.py[cod]
