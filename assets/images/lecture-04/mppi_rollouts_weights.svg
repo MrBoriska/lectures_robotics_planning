@@ -4,26 +4,26 @@
   <!-- Left: Stochastic Rollouts -->
   <g transform="translate(20, 20)">
     <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
-    <text x="16" y="24" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">1. Монте-Карло Rollouts (Шум δu ~ N(0, Σ))</text>
-    <text x="16" y="39" font-family="Inter, sans-serif" font-size="11" fill="#64748b">Параллельная генерация K=1000..10000 траекторий на GPU</text>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">1. Монте-Карло ансамбль (Rollouts)</text>
+    <text x="16" y="39" font-family="Inter, sans-serif" font-size="11" fill="#64748b">Параллельное прогнозирование K = 1000...10000 траекторий на GPU</text>
 
     <!-- Obstacle -->
     <circle cx="180" cy="140" r="32" fill="#fee2e2" stroke="#ef4444" stroke-width="2"/>
-    <text x="150" y="144" font-family="Inter" font-size="10.5" font-weight="700" fill="#b91c1c">Преграда</text>
+    <text x="142" y="144" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#b91c1c">Препятствие</text>
 
     <!-- Robot position -->
     <rect x="40" y="130" width="22" height="14" rx="2" fill="#0f172a"/>
     <line x1="62" y1="137" x2="74" y2="137" stroke="#0284c7" stroke-width="2"/>
-    <text x="35" y="160" font-family="Inter" font-size="10" font-weight="700" fill="#0f172a">x₀</text>
+    <text x="32" y="160" font-family="KaTeX_Math, Times New Roman, serif" font-size="12" font-style="italic" font-weight="700" fill="#0f172a">x<tspan font-size="9" font-style="normal" dy="2">0</tspan></text>
 
     <!-- Goal -->
     <circle cx="295" cy="80" r="7" fill="#0284c7" stroke="#ffffff" stroke-width="2"/>
-    <text x="285" y="65" font-family="Inter" font-size="11" font-weight="700" fill="#0284c7">Цель G</text>
+    <text x="285" y="65" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#0284c7">Цель G</text>
 
     <!-- Colliding rollouts (Red) -->
-    <path d="M55,137 Q120,137 170,140" stroke="#ef4444" stroke-width="1.2" opacity="0.6" fill="none"/>
-    <path d="M55,137 Q115,145 165,150" stroke="#ef4444" stroke-width="1.2" opacity="0.6" fill="none"/>
-    <path d="M55,137 Q125,130 160,130" stroke="#ef4444" stroke-width="1.2" opacity="0.6" fill="none"/>
+    <path d="M55,137 Q120,137 170,140" stroke="#ef4444" stroke-width="1.4" opacity="0.6" fill="none"/>
+    <path d="M55,137 Q115,145 165,150" stroke="#ef4444" stroke-width="1.4" opacity="0.6" fill="none"/>
+    <path d="M55,137 Q125,130 160,130" stroke="#ef4444" stroke-width="1.4" opacity="0.6" fill="none"/>
 
     <!-- Safe rollouts (Cyan/Blue fan) -->
     <path d="M55,137 Q110,85 190,75 Q240,70 295,80" stroke="#38bdf8" stroke-width="1.2" opacity="0.5" fill="none"/>
@@ -31,44 +31,69 @@
     <path d="M55,137 Q115,95 200,85 Q245,78 295,80" stroke="#38bdf8" stroke-width="1.2" opacity="0.5" fill="none"/>
     <path d="M55,137 Q120,210 200,210 Q260,200 295,80" stroke="#38bdf8" stroke-width="1.2" opacity="0.4" fill="none"/>
 
-    <!-- Weighted optimal trajectory (Gold/Green) -->
-    <path d="M55,137 Q110,85 190,72 Q240,68 295,80" stroke="#059669" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-    <text x="180" y="55" font-family="Inter" font-size="10.5" font-weight="700" fill="#059669">Оптимальная траектория u*</text>
+    <!-- Weighted optimal trajectory (Emerald green) -->
+    <path d="M55,137 Q110,85 190,72 Q240,68 295,80" stroke="#059669" stroke-width="3.8" fill="none" stroke-linecap="round"/>
+    <text x="168" y="55" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#059669">Оптимальное управление u*</text>
 
-    <rect x="14" y="250" width="317" height="58" rx="5" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
-    <text x="22" y="270" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#0f172a">V^k = U + δU^k,  δU ~ N(0, Σ)</text>
-    <text x="22" y="288" font-family="Inter" font-size="10" fill="#64748b">Стоимость S(V^k) включает расстояние до цели и штраф за преграды.</text>
+    <!-- Bottom info box in Left card -->
+    <rect x="14" y="248" width="317" height="60" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <g transform="translate(22, 271)" font-family="KaTeX_Math, Times New Roman, serif" font-size="13" fill="#0f172a">
+      <text x="0" y="0"><tspan font-style="italic">V</tspan><tspan font-size="9" dy="-4">k</tspan><tspan dy="4"> = </tspan><tspan font-style="italic">U</tspan> + <tspan font-style="italic">δU</tspan><tspan font-size="9" dy="-4">k</tspan><tspan dy="4">,  </tspan><tspan font-style="italic">δu</tspan><tspan font-size="9" dy="2">t</tspan><tspan font-size="9" dy="-5">k</tspan><tspan dy="3" font-family="Inter, sans-serif" font-style="normal"> ~ </tspan><tspan font-style="italic">𝒩</tspan><tspan font-family="Inter, sans-serif" font-style="normal">(0, Σ)</tspan></text>
+    </g>
+    <text x="22" y="296" font-family="Inter, sans-serif" font-size="10" fill="#64748b">Стоимость S(V<tspan font-size="8" dy="-2">k</tspan><tspan dy="2">) = терминальный штраф + штраф за препятствия</tspan></text>
   </g>
 
   <!-- Right: Information-Theoretic Weighting -->
   <g transform="translate(395, 20)">
     <rect width="345" height="320" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
-    <text x="16" y="24" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">2. Экспоненциальное взвешивание</text>
-    <text x="16" y="39" font-family="Inter, sans-serif" font-size="11" fill="#059669">Мягкий оптимум: Softmax по стоимостям траекторий</text>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0f172a">2. Экспоненциальное взвешивание (Softmax)</text>
+    <text x="16" y="39" font-family="Inter, sans-serif" font-size="11" fill="#059669">Мягкий оптимум: синтез управления без градиентов</text>
 
     <!-- Formula Box -->
-    <rect x="20" y="65" width="305" height="60" rx="6" fill="#f0fdf4" stroke="#86efac" stroke-width="1.2"/>
-    <text x="35" y="88" font-family="JetBrains Mono" font-size="11.5" font-weight="700" fill="#166534">w_k = exp(-S(V^k)/λ) / ∑ exp(-S/λ)</text>
-    <text x="35" y="110" font-family="JetBrains Mono" font-size="11.5" font-weight="700" fill="#059669">u*_t = u_t + ∑ w_k · δu^k_t</text>
-
-    <!-- Visual Weight Bars -->
-    <g transform="translate(30, 145)">
-      <text x="0" y="12" font-family="Inter" font-size="10" font-weight="600" fill="#334155">Траектория 1 (Чистая, быстрая):</text>
-      <rect x="0" y="18" width="220" height="12" rx="3" fill="#059669"/>
-      <text x="228" y="28" font-family="JetBrains Mono" font-size="9.5" font-weight="700" fill="#059669">w₁ = 0.62</text>
-
-      <text x="0" y="46" font-family="Inter" font-size="10" font-weight="600" fill="#334155">Траектория 2 (Безопасная, длинная):</text>
-      <rect x="0" y="52" width="110" height="12" rx="3" fill="#0284c7"/>
-      <text x="118" y="62" font-family="JetBrains Mono" font-size="9.5" font-weight="700" fill="#0284c7">w₂ = 0.31</text>
-
-      <text x="0" y="80" font-family="Inter" font-size="10" font-weight="600" fill="#334155">Траектория 3 (Коллизия с преградой):</text>
-      <rect x="0" y="86" width="6" height="12" rx="2" fill="#ef4444"/>
-      <text x="14" y="96" font-family="JetBrains Mono" font-size="9.5" font-weight="700" fill="#dc2626">w₃ = 0.0001</text>
+    <rect x="16" y="58" width="313" height="76" rx="6" fill="#f0fdf4" stroke="#86efac" stroke-width="1.2"/>
+    
+    <!-- Row 1: w_k formula with clean fraction -->
+    <g transform="translate(24, 85)" font-family="KaTeX_Math, Times New Roman, serif" fill="#166534">
+      <text x="0" y="4" font-size="14"><tspan font-style="italic">w</tspan><tspan font-size="10" dy="3">k</tspan><tspan dy="-3" font-style="normal"> =</tspan></text>
+      
+      <!-- Fraction bar -->
+      <line x1="36" y1="2" x2="295" y2="2" stroke="#166534" stroke-width="1.2"/>
+      
+      <!-- Numerator -->
+      <g transform="translate(165, -6)" text-anchor="middle" font-size="11.5">
+        <text x="0" y="0"><tspan font-style="normal">exp</tspan><tspan font-size="13">(</tspan>− <tspan font-size="10">1</tspan>/<tspan font-style="italic">λ</tspan> · (<tspan font-style="italic">S</tspan>(<tspan font-style="italic">V</tspan><tspan font-size="8.5" dy="-3">k</tspan><tspan dy="3">)</tspan> − <tspan font-style="italic">S</tspan><tspan font-size="8.5" dy="2">min</tspan><tspan dy="-2">)</tspan><tspan font-size="13">)</tspan></text>
+      </g>
+      
+      <!-- Denominator -->
+      <g transform="translate(165, 18)" text-anchor="middle" font-size="11.5">
+        <text x="0" y="0"><tspan font-size="14">∑</tspan><tspan font-size="8.5" dy="3">j=1</tspan><tspan font-size="8.5" dy="-7">K</tspan><tspan dy="4" font-size="11.5"> </tspan><tspan font-style="normal">exp</tspan><tspan font-size="13">(</tspan>− <tspan font-size="10">1</tspan>/<tspan font-style="italic">λ</tspan> · (<tspan font-style="italic">S</tspan>(<tspan font-style="italic">V</tspan><tspan font-size="8.5" dy="-3">j</tspan><tspan dy="3">)</tspan> − <tspan font-style="italic">S</tspan><tspan font-size="8.5" dy="2">min</tspan><tspan dy="-2">)</tspan><tspan font-size="13">)</tspan></text>
+      </g>
     </g>
 
-    <rect x="14" y="250" width="317" height="58" rx="5" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
-    <text x="22" y="270" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#0f172a">Без градиентов и без линеаризации!</text>
-    <text x="22" y="288" font-family="Inter, sans-serif" font-size="10" fill="#64748b">MPPI работает с любыми разрывными функциями стоимости,</text>
-    <text x="22" y="300" font-family="Inter, sans-serif" font-size="10" fill="#64748b">сложной физикой (песок, занос, дрифт) прямо в реальном времени.</text>
+    <!-- Row 2: u_t* formula -->
+    <g transform="translate(24, 123)" font-family="KaTeX_Math, Times New Roman, serif" font-size="13" fill="#059669">
+      <text x="0" y="0"><tspan font-style="italic">u</tspan><tspan font-size="9" dy="3">t</tspan><tspan font-size="11" dy="-5">*</tspan><tspan dy="2" font-style="normal"> = </tspan><tspan font-style="italic">u</tspan><tspan font-size="9" dy="3">t</tspan><tspan dy="-3" font-style="normal"> + </tspan><tspan font-size="14">∑</tspan><tspan font-size="8.5" dy="3">k=1</tspan><tspan font-size="8.5" dy="-7">K</tspan><tspan dy="4" font-size="13"> </tspan><tspan font-style="italic">w</tspan><tspan font-size="9" dy="3">k</tspan><tspan dy="-3"> </tspan><tspan font-style="italic">δu</tspan><tspan font-size="9" dy="3">t</tspan><tspan font-size="9" dy="-5">k</tspan></text>
+    </g>
+
+    <!-- Visual Weight Bars -->
+    <g transform="translate(24, 148)">
+      <text x="0" y="12" font-family="Inter, sans-serif" font-size="10.5" font-weight="600" fill="#334155">Траектория 1 (чистая, быстрая):</text>
+      <rect x="0" y="18" width="210" height="12" rx="3" fill="#059669"/>
+      <text x="218" y="28" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#059669">w₁ = 0.62</text>
+
+      <text x="0" y="46" font-family="Inter, sans-serif" font-size="10.5" font-weight="600" fill="#334155">Траектория 2 (безопасная, длинная):</text>
+      <rect x="0" y="52" width="105" height="12" rx="3" fill="#0284c7"/>
+      <text x="113" y="62" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#0284c7">w₂ = 0.31</text>
+
+      <text x="0" y="80" font-family="Inter, sans-serif" font-size="10.5" font-weight="600" fill="#334155">Траектория 3 (коллизия с препятствием):</text>
+      <rect x="0" y="86" width="6" height="12" rx="2" fill="#ef4444"/>
+      <text x="14" y="96" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700" fill="#dc2626">w₃ = 0.0001</text>
+    </g>
+
+    <!-- Bottom summary box in Right card -->
+    <rect x="14" y="248" width="317" height="60" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="22" y="268" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#0f172a">Без градиентов и без линеаризации!</text>
+    <text x="22" y="284" font-family="Inter, sans-serif" font-size="9.5" fill="#64748b">MPPI работает с любыми разрывными штрафами,</text>
+    <text x="22" y="297" font-family="Inter, sans-serif" font-size="9.5" fill="#64748b">сложной физикой (песок, занос, дрифт) в реальном времени.</text>
   </g>
 </svg>
