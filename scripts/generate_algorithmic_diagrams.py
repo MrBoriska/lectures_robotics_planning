@@ -27,8 +27,10 @@ import os
 import math
 import random
 
-# Base output directory
-OUTPUT_DIR = os.path.abspath(os.path.join('/home/mrboriska/lectures_robotics/assets/images'))
+# Base output directory (relative to repository root)
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+OUTPUT_DIR = os.path.join(PROJECT_ROOT, 'assets', 'images')
 
 def ensure_dir(path):
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -112,7 +114,7 @@ import re as _re
 
 _ADV_SANS = {'narrow': 0.30, 'wide': 0.83, 'normal': 0.52, 'cyr': 0.58}
 _ADV_MONO = 0.601
-_NARROW = set("ijltIfr.,:;'|!()[]{}/\ ")
+_NARROW = set(r"ijltIfr.,:;'|!()[]{}/\ ")
 _WIDE = set("mwMW—⟺⟷")
 
 
