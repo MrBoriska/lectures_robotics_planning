@@ -86,7 +86,7 @@ TODO (расширение лекции до 90 минут за счёт инк�
 (IJRR, 2011); Gammell et al., «Informed RRT\*» (IROS, 2014); Kavraki et al., «Probabilistic Roadmaps» (IEEE T-RA, 1996);
 Bohlin & Kavraki, «Path Planning Using Lazy PRM» (ICRA, 2000); Hsu et al., «Bridge Test for Sampling Narrow Passages» (ICRA, 2003).
 
-## Лекция 04. Кинематические модели и выборочные методы: DWA и MPPI
+## Лекция 04. Учёт модели движения: кинодинамическое планирование, DWA и MPPI
 
 **Основной вопрос:** как перейти от планирования движения материальной точки к
 управлению реальным физическим шасси и использовать выборку в пространстве
