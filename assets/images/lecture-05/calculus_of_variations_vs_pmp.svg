@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <g transform="translate(24, 24)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Почему классическая оптимизация бессильна перед ограничениями приводов?</text>
+    <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Сравнение: классическое вариационное исчисление (Эйлер–Лагранж) vs Принцип максимума Понтрягина</text>
+  </g>
+
+  <!-- Panel 1: Classical Calculus of Variations (Euler-Lagrange) -->
+  <g transform="translate(24, 60)">
+    <rect width="224" height="280" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+    <rect width="224" height="26" rx="8" fill="#0284c7"/>
+    <text x="12" y="18" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff">1. Классическое исчисление</text>
+
+    <!-- Plot 1 -->
+    <g transform="translate(18, 42)">
+      <!-- Axes -->
+      <line x1="15" y1="110" x2="175" y2="110" stroke="#94a3b8" stroke-width="1.2"/>
+      <line x1="95" y1="15" x2="95" y2="120" stroke="#94a3b8" stroke-width="1.2"/>
+      <text x="178" y="114" font-family="JetBrains Mono" font-size="10" fill="#64748b">u</text>
+      <text x="98" y="14" font-family="JetBrains Mono" font-size="10" fill="#64748b">J(u)</text>
+
+      <!-- Smooth parabola with interior minimum -->
+      <path d="M 30,35 Q 95,120 160,35" stroke="#0284c7" stroke-width="2.4" fill="none"/>
+
+      <!-- Tangent at minimum -->
+      <line x1="60" y1="78" x2="130" y2="78" stroke="#10b981" stroke-width="2" stroke-dasharray="3,3"/>
+      <circle cx="95" cy="78" r="4" fill="#10b981"/>
+      <text x="102" y="74" font-family="JetBrains Mono" font-size="9" font-weight="700" fill="#047857">u* (мин)</text>
+
+      <!-- Formula tag -->
+      <rect x="15" y="88" width="80" height="18" rx="3" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="0.8"/>
+      <text x="20" y="100" font-family="JetBrains Mono" font-size="8.5" font-weight="700" fill="#065f46">dJ/du = 0</text>
+    </g>
+
+    <!-- Text description -->
+    <g transform="translate(14, 175)">
+      <text x="0" y="0" font-family="Inter" font-size="10.5" font-weight="700" fill="#0369a1">• Открытая область управлений</text>
+      <text x="0" y="15" font-family="Inter" font-size="9.5" fill="#475569">Вариация δu свободна в обе стороны.</text>
+      <text x="0" y="30" font-family="Inter" font-size="9.5" fill="#475569">Условие экстремума: δJ = 0.</text>
+      <text x="0" y="47" font-family="Inter" font-size="9.5" font-weight="700" fill="#b91c1c">❌ Не применимо при упоре в</text>
+      <text x="0" y="60" font-family="Inter" font-size="9.5" font-weight="700" fill="#b91c1c">пределы приводов |u| ≤ u_max!</text>
+    </g>
+  </g>
+
+  <!-- Panel 2: Actuator Saturation Barrier -->
+  <g transform="translate(268, 60)">
+    <rect width="224" height="280" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+    <rect width="224" height="26" rx="8" fill="#e11d48"/>
+    <text x="12" y="18" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff">2. Насыщение приводов (Тупик)</text>
+
+    <!-- Plot 2 -->
+    <g transform="translate(18, 42)">
+      <!-- Allowed region shading -->
+      <rect x="45" y="15" width="100" height="95" fill="#f1f5f9" opacity="0.9"/>
+      <!-- Boundary limits -->
+      <line x1="45" y1="15" x2="45" y2="115" stroke="#ef4444" stroke-width="1.8" stroke-dasharray="4,2"/>
+      <line x1="145" y1="15" x2="145" y2="115" stroke="#ef4444" stroke-width="1.8" stroke-dasharray="4,2"/>
+      <text x="24" y="125" font-family="JetBrains Mono" font-size="8.5" fill="#b91c1c">-u_max</text>
+      <text x="130" y="125" font-family="JetBrains Mono" font-size="8.5" fill="#b91c1c">+u_max</text>
+
+      <!-- Axes -->
+      <line x1="15" y1="110" x2="175" y2="110" stroke="#94a3b8" stroke-width="1.2"/>
+      <line x1="95" y1="15" x2="95" y2="120" stroke="#94a3b8" stroke-width="1.2"/>
+
+      <!-- Curve descending towards right, minimum is outside bounds! -->
+      <path d="M 40,30 Q 95,65 145,95" stroke="#e11d48" stroke-width="2.4" fill="none"/>
+      <path d="M 145,95 Q 165,108 175,112" stroke="#e11d48" stroke-width="1.5" stroke-dasharray="2,2" fill="none"/>
+
+      <!-- Boundary point -->
+      <circle cx="145" cy="95" r="4.5" fill="#e11d48"/>
+      <text x="120" y="86" font-family="JetBrains Mono" font-size="9" font-weight="700" fill="#9f1239">u*</text>
+
+      <!-- Non-zero slope tag -->
+      <rect x="75" y="40" width="70" height="18" rx="3" fill="#fff1f2" stroke="#fecdd3" stroke-width="0.8"/>
+      <text x="80" y="52" font-family="JetBrains Mono" font-size="8.5" font-weight="700" fill="#be123c">dJ/du ≠ 0 !</text>
+    </g>
+
+    <!-- Text description -->
+    <g transform="translate(14, 175)">
+      <text x="0" y="0" font-family="Inter" font-size="10.5" font-weight="700" fill="#be123c">• Оптимум упёрся в границу</text>
+      <text x="0" y="15" font-family="Inter" font-size="9.5" fill="#475569">Варьировать наружу нельзя!</text>
+      <text x="0" y="30" font-family="Inter" font-size="9.5" fill="#475569">В точке оптимума dJ/du &lt; 0.</text>
+      <text x="0" y="47" font-family="Inter" font-size="9.5" font-weight="700" fill="#be123c">❌ Метод производных не</text>
+      <text x="0" y="60" font-family="Inter" font-size="9.5" font-weight="700" fill="#be123c">способен найти этот оптимум!</text>
+    </g>
+  </g>
+
+  <!-- Panel 3: Pontryagin Maximum Principle -->
+  <g transform="translate(512, 60)">
+    <rect width="224" height="280" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+    <rect width="224" height="26" rx="8" fill="#16a34a"/>
+    <text x="12" y="18" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff">3. Решение Понтрягина (ПМП)</text>
+
+    <!-- Plot 3 -->
+    <g transform="translate(18, 42)">
+      <!-- Allowed region shading -->
+      <rect x="45" y="15" width="100" height="95" fill="#f0fdf4" opacity="0.9"/>
+      <line x1="45" y1="15" x2="45" y2="115" stroke="#16a34a" stroke-width="1.8" stroke-dasharray="4,2"/>
+      <line x1="145" y1="15" x2="145" y2="115" stroke="#16a34a" stroke-width="1.8" stroke-dasharray="4,2"/>
+      <text x="24" y="125" font-family="JetBrains Mono" font-size="8.5" fill="#15803d">-u_max</text>
+      <text x="130" y="125" font-family="JetBrains Mono" font-size="8.5" fill="#15803d">+u_max</text>
+
+      <!-- Axes -->
+      <line x1="15" y1="110" x2="175" y2="110" stroke="#94a3b8" stroke-width="1.2"/>
+      <line x1="95" y1="15" x2="95" y2="120" stroke="#94a3b8" stroke-width="1.2"/>
+      <text x="178" y="114" font-family="JetBrains Mono" font-size="10" fill="#64748b">u</text>
+      <text x="98" y="14" font-family="JetBrains Mono" font-size="10" fill="#64748b">H(u)</text>
+
+      <!-- Linear function H(u) = sigma * u + c -->
+      <line x1="30" y1="95" x2="160" y2="35" stroke="#16a34a" stroke-width="2.6"/>
+
+      <!-- Max at boundary! -->
+      <circle cx="145" cy="42" r="5" fill="#16a34a"/>
+      <text x="110" y="34" font-family="JetBrains Mono" font-size="9" font-weight="700" fill="#15803d">MAX H</text>
+
+      <!-- Tag -->
+      <rect x="25" y="42" width="75" height="18" rx="3" fill="#f0fdf4" stroke="#86efac" stroke-width="0.8"/>
+      <text x="30" y="54" font-family="JetBrains Mono" font-size="8.5" font-weight="700" fill="#166534">max H(x,u,λ)</text>
+    </g>
+
+    <!-- Text description -->
+    <g transform="translate(14, 175)">
+      <text x="0" y="0" font-family="Inter" font-size="10.5" font-weight="700" fill="#15803d">• Максимум по замкнутому U</text>
+      <text x="0" y="15" font-family="Inter" font-size="9.5" fill="#475569">Вместо dH/du = 0 берётся</text>
+      <text x="0" y="29" font-family="Inter" font-size="9.5" font-weight="700" fill="#0f172a">точный максимум на отрезке!</text>
+      <text x="0" y="47" font-family="Inter" font-size="9.5" font-weight="700" fill="#15803d">✔ Оптимум: u* = sign(σ) · u_max</text>
+      <text x="0" y="60" font-family="Inter" font-size="9.5" font-weight="700" fill="#15803d">Рождение Bang-Bang управления!</text>
+    </g>
+  </g>
+</svg>
