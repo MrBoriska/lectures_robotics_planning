@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Интерактивный симулятор: Рецессивный горизонт MPC и численные солверы</title>
+  <link rel="stylesheet" href="../common/widget-base.css">
+  <style>
+    .split-view {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      gap: 8px;
+      padding: 8px;
+      background: var(--bg-widget);
+    }
+    .panel-arena {
+      flex: 1.4;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
+    }
+    .panel-side {
+      flex: 0.85;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
+    }
+    .card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .canvas-box {
+      flex: 1;
+      min-height: 0;
+      position: relative;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      overflow: hidden;
+      cursor: default;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .stat-item {
+      background: var(--bg-control);
+      padding: 6px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border-subtle);
+    }
+    .stat-label {
+      color: var(--text-muted);
+      font-size: 9.5px;
+      margin-bottom: 2px;
+    }
+    .stat-value {
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 11.5px;
+    }
+    .control-row label {
+      width: 130px;
+      color: var(--text-main);
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+    .control-row input[type=range] {
+      flex: 1;
+    }
+    .control-row span.val {
+      width: 45px;
+      text-align: right;
+      font-family: var(--font-mono);
+      color: var(--accent-blue);
+      font-weight: 600;
+    }
+    .badge-solver {
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+    }
+    .badge-sqp { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .badge-ipm { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+    .badge-uncon { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+    .legend-row {
+      display: flex;
+      gap: 12px;
+      font-size: 10.5px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .legend-color {
+      width: 12px;
+      height: 4px;
+      border-radius: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="widget-layout">
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div style="font-weight: 700; font-size: 12.5px; color: var(--accent-blue); margin-right: 6px;">
+        🎯 Receding Horizon MPC: Предиктивный горизонт и солверы
+      </div>
+
+      <button id="btnPlay" class="btn btn-primary">▶ Старт</button>
+      <button id="btnStep" class="btn">⏭ Шаг (1 такт)</button>
+      <button id="btnReset" class="btn">↺ Сброс</button>
+      <button id="btnRandomObs" class="btn">🎲 Препятствия</button>
+
+      <div style="height: 18px; width: 1px; background: var(--border-color); margin: 0 4px;"></div>
+
+      <label style="font-size: 11px; font-weight: 600; color: var(--text-muted);">Солвер:</label>
+      <select id="solverSelect" class="btn" style="padding: 3px 8px; font-weight: 600;">
+        <option value="sqp">SQP (Последовательное QP + Warm-Start)</option>
+        <option value="ipm">Interior Point (IPOPT-подобный лог-барьер)</option>
+        <option value="unconstrained">Без учета препятствий (Только цель)</option>
+      </select>
+
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 11px; color: var(--text-muted);">Перетаскивайте Робота, Цель и Препятствия мышью!</span>
+      </div>
+    </div>
+
+    <!-- Workspace -->
+    <div class="split-view">
+      <!-- Arena Box -->
+      <div class="panel-arena">
+        <div class="card" style="flex: 1;">
+          <div class="card-title">
+            <span>2D Арена навигации (Модель мобильного робота)</span>
+            <span id="badgeSolverType" class="badge-solver badge-sqp">SQP Solver</span>
+          </div>
+          <div class="canvas-box" id="arenaBox">
+            <canvas id="arenaCanvas"></canvas>
+          </div>
+          <div class="legend-row">
+            <span class="legend-item"><span class="legend-color" style="background: #0284c7;"></span> Пройденный путь (Feedback)</span>
+            <span class="legend-item"><span class="legend-color" style="background: #059669;"></span> Предиктивный план x_{{t+k|t}} (N шагов)</span>
+            <span class="legend-item"><span class="legend-color" style="background: #dc2626;"></span> Выполняемый шаг u₀*</span>
+            <span class="legend-item"><span class="legend-color" style="background: #ea580c;"></span> Препятствия (R_safe)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Side Panel: Stats and Horizon Plots -->
+      <div class="panel-side">
+        <!-- Telemetry Stats -->
+        <div class="card">
+          <div class="card-title">
+            <span>Метрики солвера MPC</span>
+            <span id="statTime" style="font-family: var(--font-mono); color: var(--accent-blue); font-weight: 700;">t = 0.0 с</span>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-label">Время расчета такта</div>
+              <div id="statSolveTime" class="stat-value" style="color: #059669;">1.4 мс</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">Итераций солвера</div>
+              <div id="statIters" class="stat-value">2 (Warm-start)</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">Остаток до цели</div>
+              <div id="statDistGoal" class="stat-value">4.50 м</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">Текущая скорость v</div>
+              <div id="statSpeed" class="stat-value">0.00 м/с</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Prediction Horizon Control Profiles -->
+        <div class="card" style="flex: 1;">
+          <div class="card-title">
+            <span>Профиль управления на горизонте N шагов</span>
+          </div>
+          <div class="canvas-box">
+            <canvas id="horizonCanvas"></canvas>
+          </div>
+        </div>
+
+        <!-- Interactive Sliders -->
+        <div class="card" style="gap: 8px;">
+          <div class="card-title">Параметры задачи MPC</div>
+
+          <div class="control-row">
+            <label>Горизонт N (шагов):</label>
+            <input type="range" id="sliderN" min="6" max="30" step="1" value="16">
+            <span id="valN" class="val">16</span>
+          </div>
+
+          <div class="control-row">
+            <label>Вес препятствий W_obs:</label>
+            <input type="range" id="sliderWobs" min="0.5" max="15.0" step="0.5" value="5.0">
+            <span id="valWobs" class="val">5.0</span>
+          </div>
+
+          <div class="control-row">
+            <label>Макс. скорость v_max:</label>
+            <input type="range" id="sliderVmax" min="0.5" max="2.5" step="0.1" value="1.2">
+            <span id="valVmax" class="val">1.2</span>
+          </div>
+
+          <div class="control-row">
+            <label>Штраф усилий R_u:</label>
+            <input type="range" id="sliderRu" min="0.1" max="5.0" step="0.1" value="0.8">
+            <span id="valRu" class="val">0.8</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State definitions
+    let N = 16;
+    let dt = 0.1;
+    let wObs = 5.0;
+    let vMax = 1.2;
+    let rU = 0.8;
+    let solverType = 'sqp'; // 'sqp', 'ipm', 'unconstrained'
+    let isPlaying = false;
+    let animId = null;
+
+    // Simulation Time
+    let simTime = 0;
+
+    // Robot state: [x, y, theta, v]
+    let robot = { x: 80, y: 320, theta: -Math.PI / 4, v: 0.0, w: 0.0 };
+    let goal = { x: 520, y: 90 };
+    let pathHistory = [{ x: robot.x, y: robot.y }];
+
+    // Predicted states along horizon: [{x, y, theta, v, w}]
+    let predictedPlan = [];
+    let predictedControls = [];
+
+    // Obstacles
+    let obstacles = [
+      { x: 220, y: 240, r: 42 },
+      { x: 380, y: 160, r: 48 },
+      { x: 300, y: 110, r: 35 }
+    ];
+
+    // Dragging state
+    let draggedObj = null;
+
+    // Canvases
+    const arenaCanvas = document.getElementById('arenaCanvas');
+    const arenaCtx = arenaCanvas.getContext('2d');
+
+    const horizonCanvas = document.getElementById('horizonCanvas');
+    const horizonCtx = horizonCanvas.getContext('2d');
+
+    function resizeCanvases() {
+      [arenaCanvas, horizonCanvas].forEach(c => {
+        const rect = c.parentElement.getBoundingClientRect();
+        c.width = rect.width * window.devicePixelRatio;
+        c.height = rect.height * window.devicePixelRatio;
+      });
+      runMPCSolver();
+      drawAll();
+    }
+    window.addEventListener('resize', resizeCanvases);
+
+    // Reset
+    function resetSim() {
+      simTime = 0;
+      robot = { x: 80, y: arenaCanvas.height > 0 ? arenaCanvas.height / (window.devicePixelRatio * 1.1) : 320, theta: -Math.PI / 4, v: 0.0, w: 0.0 };
+      pathHistory = [{ x: robot.x, y: robot.y }];
+      runMPCSolver();
+      drawAll();
+    }
+
+    // -------------------------------------------------------------
+    // MPC Receding Horizon Algorithm Core
+    // -------------------------------------------------------------
+    function runMPCSolver() {
+      const tStart = performance.now();
+
+      // Initialize plan with warm-start if available
+      let controls = [];
+      if (predictedControls.length === N) {
+        // Shift warm start: u_k = u_{k+1}, u_{N-1} = u_{N-1}
+        for (let i = 1; i < N; i++) controls.push({ ...predictedControls[i] });
+        controls.push({ ...predictedControls[N - 1] });
+      } else {
+        // Cold start straight towards goal
+        const dx = goal.x - robot.x;
+        const dy = goal.y - robot.y;
+        const targetHeading = Math.atan2(dy, dx);
+        for (let i = 0; i < N; i++) {
+          controls.push({ v: vMax * 0.7, w: 0.0 });
+        }
+      }
+
+      // Optimization iterations:
+      // SQP uses 2 iterations with warm start (Gauss-Newton gradient step)
+      // IPM uses barrier iterations
+      const maxIters = solverType === 'sqp' ? 3 : (solverType === 'ipm' ? 5 : 2);
+      let itersDone = 0;
+
+      for (let iter = 0; iter < maxIters; iter++) {
+        itersDone++;
+        // Rollout nominal trajectory
+        let traj = [{ ...robot }];
+        for (let k = 0; k < N; k++) {
+          const prev = traj[k];
+          const u = controls[k];
+          const nextTheta = prev.theta + u.w * dt;
+          const nextX = prev.x + u.v * Math.cos(nextTheta) * dt;
+          const nextY = prev.y + u.v * Math.sin(nextTheta) * dt;
+          traj.push({ x: nextX, y: nextY, theta: nextTheta, v: u.v, w: u.w });
+        }
+
+        // Backward / Gradient pass: adjust controls to minimize stage cost
+        for (let k = 0; k < N; k++) {
+          const pt = traj[k + 1];
+
+          // 1. Goal tracking cost gradient
+          const errX = pt.x - goal.x;
+          const errY = pt.y - goal.y;
+          const targetHeading = Math.atan2(goal.y - pt.y, goal.x - pt.x);
+          let headErr = targetHeading - pt.theta;
+          while (headErr > Math.PI) headErr -= 2 * Math.PI;
+          while (headErr < -Math.PI) headErr += 2 * Math.PI;
+
+          let gradV = 0.04 * (Math.hypot(errX, errY) > 20 ? 1 : -1);
+          let gradW = 0.15 * headErr;
+
+          // 2. Obstacle avoidance gradient
+          if (solverType !== 'unconstrained') {
+            obstacles.forEach(obs => {
+              const dX = pt.x - obs.x;
+              const dY = pt.y - obs.y;
+              const dist = Math.hypot(dX, dY);
+              const safeR = obs.r + 20;
+
+              if (dist < safeR) {
+                const repulse = (safeR - dist) / safeR;
+                const normalAngle = Math.atan2(dY, dX);
+                let diffAngle = normalAngle - pt.theta;
+                while (diffAngle > Math.PI) diffAngle -= 2 * Math.PI;
+                while (diffAngle < -Math.PI) diffAngle += 2 * Math.PI;
+
+                if (solverType === 'sqp') {
+                  // SQP: active constraint linear penalty
+                  gradW += Math.sign(diffAngle) * wObs * repulse * 0.4;
+                  gradV -= wObs * repulse * 0.2;
+                } else if (solverType === 'ipm') {
+                  // IPM: logarithmic barrier penalty
+                  const margin = Math.max(1, dist - obs.r);
+                  const barrierGrad = (1.0 / margin) * wObs * 0.12;
+                  gradW += Math.sign(diffAngle) * barrierGrad;
+                  gradV -= barrierGrad * 0.1;
+                }
+              }
+            });
+          }
+
+          // Control effort regularization (R_u)
+          gradV -= rU * 0.02 * controls[k].v;
+          gradW -= rU * 0.05 * controls[k].w;
+
+          // Apply update
+          controls[k].v = Math.max(0.0, Math.min(vMax, controls[k].v + gradV));
+          controls[k].w = Math.max(-1.5, Math.min(1.5, controls[k].w + gradW));
+        }
+      }
+
+      // Final rollout with optimized controls
+      let finalTraj = [{ ...robot }];
+      for (let k = 0; k < N; k++) {
+        const prev = finalTraj[k];
+        const u = controls[k];
+        const nextTheta = prev.theta + u.w * dt;
+        const nextX = prev.x + u.v * Math.cos(nextTheta) * dt;
+        const nextY = prev.y + u.v * Math.sin(nextTheta) * dt;
+        finalTraj.push({ x: nextX, y: nextY, theta: nextTheta, v: u.v, w: u.w });
+      }
+
+      predictedPlan = finalTraj;
+      predictedControls = controls;
+
+      const tSolve = (performance.now() - tStart).toFixed(1);
+      document.getElementById('statSolveTime').textContent = `${tSolve} мс`;
+      document.getElementById('statIters').textContent = solverType === 'sqp' ? `${itersDone} (Warm-start)` : `${itersDone} (IPM steps)`;
+      document.getElementById('statDistGoal').textContent = `${(Math.hypot(goal.x - robot.x, goal.y - robot.y) / 50).toFixed(2)} м`;
+      document.getElementById('statSpeed').textContent = `${robot.v.toFixed(2)} м/с`;
+    }
+
+    // Step simulation: Apply ONLY u0*, advance time, re-plan!
+    function simTick() {
+      if (predictedControls.length > 0) {
+        const u0 = predictedControls[0];
+        
+        // Execute u0 on real system
+        robot.theta += u0.w * dt;
+        robot.v = u0.v;
+        robot.w = u0.w;
+        robot.x += u0.v * Math.cos(robot.theta) * dt * 25; // 25 px/m scaling
+        robot.y += u0.v * Math.sin(robot.theta) * dt * 25;
+
+        pathHistory.push({ x: robot.x, y: robot.y });
+        simTime += dt;
+        document.getElementById('statTime').textContent = `t = ${simTime.toFixed(1)} с`;
+
+        // Check if goal reached
+        if (Math.hypot(goal.x - robot.x, goal.y - robot.y) < 18) {
+          isPlaying = false;
+          document.getElementById('btnPlay').textContent = '▶ Старт';
+        }
+      }
+
+      // Receding horizon solve for next step
+      runMPCSolver();
+      drawAll();
+
+      if (isPlaying) {
+        animId = requestAnimationFrame(simTick);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // Drawing
+    // -------------------------------------------------------------
+    function drawAll() {
+      drawArena();
+      drawHorizonPlot();
+    }
+
+    function drawArena() {
+      const w = arenaCanvas.width;
+      const h = arenaCanvas.height;
+      arenaCtx.clearRect(0, 0, w, h);
+
+      // Grid background
+      arenaCtx.strokeStyle = '#f1f5f9';
+      arenaCtx.lineWidth = 1;
+      const step = 40;
+      for (let x = 0; x < w; x += step) {
+        arenaCtx.beginPath(); arenaCtx.moveTo(x, 0); arenaCtx.lineTo(x, h); arenaCtx.stroke();
+      }
+      for (let y = 0; y < h; y += step) {
+        arenaCtx.beginPath(); arenaCtx.moveTo(0, y); arenaCtx.lineTo(w, y); arenaCtx.stroke();
+      }
+
+      // Draw Obstacles
+      obstacles.forEach(obs => {
+        // Safety buffer margin
+        arenaCtx.fillStyle = 'rgba(254, 215, 170, 0.4)';
+        arenaCtx.strokeStyle = '#ea580c';
+        arenaCtx.lineWidth = 1.5;
+        arenaCtx.setLineDash([4, 3]);
+        arenaCtx.beginPath();
+        arenaCtx.arc(obs.x, obs.y, obs.r + 15, 0, Math.PI * 2);
+        arenaCtx.fill();
+        arenaCtx.stroke();
+        arenaCtx.setLineDash([]);
+
+        // Core Obstacle
+        arenaCtx.fillStyle = '#cbd5e1';
+        arenaCtx.strokeStyle = '#64748b';
+        arenaCtx.lineWidth = 2;
+        arenaCtx.beginPath();
+        arenaCtx.arc(obs.x, obs.y, obs.r, 0, Math.PI * 2);
+        arenaCtx.fill();
+        arenaCtx.stroke();
+
+        arenaCtx.fillStyle = '#334155';
+        arenaCtx.font = `bold ${9 * window.devicePixelRatio}px var(--font-mono)`;
+        arenaCtx.textAlign = 'center';
+        arenaCtx.fillText('Obstacle', obs.x, obs.y + 3);
+      });
+
+      // Draw Executed History Path
+      if (pathHistory.length > 1) {
+        arenaCtx.strokeStyle = '#0284c7';
+        arenaCtx.lineWidth = 3;
+        arenaCtx.beginPath();
+        pathHistory.forEach((pt, i) => {
+          if (i === 0) arenaCtx.moveTo(pt.x, pt.y);
+          else arenaCtx.lineTo(pt.x, pt.y);
+        });
+        arenaCtx.stroke();
+      }
+
+      // Draw Predicted Horizon Trajectory (Green / Cyan dots & line)
+      if (predictedPlan.length > 1) {
+        arenaCtx.strokeStyle = '#059669';
+        arenaCtx.lineWidth = 2.5;
+        arenaCtx.beginPath();
+        predictedPlan.forEach((pt, i) => {
+          if (i === 0) arenaCtx.moveTo(pt.x, pt.y);
+          else arenaCtx.lineTo(pt.x, pt.y);
+        });
+        arenaCtx.stroke();
+
+        // Dots on predicted states
+        predictedPlan.forEach((pt, i) => {
+          arenaCtx.fillStyle = i === 1 ? '#dc2626' : '#059669';
+          arenaCtx.beginPath();
+          arenaCtx.arc(pt.x, pt.y, i === 1 ? 5 : 3, 0, Math.PI * 2);
+          arenaCtx.fill();
+        });
+      }
+
+      // Draw Target Goal G
+      arenaCtx.fillStyle = '#059669';
+      arenaCtx.strokeStyle = '#ffffff';
+      arenaCtx.lineWidth = 2.5;
+      arenaCtx.beginPath();
+      arenaCtx.arc(goal.x, goal.y, 14, 0, Math.PI * 2);
+      arenaCtx.fill();
+      arenaCtx.stroke();
+
+      arenaCtx.fillStyle = '#ffffff';
+      arenaCtx.font = `bold ${10 * window.devicePixelRatio}px var(--font-sans)`;
+      arenaCtx.textAlign = 'center';
+      arenaCtx.fillText('G', goal.x, goal.y + 4);
+
+      // Draw Robot Body
+      arenaCtx.save();
+      arenaCtx.translate(robot.x, robot.y);
+      arenaCtx.rotate(robot.theta);
+
+      // Chassis
+      arenaCtx.fillStyle = '#2563eb';
+      arenaCtx.strokeStyle = '#0f172a';
+      arenaCtx.lineWidth = 2;
+      arenaCtx.beginPath();
+      arenaCtx.roundRect(-14, -10, 28, 20, 4);
+      arenaCtx.fill();
+      arenaCtx.stroke();
+
+      // Heading arrow
+      arenaCtx.fillStyle = '#ffffff';
+      arenaCtx.beginPath();
+      arenaCtx.moveTo(10, 0);
+      arenaCtx.lineTo(-2, -6);
+      arenaCtx.lineTo(-2, 6);
+      arenaCtx.fill();
+
+      // Active Control u0 vector
+      if (predictedControls.length > 0) {
+        const u0 = predictedControls[0];
+        arenaCtx.strokeStyle = '#dc2626';
+        arenaCtx.lineWidth = 3;
+        arenaCtx.beginPath();
+        arenaCtx.moveTo(14, 0);
+        arenaCtx.lineTo(14 + u0.v * 20, 0);
+        arenaCtx.stroke();
+      }
+
+      arenaCtx.restore();
+    }
+
+    function drawHorizonPlot() {
+      const w = horizonCanvas.width;
+      const h = horizonCanvas.height;
+      horizonCtx.clearRect(0, 0, w, h);
+
+      if (predictedControls.length === 0) return;
+
+      const hHalf = h / 2 - 10;
+      const toPx = k => (k / (N - 1)) * (w - 50) + 35;
+
+      // Plot 1: Velocity v(k)
+      const cy1 = hHalf - 15;
+      const toPyV = v => cy1 - (v / vMax) * (hHalf - 30);
+
+      horizonCtx.strokeStyle = '#e2e8f0';
+      horizonCtx.lineWidth = 1;
+      horizonCtx.beginPath();
+      horizonCtx.moveTo(35, cy1); horizonCtx.lineTo(w - 10, cy1);
+      horizonCtx.stroke();
+
+      horizonCtx.fillStyle = '#64748b';
+      horizonCtx.font = `bold ${8.5 * window.devicePixelRatio}px var(--font-sans)`;
+      horizonCtx.textAlign = 'left';
+      horizonCtx.fillText('Скорость v_k [м/с]', 35, 12 * window.devicePixelRatio);
+
+      horizonCtx.strokeStyle = '#059669';
+      horizonCtx.lineWidth = 2;
+      horizonCtx.beginPath();
+      predictedControls.forEach((u, k) => {
+        const px = toPx(k);
+        const py = toPyV(u.v);
+        if (k === 0) horizonCtx.moveTo(px, py);
+        else horizonCtx.lineTo(px, py);
+      });
+      horizonCtx.stroke();
+
+      // Plot 2: Angular velocity w(k)
+      const cy2 = hHalf + 10 + hHalf / 2;
+      const toPyW = wVal => cy2 - (wVal / 1.5) * (hHalf / 2 - 15);
+
+      horizonCtx.strokeStyle = '#e2e8f0';
+      horizonCtx.beginPath();
+      horizonCtx.moveTo(35, cy2); horizonCtx.lineTo(w - 10, cy2);
+      horizonCtx.stroke();
+
+      horizonCtx.fillStyle = '#64748b';
+      horizonCtx.fillText('Угловая скорость ω_k [рад/с]', 35, hHalf + 22 * window.devicePixelRatio);
+
+      horizonCtx.strokeStyle = '#2563eb';
+      horizonCtx.lineWidth = 2;
+      horizonCtx.beginPath();
+      predictedControls.forEach((u, k) => {
+        const px = toPx(k);
+        const py = toPyW(u.w);
+        if (k === 0) horizonCtx.moveTo(px, py);
+        else horizonCtx.lineTo(px, py);
+      });
+      horizonCtx.stroke();
+    }
+
+    // -------------------------------------------------------------
+    // Mouse Interaction (Drag Robot, Goal, Obstacles)
+    // -------------------------------------------------------------
+    arenaCanvas.addEventListener('mousedown', e => {
+      const rect = arenaCanvas.getBoundingClientRect();
+      const mouseX = (e.clientX - rect.left) * (arenaCanvas.width / rect.width);
+      const mouseY = (e.clientY - rect.top) * (arenaCanvas.height / rect.height);
+
+      if (Math.hypot(mouseX - robot.x, mouseY - robot.y) < 25) {
+        draggedObj = 'robot';
+      } else if (Math.hypot(mouseX - goal.x, mouseY - goal.y) < 20) {
+        draggedObj = 'goal';
+      } else {
+        obstacles.forEach((obs, idx) => {
+          if (Math.hypot(mouseX - obs.x, mouseY - obs.y) < obs.r) {
+            draggedObj = { type: 'obstacle', index: idx };
+          }
+        });
+      }
+    });
+
+    window.addEventListener('mousemove', e => {
+      if (!draggedObj) return;
+      const rect = arenaCanvas.getBoundingClientRect();
+      const mouseX = (e.clientX - rect.left) * (arenaCanvas.width / rect.width);
+      const mouseY = (e.clientY - rect.top) * (arenaCanvas.height / rect.height);
+
+      if (draggedObj === 'robot') {
+        robot.x = mouseX;
+        robot.y = mouseY;
+        pathHistory = [{ x: robot.x, y: robot.y }];
+      } else if (draggedObj === 'goal') {
+        goal.x = mouseX;
+        goal.y = mouseY;
+      } else if (draggedObj.type === 'obstacle') {
+        obstacles[draggedObj.index].x = mouseX;
+        obstacles[draggedObj.index].y = mouseY;
+      }
+
+      runMPCSolver();
+      drawAll();
+    });
+
+    window.addEventListener('mouseup', () => {
+      draggedObj = null;
+    });
+
+    // -------------------------------------------------------------
+    // Button & Control Handlers
+    // -------------------------------------------------------------
+    document.getElementById('btnPlay').addEventListener('click', () => {
+      isPlaying = !isPlaying;
+      document.getElementById('btnPlay').textContent = isPlaying ? '⏸ Пауза' : '▶ Старт';
+      if (isPlaying) simTick();
+    });
+
+    document.getElementById('btnStep').addEventListener('click', () => {
+      isPlaying = false;
+      document.getElementById('btnPlay').textContent = '▶ Старт';
+      simTick();
+    });
+
+    document.getElementById('btnReset').addEventListener('click', () => {
+      isPlaying = false;
+      document.getElementById('btnPlay').textContent = '▶ Старт';
+      resetSim();
+    });
+
+    document.getElementById('btnRandomObs').addEventListener('click', () => {
+      const w = arenaCanvas.width || 600;
+      const h = arenaCanvas.height || 400;
+      obstacles = [
+        { x: 180 + Math.random() * 80, y: 150 + Math.random() * 120, r: 35 + Math.random() * 15 },
+        { x: 320 + Math.random() * 80, y: 120 + Math.random() * 140, r: 35 + Math.random() * 15 },
+        { x: 260 + Math.random() * 80, y: 80 + Math.random() * 80, r: 30 + Math.random() * 12 }
+      ];
+      runMPCSolver();
+      drawAll();
+    });
+
+    document.getElementById('solverSelect').addEventListener('change', e => {
+      solverType = e.target.value;
+      const badge = document.getElementById('badgeSolverType');
+      if (solverType === 'sqp') {
+        badge.className = 'badge-solver badge-sqp';
+        badge.textContent = 'SQP Solver';
+      } else if (solverType === 'ipm') {
+        badge.className = 'badge-solver badge-ipm';
+        badge.textContent = 'Interior Point (IPOPT)';
+      } else {
+        badge.className = 'badge-solver badge-uncon';
+        badge.textContent = 'Unconstrained MPC';
+      }
+      runMPCSolver();
+      drawAll();
+    });
+
+    // Sliders
+    document.getElementById('sliderN').addEventListener('input', e => {
+      N = parseInt(e.target.value);
+      document.getElementById('valN').textContent = N;
+      runMPCSolver();
+      drawAll();
+    });
+
+    document.getElementById('sliderWobs').addEventListener('input', e => {
+      wObs = parseFloat(e.target.value);
+      document.getElementById('valWobs').textContent = wObs.toFixed(1);
+      runMPCSolver();
+      drawAll();
+    });
+
+    document.getElementById('sliderVmax').addEventListener('input', e => {
+      vMax = parseFloat(e.target.value);
+      document.getElementById('valVmax').textContent = vMax.toFixed(1);
+      runMPCSolver();
+      drawAll();
+    });
+
+    document.getElementById('sliderRu').addEventListener('input', e => {
+      rU = parseFloat(e.target.value);
+      document.getElementById('valRu').textContent = rU.toFixed(1);
+      runMPCSolver();
+      drawAll();
+    });
+
+    // Setup
+    setTimeout(resizeCanvases, 50);
+  </script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <g transform="translate(24, 24)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Структура разреженности KKT-матрицы в оптимальном управлении</text>
+    <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Почему разреженные решатели (FATROP, Riccati) масштабируются как O(N), а плотные — как O(N³)</text>
+  </g>
+
+  <!-- Left: Matrix Sparsity Visualization -->
+  <g transform="translate(24, 65)">
+    <rect width="360" height="275" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+    <rect width="360" height="26" rx="8" fill="#0f172a"/>
+    <text x="12" y="17" font-family="Inter" font-size="11.5" font-weight="700" fill="#ffffff">Разреженная KKT-система (95%+ нулевых элементов)</text>
+
+    <!-- Matrix Frame -->
+    <rect x="25" y="38" width="220" height="220" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5"/>
+
+    <!-- Hessian H blocks (Blue, along diagonal top-left) -->
+    <rect x="25" y="38" width="24" height="24" fill="#3b82f6" fill-opacity="0.85"/>
+    <text x="29" y="54" font-family="JetBrains Mono" font-size="8" fill="#ffffff">H₀</text>
+
+    <rect x="49" y="62" width="24" height="24" fill="#3b82f6" fill-opacity="0.85"/>
+    <text x="53" y="78" font-family="JetBrains Mono" font-size="8" fill="#ffffff">H₁</text>
+
+    <rect x="73" y="86" width="24" height="24" fill="#3b82f6" fill-opacity="0.85"/>
+    <text x="77" y="102" font-family="JetBrains Mono" font-size="8" fill="#ffffff">H₂</text>
+
+    <rect x="97" y="110" width="24" height="24" fill="#3b82f6" fill-opacity="0.85"/>
+    <text x="101" y="126" font-family="JetBrains Mono" font-size="8" fill="#ffffff">H₃</text>
+
+    <!-- Dots -->
+    <circle cx="127" cy="140" r="2" fill="#94a3b8"/>
+    <circle cx="132" cy="145" r="2" fill="#94a3b8"/>
+    <circle cx="137" cy="150" r="2" fill="#94a3b8"/>
+
+    <rect x="145" y="158" width="24" height="24" fill="#3b82f6" fill-opacity="0.85"/>
+    <text x="149" y="174" font-family="JetBrains Mono" font-size="8" fill="#ffffff">H_N</text>
+
+    <!-- Dynamics Jacobian G blocks (Amber, staircase off-diagonal) -->
+    <rect x="25" y="185" width="24" height="16" fill="#f59e0b" fill-opacity="0.85"/>
+    <rect x="49" y="185" width="24" height="16" fill="#ef4444" fill-opacity="0.75"/>
+    <rect x="49" y="201" width="24" height="16" fill="#f59e0b" fill-opacity="0.85"/>
+    <rect x="73" y="201" width="24" height="16" fill="#ef4444" fill-opacity="0.75"/>
+    <rect x="73" y="217" width="24" height="16" fill="#f59e0b" fill-opacity="0.85"/>
+    <rect x="97" y="217" width="24" height="16" fill="#ef4444" fill-opacity="0.75"/>
+
+    <!-- Symmetric G^T blocks (top-right) -->
+    <rect x="185" y="25" width="16" height="24" fill="#f59e0b" fill-opacity="0.85"/>
+    <rect x="185" y="49" width="16" height="24" fill="#ef4444" fill-opacity="0.75"/>
+    <rect x="201" y="49" width="16" height="24" fill="#f59e0b" fill-opacity="0.85"/>
+    <rect x="201" y="73" width="16" height="24" fill="#ef4444" fill-opacity="0.75"/>
+
+    <!-- Big zero area text -->
+    <text x="145" y="90" font-family="JetBrains Mono" font-size="12" fill="#cbd5e1" font-weight="700">0</text>
+    <text x="80" y="165" font-family="JetBrains Mono" font-size="12" fill="#cbd5e1" font-weight="700">0</text>
+    <text x="180" y="220" font-family="JetBrains Mono" font-size="12" fill="#cbd5e1" font-weight="700">0</text>
+
+    <!-- Legend right of matrix -->
+    <g transform="translate(255, 50)" font-family="Inter" font-size="9.5">
+      <rect x="0" y="0" width="12" height="12" fill="#3b82f6"/>
+      <text x="18" y="10" fill="#334155">Гессиан H_k</text>
+
+      <rect x="0" y="20" width="12" height="12" fill="#f59e0b"/>
+      <text x="18" y="30" fill="#334155">Якобиан ∂f/∂u</text>
+
+      <rect x="0" y="40" width="12" height="12" fill="#ef4444"/>
+      <text x="18" y="50" fill="#334155">Связка -I</text>
+
+      <rect x="0" y="60" width="12" height="12" fill="#ffffff" stroke="#94a3b8"/>
+      <text x="18" y="70" fill="#64748b">Нули (&gt;95%)</text>
+    </g>
+  </g>
+
+  <!-- Right: Complexity Analysis Card -->
+  <g transform="translate(400, 65)">
+    <rect width="336" height="275" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+    <rect width="336" height="26" rx="8" fill="#2563eb"/>
+    <text x="12" y="17" font-family="Inter" font-size="11.5" font-weight="700" fill="#ffffff">Сравнение масштабируемости солверов</text>
+
+    <!-- Dense solver -->
+    <g transform="translate(15, 38)">
+      <rect width="306" height="66" rx="6" fill="#fef2f2" stroke="#fecaca" stroke-width="1"/>
+      <text x="10" y="16" font-family="Inter" font-size="10.5" font-weight="700" fill="#991b1b">Плотный решатель (Dense QP / Конденсация)</text>
+      <text x="10" y="32" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#b91c1c">Сложность: O(m³ · N³)</text>
+      <text x="10" y="46" font-family="Inter" font-size="9" fill="#7f1d1d">• Исключает состояния x_k, формируя плотную матрицу.</text>
+      <text x="10" y="58" font-family="Inter" font-size="9" fill="#7f1d1d">• При N=40 шаг факторизации вырастает в 40³ = 64 000 раз!</text>
+    </g>
+
+    <!-- Sparse solver -->
+    <g transform="translate(15, 112)">
+      <rect width="306" height="80" rx="6" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1"/>
+      <text x="10" y="16" font-family="Inter" font-size="10.5" font-weight="700" fill="#065f46">Структурный решатель (FATROP / acados)</text>
+      <text x="10" y="32" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#047857">Сложность: O((n + m)³ · N) — Линейно!</text>
+      <text x="10" y="46" font-family="Inter" font-size="9" fill="#064e3b">• Рекурсия Риккати / блочно-ленточное исключение.</text>
+      <text x="10" y="58" font-family="Inter" font-size="9" fill="#064e3b">• При N=40 время увеличивается ровно в 40 раз, а не в 64 000.</text>
+      <text x="10" y="70" font-family="Inter" font-size="9" font-weight="700" fill="#047857">✔ Позволяет решать задачи MPC с N=50 на 100 Гц!</text>
+    </g>
+
+    <!-- Takeaway -->
+    <g transform="translate(15, 200)">
+      <rect width="306" height="64" rx="4" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
+      <text x="10" y="16" font-family="Inter" font-size="9.5" font-weight="700" fill="#1e40af">Практический выбор в робототехнике:</text>
+      <text x="10" y="30" font-family="Inter" font-size="9" fill="#334155">• Короткий горизонт (N &lt; 10): Dense QP (qpOASES)</text>
+      <text x="10" y="44" font-family="Inter" font-size="9" fill="#334155">• Длинный горизонт (N ≥ 15): Sparse solver (FATROP, HPIPM)</text>
+      <text x="10" y="58" font-family="Inter" font-size="9" font-weight="700" fill="#2563eb">• Библиотека BLASFEO векторизует умножение блоков (AVX2).</text>
+    </g>
+  </g>
+</svg>

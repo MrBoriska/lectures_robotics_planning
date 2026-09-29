@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <g transform="translate(24, 24)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Фазовая плоскость (x, ẋ) задачи о быстродействии: двойной интегратор</text>
+    <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">ẍ = u, |u| ≤ 1. Кривая переключения Г = Г₊ ∪ Г₋ разделяет зоны предельного ускорения и торможения</text>
+  </g>
+
+  <!-- Left: Phase Plane Coordinate System -->
+  <g transform="translate(30, 65)">
+    <rect width="400" height="275" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+
+    <!-- Grid lines -->
+    <line x1="40" y1="137.5" x2="360" y2="137.5" stroke="#94a3b8" stroke-width="1.5"/>
+    <line x1="200" y1="20" x2="200" y2="255" stroke="#94a3b8" stroke-width="1.5"/>
+    <text x="365" y="141" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#475569">x</text>
+    <text x="204" y="22" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#475569">ẋ (скорость)</text>
+
+    <!-- Background parabolas for u = +1 (blue dashed) -->
+    <path d="M 80,40 Q 140,137.5 80,235" stroke="#93c5fd" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
+    <path d="M 140,40 Q 200,137.5 140,235" stroke="#93c5fd" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
+    <path d="M 200,40 Q 260,137.5 200,235" stroke="#93c5fd" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
+    <path d="M 260,40 Q 320,137.5 260,235" stroke="#93c5fd" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
+
+    <!-- Background parabolas for u = -1 (red dashed) -->
+    <path d="M 140,40 Q 80,137.5 140,235" stroke="#fca5a5" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
+    <path d="M 200,40 Q 140,137.5 200,235" stroke="#fca5a5" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
+    <path d="M 260,40 Q 200,137.5 260,235" stroke="#fca5a5" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
+    <path d="M 320,40 Q 260,137.5 320,235" stroke="#fca5a5" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
+
+    <!-- Switching curve Gamma = Gamma+ U Gamma- (bold orange) -->
+    <path d="M 100,50 Q 170,100 200,137.5 Q 230,175 300,225" stroke="#ea580c" stroke-width="3.2" fill="none"/>
+    <text x="75" y="46" font-family="Inter" font-size="10.5" font-weight="700" fill="#ea580c">Г₋ (u = -1)</text>
+    <text x="295" y="240" font-family="Inter" font-size="10.5" font-weight="700" fill="#ea580c">Г₊ (u = +1)</text>
+
+    <!-- Region Labels -->
+    <rect x="50" y="80" width="84" height="22" rx="4" fill="#eff6ff" stroke="#3b82f6" stroke-width="1"/>
+    <text x="58" y="95" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#1d4ed8">Область u=+1</text>
+
+    <rect x="266" y="170" width="84" height="22" rx="4" fill="#fef2f2" stroke="#ef4444" stroke-width="1"/>
+    <text x="274" y="185" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#b91c1c">Область u=-1</text>
+
+    <!-- Example Trajectory: Starts at (x0, v0), u=-1 -> hits switching curve -> u=+1 -> Origin -->
+    <path d="M 310,95 Q 280,140 248,192" stroke="#dc2626" stroke-width="2.8" fill="none"/>
+    <polygon points="274,152 268,142 278,145" fill="#dc2626"/>
+
+    <path d="M 248,192 Q 225,165 200,137.5" stroke="#059669" stroke-width="3" fill="none"/>
+    <polygon points="220,157 215,147 225,151" fill="#059669"/>
+
+    <!-- Start Node -->
+    <circle cx="310" cy="95" r="5" fill="#2563eb" stroke="#ffffff" stroke-width="1.8"/>
+    <text x="318" y="93" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#2563eb">(x₀, ẋ₀)</text>
+
+    <!-- Switching Node -->
+    <circle cx="248" cy="192" r="5.5" fill="#ea580c" stroke="#ffffff" stroke-width="1.8"/>
+    <text x="256" y="200" font-family="Inter" font-size="10" font-weight="700" fill="#ea580c">Точка переключения S</text>
+
+    <!-- Origin Target -->
+    <circle cx="200" cy="137.5" r="6" fill="#059669" stroke="#ffffff" stroke-width="2"/>
+    <text x="180" y="128" font-family="JetBrains Mono" font-size="10.5" font-weight="700" fill="#059669">(0, 0)</text>
+  </g>
+
+  <!-- Right: Rigorous Mathematical Cards -->
+  <g transform="translate(445, 65)">
+    <!-- Card 1: PMP & Switching function -->
+    <rect width="290" height="82" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+    <rect width="290" height="22" rx="6" fill="#0284c7"/>
+    <text x="10" y="15" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff">1. Принцип максимума Понтрягина (ПМП)</text>
+    <text x="10" y="38" font-family="JetBrains Mono" font-size="9.5" fill="#0f172a">H = 1 + λ₁ẋ + λ₂u = 1 + λ₁ẋ + u·σ(t)</text>
+    <text x="10" y="54" font-family="Inter" font-size="9.5" fill="#475569">Функция переключения: <tspan font-family="JetBrains Mono" font-weight="700" fill="#ea580c">σ(t) = λ₂(t)</tspan></text>
+    <text x="10" y="70" font-family="JetBrains Mono" font-size="9.5" font-weight="700" fill="#0284c7">u*(t) = -sign(λ₂(t)) ∈ {-1, +1} (Bang-Bang)</text>
+
+    <!-- Card 2: Switching Curve Formula -->
+    <g transform="translate(0, 92)">
+      <rect width="290" height="90" rx="6" fill="#fffbeb" stroke="#fcd34d" stroke-width="1.2"/>
+      <rect width="290" height="22" rx="6" fill="#d97706"/>
+      <text x="10" y="15" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff">2. Кривая переключения Г и синтез ОС</text>
+      <text x="10" y="38" font-family="JetBrains Mono" font-size="9.5" font-weight="700" fill="#b45309">Г: x + ½ ẋ |ẋ| = 0</text>
+      <text x="10" y="54" font-family="Inter" font-size="9.5" fill="#78350f">• x &gt; -½ ẋ|ẋ| ⇒ u = -1 (предельное торможение)</text>
+      <text x="10" y="68" font-family="Inter" font-size="9.5" fill="#78350f">• x &lt; -½ ẋ|ẋ| ⇒ u = +1 (предельный разгон)</text>
+      <text x="10" y="82" font-family="Inter" font-size="9.5" font-weight="700" fill="#b45309">Максимум 1 переключение для 2-го порядка!</text>
+    </g>
+
+    <!-- Card 3: Engineering Reality -->
+    <g transform="translate(0, 192)">
+      <rect width="290" height="83" rx="6" fill="#fef2f2" stroke="#fecaca" stroke-width="1.2"/>
+      <rect width="290" height="22" rx="6" fill="#dc2626"/>
+      <text x="10" y="15" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff">3. Ограничение: Эффект дребезга (Chattering)</text>
+      <text x="10" y="38" font-family="Inter" font-size="9.5" fill="#7f1d1d">• Дискретность времени (dt) приводит к</text>
+      <text x="10" y="52" font-family="Inter" font-size="9.5" fill="#7f1d1d">  высокочастотным колебаниям около нуля.</text>
+      <text x="10" y="66" font-family="Inter" font-size="9.5" fill="#7f1d1d">• Решение в робототехнике: пограничный слой</text>
+      <text x="10" y="80" font-family="Inter" font-size="9.5" font-weight="700" fill="#991b1b">  (sat вместо sign) или гладкий LQR.</text>
+    </g>
+  </g>
+</svg>

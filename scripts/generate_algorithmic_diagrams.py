@@ -3596,6 +3596,826 @@ def generate_grid_as_graph():
     write_svg(filepath, svg)
 
 
+# -------------------------------------------------------------------------
+# Diagram 14: Lecture 05 - Bang-Bang Phase Plane Double Integrator
+# -------------------------------------------------------------------------
+def generate_bang_bang_phase_plane():
+    filepath = os.path.join(OUTPUT_DIR, 'lecture-05', 'bang_bang_phase_plane.svg')
+    ensure_dir(filepath)
+
+    svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <g transform="translate(24, 24)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Фазовая плоскость (x, ẋ) задачи о быстродействии: двойной интегратор</text>
+    <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">ẍ = u, |u| ≤ 1. Кривая переключения Г = Г₊ ∪ Г₋ разделяет зоны предельного ускорения и торможения</text>
+  </g>
+
+  <!-- Left: Phase Plane Coordinate System -->
+  <g transform="translate(30, 65)">
+    <rect width="400" height="275" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+
+    <!-- Grid lines -->
+    <line x1="40" y1="137.5" x2="360" y2="137.5" stroke="#94a3b8" stroke-width="1.5"/>
+    <line x1="200" y1="20" x2="200" y2="255" stroke="#94a3b8" stroke-width="1.5"/>
+    <text x="365" y="141" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#475569">x</text>
+    <text x="204" y="22" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#475569">ẋ (скорость)</text>
+
+    <!-- Background parabolas for u = +1 (blue dashed) -->
+    <path d="M 80,40 Q 140,137.5 80,235" stroke="#93c5fd" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
+    <path d="M 140,40 Q 200,137.5 140,235" stroke="#93c5fd" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
+    <path d="M 200,40 Q 260,137.5 200,235" stroke="#93c5fd" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
+    <path d="M 260,40 Q 320,137.5 260,235" stroke="#93c5fd" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
+
+    <!-- Background parabolas for u = -1 (red dashed) -->
+    <path d="M 140,40 Q 80,137.5 140,235" stroke="#fca5a5" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
+    <path d="M 200,40 Q 140,137.5 200,235" stroke="#fca5a5" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
+    <path d="M 260,40 Q 200,137.5 260,235" stroke="#fca5a5" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
+    <path d="M 320,40 Q 260,137.5 320,235" stroke="#fca5a5" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
+
+    <!-- Switching curve Gamma = Gamma+ U Gamma- (bold orange) -->
+    <path d="M 100,50 Q 170,100 200,137.5 Q 230,175 300,225" stroke="#ea580c" stroke-width="3.2" fill="none"/>
+    <text x="75" y="46" font-family="Inter" font-size="10.5" font-weight="700" fill="#ea580c">Г₋ (u = -1)</text>
+    <text x="295" y="240" font-family="Inter" font-size="10.5" font-weight="700" fill="#ea580c">Г₊ (u = +1)</text>
+
+    <!-- Region Labels -->
+    <rect x="50" y="80" width="84" height="22" rx="4" fill="#eff6ff" stroke="#3b82f6" stroke-width="1"/>
+    <text x="58" y="95" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#1d4ed8">Область u=+1</text>
+
+    <rect x="266" y="170" width="84" height="22" rx="4" fill="#fef2f2" stroke="#ef4444" stroke-width="1"/>
+    <text x="274" y="185" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#b91c1c">Область u=-1</text>
+
+    <!-- Example Trajectory: Starts at (x0, v0), u=-1 -> hits switching curve -> u=+1 -> Origin -->
+    <path d="M 310,95 Q 280,140 248,192" stroke="#dc2626" stroke-width="2.8" fill="none"/>
+    <polygon points="274,152 268,142 278,145" fill="#dc2626"/>
+
+    <path d="M 248,192 Q 225,165 200,137.5" stroke="#059669" stroke-width="3" fill="none"/>
+    <polygon points="220,157 215,147 225,151" fill="#059669"/>
+
+    <!-- Start Node -->
+    <circle cx="310" cy="95" r="5" fill="#2563eb" stroke="#ffffff" stroke-width="1.8"/>
+    <text x="318" y="93" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#2563eb">(x₀, ẋ₀)</text>
+
+    <!-- Switching Node -->
+    <circle cx="248" cy="192" r="5.5" fill="#ea580c" stroke="#ffffff" stroke-width="1.8"/>
+    <text x="256" y="200" font-family="Inter" font-size="10" font-weight="700" fill="#ea580c">Точка переключения S</text>
+
+    <!-- Origin Target -->
+    <circle cx="200" cy="137.5" r="6" fill="#059669" stroke="#ffffff" stroke-width="2"/>
+    <text x="180" y="128" font-family="JetBrains Mono" font-size="10.5" font-weight="700" fill="#059669">(0, 0)</text>
+  </g>
+
+  <!-- Right: Rigorous Mathematical Cards -->
+  <g transform="translate(445, 65)">
+    <!-- Card 1: PMP & Switching function -->
+    <rect width="290" height="82" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+    <rect width="290" height="22" rx="6" fill="#0284c7"/>
+    <text x="10" y="15" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff">1. Принцип максимума Понтрягина (ПМП)</text>
+    <text x="10" y="38" font-family="JetBrains Mono" font-size="9.5" fill="#0f172a">H = 1 + λ₁ẋ + λ₂u = 1 + λ₁ẋ + u·σ(t)</text>
+    <text x="10" y="54" font-family="Inter" font-size="9.5" fill="#475569">Функция переключения: <tspan font-family="JetBrains Mono" font-weight="700" fill="#ea580c">σ(t) = λ₂(t)</tspan></text>
+    <text x="10" y="70" font-family="JetBrains Mono" font-size="9.5" font-weight="700" fill="#0284c7">u*(t) = -sign(λ₂(t)) ∈ {-1, +1} (Bang-Bang)</text>
+
+    <!-- Card 2: Switching Curve Formula -->
+    <g transform="translate(0, 92)">
+      <rect width="290" height="90" rx="6" fill="#fffbeb" stroke="#fcd34d" stroke-width="1.2"/>
+      <rect width="290" height="22" rx="6" fill="#d97706"/>
+      <text x="10" y="15" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff">2. Кривая переключения Г и синтез ОС</text>
+      <text x="10" y="38" font-family="JetBrains Mono" font-size="9.5" font-weight="700" fill="#b45309">Г: x + ½ ẋ |ẋ| = 0</text>
+      <text x="10" y="54" font-family="Inter" font-size="9.5" fill="#78350f">• x &gt; -½ ẋ|ẋ| ⇒ u = -1 (предельное торможение)</text>
+      <text x="10" y="68" font-family="Inter" font-size="9.5" fill="#78350f">• x &lt; -½ ẋ|ẋ| ⇒ u = +1 (предельный разгон)</text>
+      <text x="10" y="82" font-family="Inter" font-size="9.5" font-weight="700" fill="#b45309">Максимум 1 переключение для 2-го порядка!</text>
+    </g>
+
+    <!-- Card 3: Engineering Reality -->
+    <g transform="translate(0, 192)">
+      <rect width="290" height="83" rx="6" fill="#fef2f2" stroke="#fecaca" stroke-width="1.2"/>
+      <rect width="290" height="22" rx="6" fill="#dc2626"/>
+      <text x="10" y="15" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff">3. Ограничение: Эффект дребезга (Chattering)</text>
+      <text x="10" y="38" font-family="Inter" font-size="9.5" fill="#7f1d1d">• Дискретность времени (dt) приводит к</text>
+      <text x="10" y="52" font-family="Inter" font-size="9.5" fill="#7f1d1d">  высокочастотным колебаниям около нуля.</text>
+      <text x="10" y="66" font-family="Inter" font-size="9.5" fill="#7f1d1d">• Решение в робототехнике: пограничный слой</text>
+      <text x="10" y="80" font-family="Inter" font-size="9.5" font-weight="700" fill="#991b1b">  (sat вместо sign) или гладкий LQR.</text>
+    </g>
+  </g>
+</svg>'''
+
+    write_svg(filepath, svg)
+
+
+# -------------------------------------------------------------------------
+# Diagram 15: Lecture 05 - Transcription Methods (Single/Multiple/Collocation)
+# -------------------------------------------------------------------------
+def generate_transcription_methods():
+    filepath = os.path.join(OUTPUT_DIR, 'lecture-05', 'transcription_shooting_collocation.svg')
+    ensure_dir(filepath)
+
+    svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <g transform="translate(24, 24)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Прямая дискретизация (Direct Transcription): семейство методов</text>
+    <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Преобразование бесконечномерной OCP в конечномерную задачу нелинейного программирования (NLP)</text>
+  </g>
+
+  <!-- Panel 1: Single Shooting -->
+  <g transform="translate(24, 65)">
+    <rect width="225" height="275" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+    <rect width="225" height="26" rx="8" fill="#475569"/>
+    <text x="12" y="17" font-family="Inter" font-size="11.5" font-weight="700" fill="#ffffff">1. Single Shooting (Прямая)</text>
+
+    <!-- Visual schematic -->
+    <rect x="12" y="36" width="201" height="96" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="18" y="52" font-family="JetBrains Mono" font-size="9" fill="#64748b">Параметры: u = [u₀, u₁, ..., u_(N-1)]</text>
+
+    <!-- Initial state -->
+    <circle cx="30" cy="98" r="4.5" fill="#0284c7"/>
+    <text x="24" y="116" font-family="JetBrains Mono" font-size="9" font-weight="700" fill="#0284c7">x₀</text>
+
+    <!-- Single continuous integration arc with diverging tails -->
+    <path d="M 30,98 C 65,65 110,120 185,75" stroke="#059669" stroke-width="2.5" fill="none"/>
+    <path d="M 30,98 C 65,60 110,140 185,120" stroke="#fca5a5" stroke-width="1.5" stroke-dasharray="3,3" fill="none"/>
+    <path d="M 30,98 C 65,70 110,100 185,50" stroke="#fca5a5" stroke-width="1.5" stroke-dasharray="3,3" fill="none"/>
+
+    <circle cx="185" cy="75" r="4" fill="#059669"/>
+    <text x="160" y="68" font-family="JetBrains Mono" font-size="8.5" fill="#059669">x_N(u)</text>
+    <text x="105" y="125" font-family="Inter" font-size="8" fill="#dc2626">Взрыв погрешности</text>
+
+    <!-- Properties -->
+    <g transform="translate(12, 140)" font-family="Inter" font-size="10" fill="#334155">
+      <text x="0" y="0" font-weight="700" fill="#0f172a">• Переменные NLP:</text>
+      <text x="10" y="14" font-family="JetBrains Mono" font-size="9.5" fill="#0284c7">w = [u₀, ..., u_(N-1)] ∈ ℝ^(m·N)</text>
+      <text x="0" y="32" font-weight="700" fill="#059669">✔ Плюсы:</text>
+      <text x="10" y="46">Минимальный размер задачи</text>
+      <text x="10" y="60">Только входные управления</text>
+      <text x="0" y="78" font-weight="700" fill="#dc2626">✖ Минусы:</text>
+      <text x="10" y="92">Крайняя неустойчивость</text>
+      <text x="10" y="106">Нельзя инициализировать траекторию</text>
+      <text x="10" y="120">Плотные производные dJ/du</text>
+    </g>
+  </g>
+
+  <!-- Panel 2: Multiple Shooting -->
+  <g transform="translate(267, 65)">
+    <rect width="225" height="275" rx="8" fill="#f8fafc" stroke="#3b82f6" stroke-width="1.5"/>
+    <rect width="225" height="26" rx="8" fill="#2563eb"/>
+    <text x="12" y="17" font-family="Inter" font-size="11.5" font-weight="700" fill="#ffffff">2. Multiple Shooting (Многократная)</text>
+
+    <!-- Visual schematic -->
+    <rect x="12" y="36" width="201" height="96" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="18" y="52" font-family="JetBrains Mono" font-size="9" fill="#64748b">Сетка: x_k, u_k + дефекты c_k = 0</text>
+
+    <!-- Subintervals with jumps -->
+    <circle cx="28" cy="95" r="3.5" fill="#2563eb"/>
+    <path d="M 28,95 Q 45,75 68,82" stroke="#2563eb" stroke-width="2" fill="none"/>
+    <circle cx="68" cy="82" r="3" fill="#64748b"/>
+    <line x1="68" y1="82" x2="74" y2="76" stroke="#ea580c" stroke-width="2" stroke-dasharray="2,2"/>
+
+    <circle cx="74" cy="76" r="3.5" fill="#2563eb"/>
+    <path d="M 74,76 Q 95,105 120,98" stroke="#2563eb" stroke-width="2" fill="none"/>
+    <circle cx="120" cy="98" r="3" fill="#64748b"/>
+    <line x1="120" y1="98" x2="128" y2="90" stroke="#ea580c" stroke-width="2" stroke-dasharray="2,2"/>
+
+    <circle cx="128" cy="90" r="3.5" fill="#2563eb"/>
+    <path d="M 128,90 Q 155,60 185,72" stroke="#2563eb" stroke-width="2" fill="none"/>
+    <circle cx="185" cy="72" r="3.5" fill="#059669"/>
+
+    <text x="35" y="125" font-family="Inter" font-size="8.5" font-weight="700" fill="#ea580c">Дефект: c_k = x_(k+1) - Φ(x_k, u_k)</text>
+
+    <!-- Properties -->
+    <g transform="translate(12, 140)" font-family="Inter" font-size="10" fill="#334155">
+      <text x="0" y="0" font-weight="700" fill="#0f172a">• Переменные NLP:</text>
+      <text x="10" y="14" font-family="JetBrains Mono" font-size="9.5" fill="#2563eb">w = [x₀, u₀, ..., x_N] ∈ ℝ^((n+m)N)</text>
+      <text x="0" y="32" font-weight="700" fill="#059669">✔ Плюсы:</text>
+      <text x="10" y="46">Численная устойчивость</text>
+      <text x="10" y="60">Параллельное интегрирование</text>
+      <text x="10" y="74">Естественный теплый старт</text>
+      <text x="0" y="92" font-weight="700" fill="#dc2626">✖ Минусы:</text>
+      <text x="10" y="106">Нужен интегратор ODE внутри</text>
+      <text x="10" y="120">Больше переменных, чем в Single</text>
+    </g>
+  </g>
+
+  <!-- Panel 3: Direct Collocation -->
+  <g transform="translate(510, 65)">
+    <rect width="225" height="275" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+    <rect width="225" height="26" rx="8" fill="#059669"/>
+    <text x="12" y="17" font-family="Inter" font-size="11.5" font-weight="700" fill="#ffffff">3. Direct Collocation (Коллокация)</text>
+
+    <!-- Visual schematic -->
+    <rect x="12" y="36" width="201" height="96" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="18" y="52" font-family="JetBrains Mono" font-size="9" fill="#64748b">Hermite-Simpson: сплайны без ODE</text>
+
+    <path d="M 28,100 C 60,60 80,60 110,85 C 140,110 160,60 190,70" stroke="#059669" stroke-width="2.5" fill="none"/>
+
+    <circle cx="28" cy="100" r="3.5" fill="#059669"/>
+    <text x="22" y="115" font-family="JetBrains Mono" font-size="8" fill="#059669">x_k</text>
+
+    <circle cx="69" cy="70" r="2.5" fill="#d97706"/>
+    <line x1="69" y1="70" x2="85" y2="65" stroke="#d97706" stroke-width="1.5"/>
+    <text x="65" y="60" font-family="JetBrains Mono" font-size="7.5" fill="#d97706">ẋ_c = f(x_c)</text>
+
+    <circle cx="110" cy="85" r="3.5" fill="#059669"/>
+    <text x="96" y="100" font-family="JetBrains Mono" font-size="8" fill="#059669">x_(k+1)</text>
+
+    <circle cx="150" cy="80" r="2.5" fill="#d97706"/>
+    <circle cx="190" cy="70" r="3.5" fill="#059669"/>
+
+    <text x="20" y="125" font-family="Inter" font-size="8.5" font-weight="700" fill="#059669">Алгебраические невязки c_k = 0</text>
+
+    <!-- Properties -->
+    <g transform="translate(12, 140)" font-family="Inter" font-size="10" fill="#334155">
+      <text x="0" y="0" font-weight="700" fill="#0f172a">• Переменные NLP:</text>
+      <text x="10" y="14" font-family="JetBrains Mono" font-size="9.5" fill="#059669">w = [x_k, x_(k+½), u_k] (очень много)</text>
+      <text x="0" y="32" font-weight="700" fill="#059669">✔ Плюсы:</text>
+      <text x="10" y="46">Нет численного интегратора!</text>
+      <text x="10" y="60">Точные фазовые ограничения</text>
+      <text x="10" y="74">Матрицы разрежены на 98%+</text>
+      <text x="0" y="92" font-weight="700" fill="#dc2626">✖ Минусы:</text>
+      <text x="10" y="106">Огромный размер размерности w</text>
+      <text x="10" y="120">Требует редких решателей (IPOPT)</text>
+    </g>
+  </g>
+</svg>'''
+
+    write_svg(filepath, svg)
+
+
+# -------------------------------------------------------------------------
+# Diagram 16: Lecture 05 - Bellman HJB and LQR Concept
+# -------------------------------------------------------------------------
+def generate_hjb_lqr_concept():
+    filepath = os.path.join(OUTPUT_DIR, 'lecture-05', 'hjb_lqr_concept.svg')
+    ensure_dir(filepath)
+
+    svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <g transform="translate(24, 24)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Принцип Беллмана (HJB) и Линейно-Квадратичный Регулятор (LQR)</text>
+    <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Сравнение: общее нелинейное PDE Беллмана и его аналитический шедевр через матричное уравнение Риккати</text>
+  </g>
+
+  <!-- Left: HJB & Bellman Principle -->
+  <g transform="translate(24, 65)">
+    <rect width="345" height="275" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+    <rect width="345" height="26" rx="8" fill="#475569"/>
+    <text x="12" y="17" font-family="Inter" font-size="11.5" font-weight="700" fill="#ffffff">Уравнение Гамильтона-Якоби-Беллмана (HJB)</text>
+
+    <!-- Schematic: Value function surface contours -->
+    <g transform="translate(15, 38)">
+      <rect width="315" height="100" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
+
+      <!-- Contours of V(x) -->
+      <ellipse cx="160" cy="55" rx="130" ry="38" stroke="#cbd5e1" stroke-width="1" fill="none"/>
+      <ellipse cx="160" cy="55" rx="90" ry="26" stroke="#94a3b8" stroke-width="1.2" fill="none"/>
+      <ellipse cx="160" cy="55" rx="50" ry="15" stroke="#64748b" stroke-width="1.5" fill="none"/>
+      <circle cx="160" cy="55" r="4.5" fill="#059669"/>
+      <text x="160" y="74" text-anchor="middle" font-family="JetBrains Mono" font-size="9" font-weight="700" fill="#059669">V(0) = 0</text>
+
+      <!-- Optimal trajectories descending gradient of V -->
+      <path d="M 40,30 Q 90,40 160,55" stroke="#2563eb" stroke-width="2" fill="none"/>
+      <polygon points="120,47 110,43 115,52" fill="#2563eb"/>
+      <path d="M 280,25 Q 220,35 160,55" stroke="#2563eb" stroke-width="2" fill="none"/>
+      <polygon points="200,43 210,39 205,48" fill="#2563eb"/>
+
+      <text x="24" y="24" font-family="Inter" font-size="9" fill="#475569">Линии уровня функции цены V(x)</text>
+      <text x="195" y="88" font-family="Inter" font-size="9" font-weight="700" fill="#2563eb">Траектории: ẋ = f(x, u*)</text>
+    </g>
+
+    <!-- HJB Formula box -->
+    <g transform="translate(15, 148)" font-family="Inter" font-size="10.5" fill="#1e293b">
+      <rect width="315" height="42" rx="4" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
+      <text x="10" y="18" font-family="JetBrains Mono" font-size="10.5" font-weight="700" fill="#1e40af">min_u [ l(x, u) + ∇V(x)ᵀ f(x, u) ] = 0</text>
+      <text x="10" y="34" font-family="Inter" font-size="9.5" fill="#2563eb">Уравнение в частных производных (PDE) для V(x)</text>
+
+      <text x="0" y="58" font-weight="700" fill="#0f172a">• Суть принципа оптимальности (Беллман):</text>
+      <text x="10" y="72" font-size="9.5" fill="#475569">Каков бы ни был начальный путь, остаток пути обязан</text>
+      <text x="10" y="86" font-size="9.5" fill="#475569">быть оптимальным относительно текущего состояния.</text>
+      <text x="0" y="104" font-weight="700" fill="#dc2626">✖ Проклятие размерности (Curse of Dimensionality):</text>
+      <text x="10" y="118" font-size="9.5" fill="#b91c1c">Сетка в ℝⁿ требует Mⁿ узлов (M=100, n=6 ⇒ 10¹² узлов!).</text>
+    </g>
+  </g>
+
+  <!-- Right: LQR & Riccati -->
+  <g transform="translate(391, 65)">
+    <rect width="345" height="275" rx="8" fill="#f8fafc" stroke="#3b82f6" stroke-width="1.5"/>
+    <rect width="345" height="26" rx="8" fill="#2563eb"/>
+    <text x="12" y="17" font-family="Inter" font-size="11.5" font-weight="700" fill="#ffffff">Аналитический прорыв: Линейно-Квадратичный Регулятор</text>
+
+    <!-- Schematic: Quadratic bowl & Exponential response -->
+    <g transform="translate(15, 38)">
+      <rect width="315" height="100" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
+
+      <!-- Step response comparison: LQR vs Bang-Bang -->
+      <line x1="20" y1="85" x2="295" y2="85" stroke="#94a3b8" stroke-width="1"/>
+      <line x1="40" y1="15" x2="40" y2="90" stroke="#94a3b8" stroke-width="1"/>
+      <text x="280" y="96" font-family="JetBrains Mono" font-size="8.5" fill="#64748b">Время t</text>
+      <text x="25" y="20" font-family="JetBrains Mono" font-size="8.5" fill="#64748b">x(t)</text>
+
+      <!-- Bang-Bang: sharp straight deceleration to 0 -->
+      <path d="M 40,25 L 110,65 L 150,85 L 290,85" stroke="#ea580c" stroke-width="2" fill="none"/>
+      <text x="115" y="55" font-family="Inter" font-size="8" font-weight="700" fill="#ea580c">Bang-Bang: быстро, излом u</text>
+
+      <!-- LQR: smooth exponential curve -->
+      <path d="M 40,25 Q 90,80 290,85" stroke="#059669" stroke-width="2.5" fill="none"/>
+      <text x="180" y="75" font-family="Inter" font-size="8" font-weight="700" fill="#059669">LQR: exp((A-BK)t) (гладко)</text>
+
+      <text x="15" y="10" font-family="Inter" font-size="8.5" font-weight="700" fill="#1e293b">Отклик системы на начальное отклонение x₀</text>
+    </g>
+
+    <!-- CARE Formula box -->
+    <g transform="translate(15, 148)" font-family="Inter" font-size="10.5" fill="#1e293b">
+      <rect width="315" height="42" rx="4" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1"/>
+      <text x="10" y="18" font-family="JetBrains Mono" font-size="9.5" font-weight="700" fill="#065f46">AᵀP + PA - P B R⁻¹ Bᵀ P + Q = 0  (CARE)</text>
+      <text x="10" y="34" font-family="JetBrains Mono" font-size="9.5" font-weight="700" fill="#059669">V(x) = xᵀ P x  ⇒  u*(t) = -K x(t),  K = R⁻¹ Bᵀ P</text>
+
+      <text x="0" y="58" font-weight="700" fill="#0f172a">• Почему LQR фундаментален для практики:</text>
+      <text x="10" y="72" font-size="9.5" fill="#475569">1. Функция цены квадратична: V(x) = xᵀ P x точно!</text>
+      <text x="10" y="86" font-size="9.5" fill="#475569">2. Обратная связь u = -Kx линейна и рассчитывается за 1 мкс.</text>
+      <text x="10" y="100" font-size="9.5" fill="#475569">3. Баланс точности (Q) и расхода энергии/моментов (R).</text>
+      <text x="0" y="118" font-weight="700" fill="#b45309">⚠ Ограничение: не учитывает барьеры неравенств |u| ≤ u_max.</text>
+    </g>
+  </g>
+</svg>'''
+
+    write_svg(filepath, svg)
+
+
+# -------------------------------------------------------------------------
+# Diagram 17: Lecture 06 - KKT Sparsity Pattern (Block Banded Structure)
+# -------------------------------------------------------------------------
+def generate_nlp_sparsity_pattern():
+    filepath = os.path.join(OUTPUT_DIR, 'lecture-06', 'nlp_sparsity_pattern.svg')
+    ensure_dir(filepath)
+
+    svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <g transform="translate(24, 24)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Структура разреженности KKT-матрицы в оптимальном управлении</text>
+    <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Почему разреженные решатели (FATROP, Riccati) масштабируются как O(N), а плотные — как O(N³)</text>
+  </g>
+
+  <!-- Left: Matrix Sparsity Visualization -->
+  <g transform="translate(24, 65)">
+    <rect width="360" height="275" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+    <rect width="360" height="26" rx="8" fill="#0f172a"/>
+    <text x="12" y="17" font-family="Inter" font-size="11.5" font-weight="700" fill="#ffffff">Разреженная KKT-система (95%+ нулевых элементов)</text>
+
+    <!-- Matrix Frame -->
+    <rect x="25" y="38" width="220" height="220" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5"/>
+
+    <!-- Hessian H blocks (Blue, along diagonal top-left) -->
+    <rect x="25" y="38" width="24" height="24" fill="#3b82f6" fill-opacity="0.85"/>
+    <text x="29" y="54" font-family="JetBrains Mono" font-size="8" fill="#ffffff">H₀</text>
+
+    <rect x="49" y="62" width="24" height="24" fill="#3b82f6" fill-opacity="0.85"/>
+    <text x="53" y="78" font-family="JetBrains Mono" font-size="8" fill="#ffffff">H₁</text>
+
+    <rect x="73" y="86" width="24" height="24" fill="#3b82f6" fill-opacity="0.85"/>
+    <text x="77" y="102" font-family="JetBrains Mono" font-size="8" fill="#ffffff">H₂</text>
+
+    <rect x="97" y="110" width="24" height="24" fill="#3b82f6" fill-opacity="0.85"/>
+    <text x="101" y="126" font-family="JetBrains Mono" font-size="8" fill="#ffffff">H₃</text>
+
+    <!-- Dots -->
+    <circle cx="127" cy="140" r="2" fill="#94a3b8"/>
+    <circle cx="132" cy="145" r="2" fill="#94a3b8"/>
+    <circle cx="137" cy="150" r="2" fill="#94a3b8"/>
+
+    <rect x="145" y="158" width="24" height="24" fill="#3b82f6" fill-opacity="0.85"/>
+    <text x="149" y="174" font-family="JetBrains Mono" font-size="8" fill="#ffffff">H_N</text>
+
+    <!-- Dynamics Jacobian G blocks (Amber, staircase off-diagonal) -->
+    <rect x="25" y="185" width="24" height="16" fill="#f59e0b" fill-opacity="0.85"/>
+    <rect x="49" y="185" width="24" height="16" fill="#ef4444" fill-opacity="0.75"/>
+    <rect x="49" y="201" width="24" height="16" fill="#f59e0b" fill-opacity="0.85"/>
+    <rect x="73" y="201" width="24" height="16" fill="#ef4444" fill-opacity="0.75"/>
+    <rect x="73" y="217" width="24" height="16" fill="#f59e0b" fill-opacity="0.85"/>
+    <rect x="97" y="217" width="24" height="16" fill="#ef4444" fill-opacity="0.75"/>
+
+    <!-- Symmetric G^T blocks (top-right) -->
+    <rect x="185" y="25" width="16" height="24" fill="#f59e0b" fill-opacity="0.85"/>
+    <rect x="185" y="49" width="16" height="24" fill="#ef4444" fill-opacity="0.75"/>
+    <rect x="201" y="49" width="16" height="24" fill="#f59e0b" fill-opacity="0.85"/>
+    <rect x="201" y="73" width="16" height="24" fill="#ef4444" fill-opacity="0.75"/>
+
+    <!-- Big zero area text -->
+    <text x="145" y="90" font-family="JetBrains Mono" font-size="12" fill="#cbd5e1" font-weight="700">0</text>
+    <text x="80" y="165" font-family="JetBrains Mono" font-size="12" fill="#cbd5e1" font-weight="700">0</text>
+    <text x="180" y="220" font-family="JetBrains Mono" font-size="12" fill="#cbd5e1" font-weight="700">0</text>
+
+    <!-- Legend right of matrix -->
+    <g transform="translate(255, 50)" font-family="Inter" font-size="9.5">
+      <rect x="0" y="0" width="12" height="12" fill="#3b82f6"/>
+      <text x="18" y="10" fill="#334155">Гессиан H_k</text>
+
+      <rect x="0" y="20" width="12" height="12" fill="#f59e0b"/>
+      <text x="18" y="30" fill="#334155">Якобиан ∂f/∂u</text>
+
+      <rect x="0" y="40" width="12" height="12" fill="#ef4444"/>
+      <text x="18" y="50" fill="#334155">Связка -I</text>
+
+      <rect x="0" y="60" width="12" height="12" fill="#ffffff" stroke="#94a3b8"/>
+      <text x="18" y="70" fill="#64748b">Нули (&gt;95%)</text>
+    </g>
+  </g>
+
+  <!-- Right: Complexity Analysis Card -->
+  <g transform="translate(400, 65)">
+    <rect width="336" height="275" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+    <rect width="336" height="26" rx="8" fill="#2563eb"/>
+    <text x="12" y="17" font-family="Inter" font-size="11.5" font-weight="700" fill="#ffffff">Сравнение масштабируемости солверов</text>
+
+    <!-- Dense solver -->
+    <g transform="translate(15, 38)">
+      <rect width="306" height="66" rx="6" fill="#fef2f2" stroke="#fecaca" stroke-width="1"/>
+      <text x="10" y="16" font-family="Inter" font-size="10.5" font-weight="700" fill="#991b1b">Плотный решатель (Dense QP / Конденсация)</text>
+      <text x="10" y="32" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#b91c1c">Сложность: O(m³ · N³)</text>
+      <text x="10" y="46" font-family="Inter" font-size="9" fill="#7f1d1d">• Исключает состояния x_k, формируя плотную матрицу.</text>
+      <text x="10" y="58" font-family="Inter" font-size="9" fill="#7f1d1d">• При N=40 шаг факторизации вырастает в 40³ = 64 000 раз!</text>
+    </g>
+
+    <!-- Sparse solver -->
+    <g transform="translate(15, 112)">
+      <rect width="306" height="80" rx="6" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1"/>
+      <text x="10" y="16" font-family="Inter" font-size="10.5" font-weight="700" fill="#065f46">Структурный решатель (FATROP / acados)</text>
+      <text x="10" y="32" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#047857">Сложность: O((n + m)³ · N) — Линейно!</text>
+      <text x="10" y="46" font-family="Inter" font-size="9" fill="#064e3b">• Рекурсия Риккати / блочно-ленточное исключение.</text>
+      <text x="10" y="58" font-family="Inter" font-size="9" fill="#064e3b">• При N=40 время увеличивается ровно в 40 раз, а не в 64 000.</text>
+      <text x="10" y="70" font-family="Inter" font-size="9" font-weight="700" fill="#047857">✔ Позволяет решать задачи MPC с N=50 на 100 Гц!</text>
+    </g>
+
+    <!-- Takeaway -->
+    <g transform="translate(15, 200)">
+      <rect width="306" height="64" rx="4" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
+      <text x="10" y="16" font-family="Inter" font-size="9.5" font-weight="700" fill="#1e40af">Практический выбор в робототехнике:</text>
+      <text x="10" y="30" font-family="Inter" font-size="9" fill="#334155">• Короткий горизонт (N &lt; 10): Dense QP (qpOASES)</text>
+      <text x="10" y="44" font-family="Inter" font-size="9" fill="#334155">• Длинный горизонт (N ≥ 15): Sparse solver (FATROP, HPIPM)</text>
+      <text x="10" y="58" font-family="Inter" font-size="9" font-weight="700" fill="#2563eb">• Библиотека BLASFEO векторизует умножение блоков (AVX2).</text>
+    </g>
+  </g>
+</svg>'''
+
+    write_svg(filepath, svg)
+
+
+# -------------------------------------------------------------------------
+# Diagram 18: Lecture 06 - SQP Iteration Pipeline and Warm-Start
+# -------------------------------------------------------------------------
+def generate_sqp_iteration_pipeline():
+    filepath = os.path.join(OUTPUT_DIR, 'lecture-06', 'sqp_iteration_pipeline.svg')
+    ensure_dir(filepath)
+
+    svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <g transform="translate(24, 24)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Контур SQP (Sequential Quadratic Programming) и Тёплый Старт</text>
+    <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Метод Ньютона для условий KKT: последовательность квадратичных подзадач QP и мгновенная сходимость в MPC</text>
+  </g>
+
+  <!-- Flowchart Steps -->
+  <!-- Step 1 -->
+  <g transform="translate(24, 65)">
+    <rect width="155" height="185" rx="8" fill="#f8fafc" stroke="#3b82f6" stroke-width="1.5"/>
+    <rect width="155" height="24" rx="8" fill="#2563eb"/>
+    <text x="8" y="16" font-family="Inter" font-size="10.5" font-weight="700" fill="#ffffff">1. Текущая точка</text>
+
+    <text x="10" y="44" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#1e40af">w^(k) = [x, u]</text>
+    <text x="10" y="60" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#1e40af">λ^(k), μ^(k)</text>
+    <text x="10" y="80" font-family="Inter" font-size="9" fill="#475569">Вектор переменных</text>
+    <text x="10" y="94" font-family="Inter" font-size="9" fill="#475569">и множителей</text>
+    <text x="10" y="108" font-family="Inter" font-size="9" fill="#475569">Лагранжа</text>
+
+    <rect x="8" y="125" width="139" height="48" rx="4" fill="#eff6ff" stroke="#bfdbfe"/>
+    <text x="12" y="142" font-family="Inter" font-size="8.5" font-weight="700" fill="#1d4ed8">В режиме MPC:</text>
+    <text x="12" y="156" font-family="Inter" font-size="8" fill="#1e40af">Берется сдвиг плана</text>
+    <text x="12" y="168" font-family="Inter" font-size="8" fill="#1e40af">прошлого такта!</text>
+  </g>
+
+  <!-- Arrow 1 -> 2 -->
+  <path d="M 183,155 L 205,155" stroke="#94a3b8" stroke-width="2"/>
+  <polygon points="205,155 197,151 197,159" fill="#94a3b8"/>
+
+  <!-- Step 2 -->
+  <g transform="translate(209, 65)">
+    <rect width="165" height="185" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+    <rect width="165" height="24" rx="8" fill="#475569"/>
+    <text x="8" y="16" font-family="Inter" font-size="10.5" font-weight="700" fill="#ffffff">2. QP Аппроксимация</text>
+
+    <text x="10" y="44" font-family="Inter" font-size="9" font-weight="700" fill="#0f172a">Квадратичная модель:</text>
+    <text x="10" y="60" font-family="JetBrains Mono" font-size="8.5" fill="#0284c7">min ½ΔwᵀB_kΔw + ∇fᵀΔw</text>
+
+    <text x="10" y="85" font-family="Inter" font-size="9" font-weight="700" fill="#0f172a">Линеаризация связей:</text>
+    <text x="10" y="100" font-family="JetBrains Mono" font-size="8.5" fill="#475569">g(w) + ∇gᵀ Δw = 0</text>
+    <text x="10" y="115" font-family="JetBrains Mono" font-size="8.5" fill="#475569">h(w) + ∇hᵀ Δw ≤ 0</text>
+
+    <text x="10" y="140" font-family="Inter" font-size="8.5" fill="#64748b">Гессиан B_k: точный</text>
+    <text x="10" y="154" font-family="Inter" font-size="8.5" fill="#64748b">или Гаусса-Ньютона</text>
+    <text x="10" y="168" font-family="JetBrains Mono" font-size="8.5" fill="#059669">B_k ≈ J_resᵀ J_res</text>
+  </g>
+
+  <!-- Arrow 2 -> 3 -->
+  <path d="M 378,155 L 400,155" stroke="#94a3b8" stroke-width="2"/>
+  <polygon points="400,155 392,151 392,159" fill="#94a3b8"/>
+
+  <!-- Step 3 -->
+  <g transform="translate(404, 65)">
+    <rect width="165" height="185" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+    <rect width="165" height="24" rx="8" fill="#059669"/>
+    <text x="8" y="16" font-family="Inter" font-size="10.5" font-weight="700" fill="#ffffff">3. Решение QP Подзадачи</text>
+
+    <text x="10" y="44" font-family="Inter" font-size="9" font-weight="700" fill="#065f46">QP Решатель:</text>
+    <text x="10" y="58" font-family="JetBrains Mono" font-size="9" fill="#047857">qpOASES / OSQP / HPIPM</text>
+
+    <text x="10" y="80" font-family="Inter" font-size="9" fill="#334155">• Определение активного</text>
+    <text x="10" y="94" font-family="Inter" font-size="9" fill="#334155">  набора ограничений</text>
+    <text x="10" y="108" font-family="Inter" font-size="9" fill="#334155">  (Active-Set Identification)</text>
+
+    <rect x="8" y="125" width="149" height="48" rx="4" fill="#ecfdf5" stroke="#a7f3d0"/>
+    <text x="12" y="142" font-family="Inter" font-size="8.5" font-weight="700" fill="#065f46">Результат шага:</text>
+    <text x="12" y="156" font-family="JetBrains Mono" font-size="8.5" fill="#047857">Δw = w - w^(k)</text>
+    <text x="12" y="168" font-family="JetBrains Mono" font-size="8.5" fill="#047857">новые множители λ*</text>
+  </g>
+
+  <!-- Arrow 3 -> 4 -->
+  <path d="M 573,155 L 595,155" stroke="#94a3b8" stroke-width="2"/>
+  <polygon points="595,155 587,151 587,159" fill="#94a3b8"/>
+
+  <!-- Step 4 -->
+  <g transform="translate(599, 65)">
+    <rect width="137" height="185" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+    <rect width="137" height="24" rx="8" fill="#d97706"/>
+    <text x="8" y="16" font-family="Inter" font-size="10.5" font-weight="700" fill="#ffffff">4. Line Search</text>
+
+    <text x="8" y="44" font-family="Inter" font-size="9" font-weight="700" fill="#92400e">Обновление точки:</text>
+    <text x="8" y="60" font-family="JetBrains Mono" font-size="8.5" fill="#b45309">w^(k+1) = w^(k) + αΔw</text>
+
+    <text x="8" y="82" font-family="Inter" font-size="9" fill="#334155">• Выбор длины шага α</text>
+    <text x="8" y="96" font-family="Inter" font-size="9" fill="#334155">  (Filter method)</text>
+    <text x="8" y="110" font-family="Inter" font-size="9" fill="#334155">• Проверка невязки KKT</text>
+
+    <rect x="8" y="128" width="121" height="45" rx="4" fill="#fffbeb" stroke="#fcd34d"/>
+    <text x="12" y="145" font-family="Inter" font-size="8.5" font-weight="700" fill="#b45309">Критерий выхода:</text>
+    <text x="12" y="160" font-family="JetBrains Mono" font-size="8.5" fill="#78350f">||KKT|| &lt; ε_tol</text>
+  </g>
+
+  <!-- Bottom Banner: Warm-Start Magic in MPC -->
+  <g transform="translate(24, 260)">
+    <rect width="712" height="80" rx="6" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="16" y="22" font-family="Inter" font-size="11.5" font-weight="700" fill="#1d4ed8">🌟 Магия тёплого старта (Warm-Starting) в контуре MPC:</text>
+    <text x="16" y="42" font-family="Inter" font-size="10" fill="#1e3a8a">1. Между тактами t и t+1 (обычно 10–20 мс) состояние робота сдвигается минимально.</text>
+    <text x="16" y="58" font-family="Inter" font-size="10" fill="#1e3a8a">2. Активный набор ограничений (Active-Set) почти не меняется ⇒ QP-солвер находит оптимум за 0–2 итерации pivot!</text>
+    <text x="16" y="74" font-family="Inter" font-size="10" font-weight="700" fill="#2563eb">3. Именно благодаря тёплому старту SQP является де-факто стандартом быстрого NMPC в автомобилях и дронах.</text>
+  </g>
+</svg>'''
+
+    write_svg(filepath, svg)
+
+
+# -------------------------------------------------------------------------
+# Diagram 19: Lecture 06 - Interior Point Method and Logarithmic Barrier
+# -------------------------------------------------------------------------
+def generate_interior_point_barrier():
+    filepath = os.path.join(OUTPUT_DIR, 'lecture-06', 'interior_point_barrier.svg')
+    ensure_dir(filepath)
+
+    svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <g transform="translate(24, 24)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Метод внутренней точки (IPOPT) и логарифмический барьер</text>
+    <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Замена негладких ограничений s ≥ 0 штрафом -μ·ln(s) и движение по гладкому центральному пути</text>
+  </g>
+
+  <!-- Left: Barrier function curves -->
+  <g transform="translate(24, 65)">
+    <rect width="345" height="275" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+    <rect width="345" height="26" rx="8" fill="#475569"/>
+    <text x="12" y="17" font-family="Inter" font-size="11.5" font-weight="700" fill="#ffffff">Логарифмическая барьерная функция B_μ(s)</text>
+
+    <!-- Graph of -mu*ln(s) -->
+    <g transform="translate(25, 42)">
+      <rect width="295" height="150" rx="4" fill="#ffffff" stroke="#e2e8f0"/>
+
+      <!-- Axes -->
+      <line x1="30" y1="130" x2="280" y2="130" stroke="#94a3b8" stroke-width="1.2"/>
+      <line x1="45" y1="15" x2="45" y2="140" stroke="#94a3b8" stroke-width="1.2"/>
+      <text x="270" y="142" font-family="JetBrains Mono" font-size="9" fill="#64748b">s (запас)</text>
+      <text x="10" y="20" font-family="JetBrains Mono" font-size="9" fill="#64748b">-μ·ln(s)</text>
+
+      <!-- Infeasible zone shading (s < 0) -->
+      <rect x="0" y="0" width="45" height="150" fill="#fee2e2" fill-opacity="0.6"/>
+      <line x1="45" y1="0" x2="45" y2="150" stroke="#dc2626" stroke-width="2"/>
+      <text x="6" y="80" font-family="Inter" font-size="8" fill="#dc2626" transform="rotate(-90 20 80)">Запретная зона s ≤ 0</text>
+
+      <!-- mu = 1.0 (flattest blue) -->
+      <path d="M 47,20 Q 55,90 250,128" stroke="#3b82f6" stroke-width="1.8" fill="none"/>
+      <text x="215" y="122" font-family="JetBrains Mono" font-size="8" fill="#3b82f6">μ = 1.0</text>
+
+      <!-- mu = 0.3 (amber) -->
+      <path d="M 46,20 Q 49,110 250,130" stroke="#f59e0b" stroke-width="1.8" fill="none"/>
+      <text x="180" y="112" font-family="JetBrains Mono" font-size="8" fill="#f59e0b">μ = 0.3</text>
+
+      <!-- mu -> 0 (steep red/green indicator) -->
+      <path d="M 45.5,20 L 45.5,130 L 250,130" stroke="#059669" stroke-width="2.5" fill="none"/>
+      <text x="90" y="90" font-family="JetBrains Mono" font-size="8.5" font-weight="700" fill="#059669">μ → 0 (Истинный угол)</text>
+    </g>
+
+    <!-- Explanatory note -->
+    <g transform="translate(15, 202)" font-family="Inter" font-size="9.5" fill="#334155">
+      <text x="0" y="12">• Внутри области s &gt; 0 функция строго гладкая C^∞.</text>
+      <text x="0" y="28">• При приближении к стенке (s → 0⁺) штраф уходит в +∞</text>
+      <text x="0" y="44">• Решатель гарантированно не выходит из допустимой зоны.</text>
+      <text x="0" y="60" font-weight="700" fill="#b91c1c">✖ Вне зоны (s ≤ 0) логарифм ln(s) дает NaN!</text>
+    </g>
+  </g>
+
+  <!-- Right: Central Path in 2D space -->
+  <g transform="translate(391, 65)">
+    <rect width="345" height="275" rx="8" fill="#f8fafc" stroke="#3b82f6" stroke-width="1.5"/>
+    <rect width="345" height="26" rx="8" fill="#2563eb"/>
+    <text x="12" y="17" font-family="Inter" font-size="11.5" font-weight="700" fill="#ffffff">Центральный путь (Central Path) в IPOPT</text>
+
+    <!-- Visual schematic: Feasible polygon and Central path trajectory -->
+    <g transform="translate(15, 38)">
+      <rect width="315" height="130" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
+
+      <!-- Feasible set boundary -->
+      <polygon points="30,115 150,115 280,20 180,15 30,70" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.5"/>
+      <text x="60" y="95" font-family="Inter" font-size="9" fill="#1e40af">Допустимая область (Feasible Region)</text>
+
+      <!-- Constraint boundaries -->
+      <line x1="150" y1="115" x2="280" y2="20" stroke="#dc2626" stroke-width="2"/>
+      <text x="235" y="85" font-family="Inter" font-size="8.5" font-weight="700" fill="#dc2626">Препятствие</text>
+
+      <!-- Central path points: mu high -> mu low -> true optimum on boundary -->
+      <path d="M 90,65 Q 140,60 190,52 Q 220,45 235,38" stroke="#d97706" stroke-width="2.5" fill="none"/>
+
+      <circle cx="90" cy="65" r="4.5" fill="#3b82f6"/>
+      <text x="75" y="55" font-family="JetBrains Mono" font-size="8" fill="#1d4ed8">x*(μ₁)</text>
+
+      <circle cx="155" cy="58" r="4" fill="#f59e0b"/>
+      <text x="145" y="48" font-family="JetBrains Mono" font-size="8" fill="#b45309">x*(μ₂)</text>
+
+      <circle cx="205" cy="48" r="4" fill="#d97706"/>
+      <text x="195" y="38" font-family="JetBrains Mono" font-size="8" fill="#b45309">x*(μ₃)</text>
+
+      <!-- True optimum on boundary -->
+      <circle cx="235" cy="38" r="5" fill="#059669"/>
+      <text x="245" y="35" font-family="JetBrains Mono" font-size="9" font-weight="700" fill="#059669">x* (Оптимум)</text>
+
+      <text x="110" y="80" font-family="Inter" font-size="8.5" font-weight="700" fill="#d97706">Центральный путь (μ → 0)</text>
+    </g>
+
+    <!-- IPM properties -->
+    <g transform="translate(15, 178)" font-family="Inter" font-size="9.5" fill="#334155">
+      <text x="0" y="12" font-weight="700" fill="#059669">✔ Достоинства IPOPT:</text>
+      <text x="10" y="26">Отличная глобальная сходимость (Filter Line-Search)</text>
+      <text x="10" y="40">Легко масштабируется на 100 000+ неравенств</text>
+      <text x="0" y="58" font-weight="700" fill="#dc2626">✖ Сложность тёплого старта в MPC:</text>
+      <text x="10" y="72">Если на новом такте точка лежит на границе (s ≈ 0),</text>
+      <text x="10" y="86">барьер сопротивляется движению. Требуется сброс μ!</text>
+    </g>
+  </g>
+</svg>'''
+
+    write_svg(filepath, svg)
+
+
+# -------------------------------------------------------------------------
+# Diagram 20: Lecture 06 - CasADi and L4CasADi Computational Pipeline
+# -------------------------------------------------------------------------
+def generate_casadi_l4casadi_pipeline():
+    filepath = os.path.join(OUTPUT_DIR, 'lecture-06', 'casadi_l4casadi_pipeline.svg')
+    ensure_dir(filepath)
+
+    svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <g transform="translate(24, 24)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Стек моделирования CasADi и интеграция нейросетей L4CasADi</text>
+    <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Слияние точной аналитической физики с дата-дривен моделями PyTorch в реальном времени (50–100 Гц)</text>
+  </g>
+
+  <!-- 4 Architecture Blocks -->
+  <!-- Block 1: PyTorch NN -->
+  <g transform="translate(24, 65)">
+    <rect width="160" height="275" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+    <rect width="160" height="26" rx="8" fill="#ee4c2c"/>
+    <text x="10" y="17" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff">1. PyTorch (ML)</text>
+
+    <g transform="translate(10, 36)" font-family="Inter" font-size="9.5" fill="#334155">
+      <text x="0" y="10" font-weight="700" fill="#0f172a">Резидуальная динамика:</text>
+      <text x="0" y="24" font-family="JetBrains Mono" font-size="8.5" fill="#c2410c">f_res(x, u; θ)</text>
+
+      <text x="0" y="44" font-weight="700">• Что выучивает:</text>
+      <text x="6" y="58">- Занос и скольжение</text>
+      <text x="6" y="72">- Аэродинамику винтов</text>
+      <text x="6" y="86">- Трение и износ</text>
+
+      <text x="0" y="110" font-weight="700">• Телеметрия:</text>
+      <text x="6" y="124">Обучение офлайн или</text>
+      <text x="6" y="138">онлайн адаптация</text>
+
+      <rect x="0" y="155" width="140" height="42" rx="4" fill="#fff7ed" stroke="#fdba74"/>
+      <text x="6" y="170" font-family="Inter" font-size="8.5" font-weight="700" fill="#c2410c">Экспорт модели:</text>
+      <text x="6" y="186" font-family="JetBrains Mono" font-size="8" fill="#9a3412">TorchScript / C++</text>
+    </g>
+  </g>
+
+  <!-- Arrow 1 -> 2 -->
+  <path d="M 188,200 L 204,200" stroke="#94a3b8" stroke-width="2"/>
+  <polygon points="204,200 196,196 196,204" fill="#94a3b8"/>
+
+  <!-- Block 2: L4CasADi Bridge -->
+  <g transform="translate(208, 65)">
+    <rect width="165" height="275" rx="8" fill="#f8fafc" stroke="#3b82f6" stroke-width="1.5"/>
+    <rect width="165" height="26" rx="8" fill="#2563eb"/>
+    <text x="10" y="17" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff">2. L4CasADi (Salzmann)</text>
+
+    <g transform="translate(10, 36)" font-family="Inter" font-size="9.5" fill="#334155">
+      <text x="0" y="10" font-weight="700" fill="#1d4ed8">C++ Мост &amp; LibTorch:</text>
+      <text x="0" y="24">Обертка над C++ API</text>
+
+      <text x="0" y="44" font-weight="700" fill="#059669">✔ Zero-Copy Inference:</text>
+      <text x="6" y="58">Прямой вызов тензоров</text>
+      <text x="6" y="72">без оверхеда Python</text>
+
+      <text x="0" y="96" font-weight="700" fill="#2563eb">✔ Точные градиенты:</text>
+      <text x="6" y="110">Вычисление Якобианов</text>
+      <text x="6" y="124" font-family="JetBrains Mono" font-size="8.5" fill="#1e40af">∂f_res/∂x, ∂f_res/∂u</text>
+      <text x="6" y="138">через PyTorch Autograd</text>
+
+      <rect x="0" y="155" width="145" height="42" rx="4" fill="#eff6ff" stroke="#bfdbfe"/>
+      <text x="6" y="170" font-family="Inter" font-size="8.5" font-weight="700" fill="#1e40af">CasADi Function:</text>
+      <text x="6" y="186" font-family="JetBrains Mono" font-size="7.5" fill="#1d4ed8">l4c.L4CasADi(model)</text>
+    </g>
+  </g>
+
+  <!-- Arrow 2 -> 3 -->
+  <path d="M 377,200 L 393,200" stroke="#94a3b8" stroke-width="2"/>
+  <polygon points="393,200 385,196 385,204" fill="#94a3b8"/>
+
+  <!-- Block 3: CasADi Graph -->
+  <g transform="translate(397, 65)">
+    <rect width="165" height="275" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+    <rect width="165" height="26" rx="8" fill="#0284c7"/>
+    <text x="10" y="17" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff">3. Граф CasADi</text>
+
+    <g transform="translate(10, 36)" font-family="Inter" font-size="9.5" fill="#334155">
+      <text x="0" y="10" font-weight="700" fill="#0369a1">Символьный граф (SX/MX):</text>
+      <text x="0" y="24" font-family="JetBrains Mono" font-size="8" fill="#0f172a">ẋ = f_nom(x,u) + f_res</text>
+
+      <text x="0" y="44" font-weight="700">• Автоматическое</text>
+      <text x="0" y="58">  дифференцирование (AD)</text>
+      <text x="6" y="72">- Алгоритмический граф</text>
+      <text x="6" y="86">- Точный Гессиан ∇²L</text>
+      <text x="6" y="100">- Точный Якобиан ∇g</text>
+
+      <text x="0" y="124" font-weight="700" fill="#059669">• Высокая гибкость:</text>
+      <text x="6" y="138">Ограничения коридоров,</text>
+      <text x="6" y="152">препятствий и моторов</text>
+
+      <rect x="0" y="165" width="145" height="32" rx="4" fill="#e0f2fe" stroke="#7dd3fc"/>
+      <text x="6" y="185" font-family="JetBrains Mono" font-size="8" fill="#0369a1">opti = casadi.Opti()</text>
+    </g>
+  </g>
+
+  <!-- Arrow 3 -> 4 -->
+  <path d="M 566,200 L 582,200" stroke="#94a3b8" stroke-width="2"/>
+  <polygon points="582,200 574,196 574,204" fill="#94a3b8"/>
+
+  <!-- Block 4: C-Code Gen & Real-Time Solver -->
+  <g transform="translate(586, 65)">
+    <rect width="150" height="275" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+    <rect width="150" height="26" rx="8" fill="#059669"/>
+    <text x="10" y="17" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff">4. Нативный Решатель</text>
+
+    <g transform="translate(10, 36)" font-family="Inter" font-size="9.5" fill="#334155">
+      <text x="0" y="10" font-weight="700" fill="#065f46">Генерация C-кода:</text>
+      <text x="0" y="24" font-family="JetBrains Mono" font-size="8" fill="#047857">f.generate('nlp.c')</text>
+
+      <text x="0" y="44" font-weight="700">• Сборка gcc -O3:</text>
+      <text x="6" y="58">Чистый C без аллокаций</text>
+      <text x="6" y="72">в куче (no malloc)</text>
+
+      <text x="0" y="96" font-weight="700">• Решатели:</text>
+      <text x="6" y="110">- acados (SQP / RTI)</text>
+      <text x="6" y="124">- FATROP (IPM O(N))</text>
+      <text x="6" y="138">- IPOPT (NLP)</text>
+
+      <rect x="0" y="155" width="130" height="42" rx="4" fill="#ecfdf5" stroke="#a7f3d0"/>
+      <text x="6" y="170" font-family="Inter" font-size="8.5" font-weight="700" fill="#065f46">Контур робота:</text>
+      <text x="6" y="186" font-family="JetBrains Mono" font-size="8" font-weight="700" fill="#047857">50–100 Гц в RT</text>
+    </g>
+  </g>
+</svg>'''
+
+    write_svg(filepath, svg)
+
+
 def main():
     print("=== Generating Rigorous Algorithmic Diagrams ===")
     generate_roadmaps_overview()
@@ -3630,7 +4450,16 @@ def main():
     generate_realtime_stack_hierarchy()
     generate_nav2_bt_tree()
     generate_dubins_and_reeds_shepp_lecture04()
+    # Lecture 05 & 06 additions:
+    generate_bang_bang_phase_plane()
+    generate_transcription_methods()
+    generate_hjb_lqr_concept()
+    generate_nlp_sparsity_pattern()
+    generate_sqp_iteration_pipeline()
+    generate_interior_point_barrier()
+    generate_casadi_l4casadi_pipeline()
     print("=== All Algorithmic Diagrams Successfully Generated! ===")
 
 if __name__ == '__main__':
     main()
+

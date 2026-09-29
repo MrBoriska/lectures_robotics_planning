@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <g transform="translate(24, 24)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Прямая дискретизация (Direct Transcription): семейство методов</text>
+    <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Преобразование бесконечномерной OCP в конечномерную задачу нелинейного программирования (NLP)</text>
+  </g>
+
+  <!-- Panel 1: Single Shooting -->
+  <g transform="translate(24, 65)">
+    <rect width="225" height="275" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+    <rect width="225" height="26" rx="8" fill="#475569"/>
+    <text x="12" y="17" font-family="Inter" font-size="11.5" font-weight="700" fill="#ffffff">1. Single Shooting (Прямая)</text>
+
+    <!-- Visual schematic -->
+    <rect x="12" y="36" width="201" height="96" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="18" y="52" font-family="JetBrains Mono" font-size="9" fill="#64748b">Параметры: u = [u₀, u₁, ..., u_(N-1)]</text>
+
+    <!-- Initial state -->
+    <circle cx="30" cy="98" r="4.5" fill="#0284c7"/>
+    <text x="24" y="116" font-family="JetBrains Mono" font-size="9" font-weight="700" fill="#0284c7">x₀</text>
+
+    <!-- Single continuous integration arc with diverging tails -->
+    <path d="M 30,98 C 65,65 110,120 185,75" stroke="#059669" stroke-width="2.5" fill="none"/>
+    <path d="M 30,98 C 65,60 110,140 185,120" stroke="#fca5a5" stroke-width="1.5" stroke-dasharray="3,3" fill="none"/>
+    <path d="M 30,98 C 65,70 110,100 185,50" stroke="#fca5a5" stroke-width="1.5" stroke-dasharray="3,3" fill="none"/>
+
+    <circle cx="185" cy="75" r="4" fill="#059669"/>
+    <text x="160" y="68" font-family="JetBrains Mono" font-size="8.5" fill="#059669">x_N(u)</text>
+    <text x="105" y="125" font-family="Inter" font-size="8" fill="#dc2626">Взрыв погрешности</text>
+
+    <!-- Properties -->
+    <g transform="translate(12, 140)" font-family="Inter" font-size="10" fill="#334155">
+      <text x="0" y="0" font-weight="700" fill="#0f172a">• Переменные NLP:</text>
+      <text x="10" y="14" font-family="JetBrains Mono" font-size="9.5" fill="#0284c7">w = [u₀, ..., u_(N-1)] ∈ ℝ^(m·N)</text>
+      <text x="0" y="32" font-weight="700" fill="#059669">✔ Плюсы:</text>
+      <text x="10" y="46">Минимальный размер задачи</text>
+      <text x="10" y="60">Только входные управления</text>
+      <text x="0" y="78" font-weight="700" fill="#dc2626">✖ Минусы:</text>
+      <text x="10" y="92">Крайняя неустойчивость</text>
+      <text x="10" y="106">Нельзя инициализировать траекторию</text>
+      <text x="10" y="120">Плотные производные dJ/du</text>
+    </g>
+  </g>
+
+  <!-- Panel 2: Multiple Shooting -->
+  <g transform="translate(267, 65)">
+    <rect width="225" height="275" rx="8" fill="#f8fafc" stroke="#3b82f6" stroke-width="1.5"/>
+    <rect width="225" height="26" rx="8" fill="#2563eb"/>
+    <text x="12" y="17" font-family="Inter" font-size="11.5" font-weight="700" fill="#ffffff">2. Multiple Shooting (Многократная)</text>
+
+    <!-- Visual schematic -->
+    <rect x="12" y="36" width="201" height="96" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="18" y="52" font-family="JetBrains Mono" font-size="9" fill="#64748b">Сетка: x_k, u_k + дефекты c_k = 0</text>
+
+    <!-- Subintervals with jumps -->
+    <circle cx="28" cy="95" r="3.5" fill="#2563eb"/>
+    <path d="M 28,95 Q 45,75 68,82" stroke="#2563eb" stroke-width="2" fill="none"/>
+    <circle cx="68" cy="82" r="3" fill="#64748b"/>
+    <line x1="68" y1="82" x2="74" y2="76" stroke="#ea580c" stroke-width="2" stroke-dasharray="2,2"/>
+
+    <circle cx="74" cy="76" r="3.5" fill="#2563eb"/>
+    <path d="M 74,76 Q 95,105 120,98" stroke="#2563eb" stroke-width="2" fill="none"/>
+    <circle cx="120" cy="98" r="3" fill="#64748b"/>
+    <line x1="120" y1="98" x2="128" y2="90" stroke="#ea580c" stroke-width="2" stroke-dasharray="2,2"/>
+
+    <circle cx="128" cy="90" r="3.5" fill="#2563eb"/>
+    <path d="M 128,90 Q 155,60 185,72" stroke="#2563eb" stroke-width="2" fill="none"/>
+    <circle cx="185" cy="72" r="3.5" fill="#059669"/>
+
+    <text x="35" y="125" font-family="Inter" font-size="8.5" font-weight="700" fill="#ea580c">Дефект: c_k = x_(k+1) - Φ(x_k, u_k)</text>
+
+    <!-- Properties -->
+    <g transform="translate(12, 140)" font-family="Inter" font-size="10" fill="#334155">
+      <text x="0" y="0" font-weight="700" fill="#0f172a">• Переменные NLP:</text>
+      <text x="10" y="14" font-family="JetBrains Mono" font-size="9.5" fill="#2563eb">w = [x₀, u₀, ..., x_N] ∈ ℝ^((n+m)N)</text>
+      <text x="0" y="32" font-weight="700" fill="#059669">✔ Плюсы:</text>
+      <text x="10" y="46">Численная устойчивость</text>
+      <text x="10" y="60">Параллельное интегрирование</text>
+      <text x="10" y="74">Естественный теплый старт</text>
+      <text x="0" y="92" font-weight="700" fill="#dc2626">✖ Минусы:</text>
+      <text x="10" y="106">Нужен интегратор ODE внутри</text>
+      <text x="10" y="120">Больше переменных, чем в Single</text>
+    </g>
+  </g>
+
+  <!-- Panel 3: Direct Collocation -->
+  <g transform="translate(510, 65)">
+    <rect width="225" height="275" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+    <rect width="225" height="26" rx="8" fill="#059669"/>
+    <text x="12" y="17" font-family="Inter" font-size="11.5" font-weight="700" fill="#ffffff">3. Direct Collocation (Коллокация)</text>
+
+    <!-- Visual schematic -->
+    <rect x="12" y="36" width="201" height="96" rx="6" fill="#ffffff" stroke="#e2e8f0"/>
+    <text x="18" y="52" font-family="JetBrains Mono" font-size="9" fill="#64748b">Hermite-Simpson: сплайны без ODE</text>
+
+    <path d="M 28,100 C 60,60 80,60 110,85 C 140,110 160,60 190,70" stroke="#059669" stroke-width="2.5" fill="none"/>
+
+    <circle cx="28" cy="100" r="3.5" fill="#059669"/>
+    <text x="22" y="115" font-family="JetBrains Mono" font-size="8" fill="#059669">x_k</text>
+
+    <circle cx="69" cy="70" r="2.5" fill="#d97706"/>
+    <line x1="69" y1="70" x2="85" y2="65" stroke="#d97706" stroke-width="1.5"/>
+    <text x="65" y="60" font-family="JetBrains Mono" font-size="7.5" fill="#d97706">ẋ_c = f(x_c)</text>
+
+    <circle cx="110" cy="85" r="3.5" fill="#059669"/>
+    <text x="96" y="100" font-family="JetBrains Mono" font-size="8" fill="#059669">x_(k+1)</text>
+
+    <circle cx="150" cy="80" r="2.5" fill="#d97706"/>
+    <circle cx="190" cy="70" r="3.5" fill="#059669"/>
+
+    <text x="20" y="125" font-family="Inter" font-size="8.5" font-weight="700" fill="#059669">Алгебраические невязки c_k = 0</text>
+
+    <!-- Properties -->
+    <g transform="translate(12, 140)" font-family="Inter" font-size="10" fill="#334155">
+      <text x="0" y="0" font-weight="700" fill="#0f172a">• Переменные NLP:</text>
+      <text x="10" y="14" font-family="JetBrains Mono" font-size="9.5" fill="#059669">w = [x_k, x_(k+½), u_k] (очень много)</text>
+      <text x="0" y="32" font-weight="700" fill="#059669">✔ Плюсы:</text>
+      <text x="10" y="46">Нет численного интегратора!</text>
+      <text x="10" y="60">Точные фазовые ограничения</text>
+      <text x="10" y="74">Матрицы разрежены на 98%+</text>
+      <text x="0" y="92" font-weight="700" fill="#dc2626">✖ Минусы:</text>
+      <text x="10" y="106">Огромный размер размерности w</text>
+      <text x="10" y="120">Требует редких решателей (IPOPT)</text>
+    </g>
+  </g>
+</svg>

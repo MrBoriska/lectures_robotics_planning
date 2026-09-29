@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Симулятор Bang-Bang vs LQR: Двойной интегратор</title>
+  <link rel="stylesheet" href="../common/widget-base.css">
+  <style>
+    .split-view {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      gap: 8px;
+      padding: 8px;
+      background: var(--bg-widget);
+    }
+    .panel-left {
+      flex: 1.2;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
+    }
+    .panel-right {
+      flex: 0.95;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
+    }
+    .card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .canvas-box {
+      flex: 1;
+      min-height: 0;
+      position: relative;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      overflow: hidden;
+      cursor: crosshair;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    .badge-mode {
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+    }
+    .badge-bang { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+    .badge-lqr { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+    .badge-both { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .stat-item {
+      background: var(--bg-control);
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border-subtle);
+    }
+    .stat-label {
+      color: var(--text-muted);
+      font-size: 9.5px;
+      margin-bottom: 2px;
+    }
+    .stat-value {
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 11.5px;
+    }
+    .control-row label {
+      width: 130px;
+      color: var(--text-main);
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+    .control-row input[type=range] {
+      flex: 1;
+    }
+    .control-row span.val {
+      width: 45px;
+      text-align: right;
+      font-family: var(--font-mono);
+      color: var(--accent-blue);
+      font-weight: 600;
+    }
+    .legend-row {
+      display: flex;
+      gap: 12px;
+      font-size: 10.5px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .legend-color {
+      width: 12px;
+      height: 4px;
+      border-radius: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="widget-layout">
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div style="font-weight: 700; font-size: 12.5px; color: var(--accent-blue); margin-right: 6px;">
+        ⚡ Двойной интегратор: Быстродействие (Bang-Bang) vs LQR
+      </div>
+
+      <button id="btnPlay" class="btn btn-primary">▶ Старт</button>
+      <button id="btnReset" class="btn">↺ Сброс в x₀</button>
+      <button id="btnRandom" class="btn">🎲 Случайное x₀</button>
+      
+      <div style="height: 18px; width: 1px; background: var(--border-color); margin: 0 4px;"></div>
+
+      <label style="font-size: 11px; font-weight: 600; color: var(--text-muted);">Режим:</label>
+      <select id="modeSelect" class="btn" style="padding: 3px 8px; font-weight: 600;">
+        <option value="both">Сравнение: Bang-Bang & LQR</option>
+        <option value="bang">Только Bang-Bang (ПМП)</option>
+        <option value="lqr">Только LQR (Квадратичный)</option>
+      </select>
+
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 11px; color: var(--text-muted);">Кликните на фазовую плоскость для выбора (x₀, ẋ₀)</span>
+      </div>
+    </div>
+
+    <!-- Main Workspace -->
+    <div class="split-view">
+      <!-- Left: Physical Cart + Phase Plane -->
+      <div class="panel-left">
+        <!-- Physical Animation Box -->
+        <div class="card" style="flex: 0.65;">
+          <div class="card-title">
+            <span>Физическая модель тележки (ẍ = u)</span>
+            <span id="badgeStatus" class="badge-mode badge-both">Сравнение</span>
+          </div>
+          <div class="canvas-box" style="height: 120px;">
+            <canvas id="cartCanvas"></canvas>
+          </div>
+        </div>
+
+        <!-- Phase Plane Interactive Canvas -->
+        <div class="card" style="flex: 1.35;">
+          <div class="card-title">
+            <span>Фазовая плоскость (x, ẋ) — кликните для новой позы</span>
+            <span style="font-family: var(--font-mono); font-size: 10px; color: var(--accent-amber);">Г: x = -½·ẋ|ẋ|/u_max</span>
+          </div>
+          <div class="canvas-box">
+            <canvas id="phaseCanvas"></canvas>
+          </div>
+          <div class="legend-row">
+            <span class="legend-item"><span class="legend-color" style="background: #ea580c;"></span> Кривая переключения Г</span>
+            <span class="legend-item"><span class="legend-color" style="background: #dc2626;"></span> Bang-Bang траектория</span>
+            <span class="legend-item"><span class="legend-color" style="background: #059669;"></span> LQR траектория</span>
+            <span class="legend-item"><span class="legend-color" style="background: #2563eb;"></span> Начальное состояние x₀</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Plots and Parameters -->
+      <div class="panel-right">
+        <!-- Telemetry Stats -->
+        <div class="card">
+          <div class="card-title">
+            <span>Телеметрия процесса</span>
+            <span id="timeVal" style="font-family: var(--font-mono); color: var(--accent-blue); font-weight: 700;">t = 0.00 с</span>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-label">Время Bang-Bang</div>
+              <div id="statTimeBB" class="stat-value" style="color: #dc2626;">0.00 с</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">Время LQR</div>
+              <div id="statTimeLQR" class="stat-value" style="color: #059669;">0.00 с</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">Энергия ∫u²dt (BB)</div>
+              <div id="statEnergyBB" class="stat-value" style="color: #dc2626;">0.0</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">Энергия ∫u²dt (LQR)</div>
+              <div id="statEnergyLQR" class="stat-value" style="color: #059669;">0.0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- History Plots: x(t) and u(t) -->
+        <div class="card" style="flex: 1;">
+          <div class="card-title">
+            <span>Временные графики: Положение x(t) и Управление u(t)</span>
+          </div>
+          <div class="canvas-box">
+            <canvas id="plotCanvas"></canvas>
+          </div>
+        </div>
+
+        <!-- Sliders & Configuration -->
+        <div class="card" style="gap: 8px;">
+          <div class="card-title">Параметры регуляторов</div>
+          
+          <div class="control-row">
+            <label>Предел силы |u| ≤ u_max:</label>
+            <input type="range" id="sliderUmax" min="0.5" max="3.0" step="0.1" value="1.0">
+            <span id="valUmax" class="val">1.0</span>
+          </div>
+
+          <div class="control-row">
+            <label>LQR вес позиции Q_x:</label>
+            <input type="range" id="sliderQ" min="1" max="50" step="1" value="10">
+            <span id="valQ" class="val">10.0</span>
+          </div>
+
+          <div class="control-row">
+            <label>LQR штраф силы R_u:</label>
+            <input type="range" id="sliderR" min="0.1" max="10.0" step="0.1" value="1.0">
+            <span id="valR" class="val">1.0</span>
+          </div>
+
+          <div class="control-row">
+            <label>Коэффициенты LQR K:</label>
+            <span id="valK" style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: #059669;">
+              K = [3.16, 2.51]
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State variables
+    let uMax = 1.0;
+    let Q_val = 10.0;
+    let R_val = 1.0;
+    let mode = 'both'; // 'both', 'bang', 'lqr'
+    let isPlaying = false;
+    let animId = null;
+
+    // Simulation states: [x, v]
+    let x0 = 3.0, v0 = 1.2;
+    let simTime = 0;
+    const dt = 0.015;
+
+    let stateBB = { x: x0, v: v0, u: 0, timeDone: null, energy: 0, history: [] };
+    let stateLQR = { x: x0, v: v0, u: 0, timeDone: null, energy: 0, history: [] };
+
+    // Canvas contexts
+    const cartCanvas = document.getElementById('cartCanvas');
+    const cartCtx = cartCanvas.getContext('2d');
+
+    const phaseCanvas = document.getElementById('phaseCanvas');
+    const phaseCtx = phaseCanvas.getContext('2d');
+
+    const plotCanvas = document.getElementById('plotCanvas');
+    const plotCtx = plotCanvas.getContext('2d');
+
+    // Resize handler
+    function resizeCanvases() {
+      [cartCanvas, phaseCanvas, plotCanvas].forEach(c => {
+        const rect = c.parentElement.getBoundingClientRect();
+        c.width = rect.width * window.devicePixelRatio;
+        c.height = rect.height * window.devicePixelRatio;
+      });
+      drawAll();
+    }
+    window.addEventListener('resize', resizeCanvases);
+
+    // Compute analytical LQR gains for double integrator
+    function computeLQR(q, r) {
+      // A = [0 1; 0 0], B = [0; 1]
+      // K = [sqrt(q/r), sqrt(2*sqrt(q/r) + q2/r)] where q2=1
+      const q1 = q;
+      const q2 = 1.0;
+      const k1 = Math.sqrt(q1 / r);
+      const k2 = Math.sqrt(2 * Math.sqrt(q1 * r) / r + q2 / r);
+      return [k1, k2];
+    }
+
+    function resetSimulation() {
+      simTime = 0;
+      stateBB = { x: x0, v: v0, u: 0, timeDone: null, energy: 0, history: [{ t: 0, x: x0, v: v0, u: 0 }] };
+      stateLQR = { x: x0, v: v0, u: 0, timeDone: null, energy: 0, history: [{ t: 0, x: x0, v: v0, u: 0 }] };
+      updateStats();
+      drawAll();
+    }
+
+    // Step simulation
+    function simStep() {
+      if (!isPlaying) return;
+
+      const [k1, k2] = computeLQR(Q_val, R_val);
+
+      // 1. Bang-Bang control law
+      if (stateBB.timeDone === null) {
+        const x = stateBB.x;
+        const v = stateBB.v;
+        // Switching curve: Gamma(x, v) = x + 0.5 * v * |v| / uMax
+        const sigma = x + 0.5 * v * Math.abs(v) / uMax;
+        
+        let u = 0;
+        const eps = 0.03;
+        if (Math.abs(x) < eps && Math.abs(v) < eps) {
+          u = 0;
+          stateBB.timeDone = simTime;
+        } else if (Math.abs(sigma) < 0.05) {
+          // On switching curve: ride down to origin
+          u = -uMax * Math.sign(v);
+        } else if (sigma > 0) {
+          u = -uMax; // Brake / accelerate left
+        } else {
+          u = +uMax; // Accelerate right
+        }
+
+        // Integration (Symplectic Euler / RK2)
+        stateBB.u = u;
+        stateBB.v += u * dt;
+        stateBB.x += stateBB.v * dt;
+        stateBB.energy += u * u * dt;
+        stateBB.history.push({ t: simTime, x: stateBB.x, v: stateBB.v, u: u });
+
+        if (Math.abs(stateBB.x) < 0.03 && Math.abs(stateBB.v) < 0.03 && stateBB.timeDone === null) {
+          stateBB.timeDone = simTime;
+        }
+      }
+
+      // 2. LQR control law
+      if (stateLQR.timeDone === null) {
+        const x = stateLQR.x;
+        const v = stateLQR.v;
+        
+        let u = -(k1 * x + k2 * v);
+        // Saturation to uMax
+        u = Math.max(-uMax, Math.min(uMax, u));
+
+        stateLQR.u = u;
+        stateLQR.v += u * dt;
+        stateLQR.x += stateLQR.v * dt;
+        stateLQR.energy += u * u * dt;
+        stateLQR.history.push({ t: simTime, x: stateLQR.x, v: stateLQR.v, u: u });
+
+        if (Math.abs(stateLQR.x) < 0.03 && Math.abs(stateLQR.v) < 0.03 && stateLQR.timeDone === null) {
+          stateLQR.timeDone = simTime;
+        }
+      }
+
+      simTime += dt;
+      updateStats();
+      drawAll();
+
+      if ((mode === 'bang' && stateBB.timeDone !== null) ||
+          (mode === 'lqr' && stateLQR.timeDone !== null) ||
+          (mode === 'both' && stateBB.timeDone !== null && stateLQR.timeDone !== null) ||
+          simTime > 15.0) {
+        isPlaying = false;
+        document.getElementById('btnPlay').textContent = '▶ Старт';
+      } else {
+        animId = requestAnimationFrame(simStep);
+      }
+    }
+
+    function updateStats() {
+      document.getElementById('timeVal').textContent = `t = ${simTime.toFixed(2)} с`;
+      document.getElementById('statTimeBB').textContent = stateBB.timeDone !== null ? `${stateBB.timeDone.toFixed(2)} с (ФИНИШ)` : `${simTime.toFixed(2)} с`;
+      document.getElementById('statTimeLQR').textContent = stateLQR.timeDone !== null ? `${stateLQR.timeDone.toFixed(2)} с (ФИНИШ)` : `${simTime.toFixed(2)} с`;
+      document.getElementById('statEnergyBB').textContent = stateBB.energy.toFixed(1);
+      document.getElementById('statEnergyLQR').textContent = stateLQR.energy.toFixed(1);
+    }
+
+    // -------------------------------------------------------------
+    // Drawing Functions
+    // -------------------------------------------------------------
+    function drawAll() {
+      drawCart();
+      drawPhasePlane();
+      drawPlots();
+    }
+
+    // 1. Draw Cart Animation
+    function drawCart() {
+      const w = cartCanvas.width;
+      const h = cartCanvas.height;
+      cartCtx.clearRect(0, 0, w, h);
+
+      // Coordinate mapping: x in [-5, 5] -> px in [50, w-50]
+      const scaleX = (w - 100) / 10;
+      const toPx = x => w / 2 + x * scaleX;
+      const cy = h / 2 + 10;
+
+      // Track rail
+      cartCtx.strokeStyle = '#cbd5e1';
+      cartCtx.lineWidth = 3;
+      cartCtx.beginPath();
+      cartCtx.moveTo(30, cy + 18);
+      cartCtx.lineTo(w - 30, cy + 18);
+      cartCtx.stroke();
+
+      // Rail tick marks
+      for (let x = -4; x <= 4; x += 1) {
+        const px = toPx(x);
+        cartCtx.beginPath();
+        cartCtx.moveTo(px, cy + 18);
+        cartCtx.lineTo(px, cy + 24);
+        cartCtx.strokeStyle = '#94a3b8';
+        cartCtx.lineWidth = 1;
+        cartCtx.stroke();
+        cartCtx.fillStyle = '#64748b';
+        cartCtx.font = `${9 * window.devicePixelRatio}px var(--font-mono)`;
+        cartCtx.textAlign = 'center';
+        cartCtx.fillText(x.toString(), px, cy + 35);
+      }
+
+      // Origin Goal Target Marker
+      const ox = toPx(0);
+      cartCtx.strokeStyle = '#059669';
+      cartCtx.lineWidth = 2;
+      cartCtx.setLineDash([4, 4]);
+      cartCtx.beginPath();
+      cartCtx.moveTo(ox, cy - 40);
+      cartCtx.lineTo(ox, cy + 20);
+      cartCtx.stroke();
+      cartCtx.setLineDash([]);
+      cartCtx.fillStyle = '#059669';
+      cartCtx.beginPath();
+      cartCtx.arc(ox, cy + 18, 5, 0, Math.PI * 2);
+      cartCtx.fill();
+
+      // Draw Carts
+      const drawSingleCart = (state, color, label, yOffset) => {
+        const px = toPx(state.x);
+        const cw = 44 * (window.devicePixelRatio / 1.5);
+        const ch = 24 * (window.devicePixelRatio / 1.5);
+
+        // Cart body
+        cartCtx.fillStyle = color;
+        cartCtx.strokeStyle = '#0f172a';
+        cartCtx.lineWidth = 1.5;
+        cartCtx.beginPath();
+        cartCtx.roundRect(px - cw / 2, cy - ch + yOffset, cw, ch, 4);
+        cartCtx.fill();
+        cartCtx.stroke();
+
+        // Wheels
+        cartCtx.fillStyle = '#334155';
+        cartCtx.beginPath();
+        cartCtx.arc(px - cw / 3, cy + yOffset, 5 * (window.devicePixelRatio / 1.5), 0, Math.PI * 2);
+        cartCtx.arc(px + cw / 3, cy + yOffset, 5 * (window.devicePixelRatio / 1.5), 0, Math.PI * 2);
+        cartCtx.fill();
+
+        // Label
+        cartCtx.fillStyle = '#ffffff';
+        cartCtx.font = `bold ${8 * window.devicePixelRatio}px var(--font-sans)`;
+        cartCtx.textAlign = 'center';
+        cartCtx.fillText(label, px, cy - ch / 2 + yOffset + 3);
+
+        // Force arrow u
+        if (Math.abs(state.u) > 0.05) {
+          const arrowLen = (state.u / uMax) * 35;
+          cartCtx.strokeStyle = color;
+          cartCtx.lineWidth = 3;
+          cartCtx.beginPath();
+          cartCtx.moveTo(px, cy - ch - 8 + yOffset);
+          cartCtx.lineTo(px + arrowLen, cy - ch - 8 + yOffset);
+          cartCtx.stroke();
+          // Arrow head
+          cartCtx.fillStyle = color;
+          cartCtx.beginPath();
+          const sign = Math.sign(arrowLen);
+          cartCtx.moveTo(px + arrowLen + sign * 6, cy - ch - 8 + yOffset);
+          cartCtx.lineTo(px + arrowLen, cy - ch - 12 + yOffset);
+          cartCtx.lineTo(px + arrowLen, cy - ch - 4 + yOffset);
+          cartCtx.fill();
+        }
+      };
+
+      if (mode === 'both') {
+        drawSingleCart(stateBB, '#dc2626', 'BB', -12);
+        drawSingleCart(stateLQR, '#059669', 'LQR', 8);
+      } else if (mode === 'bang') {
+        drawSingleCart(stateBB, '#dc2626', 'Bang-Bang', 0);
+      } else {
+        drawSingleCart(stateLQR, '#059669', 'LQR', 0);
+      }
+    }
+
+    // 2. Draw Phase Plane
+    function drawPhasePlane() {
+      const w = phaseCanvas.width;
+      const h = phaseCanvas.height;
+      phaseCtx.clearRect(0, 0, w, h);
+
+      // Coordinate limits: x in [-4.5, 4.5], v in [-3.5, 3.5]
+      const minX = -4.5, maxX = 4.5;
+      const minV = -3.5, maxV = 3.5;
+
+      const toPx = x => ((x - minX) / (maxX - minX)) * w;
+      const toPy = v => h - ((v - minV) / (maxV - minV)) * h;
+
+      // Coordinate axes
+      const ox = toPx(0);
+      const oy = toPy(0);
+
+      phaseCtx.strokeStyle = '#94a3b8';
+      phaseCtx.lineWidth = 1.2;
+      phaseCtx.beginPath();
+      // X axis
+      phaseCtx.moveTo(0, oy);
+      phaseCtx.lineTo(w, oy);
+      // V axis
+      phaseCtx.moveTo(ox, 0);
+      phaseCtx.lineTo(ox, h);
+      phaseCtx.stroke();
+
+      // Axis labels
+      phaseCtx.fillStyle = '#475569';
+      phaseCtx.font = `bold ${10 * window.devicePixelRatio}px var(--font-sans)`;
+      phaseCtx.textAlign = 'right';
+      phaseCtx.fillText('x (положение)', w - 10, oy - 6);
+      phaseCtx.fillText('ẋ (скорость)', ox - 8, 15 * window.devicePixelRatio);
+
+      // Background parabolas for u = +uMax (blue dotted) and u = -uMax (red dotted)
+      phaseCtx.lineWidth = 1;
+      phaseCtx.setLineDash([2, 3]);
+
+      // u = +1: x = 0.5*v^2 / uMax + C
+      phaseCtx.strokeStyle = '#bfdbfe';
+      for (let c = -4; c <= 4; c += 1.5) {
+        phaseCtx.beginPath();
+        for (let v = minV; v <= maxV; v += 0.1) {
+          const x = 0.5 * v * Math.abs(v) / uMax + c;
+          const px = toPx(x);
+          const py = toPy(v);
+          if (v === minV) phaseCtx.moveTo(px, py);
+          else phaseCtx.lineTo(px, py);
+        }
+        phaseCtx.stroke();
+      }
+
+      // Switching curve Gamma: x = -0.5 * v * |v| / uMax (bold orange)
+      phaseCtx.setLineDash([]);
+      phaseCtx.strokeStyle = '#ea580c';
+      phaseCtx.lineWidth = 3;
+      phaseCtx.beginPath();
+      for (let v = minV; v <= maxV; v += 0.05) {
+        const x = -0.5 * v * Math.abs(v) / uMax;
+        const px = toPx(x);
+        const py = toPy(v);
+        if (v === minV) phaseCtx.moveTo(px, py);
+        else phaseCtx.lineTo(px, py);
+      }
+      phaseCtx.stroke();
+
+      // Origin point
+      phaseCtx.fillStyle = '#059669';
+      phaseCtx.beginPath();
+      phaseCtx.arc(ox, oy, 6, 0, Math.PI * 2);
+      phaseCtx.fill();
+
+      // Trajectories
+      const drawTraj = (hist, color) => {
+        if (!hist || hist.length < 2) return;
+        phaseCtx.strokeStyle = color;
+        phaseCtx.lineWidth = 2.5;
+        phaseCtx.beginPath();
+        hist.forEach((pt, i) => {
+          const px = toPx(pt.x);
+          const py = toPy(pt.v);
+          if (i === 0) phaseCtx.moveTo(px, py);
+          else phaseCtx.lineTo(px, py);
+        });
+        phaseCtx.stroke();
+      };
+
+      if (mode === 'both' || mode === 'bang') {
+        drawTraj(stateBB.history, '#dc2626');
+      }
+      if (mode === 'both' || mode === 'lqr') {
+        drawTraj(stateLQR.history, '#059669');
+      }
+
+      // Initial point marker
+      const px0 = toPx(x0);
+      const py0 = toPy(v0);
+      phaseCtx.fillStyle = '#2563eb';
+      phaseCtx.beginPath();
+      phaseCtx.arc(px0, py0, 6, 0, Math.PI * 2);
+      phaseCtx.fill();
+      phaseCtx.strokeStyle = '#ffffff';
+      phaseCtx.lineWidth = 2;
+      phaseCtx.stroke();
+
+      // Current positions
+      if (mode === 'both' || mode === 'bang') {
+        const cx = toPx(stateBB.x);
+        const cy = toPy(stateBB.v);
+        phaseCtx.fillStyle = '#dc2626';
+        phaseCtx.beginPath();
+        phaseCtx.arc(cx, cy, 5, 0, Math.PI * 2);
+        phaseCtx.fill();
+      }
+      if (mode === 'both' || mode === 'lqr') {
+        const cx = toPx(stateLQR.x);
+        const cy = toPy(stateLQR.v);
+        phaseCtx.fillStyle = '#059669';
+        phaseCtx.beginPath();
+        phaseCtx.arc(cx, cy, 5, 0, Math.PI * 2);
+        phaseCtx.fill();
+      }
+    }
+
+    // 3. Draw Plot History
+    function drawPlots() {
+      const w = plotCanvas.width;
+      const h = plotCanvas.height;
+      plotCtx.clearRect(0, 0, w, h);
+
+      // Split height into two charts: x(t) [top half] and u(t) [bottom half]
+      const hHalf = h / 2 - 10;
+      const maxT = Math.max(8.0, simTime + 1.0);
+
+      const toPx = t => (t / maxT) * (w - 40) + 30;
+
+      // Top chart: x(t) in [-4, 4]
+      const cy1 = hHalf / 2 + 5;
+      const toPy1 = x => cy1 - (x / 4) * (hHalf / 2 - 12);
+
+      // Bottom chart: u(t) in [-uMax*1.2, uMax*1.2]
+      const cy2 = hHalf + 10 + hHalf / 2;
+      const toPy2 = u => cy2 - (u / (uMax * 1.3)) * (hHalf / 2 - 12);
+
+      // Zero axes
+      plotCtx.strokeStyle = '#e2e8f0';
+      plotCtx.lineWidth = 1;
+      plotCtx.beginPath();
+      plotCtx.moveTo(30, cy1);
+      plotCtx.lineTo(w - 10, cy1);
+      plotCtx.moveTo(30, cy2);
+      plotCtx.lineTo(w - 10, cy2);
+      plotCtx.stroke();
+
+      // Labels
+      plotCtx.fillStyle = '#64748b';
+      plotCtx.font = `bold ${8.5 * window.devicePixelRatio}px var(--font-sans)`;
+      plotCtx.textAlign = 'left';
+      plotCtx.fillText('Положение x(t)', 32, 14 * window.devicePixelRatio);
+      plotCtx.fillText('Управление u(t)', 32, hHalf + 22 * window.devicePixelRatio);
+
+      // Draw curve helper
+      const drawCurve = (hist, valGetter, toPyFunc, color, isDashed = false) => {
+        if (!hist || hist.length < 2) return;
+        plotCtx.strokeStyle = color;
+        plotCtx.lineWidth = 2;
+        if (isDashed) plotCtx.setLineDash([3, 3]);
+        else plotCtx.setLineDash([]);
+
+        plotCtx.beginPath();
+        hist.forEach((pt, i) => {
+          const px = toPx(pt.t);
+          const py = toPyFunc(valGetter(pt));
+          if (i === 0) plotCtx.moveTo(px, py);
+          else plotCtx.lineTo(px, py);
+        });
+        plotCtx.stroke();
+        plotCtx.setLineDash([]);
+      };
+
+      if (mode === 'both' || mode === 'bang') {
+        drawCurve(stateBB.history, pt => pt.x, toPy1, '#dc2626');
+        drawCurve(stateBB.history, pt => pt.u, toPy2, '#dc2626');
+      }
+      if (mode === 'both' || mode === 'lqr') {
+        drawCurve(stateLQR.history, pt => pt.x, toPy1, '#059669');
+        drawCurve(stateLQR.history, pt => pt.u, toPy2, '#059669');
+      }
+    }
+
+    // -------------------------------------------------------------
+    // Event Listeners & Interaction
+    // -------------------------------------------------------------
+    // Click on phase plane to select new (x0, v0)
+    phaseCanvas.addEventListener('click', e => {
+      const rect = phaseCanvas.getBoundingClientRect();
+      const clickX = (e.clientX - rect.left) / rect.width;
+      const clickY = (e.clientY - rect.top) / rect.height;
+
+      const minX = -4.5, maxX = 4.5;
+      const minV = -3.5, maxV = 3.5;
+
+      x0 = minX + clickX * (maxX - minX);
+      v0 = maxV - clickY * (maxV - minV);
+
+      resetSimulation();
+    });
+
+    document.getElementById('btnPlay').addEventListener('click', () => {
+      isPlaying = !isPlaying;
+      document.getElementById('btnPlay').textContent = isPlaying ? '⏸ Пауза' : '▶ Старт';
+      if (isPlaying) simStep();
+    });
+
+    document.getElementById('btnReset').addEventListener('click', () => {
+      isPlaying = false;
+      document.getElementById('btnPlay').textContent = '▶ Старт';
+      resetSimulation();
+    });
+
+    document.getElementById('btnRandom').addEventListener('click', () => {
+      isPlaying = false;
+      document.getElementById('btnPlay').textContent = '▶ Старт';
+      x0 = (Math.random() - 0.5) * 6.0;
+      v0 = (Math.random() - 0.5) * 4.0;
+      resetSimulation();
+    });
+
+    document.getElementById('modeSelect').addEventListener('change', e => {
+      mode = e.target.value;
+      const badge = document.getElementById('badgeStatus');
+      if (mode === 'both') {
+        badge.className = 'badge-mode badge-both';
+        badge.textContent = 'Сравнение (BB vs LQR)';
+      } else if (mode === 'bang') {
+        badge.className = 'badge-mode badge-bang';
+        badge.textContent = 'Только Bang-Bang';
+      } else {
+        badge.className = 'badge-mode badge-lqr';
+        badge.textContent = 'Только LQR';
+      }
+      resetSimulation();
+    });
+
+    // Sliders
+    document.getElementById('sliderUmax').addEventListener('input', e => {
+      uMax = parseFloat(e.target.value);
+      document.getElementById('valUmax').textContent = uMax.toFixed(1);
+      resetSimulation();
+    });
+
+    document.getElementById('sliderQ').addEventListener('input', e => {
+      Q_val = parseFloat(e.target.value);
+      document.getElementById('valQ').textContent = Q_val.toFixed(1);
+      const [k1, k2] = computeLQR(Q_val, R_val);
+      document.getElementById('valK').textContent = `K = [${k1.toFixed(2)}, ${k2.toFixed(2)}]`;
+      resetSimulation();
+    });
+
+    document.getElementById('sliderR').addEventListener('input', e => {
+      R_val = parseFloat(e.target.value);
+      document.getElementById('valR').textContent = R_val.toFixed(1);
+      const [k1, k2] = computeLQR(Q_val, R_val);
+      document.getElementById('valK').textContent = `K = [${k1.toFixed(2)}, ${k2.toFixed(2)}]`;
+      resetSimulation();
+    });
+
+    // Initial setup
+    const [k1Init, k2Init] = computeLQR(Q_val, R_val);
+    document.getElementById('valK').textContent = `K = [${k1Init.toFixed(2)}, ${k2Init.toFixed(2)}]`;
+    setTimeout(resizeCanvases, 50);
+    resetSimulation();
+  </script>
+</body>
+</html>

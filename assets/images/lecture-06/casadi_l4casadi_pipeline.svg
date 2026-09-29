@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <g transform="translate(24, 24)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Стек моделирования CasADi и интеграция нейросетей L4CasADi</text>
+    <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Слияние точной аналитической физики с дата-дривен моделями PyTorch в реальном времени (50–100 Гц)</text>
+  </g>
+
+  <!-- 4 Architecture Blocks -->
+  <!-- Block 1: PyTorch NN -->
+  <g transform="translate(24, 65)">
+    <rect width="160" height="275" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+    <rect width="160" height="26" rx="8" fill="#ee4c2c"/>
+    <text x="10" y="17" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff">1. PyTorch (ML)</text>
+
+    <g transform="translate(10, 36)" font-family="Inter" font-size="9.5" fill="#334155">
+      <text x="0" y="10" font-weight="700" fill="#0f172a">Резидуальная динамика:</text>
+      <text x="0" y="24" font-family="JetBrains Mono" font-size="8.5" fill="#c2410c">f_res(x, u; θ)</text>
+
+      <text x="0" y="44" font-weight="700">• Что выучивает:</text>
+      <text x="6" y="58">- Занос и скольжение</text>
+      <text x="6" y="72">- Аэродинамику винтов</text>
+      <text x="6" y="86">- Трение и износ</text>
+
+      <text x="0" y="110" font-weight="700">• Телеметрия:</text>
+      <text x="6" y="124">Обучение офлайн или</text>
+      <text x="6" y="138">онлайн адаптация</text>
+
+      <rect x="0" y="155" width="140" height="42" rx="4" fill="#fff7ed" stroke="#fdba74"/>
+      <text x="6" y="170" font-family="Inter" font-size="8.5" font-weight="700" fill="#c2410c">Экспорт модели:</text>
+      <text x="6" y="186" font-family="JetBrains Mono" font-size="8" fill="#9a3412">TorchScript / C++</text>
+    </g>
+  </g>
+
+  <!-- Arrow 1 -> 2 -->
+  <path d="M 188,200 L 204,200" stroke="#94a3b8" stroke-width="2"/>
+  <polygon points="204,200 196,196 196,204" fill="#94a3b8"/>
+
+  <!-- Block 2: L4CasADi Bridge -->
+  <g transform="translate(208, 65)">
+    <rect width="165" height="275" rx="8" fill="#f8fafc" stroke="#3b82f6" stroke-width="1.5"/>
+    <rect width="165" height="26" rx="8" fill="#2563eb"/>
+    <text x="10" y="17" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff">2. L4CasADi (Salzmann)</text>
+
+    <g transform="translate(10, 36)" font-family="Inter" font-size="9.5" fill="#334155">
+      <text x="0" y="10" font-weight="700" fill="#1d4ed8">C++ Мост &amp; LibTorch:</text>
+      <text x="0" y="24">Обертка над C++ API</text>
+
+      <text x="0" y="44" font-weight="700" fill="#059669">✔ Zero-Copy Inference:</text>
+      <text x="6" y="58">Прямой вызов тензоров</text>
+      <text x="6" y="72">без оверхеда Python</text>
+
+      <text x="0" y="96" font-weight="700" fill="#2563eb">✔ Точные градиенты:</text>
+      <text x="6" y="110">Вычисление Якобианов</text>
+      <text x="6" y="124" font-family="JetBrains Mono" font-size="8.5" fill="#1e40af">∂f_res/∂x, ∂f_res/∂u</text>
+      <text x="6" y="138">через PyTorch Autograd</text>
+
+      <rect x="0" y="155" width="145" height="42" rx="4" fill="#eff6ff" stroke="#bfdbfe"/>
+      <text x="6" y="170" font-family="Inter" font-size="8.5" font-weight="700" fill="#1e40af">CasADi Function:</text>
+      <text x="6" y="186" font-family="JetBrains Mono" font-size="7.5" fill="#1d4ed8">l4c.L4CasADi(model)</text>
+    </g>
+  </g>
+
+  <!-- Arrow 2 -> 3 -->
+  <path d="M 377,200 L 393,200" stroke="#94a3b8" stroke-width="2"/>
+  <polygon points="393,200 385,196 385,204" fill="#94a3b8"/>
+
+  <!-- Block 3: CasADi Graph -->
+  <g transform="translate(397, 65)">
+    <rect width="165" height="275" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+    <rect width="165" height="26" rx="8" fill="#0284c7"/>
+    <text x="10" y="17" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff">3. Граф CasADi</text>
+
+    <g transform="translate(10, 36)" font-family="Inter" font-size="9.5" fill="#334155">
+      <text x="0" y="10" font-weight="700" fill="#0369a1">Символьный граф (SX/MX):</text>
+      <text x="0" y="24" font-family="JetBrains Mono" font-size="8" fill="#0f172a">ẋ = f_nom(x,u) + f_res</text>
+
+      <text x="0" y="44" font-weight="700">• Автоматическое</text>
+      <text x="0" y="58">  дифференцирование (AD)</text>
+      <text x="6" y="72">- Алгоритмический граф</text>
+      <text x="6" y="86">- Точный Гессиан ∇²L</text>
+      <text x="6" y="100">- Точный Якобиан ∇g</text>
+
+      <text x="0" y="124" font-weight="700" fill="#059669">• Высокая гибкость:</text>
+      <text x="6" y="138">Ограничения коридоров,</text>
+      <text x="6" y="152">препятствий и моторов</text>
+
+      <rect x="0" y="165" width="145" height="32" rx="4" fill="#e0f2fe" stroke="#7dd3fc"/>
+      <text x="6" y="185" font-family="JetBrains Mono" font-size="8" fill="#0369a1">opti = casadi.Opti()</text>
+    </g>
+  </g>
+
+  <!-- Arrow 3 -> 4 -->
+  <path d="M 566,200 L 582,200" stroke="#94a3b8" stroke-width="2"/>
+  <polygon points="582,200 574,196 574,204" fill="#94a3b8"/>
+
+  <!-- Block 4: C-Code Gen & Real-Time Solver -->
+  <g transform="translate(586, 65)">
+    <rect width="150" height="275" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+    <rect width="150" height="26" rx="8" fill="#059669"/>
+    <text x="10" y="17" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff">4. Нативный Решатель</text>
+
+    <g transform="translate(10, 36)" font-family="Inter" font-size="9.5" fill="#334155">
+      <text x="0" y="10" font-weight="700" fill="#065f46">Генерация C-кода:</text>
+      <text x="0" y="24" font-family="JetBrains Mono" font-size="8" fill="#047857">f.generate('nlp.c')</text>
+
+      <text x="0" y="44" font-weight="700">• Сборка gcc -O3:</text>
+      <text x="6" y="58">Чистый C без аллокаций</text>
+      <text x="6" y="72">в куче (no malloc)</text>
+
+      <text x="0" y="96" font-weight="700">• Решатели:</text>
+      <text x="6" y="110">- acados (SQP / RTI)</text>
+      <text x="6" y="124">- FATROP (IPM O(N))</text>
+      <text x="6" y="138">- IPOPT (NLP)</text>
+
+      <rect x="0" y="155" width="130" height="42" rx="4" fill="#ecfdf5" stroke="#a7f3d0"/>
+      <text x="6" y="170" font-family="Inter" font-size="8.5" font-weight="700" fill="#065f46">Контур робота:</text>
+      <text x="6" y="186" font-family="JetBrains Mono" font-size="8" font-weight="700" fill="#047857">50–100 Гц в RT</text>
+    </g>
+  </g>
+</svg>
