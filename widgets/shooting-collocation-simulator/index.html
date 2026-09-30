@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Интерактивное сравнение: Single Shooting, Multiple Shooting и Direct Collocation</title>
+  <link rel="stylesheet" href="../common/widget-base.css">
+  <style>
+    .split-view {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      gap: 8px;
+      padding: 8px;
+      background: var(--bg-widget);
+    }
+    .panel-canvas {
+      flex: 1.35;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
+    }
+    .panel-info {
+      flex: 0.95;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
+    }
+    .card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .canvas-box {
+      flex: 1;
+      min-height: 0;
+      position: relative;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      overflow: hidden;
+      cursor: crosshair;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    .badge-method {
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+    }
+    .badge-single { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+    .badge-multi { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+    .badge-colloc { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .stat-item {
+      background: var(--bg-control);
+      padding: 6px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border-subtle);
+    }
+    .stat-label {
+      color: var(--text-muted);
+      font-size: 9.5px;
+      margin-bottom: 2px;
+    }
+    .stat-value {
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11.5px;
+    }
+    .control-row label {
+      width: 130px;
+      color: var(--text-main);
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+    .control-row input[type=range] {
+      flex: 1;
+    }
+    .val {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent-blue);
+      width: 40px;
+      text-align: right;
+    }
+    .method-desc {
+      font-size: 11.5px;
+      line-height: 1.45;
+      color: var(--text-main);
+    }
+    .method-desc p {
+      margin: 0 0 6px 0;
+    }
+    .btn-group {
+      display: flex;
+      gap: 4px;
+    }
+    .btn-active {
+      background: var(--accent-blue) !important;
+      color: #ffffff !important;
+      border-color: var(--accent-blue) !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="widget-container">
+    <!-- Header Controls -->
+    <div class="widget-header">
+      <div class="btn-group">
+        <button id="btnModeSingle" class="btn btn-active">1. Single Shooting</button>
+        <button id="btnModeMulti" class="btn">2. Multiple Shooting</button>
+        <button id="btnModeColloc" class="btn">3. Direct Collocation</button>
+      </div>
+
+      <div style="height: 18px; width: 1px; background: var(--border-color); margin: 0 4px;"></div>
+
+      <button id="btnAction" class="btn btn-primary">⚡ Сделать шаг оптимизации</button>
+      <button id="btnReset" class="btn">↺ Сброс</button>
+
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+        <span id="hintText" style="font-size: 11px; color: var(--text-muted);">Изменяйте начальное управление u₀ ползунком и смотрите на ошибку в конце!</span>
+      </div>
+    </div>
+
+    <!-- Main Workspace -->
+    <div class="split-view">
+      <!-- Left: Interactive Canvas -->
+      <div class="panel-canvas">
+        <div class="card" style="flex: 1;">
+          <div class="card-title">
+            <span id="canvasTitle">Single Shooting: Сквозное интегрирование и чувствительность</span>
+            <span id="badgeMethod" class="badge-method badge-single">Single Shooting</span>
+          </div>
+          <div class="canvas-box" id="canvasBox">
+            <canvas id="mainCanvas"></canvas>
+          </div>
+          <div class="legend-row">
+            <span class="legend-item"><span class="legend-color" style="background: #0284c7;"></span> Траектория x(t)</span>
+            <span class="legend-item"><span class="legend-color" style="background: #059669;"></span> Целевое состояние x_f</span>
+            <span class="legend-item" id="legDefects"><span class="legend-color" style="background: #dc2626;"></span> Невязки дефектов c_k</span>
+            <span class="legend-item"><span class="legend-color" style="background: #ea580c;"></span> Препятствие</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Controls & Intuitive Theory -->
+      <div class="panel-info">
+        <!-- Telemetry -->
+        <div class="card">
+          <div class="card-title">
+            <span>Метрики задачи оптимизации</span>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-label">Число переменных w</div>
+              <div id="statVars" class="stat-value">5 (только u_k)</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">Ограничения динамики</div>
+              <div id="statEqs" class="stat-value">0 (неявные)</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">Ошибка финиша / Невязка</div>
+              <div id="statError" class="stat-value" style="color: #dc2626;">1.42 м</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">Численная устойчивость</div>
+              <div id="statStability" class="stat-value" style="color: #dc2626;">Низкая (взрыв)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic Controls Container -->
+        <div class="card" id="controlsCard" style="gap: 8px;">
+          <div class="card-title" id="ctrlTitle">Управление u_k (команды на шагах)</div>
+          <div id="dynamicControls">
+            <!-- Populated via JS depending on mode -->
+          </div>
+        </div>
+
+        <!-- Pedagogical Explanation -->
+        <div class="card" style="flex: 1;">
+          <div class="card-title">
+            <span>Суть метода на пальцах</span>
+          </div>
+          <div id="methodExplanation" class="method-desc">
+            <!-- Dynamic explanation text -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Canvas & Context
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d');
+    const canvasBox = document.getElementById('canvasBox');
+
+    // UI elements
+    const btnSingle = document.getElementById('btnModeSingle');
+    const btnMulti = document.getElementById('btnModeMulti');
+    const btnColloc = document.getElementById('btnModeColloc');
+    const btnAction = document.getElementById('btnAction');
+    const btnReset = document.getElementById('btnReset');
+    const hintText = document.getElementById('hintText');
+    const canvasTitle = document.getElementById('canvasTitle');
+    const badgeMethod = document.getElementById('badgeMethod');
+    const legDefects = document.getElementById('legDefects');
+
+    const statVars = document.getElementById('statVars');
+    const statEqs = document.getElementById('statEqs');
+    const statError = document.getElementById('statError');
+    const statStability = document.getElementById('statStability');
+    const dynamicControls = document.getElementById('dynamicControls');
+    const methodExplanation = document.getElementById('methodExplanation');
+
+    // Modes: 'single', 'multi', 'colloc'
+    let currentMode = 'single';
+
+    // Simulation Data
+    const N_STEPS = 5;
+    const DT = 0.8;
+    const startPoint = { x: 50, y: 190, v: 0 };
+    const goalPoint = { x: 420, y: 70 };
+    const obstacle = { x: 230, y: 140, r: 35 };
+
+    // State for Single Shooting: controls u[0..4]
+    let single_u = [0.4, 0.2, -0.1, -0.3, -0.2];
+
+    // State for Multiple Shooting: intermediate nodes x_k and controls u_k
+    // x_nodes: array of {x, y, vx, vy}
+    let multi_nodes = [];
+    let multi_u = [];
+    let multi_iter = 0;
+
+    // State for Collocation: spline knots
+    let colloc_knots = [];
+    let colloc_iter = 0;
+
+    function initData() {
+      // 1. Single
+      single_u = [0.35, 0.15, -0.05, -0.25, -0.15];
+
+      // 2. Multiple shooting: start with an initial discontinuous guess
+      multi_nodes = [];
+      multi_u = [0.2, 0.3, -0.1, -0.2, -0.1];
+      multi_iter = 0;
+      for (let i = 0; i <= N_STEPS; i++) {
+        const alpha = i / N_STEPS;
+        // Introduce artificial defects in initial guess (warm start from rough path)
+        const defectY = (i > 0 && i < N_STEPS) ? (Math.sin(i * 1.5) * 28) : 0;
+        multi_nodes.push({
+          x: startPoint.x + (goalPoint.x - startPoint.x) * alpha,
+          y: startPoint.y + (goalPoint.y - startPoint.y) * alpha + defectY,
+          vy: -20 * alpha
+        });
+      }
+
+      // 3. Collocation knots
+      colloc_knots = [];
+      colloc_iter = 0;
+      for (let i = 0; i <= N_STEPS; i++) {
+        const alpha = i / N_STEPS;
+        colloc_knots.push({
+          x: startPoint.x + (goalPoint.x - startPoint.x) * alpha,
+          y: startPoint.y + (goalPoint.y - startPoint.y) * alpha + (i === 2 ? 35 : 0)
+        });
+      }
+    }
+
+    initData();
+
+    // Physics step model (integrator)
+    function stepPhysics(state, u, dt) {
+      // Simple 2D kinematic model with vertical steering control u
+      const vx = (goalPoint.x - startPoint.x) / (N_STEPS * DT);
+      const vy = state.vy + u * 65 * dt;
+      return {
+        x: state.x + vx * dt,
+        y: state.y + vy * dt,
+        vy: vy
+      };
+    }
+
+    // Resize Canvas
+    function resize() {
+      const rect = canvasBox.getBoundingClientRect();
+      canvas.width = rect.width * window.devicePixelRatio;
+      canvas.height = rect.height * window.devicePixelRatio;
+      draw();
+    }
+    window.addEventListener('resize', resize);
+
+    // Coordinate Transforms
+    function toCanvas(pt) {
+      const w = canvas.width / window.devicePixelRatio;
+      const h = canvas.height / window.devicePixelRatio;
+      const sx = w / 480;
+      const sy = h / 260;
+      return { x: pt.x * sx * window.devicePixelRatio, y: pt.y * sy * window.devicePixelRatio };
+    }
+
+    // Drawing functions
+    function draw() {
+      const dpr = window.devicePixelRatio;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Grid background
+      ctx.strokeStyle = '#f1f5f9';
+      ctx.lineWidth = 1 * dpr;
+      const stepGrid = 25 * dpr;
+      for (let x = 0; x < canvas.width; x += stepGrid) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += stepGrid) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      }
+
+      // Draw Obstacle
+      const obsC = toCanvas(obstacle);
+      ctx.fillStyle = '#ffedd5';
+      ctx.strokeStyle = '#ea580c';
+      ctx.lineWidth = 2 * dpr;
+      ctx.beginPath();
+      ctx.arc(obsC.x, obsC.y, obstacle.r * (canvas.width / 480), 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#9a3412';
+      ctx.font = `bold ${10 * dpr}px var(--font-sans)`;
+      ctx.textAlign = 'center';
+      ctx.fillText('Препятствие', obsC.x, obsC.y + 4 * dpr);
+
+      // Draw Start & Goal
+      const sC = toCanvas(startPoint);
+      const gC = toCanvas(goalPoint);
+
+      // Start Marker
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.arc(sC.x, sC.y, 6 * dpr, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#0f172a';
+      ctx.font = `bold ${11 * dpr}px var(--font-sans)`;
+      ctx.textAlign = 'center';
+      ctx.fillText('Старт x₀', sC.x, sC.y + 16 * dpr);
+
+      // Goal Marker
+      ctx.fillStyle = '#059669';
+      ctx.beginPath();
+      ctx.arc(gC.x, gC.y, 7 * dpr, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#059669';
+      ctx.font = `bold ${11 * dpr}px var(--font-sans)`;
+      ctx.fillText('Цель x_f', gC.x, gC.y - 12 * dpr);
+
+      // Mode-specific drawing
+      if (currentMode === 'single') {
+        drawSingleShooting();
+      } else if (currentMode === 'multi') {
+        drawMultipleShooting();
+      } else {
+        drawDirectCollocation();
+      }
+    }
+
+    // 1. Draw Single Shooting
+    function drawSingleShooting() {
+      const dpr = window.devicePixelRatio;
+
+      // Integrate forward
+      let cur = { x: startPoint.x, y: startPoint.y, vy: -10 };
+      const traj = [cur];
+
+      for (let i = 0; i < N_STEPS; i++) {
+        cur = stepPhysics(cur, single_u[i], DT);
+        traj.push(cur);
+      }
+
+      // Draw trajectory path
+      ctx.strokeStyle = '#0284c7';
+      ctx.lineWidth = 3.5 * dpr;
+      ctx.beginPath();
+      const p0 = toCanvas(traj[0]);
+      ctx.moveTo(p0.x, p0.y);
+      for (let i = 1; i < traj.length; i++) {
+        const pi = toCanvas(traj[i]);
+        ctx.lineTo(pi.x, pi.y);
+      }
+      ctx.stroke();
+
+      // Draw Step Nodes
+      for (let i = 0; i < traj.length; i++) {
+        const pi = toCanvas(traj[i]);
+        ctx.fillStyle = (i === traj.length - 1) ? '#dc2626' : '#0284c7';
+        ctx.beginPath();
+        ctx.arc(pi.x, pi.y, 4.5 * dpr, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#475569';
+        ctx.font = `${9.5 * dpr}px var(--font-mono)`;
+        ctx.fillText(`x_${i}`, pi.x, pi.y - 8 * dpr);
+      }
+
+      // Terminal Error Line
+      const pEnd = toCanvas(traj[traj.length - 1]);
+      const pGoal = toCanvas(goalPoint);
+      ctx.strokeStyle = '#dc2626';
+      ctx.lineWidth = 1.5 * dpr;
+      ctx.setLineDash([4 * dpr, 4 * dpr]);
+      ctx.beginPath();
+      ctx.moveTo(pEnd.x, pEnd.y);
+      ctx.lineTo(pGoal.x, pGoal.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      const err = Math.hypot(traj[traj.length - 1].x - goalPoint.x, traj[traj.length - 1].y - goalPoint.y);
+      statError.innerText = (err / 25).toFixed(2) + ' м';
+      statError.style.color = err < 15 ? '#059669' : '#dc2626';
+    }
+
+    // 2. Draw Multiple Shooting
+    function drawMultipleShooting() {
+      const dpr = window.devicePixelRatio;
+      let totalDefect = 0;
+
+      for (let i = 0; i < N_STEPS; i++) {
+        const nodeA = multi_nodes[i];
+        const nextIntegrated = stepPhysics(nodeA, multi_u[i], DT);
+        const nodeB = multi_nodes[i + 1];
+
+        // Draw local integrated arc from nodeA
+        const pA = toCanvas(nodeA);
+        const pInt = toCanvas(nextIntegrated);
+        const pB = toCanvas(nodeB);
+
+        // Segment curve
+        ctx.strokeStyle = '#2563eb';
+        ctx.lineWidth = 3 * dpr;
+        ctx.beginPath();
+        ctx.moveTo(pA.x, pA.y);
+        ctx.lineTo(pInt.x, pInt.y);
+        ctx.stroke();
+
+        // Draw defect vector (gap between integrated arrival and next node)
+        const defectDist = Math.hypot(pB.x - pInt.x, pB.y - pInt.y);
+        totalDefect += defectDist;
+
+        if (defectDist > 3 * dpr) {
+          ctx.strokeStyle = '#dc2626';
+          ctx.lineWidth = 2 * dpr;
+          ctx.setLineDash([3 * dpr, 3 * dpr]);
+          ctx.beginPath();
+          ctx.moveTo(pInt.x, pInt.y);
+          ctx.lineTo(pB.x, pB.y);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Defect label
+          ctx.fillStyle = '#dc2626';
+          ctx.font = `bold ${9 * dpr}px var(--font-mono)`;
+          ctx.fillText(`c_${i} ≠ 0`, (pInt.x + pB.x) / 2, (pInt.y + pB.y) / 2 - 6 * dpr);
+        }
+
+        // Integrated point
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.arc(pInt.x, pInt.y, 3 * dpr, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Optimization Variable Node x_i
+        ctx.fillStyle = '#2563eb';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.5 * dpr;
+        ctx.beginPath();
+        ctx.arc(pA.x, pA.y, 5 * dpr, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#1e3a8a';
+        ctx.font = `bold ${9.5 * dpr}px var(--font-mono)`;
+        ctx.fillText(`x_${i}`, pA.x, pA.y - 8 * dpr);
+      }
+
+      // Last node
+      const pLast = toCanvas(multi_nodes[N_STEPS]);
+      ctx.fillStyle = '#2563eb';
+      ctx.beginPath();
+      ctx.arc(pLast.x, pLast.y, 5 * dpr, 0, Math.PI * 2);
+      ctx.fill();
+
+      statError.innerText = (totalDefect / (15 * dpr)).toFixed(2) + ' (невязка)';
+      statError.style.color = totalDefect < 10 ? '#059669' : '#dc2626';
+    }
+
+    // 3. Draw Direct Collocation
+    function drawDirectCollocation() {
+      const dpr = window.devicePixelRatio;
+
+      // Draw continuous polynomial spline through knots
+      ctx.strokeStyle = '#059669';
+      ctx.lineWidth = 3.5 * dpr;
+      ctx.beginPath();
+      const p0 = toCanvas(colloc_knots[0]);
+      ctx.moveTo(p0.x, p0.y);
+
+      for (let i = 0; i < N_STEPS; i++) {
+        const pA = toCanvas(colloc_knots[i]);
+        const pB = toCanvas(colloc_knots[i + 1]);
+        const cpX = (pA.x + pB.x) / 2;
+        const cpY = (pA.y + pB.y) / 2;
+
+        ctx.quadraticCurveTo(pA.x + (pB.x - pA.x) * 0.4, pA.y, cpX, cpY);
+        ctx.quadraticCurveTo(pB.x - (pB.x - pA.x) * 0.4, pB.y, pB.x, pB.y);
+      }
+      ctx.stroke();
+
+      // Draw Collocation Knots and Midpoints
+      for (let i = 0; i < colloc_knots.length; i++) {
+        const pi = toCanvas(colloc_knots[i]);
+
+        // Main State Knot
+        ctx.fillStyle = '#059669';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2 * dpr;
+        ctx.beginPath();
+        ctx.arc(pi.x, pi.y, 5.5 * dpr, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#065f46';
+        ctx.font = `bold ${9.5 * dpr}px var(--font-mono)`;
+        ctx.fillText(`x_${i}`, pi.x, pi.y - 9 * dpr);
+
+        // Collocation Midpoint for Hermite-Simpson
+        if (i < N_STEPS) {
+          const nextP = toCanvas(colloc_knots[i + 1]);
+          const midX = (pi.x + nextP.x) / 2;
+          const midY = (pi.y + nextP.y) / 2;
+
+          ctx.fillStyle = '#d97706';
+          ctx.beginPath();
+          ctx.arc(midX, midY, 3.5 * dpr, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Collocation tangent marker
+          ctx.strokeStyle = '#d97706';
+          ctx.lineWidth = 1.2 * dpr;
+          ctx.beginPath();
+          ctx.moveTo(midX - 10 * dpr, midY - 3 * dpr);
+          ctx.lineTo(midX + 10 * dpr, midY + 3 * dpr);
+          ctx.stroke();
+        }
+      }
+
+      statError.innerText = (colloc_iter > 0 ? '0.00 (сошлось)' : '0.18 (невязка)');
+      statError.style.color = '#059669';
+    }
+
+    // UI Updates per Mode
+    function updateModeUI() {
+      btnSingle.classList.toggle('btn-active', currentMode === 'single');
+      btnMulti.classList.toggle('btn-active', currentMode === 'multi');
+      btnColloc.classList.toggle('btn-active', currentMode === 'colloc');
+
+      if (currentMode === 'single') {
+        canvasTitle.innerText = 'Single Shooting: Сквозное интегрирование ODE';
+        badgeMethod.className = 'badge-method badge-single';
+        badgeMethod.innerText = 'Single Shooting';
+        legDefects.style.display = 'none';
+
+        statVars.innerText = '5 (только u_k)';
+        statEqs.innerText = '0 (неявные)';
+        statStability.innerText = 'Низкая (взрыв)';
+        statStability.style.color = '#dc2626';
+
+        btnAction.innerText = '⚡ Добавить шум в u₀ (эффект бабочки)';
+        hintText.innerText = 'Подвигайте u₀: малейшее изменение первого шага уносит хвост траектории!';
+
+        // Controls: 5 sliders for u
+        let html = '';
+        for (let i = 0; i < N_STEPS; i++) {
+          html += `
+            <div class="control-row">
+              <label>Управление u_${i}:</label>
+              <input type="range" min="-0.8" max="0.8" step="0.05" value="${single_u[i]}" data-idx="${i}" class="u-slider">
+              <span class="val" id="valU${i}">${single_u[i].toFixed(2)}</span>
+            </div>
+          `;
+        }
+        dynamicControls.innerHTML = html;
+
+        document.querySelectorAll('.u-slider').forEach(sl => {
+          sl.addEventListener('input', e => {
+            const idx = parseInt(e.target.dataset.idx);
+            single_u[idx] = parseFloat(e.target.value);
+            document.getElementById(`valU${idx}`).innerText = single_u[idx].toFixed(2);
+            draw();
+          });
+        });
+
+        methodExplanation.innerHTML = `
+          <p><b>Идея:</b> Оптимизируем только команды приводов <code>u_k</code>. Точки пути вычисляются прогоном симулятора физики от старта.</p>
+          <p><b>Плюс:</b> Очень мало переменных (всего ${N_STEPS} чисел).</p>
+          <p><b>Критический порок:</b> Эффект бабочки! Ошибка или возмущение в начале (<code>u₀</code>) накапливается по экспоненте к концу горизонта. Для дронов и шагающих роботов не сходится вовсе.</p>
+        `;
+      } else if (currentMode === 'multi') {
+        canvasTitle.innerText = 'Multiple Shooting: Разделяй и властвуй (дефекты неразрывности)';
+        badgeMethod.className = 'badge-method badge-multi';
+        badgeMethod.innerText = 'Multiple Shooting';
+        legDefects.style.display = 'inline-flex';
+
+        statVars.innerText = '25 (состояния x_k и u_k)';
+        statEqs.innerText = `${N_STEPS} условий дефектов`;
+        statStability.innerText = 'Высокая (локальная)';
+        statStability.style.color = '#059669';
+
+        btnAction.innerText = '⚡ Шаг SQP (Сшить швы c_k → 0)';
+        hintText.innerText = 'Нажмите «Шаг SQP»: оптимизатор за пару итераций сошьет разрывы в единую траекторию!';
+
+        dynamicControls.innerHTML = `
+          <div style="font-size: 11.5px; line-height: 1.5; color: var(--text-muted);">
+            В Multiple Shooting промежуточные позы <b>x₁...x₅</b> объявлены самостоятельными переменными.<br>
+            Интегрирование ведется независимо на коротких интервалах.<br>
+            <b>Текущая итерация SQP:</b> <span style="font-family: var(--font-mono); font-weight:700; color:var(--accent-blue);" id="lblIter">${multi_iter}</span>
+          </div>
+        `;
+
+        methodExplanation.innerHTML = `
+          <p><b>Идея:</b> Нарезаем горизонт на кусочки по 50 мс. Оптимизируем и точки пути <code>x_k</code>, и моторы <code>u_k</code> одновременно!</p>
+          <p><b>Швы (дефекты):</b> Оптимизатор требует равенства <code>c_k = x_{k+1} - физика(x_k, u_k) = 0</code>.</p>
+          <p><b>Суперсила:</b> Стабильно, параллельно, и главное — идеальный <b>тёплый старт</b> от геометрического пути A* или RRT! Индустриальный стандарт робототехники (acados).</p>
+        `;
+      } else {
+        canvasTitle.innerText = 'Direct Collocation: Полный отказ от численного интегратора';
+        badgeMethod.className = 'badge-method badge-colloc';
+        badgeMethod.innerText = 'Direct Collocation';
+        legDefects.style.display = 'none';
+
+        statVars.innerText = '35 (узлы сплайнов и u_k)';
+        statEqs.innerText = 'Алгебра Hermite-Simpson';
+        statStability.innerText = 'Максимальная';
+        statStability.style.color = '#059669';
+
+        btnAction.innerText = '⚡ Обойти препятствие сплайном';
+        hintText.innerText = 'Траектория описывается полиномом. Препятствия проверяются прямо в контрольных точках!';
+
+        dynamicControls.innerHTML = `
+          <div style="font-size: 11.5px; line-height: 1.5; color: var(--text-muted);">
+            Численного симулятора больше нет! Траектория представлена сплайном.<br>
+            В точках коллокации (оранжевые точки) проверяется наклон касательной к физике <code>f(x, u)</code>.<br>
+            <b>Статус сетки:</b> <span style="color:#059669; font-weight:700;">Сверхразреженная KKT (>98% нулей)</span>
+          </div>
+        `;
+
+        methodExplanation.innerHTML = `
+          <p><b>Идея:</b> Численные дифференциальные уравнения полностью исключены! Траектория представляется полиномиальным сплайном.</p>
+          <p><b>Плюс:</b> Препятствия и границы коридоров безопасности накладываются прямо на узлы сетки — робот гарантированно не заденет препятствие.</p>
+          <p><b>Применение:</b> Офлайн расчет сложнейших акробатических маневров шагающих роботов Boston Dynamics и дронов (IPOPT, FATROP).</p>
+        `;
+      }
+      draw();
+    }
+
+    // Action button handler
+    btnAction.addEventListener('click', () => {
+      if (currentMode === 'single') {
+        // Add tiny perturbation to u_0 to show divergence
+        single_u[0] += (Math.random() > 0.5 ? 0.25 : -0.25);
+        single_u[0] = Math.max(-0.8, Math.min(0.8, single_u[0]));
+        document.querySelector('.u-slider[data-idx="0"]').value = single_u[0];
+        document.getElementById('valU0').innerText = single_u[0].toFixed(2);
+        draw();
+      } else if (currentMode === 'multi') {
+        // SQP step: smoothly close defects
+        multi_iter++;
+        document.getElementById('lblIter').innerText = multi_iter;
+        for (let i = 1; i < N_STEPS; i++) {
+          const integrated = stepPhysics(multi_nodes[i - 1], multi_u[i - 1], DT);
+          multi_nodes[i].x += (integrated.x - multi_nodes[i].x) * 0.65;
+          multi_nodes[i].y += (integrated.y - multi_nodes[i].y) * 0.65;
+        }
+        draw();
+      } else {
+        // Collocation step: push knots outside obstacle
+        colloc_iter++;
+        for (let i = 1; i < N_STEPS; i++) {
+          const d = Math.hypot(colloc_knots[i].x - obstacle.x, colloc_knots[i].y - obstacle.y);
+          if (d < obstacle.r + 20) {
+            colloc_knots[i].y -= 25;
+          }
+        }
+        draw();
+      }
+    });
+
+    btnReset.addEventListener('click', () => {
+      initData();
+      updateModeUI();
+    });
+
+    btnSingle.addEventListener('click', () => { currentMode = 'single'; updateModeUI(); });
+    btnMulti.addEventListener('click', () => { currentMode = 'multi'; updateModeUI(); });
+    btnColloc.addEventListener('click', () => { currentMode = 'colloc'; updateModeUI(); });
+
+    // Initial setup
+    updateModeUI();
+    setTimeout(resize, 50);
+  </script>
+</body>
+</html>
