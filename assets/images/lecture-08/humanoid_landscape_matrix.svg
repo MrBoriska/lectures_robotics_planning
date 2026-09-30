@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 430" width="880" height="430">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 430" width="920" height="430">
   <defs>
     <filter id="shadowMatrix" x="-5%" y="-5%" width="110%" height="115%" filterUnits="userSpaceOnUse">
       <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.08"/>
@@ -8,126 +8,149 @@
   <rect width="100%" height="100%" fill="#ffffff" rx="12" stroke="#e2e8f0" stroke-width="1.5"/>
 
   <!-- Title Badge -->
-  <g transform="translate(24, 16)">
-    <rect width="390" height="28" rx="6" fill="#f8fafc" stroke="#cbd5e1"/>
+  <g transform="translate(16, 16)">
+    <rect width="430" height="28" rx="6" fill="#f8fafc" stroke="#cbd5e1"/>
     <text x="12" y="19" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#0f172a">
       🏆 МИРОВОЙ ЛАНДШАФТ ГУМАНОИДОВ (2024–2026)
     </text>
-    <text x="415" y="19" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">
-      Сравнение ключевых технологических стеков и подходов
+    <text x="455" y="19" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">
+      Сравнение ключевых технологических платформ (США, Китай, Россия)
     </text>
   </g>
 
-  <!-- 4 Columns / Cards -->
+  <!-- 5 Columns / Cards -->
   <!-- 1. Tesla Optimus Gen 2 -->
-  <g transform="translate(24, 56)" filter="url(#shadowMatrix)">
-    <rect width="195" height="350" rx="8" fill="#ffffff" stroke="#f87171" stroke-width="1.5"/>
-    <rect width="195" height="30" rx="8" fill="#dc2626"/>
-    <text x="10" y="20" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#ffffff">Tesla Optimus Gen 2</text>
+  <g transform="translate(16, 56)" filter="url(#shadowMatrix)">
+    <rect width="168" height="350" rx="8" fill="#ffffff" stroke="#f87171" stroke-width="1.5"/>
+    <rect width="168" height="30" rx="8" fill="#dc2626"/>
+    <text x="8" y="20" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#ffffff">Tesla Optimus 2 (США)</text>
 
-    <g transform="translate(10, 42)" font-family="Inter, sans-serif" font-size="9" fill="#334155">
-      <text x="0" y="12" font-weight="700" fill="#b91c1c">Приводы &amp; Механика:</text>
-      <text x="4" y="26">• Собственные приводы Tesla</text>
-      <text x="4" y="38">• Линейные винтовые (ноги)</text>
-      <text x="4" y="50">• Вращательные шарниры</text>
-      <text x="4" y="62">• Кисти: 11 DoF ➔ 22 DoF</text>
-      <text x="4" y="74">• Вес: 57 кг (-10 кг в Gen 2)</text>
+    <g transform="translate(8, 42)" font-family="Inter, sans-serif" font-size="8.5" fill="#334155">
+      <text x="0" y="12" font-weight="700" fill="#b91c1c">Механика &amp; Приводы:</text>
+      <text x="2" y="25">• Винтовые линейные (ноги)</text>
+      <text x="2" y="37">• Ротационные шарниры</text>
+      <text x="2" y="49">• Кисти: 11 ➔ 22 DoF</text>
+      <text x="2" y="61">• Масса: 57 кг (-10 кг)</text>
 
-      <text x="0" y="96" font-weight="700" fill="#b91c1c">Стек Управления:</text>
-      <text x="4" y="110">• Сквозные нейросети (FSD стек)</text>
-      <text x="4" y="122">• Обучение на человеческом видео</text>
-      <text x="4" y="134">• Бортовой чип Tesla FSD HW4</text>
-      <text x="4" y="146">• Тактильные сенсоры в пальцах</text>
+      <text x="0" y="80" font-weight="700" fill="#b91c1c">Стек Управления:</text>
+      <text x="2" y="93">• Сквозные нейросети FSD</text>
+      <text x="2" y="105">• Видеочеловеческий датасет</text>
+      <text x="2" y="117">• Бортовой чип Tesla HW4</text>
+      <text x="2" y="129">• Сенсоры в пальцах</text>
 
-      <rect x="0" y="165" width="175" height="70" rx="4" fill="#fef2f2" stroke="#fee2e2"/>
-      <text x="6" y="180" font-weight="700" fill="#991b1b">Реальные задачи:</text>
-      <text x="6" y="196">Сортировка ячеек 4680</text>
-      <text x="6" y="210">на гигафабрике в Техасе</text>
-      <text x="6" y="224" font-weight="700" fill="#b91c1c">Цель: тираж &gt; миллиона</text>
+      <rect x="0" y="148" width="152" height="75" rx="4" fill="#fef2f2" stroke="#fee2e2"/>
+      <text x="6" y="163" font-weight="700" fill="#991b1b">Задачи &amp; Статус:</text>
+      <text x="6" y="177">Сортировка ячеек 4680</text>
+      <text x="6" y="190">на Gigafactory Texas</text>
+      <text x="6" y="205" font-weight="700" fill="#b91c1c">Фокус: ультра-массовость</text>
     </g>
   </g>
 
   <!-- 2. Figure 02 -->
-  <g transform="translate(235, 56)" filter="url(#shadowMatrix)">
-    <rect width="195" height="350" rx="8" fill="#ffffff" stroke="#60a5fa" stroke-width="1.5"/>
-    <rect width="195" height="30" rx="8" fill="#2563eb"/>
-    <text x="10" y="20" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#ffffff">Figure 02 (OpenAI)</text>
+  <g transform="translate(196, 56)" filter="url(#shadowMatrix)">
+    <rect width="168" height="350" rx="8" fill="#ffffff" stroke="#60a5fa" stroke-width="1.5"/>
+    <rect width="168" height="30" rx="8" fill="#2563eb"/>
+    <text x="8" y="20" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#ffffff">Figure 02 (США)</text>
 
-    <g transform="translate(10, 42)" font-family="Inter, sans-serif" font-size="9" fill="#334155">
-      <text x="0" y="12" font-weight="700" fill="#1d4ed8">Приводы &amp; Механика:</text>
-      <text x="4" y="26">• Полностью скрытая проводка</text>
-      <text x="4" y="38">• Кастомные сочленения</text>
-      <text x="4" y="50">• Кисти 16 DoF с тактильностью</text>
-      <text x="4" y="62">• Батарея 2.25 кВт·ч (+50%)</text>
-      <text x="4" y="74">• Вес: 70 кг, рост 170 см</text>
+    <g transform="translate(8, 42)" font-family="Inter, sans-serif" font-size="8.5" fill="#334155">
+      <text x="0" y="12" font-weight="700" fill="#1d4ed8">Механика &amp; Приводы:</text>
+      <text x="2" y="25">• Вся проводка внутри</text>
+      <text x="2" y="37">• Кисти 16 DoF с осязанием</text>
+      <text x="2" y="49">• Батарея 2.25 кВт·ч (+50%)</text>
+      <text x="2" y="61">• Масса: 70 кг, рост 1.7 м</text>
 
-      <text x="0" y="96" font-weight="700" fill="#1d4ed8">Стек Управления:</text>
-      <text x="4" y="110">• 3x GPU на борту робота</text>
-      <text x="4" y="122">• Модель Helix (VLA + диалог)</text>
-      <text x="4" y="134">• OpenAI речевой движок</text>
-      <text x="4" y="146">• 6 встроенных RGB камер</text>
+      <text x="0" y="80" font-weight="700" fill="#1d4ed8">Стек Управления:</text>
+      <text x="2" y="93">• 3x GPU на борту</text>
+      <text x="2" y="105">• Модель Helix / OpenAI</text>
+      <text x="2" y="117">• Речевой диалог в реальном времени</text>
+      <text x="2" y="129">• 6 RGB камер в корпусе</text>
 
-      <rect x="0" y="165" width="175" height="70" rx="4" fill="#eff6ff" stroke="#dbeafe"/>
-      <text x="6" y="180" font-weight="700" fill="#1e40af">Реальные задачи:</text>
-      <text x="6" y="196">Установка листового металла</text>
-      <text x="6" y="210">на заводе BMW (Спартанберг)</text>
-      <text x="6" y="224" font-weight="700" fill="#1d4ed8">Точность: субмиллиметровая</text>
+      <rect x="0" y="148" width="152" height="75" rx="4" fill="#eff6ff" stroke="#dbeafe"/>
+      <text x="6" y="163" font-weight="700" fill="#1e40af">Задачи &amp; Статус:</text>
+      <text x="6" y="177">Сборка листового металла</text>
+      <text x="6" y="190">на заводе BMW Спартанберг</text>
+      <text x="6" y="205" font-weight="700" fill="#1d4ed8">Точность: субмиллиметры</text>
     </g>
   </g>
 
   <!-- 3. Boston Dynamics Electric Atlas -->
-  <g transform="translate(446, 56)" filter="url(#shadowMatrix)">
-    <rect width="195" height="350" rx="8" fill="#ffffff" stroke="#fbbf24" stroke-width="1.5"/>
-    <rect width="195" height="30" rx="8" fill="#d97706"/>
-    <text x="10" y="20" font-family="Inter, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">Electric Atlas (BD)</text>
+  <g transform="translate(376, 56)" filter="url(#shadowMatrix)">
+    <rect width="168" height="350" rx="8" fill="#ffffff" stroke="#fbbf24" stroke-width="1.5"/>
+    <rect width="168" height="30" rx="8" fill="#d97706"/>
+    <text x="8" y="20" font-family="Inter, sans-serif" font-size="9.5" font-weight="700" fill="#ffffff">Electric Atlas (США)</text>
 
-    <g transform="translate(10, 42)" font-family="Inter, sans-serif" font-size="9" fill="#334155">
-      <text x="0" y="12" font-weight="700" fill="#b45309">Приводы &amp; Механика:</text>
-      <text x="4" y="26">• Полный отказ от гидравлики</text>
-      <text x="4" y="38">• Сверхмощные электроприводы</text>
-      <text x="4" y="50">• Вращение суставов на 360°!</text>
-      <text x="4" y="62">• Нечеловеческая кинематика</text>
-      <text x="4" y="74">• Компактный дизайн торса</text>
+    <g transform="translate(8, 42)" font-family="Inter, sans-serif" font-size="8.5" fill="#334155">
+      <text x="0" y="12" font-weight="700" fill="#b45309">Механика &amp; Приводы:</text>
+      <text x="2" y="25">• 100% электроприводы</text>
+      <text x="2" y="37">• Вращение на 360°!</text>
+      <text x="2" y="49">• Без упоров суставов</text>
+      <text x="2" y="61">• Сверхмощные моторы</text>
 
-      <text x="0" y="96" font-weight="700" fill="#b45309">Стек Управления:</text>
-      <text x="4" y="110">• Гибрид RL-политик и</text>
-      <text x="4" y="122">  модельного планирования</text>
-      <text x="4" y="134">• Круговое зрение 360°</text>
-      <text x="4" y="146">• Экстремальная динамика</text>
+      <text x="0" y="80" font-weight="700" fill="#b45309">Стек Управления:</text>
+      <text x="2" y="93">• Гибрид RL локомоции</text>
+      <text x="2" y="105">• Модельное планирование</text>
+      <text x="2" y="117">• Круговое зрение 360°</text>
+      <text x="2" y="129">• Экстремальная динамика</text>
 
-      <rect x="0" y="165" width="175" height="70" rx="4" fill="#fffbeb" stroke="#fef3c7"/>
-      <text x="6" y="180" font-weight="700" fill="#92400e">Реальные задачи:</text>
-      <text x="6" y="196">Тяжелые манипуляции деталями</text>
-      <text x="6" y="210">на заводах Hyundai Motor</text>
-      <text x="6" y="224" font-weight="700" fill="#b45309">Фокус: индустриальная мощь</text>
+      <rect x="0" y="148" width="152" height="75" rx="4" fill="#fffbeb" stroke="#fef3c7"/>
+      <text x="6" y="163" font-weight="700" fill="#92400e">Задачи &amp; Статус:</text>
+      <text x="6" y="177">Тяжелые манипуляции</text>
+      <text x="6" y="190">на заводах Hyundai Motor</text>
+      <text x="6" y="205" font-weight="700" fill="#b45309">Фокус: индустрия и мощь</text>
     </g>
   </g>
 
-  <!-- 4. Unitree G1 (Китайский прорыв) -->
-  <g transform="translate(657, 56)" filter="url(#shadowMatrix)">
-    <rect width="195" height="350" rx="8" fill="#ffffff" stroke="#4ade80" stroke-width="1.5"/>
-    <rect width="195" height="30" rx="8" fill="#16a34a"/>
-    <text x="10" y="20" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#ffffff">Unitree G1 ($16 000)</text>
+  <!-- 4. Unitree G1 -->
+  <g transform="translate(556, 56)" filter="url(#shadowMatrix)">
+    <rect width="168" height="350" rx="8" fill="#ffffff" stroke="#4ade80" stroke-width="1.5"/>
+    <rect width="168" height="30" rx="8" fill="#16a34a"/>
+    <text x="8" y="20" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#ffffff">Unitree G1 (Китай)</text>
 
-    <g transform="translate(10, 42)" font-family="Inter, sans-serif" font-size="9" fill="#334155">
-      <text x="0" y="12" font-weight="700" fill="#15803d">Приводы &amp; Механика:</text>
-      <text x="4" y="26">• 23–43 степеней свободы</text>
-      <text x="4" y="38">• Пиковый момент: 120 Н·м</text>
-      <text x="4" y="50">• Складной корпус (рюкзак)</text>
-      <text x="4" y="62">• Вес: всего 35 кг!</text>
-      <text x="4" y="74">• Цена: от $16 000 (ШОК рынка)</text>
+    <g transform="translate(8, 42)" font-family="Inter, sans-serif" font-size="8.5" fill="#334155">
+      <text x="0" y="12" font-weight="700" fill="#15803d">Механика &amp; Приводы:</text>
+      <text x="2" y="25">• 23–43 DoF, момент 120 Нм</text>
+      <text x="2" y="37">• Складной корпус (рюкзак)</text>
+      <text x="2" y="49">• Масса: всего 35 кг!</text>
+      <text x="2" y="61">• Цена: от $16 000</text>
 
-      <text x="0" y="96" font-weight="700" fill="#15803d">Стек Управления:</text>
-      <text x="4" y="110">• RL локомоция (Isaac Sim)</text>
-      <text x="4" y="122">• Динамический паркур, прыжки</text>
-      <text x="4" y="134">• Лидар Livox MID-360 + RealSense</text>
-      <text x="4" y="146">• 8-ядерный CPU + GPU</text>
+      <text x="0" y="80" font-weight="700" fill="#15803d">Стек Управления:</text>
+      <text x="2" y="93">• RL локомоция (Isaac Sim)</text>
+      <text x="2" y="105">• Паркур, прыжки, сальто</text>
+      <text x="2" y="117">• Лидар Livox MID-360</text>
+      <text x="2" y="129">• Камеры RealSense</text>
 
-      <rect x="0" y="165" width="175" height="70" rx="4" fill="#f0fdf4" stroke="#dcfce7"/>
-      <text x="6" y="180" font-weight="700" fill="#166534">Реальные задачи:</text>
-      <text x="6" y="196">Массовые R&amp;D лаборатории,</text>
-      <text x="6" y="210">патрулирование, образование</text>
-      <text x="6" y="224" font-weight="700" fill="#15803d">Старт массовых поставок</text>
+      <rect x="0" y="148" width="152" height="75" rx="4" fill="#f0fdf4" stroke="#dcfce7"/>
+      <text x="6" y="163" font-weight="700" fill="#166534">Задачи &amp; Статус:</text>
+      <text x="6" y="177">Массовые лаборатории,</text>
+      <text x="6" y="190">образование, патрули</text>
+      <text x="6" y="205" font-weight="700" fill="#15803d">Ценовой шок рынка</text>
+    </g>
+  </g>
+
+  <!-- 5. Сбер «Грин» (Россия) -->
+  <g transform="translate(736, 56)" filter="url(#shadowMatrix)">
+    <rect width="168" height="350" rx="8" fill="#ffffff" stroke="#22c55e" stroke-width="2"/>
+    <rect width="168" height="30" rx="8" fill="#059669"/>
+    <text x="8" y="20" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#ffffff">Сбер «Грин» (РФ)</text>
+
+    <g transform="translate(8, 42)" font-family="Inter, sans-serif" font-size="8.5" fill="#334155">
+      <text x="0" y="12" font-weight="700" fill="#047857">Механика &amp; Приводы:</text>
+      <text x="2" y="25">• Двуногий антропоморф</text>
+      <text x="2" y="37">• Полноразмерный корпус</text>
+      <text x="2" y="49">• Антропоморфные кисти</text>
+      <text x="2" y="61">• Сенсоры силы в стопах</text>
+
+      <text x="0" y="80" font-weight="700" fill="#047857">Стек Управления:</text>
+      <text x="2" y="93">• Экосистема GigaChat</text>
+      <text x="2" y="105">• Мультимодальный диалог</text>
+      <text x="2" y="117">• RL локомоция и баланс</text>
+      <text x="2" y="129">• Зрение: RGB-D и лидар</text>
+
+      <rect x="0" y="148" width="152" height="75" rx="4" fill="#ecfdf5" stroke="#a7f3d0"/>
+      <text x="6" y="163" font-weight="700" fill="#065f46">Задачи &amp; Статус:</text>
+      <text x="6" y="177">Складская логистика,</text>
+      <text x="6" y="190">клиентские офисы, R&amp;D</text>
+      <text x="6" y="205" font-weight="700" fill="#047857">Суверенный Embodied AI</text>
     </g>
   </g>
 </svg>
