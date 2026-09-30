@@ -406,38 +406,53 @@ const portalHtml = `<!DOCTYPE html>
         <div class="widgets-grid">
           <a href="widgets/cspace-minkowski/index.html" class="widget-link-card" target="_blank">
             <h4>C-Space & Minkowski Sum</h4>
-            <p>Конфигурационное пространство, поворот робота $\theta$, вычисление сечения {obs} = O \oplus (-A)$ и проверка коллизий.</p>
-            <span class="lecture-num">Открыть симулятор →</span>
+            <p>Конфигурационное пространство, поворот несимметричного шасси θ, построение C_obs = O ⊕ (-A) и аналитическая проверка коллизий.</p>
+            <span class="lecture-num">Лекция 01 →</span>
+          </a>
+          <a href="widgets/graph-search-steps/index.html" class="widget-link-card" target="_blank">
+            <h4>Пошаговый поиск: Dijkstra / A* / Theta*</h4>
+            <p>Пошаговая итерация: очередь OPEN, релаксация рёбер, проверка LineOfSight. Псевдокод синхронизирован с геометрией сетки.</p>
+            <span class="lecture-num">Лекция 02 →</span>
           </a>
           <a href="widgets/mapf-spacetime/index.html" class="widget-link-card" target="_blank">
             <h4>Space-Time A* & MAPF</h4>
-            <p>Многоагентное планирование, предотвращение Vertex и Swap коллизий с помощью действий ожидания (WAIT) и таблицы резервирования.</p>
-            <span class="lecture-num">Открыть симулятор →</span>
-          </a>
-          <a href="widgets/dijkstra-graph/index.html" class="widget-link-card" target="_blank">
-            <h4>Дейкстра на простом графе</h4>
-            <p>Шесть узлов, девять рёбер: извлечение минимума, ослабление ребра и таблица расстояний — весь алгоритм за шесть итераций.</p>
-            <span class="lecture-num">Открыть симулятор →</span>
-          </a>
-          <a href="widgets/graph-search-steps/index.html" class="widget-link-card" target="_blank">
-            <h4>Пошаговый разбор: Dijkstra / A* / Theta*</h4>
-            <p>Одна итерация за клик: извлечение из OPEN, релаксация ребра, проверка LineOfSight. Очередь с приоритетом и псевдокод синхронны с сеткой.</p>
-            <span class="lecture-num">Открыть симулятор →</span>
-          </a>
-          <a href="widgets/astar-grid/index.html" class="widget-link-card" target="_blank">
-            <h4>A* & Dijkstra Grid Search</h4>
-            <p>Дискретный поиск кратчайшего пути на 2D-сетке, динамическое рисование препятствий, сравнение эвристик.</p>
-            <span class="lecture-num">Открыть симулятор →</span>
+            <p>Многоагентная координация во времени: вершинные и обменные коллизии, таблица резервирования и действие WAIT.</p>
+            <span class="lecture-num">Лекция 02 →</span>
           </a>
           <a href="widgets/rrt-exploration/index.html" class="widget-link-card" target="_blank">
-            <h4>RRT / RRT* Tree Planner</h4>
-            <p>Случайные деревья быстрого исследования в непрерывном пространстве $C_{space}$, пошаговый сэмплинг и rewiring.</p>
-            <span class="lecture-num">Открыть симулятор →</span>
+            <h4>RRT / RRT* / Informed RRT*</h4>
+            <p>Случайные деревья в непрерывном пространстве: смещение Вороного, сжатие выборки в эллипсоид C_inf и переподключение ветвей.</p>
+            <span class="lecture-num">Лекция 03 →</span>
           </a>
-          <a href="widgets/potential-field/index.html" class="widget-link-card" target="_blank">
-            <h4>Artificial Potential Fields (APF)</h4>
-            <p>Искусственные потенциальные поля: векторы притяжения/отталкивания и наглядный захват робота в локальный минимум.</p>
-            <span class="lecture-num">Открыть симулятор →</span>
+          <a href="widgets/narrow-passage/index.html" class="widget-link-card" target="_blank">
+            <h4>Bridge Test для узких коридоров</h4>
+            <p>Интеллектуальный сэмплинг: фильтрация случайных отрезков через препятствия для локализации узких лабиринтов.</p>
+            <span class="lecture-num">Лекция 03 →</span>
+          </a>
+          <a href="widgets/dwa-planner/index.html" class="widget-link-card" target="_blank">
+            <h4>Dynamic Window Approach (DWA)</h4>
+            <p>Выборка в пространстве скоростей (v, ω): динамическое окно ускорений, гарантированный тормозной путь и выбор траектории.</p>
+            <span class="lecture-num">Лекция 04 →</span>
+          </a>
+          <a href="widgets/mppi-planner/index.html" class="widget-link-card" target="_blank">
+            <h4>MPPI: Стохастические GPU-выборки</h4>
+            <p>Интегрирование сотен параллельных стохастических rollouts траекторий, экспоненциальное взвешивание цены и гладкое управление.</p>
+            <span class="lecture-num">Лекция 04 →</span>
+          </a>
+          <a href="widgets/bang-bang-simulator/index.html" class="widget-link-card" target="_blank">
+            <h4>Фазовая плоскость: Bang-Bang vs LQR</h4>
+            <p>Принцип максимума Понтрягина для двойного интегратора: параболы переключения Г, предельное быстродействие и LQR-регулятор.</p>
+            <span class="lecture-num">Лекция 05 →</span>
+          </a>
+          <a href="widgets/shooting-collocation-simulator/index.html" class="widget-link-card" target="_blank">
+            <h4>Дискретизация OCP: Shooting vs Collocation</h4>
+            <p>Сравнение транскрипции: Single Shooting, Multiple Shooting и Direct Collocation (Hermite-Simpson) на фазовой плоскости.</p>
+            <span class="lecture-num">Лекция 05, 06 →</span>
+          </a>
+          <a href="widgets/mpc-interactive-solver/index.html" class="widget-link-card" target="_blank">
+            <h4>Нелинейный предиктивный MPC</h4>
+            <p>Скользящий рецессивный горизонт (NMPC): обход динамических препятствий, оптимизация KKT, теплый старт и реакция на возмущения.</p>
+            <span class="lecture-num">Лекция 06 →</span>
           </a>
         </div>
       </div>
