@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 430" width="880" height="430">
+  <defs>
+    <filter id="shadowHelix" x="-5%" y="-5%" width="110%" height="115%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <rect width="100%" height="100%" fill="#ffffff" rx="12" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- Title Badge -->
+  <g transform="translate(24, 18)">
+    <rect width="410" height="28" rx="6" fill="#eff6ff" stroke="#bfdbfe"/>
+    <text x="12" y="19" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#1e40af">
+      🤖 SOTA АРХИТЕКТУРА ГУМАНОИДА (HELIX / FIGURE)
+    </text>
+    <text x="435" y="19" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">
+      Двухуровневый симбиоз VLA-планировщика и Full-Body WBC RL
+    </text>
+  </g>
+
+  <!-- High Level Tier Box -->
+  <g transform="translate(24, 60)" filter="url(#shadowHelix)">
+    <rect width="832" height="135" rx="8" fill="#ffffff" stroke="#93c5fd" stroke-width="1.5"/>
+    <rect width="832" height="28" rx="8" fill="#2563eb"/>
+    <text x="14" y="19" font-family="Inter, sans-serif" font-size="11.5" font-weight="700" fill="#ffffff">
+      ВЕРХНИЙ УРОВЕНЬ: Медленная VLA-политика (2–10 Гц) — Helix / OpenAI / Vision-Language-Action
+    </text>
+
+    <g transform="translate(16, 40)" font-family="Inter, sans-serif" font-size="10" fill="#334155">
+      <!-- Input sensory block -->
+      <rect x="0" y="0" width="220" height="75" rx="5" fill="#f8fafc" stroke="#cbd5e1"/>
+      <text x="10" y="18" font-weight="700" fill="#1e40af">Входы сенсорного восприятия:</text>
+      <text x="10" y="34">• 6 RGB-D камер со всего корпуса</text>
+      <text x="10" y="48">• Микрофон (речь человека)</text>
+      <text x="10" y="62">• Семантическая карта окружения</text>
+
+      <!-- Reasoning core -->
+      <rect x="235" y="0" width="310" height="75" rx="5" fill="#eff6ff" stroke="#bfdbfe"/>
+      <text x="10" y="18" font-weight="700" fill="#1d4ed8">Ядро рассуждений и семантики:</text>
+      <text x="10" y="34">• VLM / Helix: распознавание деталей и инструментов</text>
+      <text x="10" y="48">• Голосовой диалог и синтез намерений в реальном времени</text>
+      <text x="10" y="62">• Субмиллиметровая визуальная коррекция позы кистей</text>
+
+      <!-- Output target -->
+      <rect x="560" y="0" width="240" height="75" rx="5" fill="#f0fdf4" stroke="#86efac"/>
+      <text x="10" y="18" font-weight="700" fill="#047857">Выход для всего тела:</text>
+      <text x="10" y="34">✔ Траектории кистей (x_ee, R_ee)</text>
+      <text x="10" y="48">✔ Чанки действий пальцев рук</text>
+      <text x="10" y="62">✔ Целевое направление шага v_cmd</text>
+    </g>
+  </g>
+
+  <!-- Big Arrow Between Tiers -->
+  <g transform="translate(425, 202)">
+    <path d="M 0,0 L 0,22" stroke="#6366f1" stroke-width="3"/>
+    <polygon points="0,22 -6,14 6,14" fill="#6366f1"/>
+    <text x="14" y="14" font-family="Inter, sans-serif" font-size="9" font-weight="700" fill="#4f46e5">
+      Цели рабочих органов (End-Effector goals) + Намерения
+    </text>
+  </g>
+
+  <!-- Low Level Tier Box -->
+  <g transform="translate(24, 230)" filter="url(#shadowHelix)">
+    <rect width="832" height="175" rx="8" fill="#ffffff" stroke="#c084fc" stroke-width="1.5"/>
+    <rect width="832" height="28" rx="8" fill="#9333ea"/>
+    <text x="14" y="19" font-family="Inter, sans-serif" font-size="11.5" font-weight="700" fill="#ffffff">
+      НИЖНИЙ УРОВЕНЬ: Быстрая Full-Body WBC RL-политика (50–200 Гц) — Isaac Sim (PhysX 5 / Newton)
+    </text>
+
+    <g transform="translate(16, 40)" font-family="Inter, sans-serif" font-size="10" fill="#334155">
+      <!-- Architecture details -->
+      <rect x="0" y="0" width="260" height="115" rx="5" fill="#faf5ff" stroke="#e9d5ff"/>
+      <text x="10" y="18" font-weight="700" fill="#7e22ce">Обучение в Isaac Sim:</text>
+      <text x="10" y="36">• Физика PhysX 5 и Newton / Warp</text>
+      <text x="10" y="52">• 30 000 роботов параллельно на GPU</text>
+      <text x="10" y="68">• Teacher-Student дистилляция</text>
+      <text x="10" y="84">• Domain Randomization масс и трения</text>
+      <text x="10" y="100" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#6b21a8">Latency: 5 мс (TensorRT)</text>
+
+      <!-- Why RL won over classical QP WBC -->
+      <rect x="275" y="0" width="280" height="115" rx="5" fill="#fdf4ff" stroke="#d8b4fe"/>
+      <text x="10" y="18" font-weight="700" fill="#9333ea">Почему Full-Body RL победил QP WBC?</text>
+      <text x="10" y="34">✖ Классический QP WBC требует точной</text>
+      <text x="10" y="48">  модели твердого тела и ломается при ударах</text>
+      <text x="10" y="64">✔ RL учит целостной биомеханике:</text>
+      <text x="16" y="80">тянешься рукой вперед ➔ корпус</text>
+      <text x="16" y="94">автоматически подается назад для баланса!</text>
+
+      <!-- Physical Actuators -->
+      <rect x="570" y="0" width="230" height="115" rx="5" fill="#ecfdf5" stroke="#a7f3d0"/>
+      <text x="10" y="18" font-weight="700" fill="#047857">Исполнение моторами (1 кГц):</text>
+      <text x="10" y="36">• 28–44 шарнира тела</text>
+      <text x="10" y="52">• Импеданс моторов: τ = K_p(q* - q) - K_d q̇</text>
+      <text x="10" y="68">• Прямое управление крутящим моментом</text>
+      <text x="10" y="84">• Волновые и планетарные редукторы</text>
+      <text x="10" y="100" font-weight="700" fill="#047857">✔ Абсолютная устойчивость</text>
+    </g>
+  </g>
+</svg>

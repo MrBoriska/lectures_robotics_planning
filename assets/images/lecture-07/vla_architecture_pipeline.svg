@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 410" width="880" height="410">
+  <defs>
+    <filter id="shadowVLA" x="-5%" y="-5%" width="110%" height="115%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <rect width="100%" height="100%" fill="#ffffff" rx="12" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- Title Badge -->
+  <g transform="translate(24, 16)">
+    <rect width="360" height="28" rx="6" fill="#f0f9ff" stroke="#bae6fd"/>
+    <text x="12" y="19" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#0369a1">
+      🧠 АРХИТЕКТУРА VLA (VISION-LANGUAGE-ACTION)
+    </text>
+    <text x="380" y="19" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">
+      Преобразование мультимодального понимания в моторику робота
+    </text>
+  </g>
+
+  <!-- Block 1: Multimodal Inputs -->
+  <g transform="translate(24, 56)" filter="url(#shadowVLA)">
+    <rect width="180" height="330" rx="8" fill="#ffffff" stroke="#93c5fd" stroke-width="1.2"/>
+    <rect width="180" height="28" rx="8" fill="#0284c7"/>
+    <text x="10" y="18" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#ffffff">1. Входы Сенсоров</text>
+
+    <g transform="translate(12, 42)" font-family="Inter, sans-serif" font-size="9.5" fill="#334155">
+      <rect x="0" y="0" width="156" height="75" rx="5" fill="#f8fafc" stroke="#cbd5e1"/>
+      <text x="8" y="18" font-weight="700" fill="#0284c7">📷 RGB-Камеры:</text>
+      <text x="8" y="34">• Вид головы (Third-person)</text>
+      <text x="8" y="48">• Камеры запястий (Wrist)</text>
+      <text x="8" y="64" font-family="JetBrains Mono, monospace" font-size="8" fill="#64748b">224×224 @ 20 FPS</text>
+
+      <rect x="0" y="85" width="156" height="70" rx="5" fill="#f8fafc" stroke="#cbd5e1"/>
+      <text x="8" y="103" font-weight="700" fill="#059669">💬 Текстовая цель:</text>
+      <text x="8" y="121">«Возьми кружку и</text>
+      <text x="8" y="135"> поставь в посудомойку»</text>
+      <text x="8" y="149" font-size="8" fill="#64748b">(Естественный язык)</text>
+
+      <rect x="0" y="165" width="156" height="85" rx="5" fill="#f8fafc" stroke="#cbd5e1"/>
+      <text x="8" y="183" font-weight="700" fill="#d97706">🦾 Проприоцепция:</text>
+      <text x="8" y="201">• Углы суставов q_t</text>
+      <text x="8" y="215">• Поза схвата (EE pose)</text>
+      <text x="8" y="229">• Состояние пальцев</text>
+      <text x="8" y="243" font-family="JetBrains Mono, monospace" font-size="8" fill="#64748b">x, y, z, roll, pitch, yaw</text>
+    </g>
+  </g>
+
+  <!-- Arrow 1 -> 2 -->
+  <path d="M 208,210 L 228,210" stroke="#94a3b8" stroke-width="2"/>
+  <polygon points="228,210 220,206 220,214" fill="#94a3b8"/>
+
+  <!-- Block 2: Tokenizers & Encoders -->
+  <g transform="translate(232, 56)" filter="url(#shadowVLA)">
+    <rect width="180" height="330" rx="8" fill="#ffffff" stroke="#c084fc" stroke-width="1.2"/>
+    <rect width="180" height="28" rx="8" fill="#7c3aed"/>
+    <text x="10" y="18" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#ffffff">2. Энкодеры Токенов</text>
+
+    <g transform="translate(12, 42)" font-family="Inter, sans-serif" font-size="9.5" fill="#334155">
+      <rect x="0" y="0" width="156" height="80" rx="5" fill="#faf5ff" stroke="#e9d5ff"/>
+      <text x="8" y="18" font-weight="700" fill="#7c3aed">Vision Transformer:</text>
+      <text x="8" y="34">• SigLIP / DINOv2</text>
+      <text x="8" y="50">• Патчи 14×14 ➔</text>
+      <text x="8" y="68" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#6b21a8">256 визуальных токенов</text>
+
+      <rect x="0" y="90" width="156" height="65" rx="5" fill="#faf5ff" stroke="#e9d5ff"/>
+      <text x="8" y="108" font-weight="700" fill="#7c3aed">Text Tokenizer:</text>
+      <text x="8" y="126">• BPE токенизация</text>
+      <text x="8" y="144" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#6b21a8">T_lang токенов</text>
+
+      <rect x="0" y="165" width="156" height="85" rx="5" fill="#faf5ff" stroke="#e9d5ff"/>
+      <text x="8" y="183" font-weight="700" fill="#7c3aed">Action Projector:</text>
+      <text x="8" y="201">• MLP проекция позы</text>
+      <text x="8" y="217">• Совмещение размерностей</text>
+      <text x="8" y="235" font-family="JetBrains Mono, monospace" font-size="8.5" fill="#6b21a8">d_model = 4096</text>
+    </g>
+  </g>
+
+  <!-- Arrow 2 -> 3 -->
+  <path d="M 416,210 L 436,210" stroke="#94a3b8" stroke-width="2"/>
+  <polygon points="436,210 428,206 428,214" fill="#94a3b8"/>
+
+  <!-- Block 3: Foundation Backbone -->
+  <g transform="translate(440, 56)" filter="url(#shadowVLA)">
+    <rect width="190" height="330" rx="8" fill="#ffffff" stroke="#818cf8" stroke-width="1.2"/>
+    <rect width="190" height="28" rx="8" fill="#4f46e5"/>
+    <text x="10" y="18" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#ffffff">3. VLM Backbone</text>
+
+    <g transform="translate(12, 42)" font-family="Inter, sans-serif" font-size="9.5" fill="#334155">
+      <rect x="0" y="0" width="166" height="110" rx="5" fill="#eef2ff" stroke="#c7d2fe"/>
+      <text x="8" y="18" font-weight="700" fill="#4338ca">Мультимодальный LLM:</text>
+      <text x="8" y="36">• OpenVLA (Llama-2 7B)</text>
+      <text x="8" y="52">• Octo / RT-2 / π0</text>
+      <text x="8" y="68">• Self-Attention слои</text>
+      <text x="8" y="86" font-size="8.5" fill="#4338ca">Семантическое связывание:</text>
+      <text x="8" y="100" font-size="8" fill="#64748b">«где чашка» ➔ «как взять»</text>
+
+      <rect x="0" y="120" width="166" height="130" rx="5" fill="#f8fafc" stroke="#cbd5e1"/>
+      <text x="8" y="138" font-weight="700" fill="#0f172a">Параметры обучения:</text>
+      <text x="8" y="156">• Pre-training: интернет-текст</text>
+      <text x="8" y="172">  и миллионы картинок</text>
+      <text x="8" y="190">• Co-fine-tuning: Open X-</text>
+      <text x="8" y="206">  Embodiment (1M+ робото-</text>
+      <text x="8" y="222">  траекторий из 22 институтов)</text>
+    </g>
+  </g>
+
+  <!-- Arrow 3 -> 4 -->
+  <path d="M 634,210 L 654,210" stroke="#94a3b8" stroke-width="2"/>
+  <polygon points="654,210 646,206 646,214" fill="#94a3b8"/>
+
+  <!-- Block 4: Action Heads -->
+  <g transform="translate(658, 56)" filter="url(#shadowVLA)">
+    <rect width="198" height="330" rx="8" fill="#ffffff" stroke="#86efac" stroke-width="1.2"/>
+    <rect width="198" height="28" rx="8" fill="#059669"/>
+    <text x="10" y="18" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#ffffff">4. Генерация Действий</text>
+
+    <g transform="translate(12, 42)" font-family="Inter, sans-serif" font-size="9" fill="#334155">
+      <rect x="0" y="0" width="174" height="115" rx="5" fill="#f0fdf4" stroke="#bbf7d0"/>
+      <text x="8" y="16" font-weight="700" fill="#047857">Вариант А: Токенизация (RT-2)</text>
+      <text x="8" y="32">• Дискретизация на 256 бинов</text>
+      <text x="8" y="48">• Действие = обычные токены LLM</text>
+      <text x="8" y="64" font-family="JetBrains Mono, monospace" font-size="8" fill="#15803d">&lt;128&gt;&lt;45&gt;&lt;210&gt;...</text>
+      <text x="8" y="80" font-size="8" fill="#b91c1c">✖ Дрожание и медлительность</text>
+      <text x="8" y="96" font-size="8" fill="#b91c1c">✖ Авторегрессия (по 1 числу)</text>
+
+      <rect x="0" y="125" width="174" height="125" rx="5" fill="#ecfdf5" stroke="#6ee7b7"/>
+      <text x="8" y="141" font-weight="700" fill="#065f46">Вариант Б: Flow Matching (π0)</text>
+      <text x="8" y="157">• Непрерывная диффузия</text>
+      <text x="8" y="173">• Action Chunking (H=16–50)</text>
+      <text x="8" y="189" font-family="JetBrains Mono, monospace" font-size="8" fill="#047857">Δx, Δy, Δz, Δq, Gripper</text>
+      <text x="8" y="207" font-weight="700" fill="#047857">✔ Плавность траектории</text>
+      <text x="8" y="223" font-weight="700" fill="#047857">✔ Инференс на GPU за 30 мс</text>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 400" width="880" height="400">
+  <defs>
+    <filter id="shadowChina" x="-5%" y="-5%" width="110%" height="115%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <rect width="100%" height="100%" fill="#ffffff" rx="12" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- Title Badge -->
+  <g transform="translate(24, 18)">
+    <rect width="400" height="28" rx="6" fill="#fef2f2" stroke="#fecaca"/>
+    <text x="12" y="19" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#b91c1c">
+      🇨🇳 ФЕНОМЕН КИТАЯ: ЦЕПОЧКИ ПОСТАВОК И СКОРОСТЬ
+    </text>
+    <text x="430" y="19" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">
+      Почему китайские гуманоиды стоят $16k и обновляются за недели
+    </text>
+  </g>
+
+  <!-- Left: Geographic Clusters Map/Box -->
+  <g transform="translate(24, 58)" filter="url(#shadowChina)">
+    <rect width="410" height="320" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+    <rect width="410" height="28" rx="8" fill="#334155"/>
+    <text x="12" y="19" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#ffffff">
+      Кластер Дельты реки Янцзы &amp; Гуандун (Радиус 150 км)
+    </text>
+
+    <g transform="translate(14, 38)" font-family="Inter, sans-serif" font-size="9.5" fill="#334155">
+      <rect x="0" y="0" width="380" height="58" rx="5" fill="#f8fafc" stroke="#e2e8f0"/>
+      <text x="10" y="18" font-weight="700" fill="#0284c7">📍 Сучжоу (Suzhou) — Сердце редукторов:</text>
+      <text x="10" y="34">• Заводы Leader Harmonious Drive (Leaderdrive)</text>
+      <text x="10" y="48">• Мировой лидер по объему волновых редукторов (Harmonic)</text>
+
+      <rect x="0" y="66" width="380" height="58" rx="5" fill="#f8fafc" stroke="#e2e8f0"/>
+      <text x="10" y="84" font-weight="700" fill="#059669">📍 Шэньчжэнь &amp; Дунгуань — Электроника и моторы:</text>
+      <text x="10" y="100">• Бесколлекторные моторы (BLDC), энкодеры, инверторы</text>
+      <text x="10" y="114">• Изготовление пресс-форм и ЧПУ за 48 часов</text>
+
+      <rect x="0" y="132" width="380" height="58" rx="5" fill="#f8fafc" stroke="#e2e8f0"/>
+      <text x="10" y="150" font-weight="700" fill="#7c3aed">📍 Ханчжоу (Hangzhou) — Экосистема робототехники:</text>
+      <text x="10" y="166">• Штаб-квартира Unitree Robotics</text>
+      <text x="10" y="180">• Прямой доступ к поставщикам без посредников</text>
+
+      <rect x="0" y="198" width="380" height="65" rx="5" fill="#fff1f2" stroke="#fecdd3"/>
+      <text x="10" y="216" font-weight="700" fill="#e11d48">⚡ Скорость итерации (Hardware Sprint):</text>
+      <text x="10" y="232">В США изготовление новой детали занимает 6–10 недель.</text>
+      <text x="10" y="248">В Шэньчжэне: чертеж утром ➔ готовая деталь вечером!</text>
+    </g>
+  </g>
+
+  <!-- Right: Cost Disruption Comparison -->
+  <g transform="translate(450, 58)" filter="url(#shadowChina)">
+    <rect width="406" height="320" rx="8" fill="#ffffff" stroke="#86efac" stroke-width="1.2"/>
+    <rect width="406" height="28" rx="8" fill="#15803d"/>
+    <text x="12" y="19" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#ffffff">
+      Ценовой Демпинг Компонентов (США vs Китай)
+    </text>
+
+    <g transform="translate(14, 38)" font-family="Inter, sans-serif" font-size="9.5" fill="#334155">
+      <!-- Item 1: Harmonic Drive -->
+      <rect x="0" y="0" width="376" height="52" rx="4" fill="#f8fafc" stroke="#e2e8f0"/>
+      <text x="8" y="16" font-weight="700" fill="#0f172a">Волновой редуктор (Harmonic Drive):</text>
+      <text x="8" y="32">Западный аналог (Harmonic Drive SE):</text>
+      <text x="260" y="32" font-family="JetBrains Mono, monospace" font-size="9" fill="#dc2626">$1 500 – $2 500</text>
+      <text x="8" y="46">Китайский аналог (Leaderdrive):</text>
+      <text x="260" y="46" font-family="JetBrains Mono, monospace" font-size="9" font-weight="700" fill="#16a34a">$200 – $350 (в 7 раз!)</text>
+
+      <!-- Item 2: Frameless Torque Motor -->
+      <rect x="0" y="60" width="376" height="52" rx="4" fill="#f8fafc" stroke="#e2e8f0"/>
+      <text x="8" y="76" font-weight="700" fill="#0f172a">Бескорпусный моментный двигатель:</text>
+      <text x="8" y="92">Западный (Kollmorgen / Maxon):</text>
+      <text x="260" y="92" font-family="JetBrains Mono, monospace" font-size="9" fill="#dc2626">$800 – $1 200</text>
+      <text x="8" y="106">Китайский аналог:</text>
+      <text x="260" y="106" font-family="JetBrains Mono, monospace" font-size="9" font-weight="700" fill="#16a34a">$70 – $120 (в 10 раз!)</text>
+
+      <!-- Item 3: 6-Axis F/T Sensor -->
+      <rect x="0" y="120" width="376" height="52" rx="4" fill="#f8fafc" stroke="#e2e8f0"/>
+      <text x="8" y="136" font-weight="700" fill="#0f172a">6-осевой датчик силы/момента:</text>
+      <text x="8" y="152">Западный (ATI Industrial):</text>
+      <text x="260" y="152" font-family="JetBrains Mono, monospace" font-size="9" fill="#dc2626">$4 000 – $7 000</text>
+      <text x="8" y="166">Китайский аналог (Kunwei):</text>
+      <text x="260" y="166" font-family="JetBrains Mono, monospace" font-size="9" font-weight="700" fill="#16a34a">$400 – $700 (в 10 раз!)</text>
+
+      <!-- Total Robot Cost -->
+      <rect x="0" y="180" width="376" height="80" rx="5" fill="#f0fdf4" stroke="#bbf7d0"/>
+      <text x="8" y="200" font-weight="700" fill="#166534">Итоговая стоимость готового робота:</text>
+      <text x="8" y="220">• Американский стартап (Figure, Agility, 1X): $120 000 – $250 000</text>
+      <text x="8" y="240" font-weight="700" fill="#15803d">• Китайский серийный Unitree G1: ВСЕГО $16 000</text>
+    </g>
+  </g>
+</svg>

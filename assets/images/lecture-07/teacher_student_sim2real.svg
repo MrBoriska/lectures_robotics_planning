@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 430" width="880" height="430">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f8fafc"/>
+    </linearGradient>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="115%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="url(#bgGrad)" rx="12"/>
+  <rect width="100%" height="100%" fill="none" stroke="#e2e8f0" stroke-width="1.5" rx="12"/>
+
+  <!-- Title Badge -->
+  <g transform="translate(24, 20)">
+    <rect width="330" height="28" rx="6" fill="#eff6ff" stroke="#bfdbfe"/>
+    <text x="12" y="19" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#1e40af">
+      ⚡ ПАРАДИГМА TEACHER-STUDENT В SIM-TO-REAL
+    </text>
+    <text x="350" y="19" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">
+      Дистилляция привилегированного опыта ➔ бортовая политика
+    </text>
+  </g>
+
+  <!-- Column 1: Teacher in GPU Sim -->
+  <g transform="translate(24, 65)" filter="url(#shadow)">
+    <rect width="255" height="340" rx="8" fill="#ffffff" stroke="#93c5fd" stroke-width="1.5"/>
+    <rect width="255" height="32" rx="8" fill="#2563eb"/>
+    <text x="12" y="21" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#ffffff">
+      1. Учитель в GPU-симуляторе
+    </text>
+
+    <g transform="translate(14, 46)" font-family="Inter, sans-serif" font-size="10.5" fill="#334155">
+      <rect x="0" y="0" width="227" height="24" rx="4" fill="#eff6ff" stroke="#dbeafe"/>
+      <text x="8" y="16" font-family="JetBrains Mono, monospace" font-size="9.5" font-weight="700" fill="#1d4ed8">
+        Isaac Sim / PhysX 5 / Newton
+      </text>
+
+      <text x="0" y="44" font-weight="700" fill="#0f172a">Параллелизм на GPU:</text>
+      <text x="6" y="60">• 10 000 – 50 000 сред сразу</text>
+      <text x="6" y="76">• 10 лет опыта за 20 минут</text>
+
+      <text x="0" y="104" font-weight="700" fill="#1e40af">Привилегированные данные s_t:</text>
+      <text x="6" y="120">✔ Истинный профиль высот рельефа</text>
+      <text x="6" y="136">✔ Точные силы реакций опор F_contact</text>
+      <text x="6" y="152">✔ Трение поверхности μ и масса m</text>
+      <text x="6" y="168">✔ Вектор внешних возмущений F_ext</text>
+
+      <rect x="0" y="185" width="227" height="90" rx="6" fill="#f8fafc" stroke="#cbd5e1"/>
+      <text x="10" y="205" font-weight="700" fill="#2563eb">Политика Учителя π_teacher:</text>
+      <text x="10" y="223" font-family="JetBrains Mono, monospace" font-size="9" fill="#0f172a">
+        a_t ~ PPO(a_t | s_t^privileged)
+      </text>
+      <text x="10" y="243" font-size="9.5" fill="#64748b">Обучается идеальной походке,</text>
+      <text x="10" y="259" font-size="9.5" fill="#64748b">зная ВСЁ о физике мира</text>
+    </g>
+  </g>
+
+  <!-- Arrow 1 -> 2 -->
+  <g transform="translate(285, 220)">
+    <path d="M 0,0 L 26,0" stroke="#3b82f6" stroke-width="2.5" stroke-dasharray="4,3"/>
+    <polygon points="26,0 18,-5 18,5" fill="#3b82f6"/>
+    <text x="-6" y="-12" font-family="Inter, sans-serif" font-size="9.5" font-weight="700" fill="#2563eb">Клон</text>
+  </g>
+
+  <!-- Column 2: Supervised Distillation & Domain Randomization -->
+  <g transform="translate(315, 65)" filter="url(#shadow)">
+    <rect width="265" height="340" rx="8" fill="#ffffff" stroke="#c084fc" stroke-width="1.5"/>
+    <rect width="265" height="32" rx="8" fill="#9333ea"/>
+    <text x="12" y="21" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#ffffff">
+      2. Дистилляция &amp; Randomization
+    </text>
+
+    <g transform="translate(14, 46)" font-family="Inter, sans-serif" font-size="10.5" fill="#334155">
+      <rect x="0" y="0" width="237" height="24" rx="4" fill="#faf5ff" stroke="#f3e8ff"/>
+      <text x="8" y="16" font-family="JetBrains Mono, monospace" font-size="9" font-weight="700" fill="#7e22ce">
+        Loss = ||π_student(o_t) - a_teacher||²
+      </text>
+
+      <text x="0" y="44" font-weight="700" fill="#0f172a">Сенсоры Ученика o_t (Бортовые):</text>
+      <text x="6" y="60">✖ НЕТ карты высот и сил контакта!</text>
+      <text x="6" y="76">✔ Энкодеры углов и скоростей q, q̇</text>
+      <text x="6" y="92">✔ Линейное ускорение и гироскоп IMU</text>
+      <text x="6" y="108">✔ История за 50 шагов (Transformer/TCN)</text>
+
+      <rect x="0" y="125" width="237" height="150" rx="6" fill="#fdf4ff" stroke="#e9d5ff"/>
+      <text x="8" y="145" font-weight="700" fill="#9333ea">🎲 Domain Randomization:</text>
+      <text x="12" y="165" font-size="9.5">• Массы звеньев: ± 30%</text>
+      <text x="12" y="181" font-size="9.5">• Коэффициент трения: μ ∈ [0.2, 1.3]</text>
+      <text x="12" y="197" font-size="9.5">• Задержки шины моторов: 5–25 мс</text>
+      <text x="12" y="213" font-size="9.5">• Случайные толчки: F_push до 150 Н</text>
+      <text x="12" y="229" font-size="9.5">• Шумы сенсоров: гауссов шум датчиков</text>
+      <text x="8" y="255" font-weight="700" fill="#7e22ce">➔ Реальность становится частным случаем!</text>
+    </g>
+  </g>
+
+  <!-- Arrow 2 -> 3 -->
+  <g transform="translate(586, 220)">
+    <path d="M 0,0 L 26,0" stroke="#059669" stroke-width="2.5"/>
+    <polygon points="26,0 18,-5 18,5" fill="#059669"/>
+    <text x="-4" y="-12" font-family="Inter, sans-serif" font-size="9.5" font-weight="700" fill="#059669">Deploy</text>
+  </g>
+
+  <!-- Column 3: Physical Robot Deployment -->
+  <g transform="translate(618, 65)" filter="url(#shadow)">
+    <rect width="238" height="340" rx="8" fill="#ffffff" stroke="#86efac" stroke-width="1.5"/>
+    <rect width="238" height="32" rx="8" fill="#059669"/>
+    <text x="12" y="21" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#ffffff">
+      3. Реальный робот (Zero-Shot)
+    </text>
+
+    <g transform="translate(14, 46)" font-family="Inter, sans-serif" font-size="10.5" fill="#334155">
+      <rect x="0" y="0" width="210" height="24" rx="4" fill="#ecfdf5" stroke="#d1fae5"/>
+      <text x="8" y="16" font-family="Inter, sans-serif" font-size="9.5" font-weight="700" fill="#047857">
+        Zero-Shot Sim-to-Real
+      </text>
+
+      <text x="0" y="44" font-weight="700" fill="#065f46">Бортовое исполнение:</text>
+      <text x="6" y="60">• Частота контура: 50–100 Гц</text>
+      <text x="6" y="76">• Нейросеть (ONNX / TensorRT)</text>
+      <text x="6" y="92">• Время инференса: &lt; 2 мс</text>
+
+      <text x="0" y="120" font-weight="700" fill="#0f172a">Эмерджентные свойства:</text>
+      <text x="6" y="138">✔ Слепая ходьба по лестницам</text>
+      <text x="6" y="154">✔ Бег по льду, грязи и гравию</text>
+      <text x="6" y="170">✔ Мгновенная реакция на пинки</text>
+      <text x="6" y="186">✔ Вставание после падения</text>
+
+      <rect x="0" y="205" width="210" height="70" rx="6" fill="#f0fdf4" stroke="#bbf7d0"/>
+      <text x="8" y="225" font-weight="700" fill="#15803d">Итог:</text>
+      <text x="8" y="243" font-size="9.5" fill="#166534">Без единой строчки уравнений</text>
+      <text x="8" y="259" font-size="9.5" fill="#166534">динамики перевернутого маятника!</text>
+    </g>
+  </g>
+</svg>

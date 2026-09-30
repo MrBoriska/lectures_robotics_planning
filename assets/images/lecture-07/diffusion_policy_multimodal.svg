@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 400" width="880" height="400">
+  <defs>
+    <filter id="shadowDP" x="-5%" y="-5%" width="110%" height="115%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <rect width="100%" height="100%" fill="#ffffff" rx="12" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- Title Badge -->
+  <g transform="translate(24, 18)">
+    <rect width="360" height="28" rx="6" fill="#fdf2f8" stroke="#fbcfe8"/>
+    <text x="12" y="19" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#be185d">
+      🌊 DIFFUSION POLICY &amp; МУЛЬТИМОДАЛЬНОСТЬ
+    </text>
+    <text x="380" y="19" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">
+      Почему среднеквадратичная ошибка (MSE) убивает манипуляцию
+    </text>
+  </g>
+
+  <!-- Left Card: Failure of MSE -->
+  <g transform="translate(24, 58)" filter="url(#shadowDP)">
+    <rect width="400" height="320" rx="8" fill="#ffffff" stroke="#fca5a5" stroke-width="1.5"/>
+    <rect width="400" height="30" rx="8" fill="#ef4444"/>
+    <text x="12" y="20" font-family="Inter, sans-serif" font-size="11.5" font-weight="700" fill="#ffffff">
+      ❌ Проблема: Обычная регрессия (MSE / L2 Loss)
+    </text>
+
+    <!-- Visual Box -->
+    <g transform="translate(20, 45)">
+      <rect width="360" height="150" rx="6" fill="#fef2f2" stroke="#fee2e2"/>
+      
+      <!-- Start robot -->
+      <circle cx="40" cy="75" r="10" fill="#64748b"/>
+      <text x="25" y="105" font-family="Inter, sans-serif" font-size="9.5" font-weight="700" fill="#334155">Старт (s_0)</text>
+
+      <!-- Obstacle -->
+      <rect x="170" y="50" width="35" height="50" rx="4" fill="#dc2626" opacity="0.85"/>
+      <text x="165" y="115" font-family="Inter, sans-serif" font-size="9" font-weight="700" fill="#991b1b">Препятствие</text>
+
+      <!-- Trajectory Left (50%) -->
+      <path d="M 40,75 Q 120,20 280,35" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-dasharray="4,3"/>
+      <text x="290" y="38" font-family="Inter, sans-serif" font-size="9" font-weight="700" fill="#2563eb">Путь 1 (50% данных)</text>
+
+      <!-- Trajectory Right (50%) -->
+      <path d="M 40,75 Q 120,130 280,115" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-dasharray="4,3"/>
+      <text x="290" y="120" font-family="Inter, sans-serif" font-size="9" font-weight="700" fill="#2563eb">Путь 2 (50% данных)</text>
+
+      <!-- Averaged Crash Path -->
+      <path d="M 40,75 L 170,75" fill="none" stroke="#b91c1c" stroke-width="3.5"/>
+      <polygon points="170,75 160,70 160,80" fill="#b91c1c"/>
+      <text x="70" y="70" font-family="Inter, sans-serif" font-size="9.5" font-weight="700" fill="#b91c1c">
+        Среднее (a_L + a_R)/2 ➔ Удар!
+      </text>
+    </g>
+
+    <g transform="translate(20, 210)" font-family="Inter, sans-serif" font-size="10" fill="#334155">
+      <text x="0" y="14" font-weight="700" fill="#991b1b">Математический коллапс регрессии:</text>
+      <text x="6" y="32">• При обучении минимизируется E[||â - a||²].</text>
+      <text x="6" y="50">• Оптимум MSE для мультимодального распределения —</text>
+      <text x="6" y="68">  это среднее значение E[a], которое физически невозможно!</text>
+      <text x="6" y="86">• Робот парализуется или врезается ровно в центр препятствия.</text>
+    </g>
+  </g>
+
+  <!-- Right Card: Diffusion Policy -->
+  <g transform="translate(450, 58)" filter="url(#shadowDP)">
+    <rect width="406" height="320" rx="8" fill="#ffffff" stroke="#86efac" stroke-width="1.5"/>
+    <rect width="406" height="30" rx="8" fill="#059669"/>
+    <text x="12" y="20" font-family="Inter, sans-serif" font-size="11.5" font-weight="700" fill="#ffffff">
+      ✔ Решение: Diffusion Policy &amp; Action Chunking (ACT)
+    </text>
+
+    <!-- Visual Box -->
+    <g transform="translate(20, 45)">
+      <rect width="366" height="150" rx="6" fill="#f0fdf4" stroke="#dcfce7"/>
+      
+      <!-- Noise Step K -->
+      <g transform="translate(15, 20)">
+        <rect width="85" height="110" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+        <text x="8" y="18" font-family="Inter, sans-serif" font-size="8.5" font-weight="700" fill="#64748b">Шаг K (Шум)</text>
+        <path d="M 10,60 Q 25,30 40,80 T 70,50" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="2,2"/>
+        <path d="M 10,75 Q 35,95 55,45 T 75,70" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="2,2"/>
+        <text x="12" y="98" font-family="JetBrains Mono, monospace" font-size="8" fill="#64748b">a^K ~ N(0, I)</text>
+      </g>
+
+      <path d="M 106,75 L 126,75" stroke="#10b981" stroke-width="2"/>
+      <polygon points="126,75 118,71 118,79" fill="#10b981"/>
+
+      <!-- Denoising Steps -->
+      <g transform="translate(132, 20)">
+        <rect width="90" height="110" rx="4" fill="#ffffff" stroke="#86efac"/>
+        <text x="8" y="18" font-family="Inter, sans-serif" font-size="8.5" font-weight="700" fill="#059669">Denoising Net</text>
+        <path d="M 10,50 Q 40,30 80,40" fill="none" stroke="#3b82f6" stroke-width="1.8"/>
+        <path d="M 10,70 Q 40,90 80,80" fill="none" stroke="#3b82f6" stroke-width="1.8"/>
+        <text x="8" y="98" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#047857">ε_θ(a^k, k, obs)</text>
+      </g>
+
+      <path d="M 228,75 L 248,75" stroke="#10b981" stroke-width="2"/>
+      <polygon points="248,75 240,71 240,79" fill="#10b981"/>
+
+      <!-- Final Trajectory -->
+      <g transform="translate(254, 20)">
+        <rect width="96" height="110" rx="4" fill="#ffffff" stroke="#10b981" stroke-width="1.5"/>
+        <text x="8" y="18" font-family="Inter, sans-serif" font-size="8.5" font-weight="700" fill="#047857">Итог a^0 (Чанк)</text>
+        <path d="M 10,40 Q 45,25 85,35" fill="none" stroke="#059669" stroke-width="2.5"/>
+        <circle cx="85" cy="35" r="3" fill="#059669"/>
+        <text x="8" y="70" font-family="Inter, sans-serif" font-size="8" fill="#334155">Четкий выбор</text>
+        <text x="8" y="84" font-family="Inter, sans-serif" font-size="8" font-weight="700" fill="#059669">ОДНОЙ ветви!</text>
+        <text x="8" y="100" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#15803d">H = 16 шагов</text>
+      </g>
+    </g>
+
+    <g transform="translate(20, 210)" font-family="Inter, sans-serif" font-size="10" fill="#334155">
+      <text x="0" y="14" font-weight="700" fill="#047857">Преимущества диффузии и ACT:</text>
+      <text x="6" y="32">• Моделирует произвольные многомодальные распределения.</text>
+      <text x="6" y="50">• Action Chunking: выдает сразу 16–32 шага вперед ➔</text>
+      <text x="6" y="68">  гарантирует идеальную плавность без рывков.</text>
+      <text x="6" y="86">• SOTA 2024: основа манипуляторов Figure 02, Tesla, π0.</text>
+    </g>
+  </g>
+</svg>
