@@ -203,7 +203,7 @@ Autonomous Mobile Robots» — кинематика шасси.
    - Многотактовая иерархия управления: VLA (2–10 Гц) $\to$ Full-Body RL Policy (50–200 Гц) $\to$ Motor Controllers (1 кГц).
    - Бортовое железо: NVIDIA Jetson AGX Orin / Drive Thor, квантизация FP8 / INT8.
 
-**Литература:** Miki et al. (Science Robotics, 2022) — «Learning robust quadrupedal locomotion»; Chi et al. (RSS, 2023) — «Diffusion Policy»; Zhao et al. (RSS, 2023) — «ACT»; Kim et al. (2024) — «OpenVLA»; Black et al. (2024) — «$\pi_0$: A Vision-Language-Action Flow Model for General Robot Control»; Hafner et al. (Nature, 2023) — «Mastering Diverse Domains through World Models» (DayDreamer).
+**Литература:** Miki et al. (Science Robotics, 2022) — «Learning robust quadrupedal locomotion»; Chi et al. (RSS, 2023) — «Diffusion Policy»; Zhao et al. (RSS, 2023) — «ACT»; Kim et al. (2024) — «OpenVLA»; Black et al. (2024) — «$\pi_0$: A Vision-Language-Action Flow Model for General Robot Control»; Wu, Hafner et al. (CoRL, 2022) — «DayDreamer»; Hafner et al. (Nature, 2023) — «Mastering Diverse Domains through World Models».
 
 ---
 
@@ -231,5 +231,5 @@ Autonomous Mobile Robots» — кинематика шасси.
    - Ловкость кистей (Dexterous Hands): компромисс между числом степеней свободы (DoF), тактильной чувствительностью (GelSight, емкостная кожа) и механической прочностью пальцев.
    - Надежность контактов и безопасность работы бок о бок с человеком.
 
-**Литература:** Adcock et al. (Figure AI, 2024) — Figure 02 Technical Report; Tesla AI Day Technical Releases; Unitree Robotics Technical Whitepapers; Gu et al. (2024) — «Humanoid Locomotion as Next Token Prediction»; Kumar et al. (CMU, 2023) — «RMA: Rapid Motor Adaptation for Bipedal Robots».
+**Литература:** Adcock et al. (Figure AI, 2024) — Figure 02 Technical Report; Tesla AI Day Technical Releases; Unitree Robotics Technical Whitepapers; Radosavovic et al. (2024) — «Humanoid Locomotion as Next Token Prediction»; Kumar et al. (CMU/Berkeley, 2021) — «RMA: Rapid Motor Adaptation».
 

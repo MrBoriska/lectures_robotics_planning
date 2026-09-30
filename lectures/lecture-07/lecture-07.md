@@ -542,6 +542,9 @@ $$\tau = K_p(q^* - q) - K_d \dot{q}$$
 - 📖 **Black et al. (Physical Intelligence, 2024):**  
   *«$\pi_0$: A Vision-Language-Action Flow Model for General Robot Control»*  
   *Современный манифест Flow Matching в робототехнике.*
+- 📖 **Wu, Hafner et al. (CoRL, 2022) / Hafner et al. (Nature, 2023):**  
+  *«DayDreamer: World Models for Physical Robot Learning» &amp; «Mastering Diverse Domains through World Models»*  
+  *Фундаментальные работы по обучению роботов внутри генеративных моделей мира.*
 
 </div>
 

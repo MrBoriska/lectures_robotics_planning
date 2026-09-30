@@ -227,7 +227,7 @@ $$\min_{\ddot{q}, \tau, \lambda} \|\ddot{x}_{\text{task}} - J \ddot{q} - \dot{J}
 
 ### 🦾 Figure AI (Figure 01 / Figure 02, США)
 
-- Основана Бреттом Эдвардом в 2022 году. Инвесторы: OpenAI, Microsoft, NVIDIA, Джефф Безос.
+- Основана Бреттом Эдкоком (Brett Adcock) в 2022 году. Инвесторы: OpenAI, Microsoft, NVIDIA, Джефф Безос.
 - **Партнерство с OpenAI (Helix):** прямая интеграция речевой мультимодальной модели — робот ведет осмысленный диалог и понимает контекст задачи.
 - **Figure 02 (август 2024):**
   - Полностью скрытая проводка внутри герметичных шарниров.
@@ -533,7 +533,7 @@ $$\min_{\ddot{q}, \tau, \lambda} \|\ddot{x}_{\text{task}} - J \ddot{q} - \dot{J}
 - 📖 **Adcock et al. (Figure AI, 2024):**  
   *«Figure 02: Hardware and Software Architecture of an Autonomous Commercial Humanoid»*  
   *Технический отчет о конструкции шарниров, скрытой проводке и модели Helix.*
-- 📖 **Gu et al. (UC Berkeley, 2024):**  
+- 📖 **Radosavovic et al. (UC Berkeley, 2024):**  
   *«Humanoid Locomotion as Next Token Prediction»*  
   *Применение авторегрессионных трансформеров для генерации траекторий шагов гуманоида.*
 - 📖 **Kumar et al. (CMU, 2023):**  
