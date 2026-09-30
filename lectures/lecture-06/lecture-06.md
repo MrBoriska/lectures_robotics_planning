@@ -292,7 +292,7 @@ $$c_k = x_{k+1} - \text{физика}(x_k, u_k) = 0$$
 
 <div class="card card-accent">
 
-### Метод внутренней точки (IPOPT)
+### Метод внутренней точки (IPOPT) и FATROP
 
 Что делать, если в задаче тысячи препятствий и ограничений?
 
@@ -300,10 +300,11 @@ $$c_k = x_{k+1} - \text{физика}(x_k, u_k) = 0$$
 $$B(s) = -\mu \sum \ln(s_i)$$
 
 - Чем ближе робот к стене, тем сильнее барьер отталкивает его назад в безопасную зону!
-- Параметр $\mu$ постепенно уменьшают ($\mu \to 0$), и робот плавно поджимается к оптимальной траектории, гарантированно не пробивая стены.
+- Параметр $\mu$ постепенно уменьшают ($\mu \to 0$), поджимая траекторию к истинному оптимуму.
 
-**Плюс:** Идеален для огромных задач с препятствиями (IPOPT, FATROP).
-**Минус:** Хуже поддерживает мгновенный тёплый старт, чем SQP.
+**⚡ SOTA-решатель FATROP (KU Leuven, 2023):**
+- Классический **IPOPT** универсален, но тяжеловат для бортовых микроконтроллеров.
+- **FATROP (Fast Trajectory Optimizer):** специализированный солвер метода внутренней точки для робототехники. За счет блочно-ленточной алгебры и низкоуровневой библиотеки BLASFEO он решает задачи NMPC с препятствиями в разы быстрее IPOPT со строго линейной сложностью $\mathcal{O}(N)$!
 
 </div>
 
@@ -713,3 +714,45 @@ $$\dot{x} = \underbrace{f_{\text{аналитика}}(x, u)}_{\text{Базова
 1. Поблагодарите студентов за работу на двух взаимосвязанных лекциях по оптимальному управлению.
 2. Подведите итог: теперь студенты знают как фундаментальную теорию (Понтрягин, Bang-Bang), так и реальный индустриальный вычислительный стек (Multiple Shooting, CasADi, acados, MPC).
 -->
+
+---
+
+## 📚 Рекомендуемые материалы и топовые курсы по численному OCP и MPC
+
+<div class="grid-2">
+
+<div class="card card-accent">
+
+### 🌐 Мировые университетские курсы
+
+- 🎓 **Moritz Diehl (University of Freiburg, syscop):**  
+  [*Numerical Optimal Control and Reinforcement Learning*](https://www.syscop.de/teaching/numerical-optimal-control)  
+  *Главный мировой эталонный курс по Multiple Shooting, SQP, CasADi, acados и Real-Time Iterations.*
+- 🎓 **Zachary Manchester (Carnegie Mellon University, RexLab):**  
+  [*Optimal Control and Reinforcement Learning / Trajectory Optimization*](https://rexlab.ri.cmu.edu/)  
+  *Курс CMU 16-745 по численной оптимизации траекторий шагающих роботов, манипуляторов и космических аппаратов.*
+- 🎓 **Francesco Borrelli (UC Berkeley):**  
+  [*Model Predictive Control*](https://mpc.berkeley.edu/)  
+  *Канонический университетский курс по теории и приложениям MPC в автономном транспорте.*
+
+</div>
+
+<div class="card card-success">
+
+### 🛠️ Индустриальные инструменты и библиотеки
+
+- 📦 **CasADi (KU Leuven):** [casadi.org](https://web.casadi.org/) — среда моделирования и алгоритмического дифференцирования.
+- 📦 **acados:** [acados.org](https://docs.acados.org/) — сверхбыстрый C-пакет для решения нелинейного MPC на базе SQP и BLASFEO.
+- 📦 **FATROP:** [github.com/kul-optec/fatrop](https://github.com/kul-optec/fatrop) — высокопроизводительный солвер метода внутренней точки для робототехники (KU Leuven, 2023).
+- 📦 **L4CasADi:** [github.com/Tim-Salzmann/l4casadi](https://github.com/Tim-Salzmann/l4casadi) — бесшовная интеграция моделей PyTorch в контур CasADi (Salzmann et al., 2023).
+
+</div>
+
+</div>
+
+<!-- 
+Методические указания лектору:
+1. Порекомендуйте студентам курс Морица Диля как главный источник по Multiple Shooting и CasADi.
+2. Обратите внимание на ссылки на открытые репозитории acados и FATROP — это то, на чем строятся реальные коммерческие автопилоты.
+-->
+
