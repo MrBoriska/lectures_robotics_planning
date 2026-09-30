@@ -1,95 +1,152 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <defs>
+    <marker id="arr-blue" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="4" markerHeight="4" orient="auto">
+      <path d="M0,1 L7,4 L0,7 z" fill="#3b82f6"/>
+    </marker>
+    <marker id="arr-red" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="4" markerHeight="4" orient="auto">
+      <path d="M0,1 L7,4 L0,7 z" fill="#ef4444"/>
+    </marker>
+    <marker id="arr-traj1" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0,1 L7,4 L0,7 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-traj2" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0,1 L7,4 L0,7 z" fill="#059669"/>
+    </marker>
+    <marker id="arr-axis" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="4.5" markerHeight="4.5" orient="auto">
+      <path d="M0,1 L7,4 L0,7 z" fill="#64748b"/>
+    </marker>
+  </defs>
+
   <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
 
-  <g transform="translate(24, 24)">
+  <g transform="translate(24, 22)">
     <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Фазовая плоскость (x, ẋ) задачи о быстродействии: двойной интегратор</text>
     <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">ẍ = u, |u| ≤ 1. Кривая переключения Г = Г₊ ∪ Г₋ разделяет зоны предельного ускорения и торможения</text>
   </g>
 
   <!-- Left: Phase Plane Coordinate System -->
-  <g transform="translate(30, 65)">
-    <rect width="400" height="275" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+  <g transform="translate(24, 60)">
+    <rect width="410" height="280" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
 
-    <!-- Grid lines -->
-    <line x1="40" y1="137.5" x2="360" y2="137.5" stroke="#94a3b8" stroke-width="1.5"/>
-    <line x1="200" y1="20" x2="200" y2="255" stroke="#94a3b8" stroke-width="1.5"/>
-    <text x="365" y="141" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#475569">x</text>
-    <text x="204" y="22" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#475569">ẋ (скорость)</text>
+    <!-- Quadrant phase flow indicators -->
+    <text x="320" y="90" font-family="JetBrains Mono" font-size="10" fill="#94a3b8">ẋ &gt; 0 (вправо →)</text>
+    <text x="45" y="300" font-family="JetBrains Mono" font-size="10" fill="#94a3b8">(← влево) ẋ &lt; 0</text>
 
-    <!-- Background parabolas for u = +1 (blue dashed) -->
-    <path d="M 80,40 Q 140,137.5 80,235" stroke="#93c5fd" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
-    <path d="M 140,40 Q 200,137.5 140,235" stroke="#93c5fd" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
-    <path d="M 200,40 Q 260,137.5 200,235" stroke="#93c5fd" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
-    <path d="M 260,40 Q 320,137.5 260,235" stroke="#93c5fd" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
+    <!-- Axes -->
+    <line x1="30" y1="195" x2="395" y2="195" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-axis)"/>
+    <line x1="215" y1="325" x2="215" y2="70" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-axis)"/>
+    <text x="398" y="199" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#475569">x</text>
+    <text x="219" y="75" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#475569">ẋ (v)</text>
 
-    <!-- Background parabolas for u = -1 (red dashed) -->
-    <path d="M 140,40 Q 80,137.5 140,235" stroke="#fca5a5" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
-    <path d="M 200,40 Q 140,137.5 200,235" stroke="#fca5a5" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
-    <path d="M 260,40 Q 200,137.5 260,235" stroke="#fca5a5" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
-    <path d="M 320,40 Q 260,137.5 320,235" stroke="#fca5a5" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
+    <!-- Background parabolas u = +1 (blue dashed, flow upwards) -->
+    <path d="M 217.3,296.2 L 164.0,274.2 L 117.2,247.8 L 89.2,221.4 L 79.8,195.0 L 89.2,168.6 L 117.2,142.2 L 164.0,115.8 L 217.3,93.8" stroke="#93c5fd" stroke-width="1.1" stroke-dasharray="3,3" fill="none"/>
+    <path d="M 269.3,296.2 L 216.0,274.2 L 169.2,247.8 L 141.2,221.4 L 131.8,195.0 L 141.2,168.6 L 169.2,142.2 L 216.0,115.8 L 269.3,93.8" stroke="#93c5fd" stroke-width="1.1" stroke-dasharray="3,3" fill="none"/>
+    <path d="M 321.3,296.2 L 268.0,274.2 L 221.2,247.8 L 193.2,221.4 L 183.8,195.0 L 193.2,168.6 L 221.2,142.2 L 268.0,115.8 L 321.3,93.8" stroke="#93c5fd" stroke-width="1.1" stroke-dasharray="3,3" fill="none"/>
+    <path d="M 373.3,296.2 L 320.0,274.2 L 273.2,247.8 L 245.2,221.4 L 235.8,195.0 L 245.2,168.6 L 273.2,142.2 L 320.0,115.8 L 373.3,93.8" stroke="#93c5fd" stroke-width="1.1" stroke-dasharray="3,3" fill="none"/>
+    <path d="M 425.3,296.2 L 372.0,274.2 L 325.2,247.8 L 297.2,221.4 L 287.8,195.0 L 297.2,168.6 L 325.2,142.2 L 372.0,115.8 L 425.3,93.8" stroke="#93c5fd" stroke-width="1.1" stroke-dasharray="3,3" fill="none"/>
+    <!-- Background parabolas u = -1 (red dashed, flow downwards) -->
+    <path d="M 4.7,93.8 L 58.0,115.8 L 104.8,142.2 L 132.8,168.6 L 142.2,195.0 L 132.8,221.4 L 104.8,247.8 L 58.0,274.2 L 4.7,296.2" stroke="#fca5a5" stroke-width="1.1" stroke-dasharray="3,3" fill="none"/>
+    <path d="M 56.7,93.8 L 110.0,115.8 L 156.8,142.2 L 184.8,168.6 L 194.2,195.0 L 184.8,221.4 L 156.8,247.8 L 110.0,274.2 L 56.7,296.2" stroke="#fca5a5" stroke-width="1.1" stroke-dasharray="3,3" fill="none"/>
+    <path d="M 108.7,93.8 L 162.0,115.8 L 208.8,142.2 L 236.8,168.6 L 246.2,195.0 L 236.8,221.4 L 208.8,247.8 L 162.0,274.2 L 108.7,296.2" stroke="#fca5a5" stroke-width="1.1" stroke-dasharray="3,3" fill="none"/>
+    <path d="M 160.7,93.8 L 214.0,115.8 L 260.8,142.2 L 288.8,168.6 L 298.2,195.0 L 288.8,221.4 L 260.8,247.8 L 214.0,274.2 L 160.7,296.2" stroke="#fca5a5" stroke-width="1.1" stroke-dasharray="3,3" fill="none"/>
+    <path d="M 212.7,93.8 L 266.0,115.8 L 312.8,142.2 L 340.8,168.6 L 350.2,195.0 L 340.8,221.4 L 312.8,247.8 L 266.0,274.2 L 212.7,296.2" stroke="#fca5a5" stroke-width="1.1" stroke-dasharray="3,3" fill="none"/>
 
-    <!-- Switching curve Gamma = Gamma+ U Gamma- (bold orange) -->
-    <path d="M 100,50 Q 170,100 200,137.5 Q 230,175 300,225" stroke="#ea580c" stroke-width="3.2" fill="none"/>
-    <text x="75" y="46" font-family="Inter" font-size="10.5" font-weight="700" fill="#ea580c">Г₋ (u = -1)</text>
-    <text x="295" y="240" font-family="Inter" font-size="10.5" font-weight="700" fill="#ea580c">Г₊ (u = +1)</text>
+    <!-- Flow direction arrows on background curves -->
+    <line x1="140" y1="210" x2="140" y2="198" stroke="#3b82f6" stroke-width="1.6" marker-end="url(#arr-blue)"/>
+    <line x1="290" y1="180" x2="290" y2="192" stroke="#ef4444" stroke-width="1.6" marker-end="url(#arr-red)"/>
+
+    <!-- Switching curve Gamma = Gamma- (v>=0) U Gamma+ (v<=0) -->
+    <path d="M 77.5,93.8 L 121.1,111.4 L 156.5,129.0 L 183.5,146.6 L 202.3,164.2 L 211.8,179.6 L 215.0,195.0" stroke="#ea580c" stroke-width="3.2" fill="none"/>
+    <path d="M 352.5,296.2 L 308.9,278.6 L 273.5,261.0 L 246.5,243.4 L 227.7,225.8 L 218.2,210.4 L 215.0,195.0" stroke="#ea580c" stroke-width="3.2" fill="none"/>
+
+    <!-- Switching curve labels -->
+    <rect x="70" y="80" width="85" height="20" rx="3" fill="#fff7ed" stroke="#fdba74" stroke-width="0.8"/>
+    <text x="75" y="94" font-family="JetBrains Mono" font-size="9.5" font-weight="700" fill="#ea580c">Г₋ (u = -1)</text>
+
+    <rect x="255" y="295" width="85" height="20" rx="3" fill="#fff7ed" stroke="#fdba74" stroke-width="0.8"/>
+    <text x="260" y="309" font-family="JetBrains Mono" font-size="9.5" font-weight="700" fill="#ea580c">Г₊ (u = +1)</text>
 
     <!-- Region Labels -->
-    <rect x="50" y="80" width="84" height="22" rx="4" fill="#eff6ff" stroke="#3b82f6" stroke-width="1"/>
-    <text x="58" y="95" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#1d4ed8">Область u=+1</text>
+    <rect x="42" y="130" width="94" height="22" rx="4" fill="#eff6ff" stroke="#3b82f6" stroke-width="1"/>
+    <text x="49" y="145" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#1d4ed8">Область u = +1</text>
 
-    <rect x="266" y="170" width="84" height="22" rx="4" fill="#fef2f2" stroke="#ef4444" stroke-width="1"/>
-    <text x="274" y="185" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#b91c1c">Область u=-1</text>
+    <rect x="270" y="240" width="94" height="22" rx="4" fill="#fef2f2" stroke="#ef4444" stroke-width="1"/>
+    <text x="277" y="255" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#b91c1c">Область u = -1</text>
 
-    <!-- Example Trajectory: Starts at (x0, v0), u=-1 -> hits switching curve -> u=+1 -> Origin -->
-    <path d="M 310,95 Q 280,140 248,192" stroke="#dc2626" stroke-width="2.8" fill="none"/>
-    <polygon points="274,152 268,142 278,145" fill="#dc2626"/>
+    <!-- Optimal Trajectory Example:
+         Phase 1 (red): u = -1, curves down & right (dx>0 while v>0), crosses v=0, then down & left (dx<0 while v<0) to S -->
+    <path d="M 256.6,129.0 L 277.7,142.2 L 294.0,155.4 L 305.7,168.6 L 312.8,181.8 L 315.1,195.0 L 312.8,208.2 L 305.7,221.4 L 294.0,234.6 L 280.7,245.6 L 265.1,256.0" stroke="#dc2626" stroke-width="2.8" fill="none"/>
+    <line x1="294.0" y1="155.4"
+          x2="305.7" y2="168.6"
+          stroke="#dc2626" stroke-width="2" marker-end="url(#arr-traj1)"/>
 
-    <path d="M 248,192 Q 225,165 200,137.5" stroke="#059669" stroke-width="3" fill="none"/>
-    <polygon points="220,157 215,147 225,151" fill="#059669"/>
+    <!-- Phase 2 (green): u = +1, glides up & left along Gamma+ straight into (0,0) -->
+    <path d="M 265.0,256.0 L 246.5,243.4 L 231.6,230.2 L 221.5,217.0 L 216.6,206.0 L 215.0,195.0" stroke="#059669" stroke-width="3.2" fill="none"/>
+    <line x1="231.6" y1="230.2"
+          x2="221.5" y2="217.0"
+          stroke="#059669" stroke-width="2" marker-end="url(#arr-traj2)"/>
 
     <!-- Start Node -->
-    <circle cx="310" cy="95" r="5" fill="#2563eb" stroke="#ffffff" stroke-width="1.8"/>
-    <text x="318" y="93" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#2563eb">(x₀, ẋ₀)</text>
+    <circle cx="256.6" cy="129.0" r="5" fill="#2563eb" stroke="#ffffff" stroke-width="1.8"/>
+    <text x="264.6" y="125.0" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#2563eb">(x₀, ẋ₀)</text>
 
-    <!-- Switching Node -->
-    <circle cx="248" cy="192" r="5.5" fill="#ea580c" stroke="#ffffff" stroke-width="1.8"/>
-    <text x="256" y="200" font-family="Inter" font-size="10" font-weight="700" fill="#ea580c">Точка переключения S</text>
+    <!-- Switching Node S -->
+    <circle cx="265.1" cy="256.0" r="5.5" fill="#ea580c" stroke="#ffffff" stroke-width="2"/>
+    <text x="251.1" y="272.0" font-family="Inter" font-size="10" font-weight="700" fill="#ea580c">Точка переключения S</text>
 
-    <!-- Origin Target -->
-    <circle cx="200" cy="137.5" r="6" fill="#059669" stroke="#ffffff" stroke-width="2"/>
-    <text x="180" y="128" font-family="JetBrains Mono" font-size="10.5" font-weight="700" fill="#059669">(0, 0)</text>
+    <!-- Origin Target (0,0) -->
+    <circle cx="215.0" cy="195.0" r="6" fill="#059669" stroke="#ffffff" stroke-width="2"/>
+    <text x="180.0" y="185.0" font-family="JetBrains Mono" font-size="10.5" font-weight="700" fill="#059669">Цель (0, 0)</text>
   </g>
 
-  <!-- Right: Rigorous Mathematical Cards -->
-  <g transform="translate(445, 65)">
+  <!-- Right: Rigorous Mathematical Cards & Time-Profile Inset -->
+  <g transform="translate(448, 60)">
     <!-- Card 1: PMP & Switching function -->
-    <rect width="290" height="82" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
-    <rect width="290" height="22" rx="6" fill="#0284c7"/>
+    <rect width="288" height="84" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+    <rect width="288" height="22" rx="6" fill="#0284c7"/>
     <text x="10" y="15" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff">1. Принцип максимума Понтрягина (ПМП)</text>
-    <text x="10" y="38" font-family="JetBrains Mono" font-size="9.5" fill="#0f172a">H = 1 + λ₁ẋ + λ₂u = 1 + λ₁ẋ + u·σ(t)</text>
-    <text x="10" y="54" font-family="Inter" font-size="9.5" fill="#475569">Функция переключения: <tspan font-family="JetBrains Mono" font-weight="700" fill="#ea580c">σ(t) = λ₂(t)</tspan></text>
-    <text x="10" y="70" font-family="JetBrains Mono" font-size="9.5" font-weight="700" fill="#0284c7">u*(t) = -sign(λ₂(t)) ∈ {-1, +1} (Bang-Bang)</text>
+    <text x="10" y="38" font-family="JetBrains Mono" font-size="9.5" fill="#0f172a">H = -1 + λ₁ẋ + λ₂u = -1 + λ₁ẋ + σ(t)·u</text>
+    <text x="10" y="54" font-family="Inter" font-size="9.5" fill="#475569">Функция переключения: <tspan font-family="JetBrains Mono" font-weight="700" fill="#ea580c">σ(t) = λ₂(t) = -c₁t + c₂</tspan></text>
+    <text x="10" y="70" font-family="JetBrains Mono" font-size="9.5" font-weight="700" fill="#0284c7">u*(t) = sign(λ₂(t)) ∈ {-1, +1} (Bang-Bang)</text>
 
     <!-- Card 2: Switching Curve Formula -->
     <g transform="translate(0, 92)">
-      <rect width="290" height="90" rx="6" fill="#fffbeb" stroke="#fcd34d" stroke-width="1.2"/>
-      <rect width="290" height="22" rx="6" fill="#d97706"/>
+      <rect width="288" height="88" rx="6" fill="#fffbeb" stroke="#fcd34d" stroke-width="1.2"/>
+      <rect width="288" height="22" rx="6" fill="#d97706"/>
       <text x="10" y="15" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff">2. Кривая переключения Г и синтез ОС</text>
       <text x="10" y="38" font-family="JetBrains Mono" font-size="9.5" font-weight="700" fill="#b45309">Г: x + ½ ẋ |ẋ| = 0</text>
-      <text x="10" y="54" font-family="Inter" font-size="9.5" fill="#78350f">• x &gt; -½ ẋ|ẋ| ⇒ u = -1 (предельное торможение)</text>
-      <text x="10" y="68" font-family="Inter" font-size="9.5" fill="#78350f">• x &lt; -½ ẋ|ẋ| ⇒ u = +1 (предельный разгон)</text>
-      <text x="10" y="82" font-family="Inter" font-size="9.5" font-weight="700" fill="#b45309">Максимум 1 переключение для 2-го порядка!</text>
+      <text x="10" y="53" font-family="Inter" font-size="9" fill="#78350f">• x + ½ ẋ|ẋ| &gt; 0 ⇒ u = -1 (предельное торможение)</text>
+      <text x="10" y="67" font-family="Inter" font-size="9" fill="#78350f">• x + ½ ẋ|ẋ| &lt; 0 ⇒ u = +1 (предельный разгон)</text>
+      <text x="10" y="81" font-family="Inter" font-size="9" font-weight="700" fill="#b45309">Теорема Фельдбаума: не более 1 переключения!</text>
     </g>
 
-    <!-- Card 3: Engineering Reality -->
-    <g transform="translate(0, 192)">
-      <rect width="290" height="83" rx="6" fill="#fef2f2" stroke="#fecaca" stroke-width="1.2"/>
-      <rect width="290" height="22" rx="6" fill="#dc2626"/>
-      <text x="10" y="15" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff">3. Ограничение: Эффект дребезга (Chattering)</text>
-      <text x="10" y="38" font-family="Inter" font-size="9.5" fill="#7f1d1d">• Дискретность времени (dt) приводит к</text>
-      <text x="10" y="52" font-family="Inter" font-size="9.5" fill="#7f1d1d">  высокочастотным колебаниям около нуля.</text>
-      <text x="10" y="66" font-family="Inter" font-size="9.5" fill="#7f1d1d">• Решение в робототехнике: пограничный слой</text>
-      <text x="10" y="80" font-family="Inter" font-size="9.5" font-weight="700" fill="#991b1b">  (sat вместо sign) или гладкий LQR.</text>
+    <!-- Card 3: Time Profile u*(t) Inset -->
+    <g transform="translate(0, 188)">
+      <rect width="288" height="92" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+      <rect width="288" height="22" rx="6" fill="#475569"/>
+      <text x="10" y="15" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff">3. Временной профиль управления u*(t)</text>
+
+      <!-- Mini-plot of u(t) -->
+      <g transform="translate(20, 30)">
+        <!-- Axes -->
+        <line x1="10" y1="30" x2="245" y2="30" stroke="#94a3b8" stroke-width="1"/>
+        <line x1="20" y1="5" x2="20" y2="52" stroke="#94a3b8" stroke-width="1"/>
+        <text x="248" y="33" font-family="JetBrains Mono" font-size="8.5" fill="#64748b">t</text>
+        <text x="4" y="14" font-family="JetBrains Mono" font-size="8.5" fill="#059669">+1</text>
+        <text x="6" y="50" font-family="JetBrains Mono" font-size="8.5" fill="#dc2626">-1</text>
+
+        <!-- Step waveform: u = -1 from t=0 to ts=100, then +1 from ts to tf=190, then 0 -->
+        <line x1="20" y1="46" x2="115" y2="46" stroke="#dc2626" stroke-width="2.4"/>
+        <line x1="115" y1="46" x2="115" y2="12" stroke="#ea580c" stroke-width="1.8" stroke-dasharray="2,2"/>
+        <line x1="115" y1="12" x2="205" y2="12" stroke="#059669" stroke-width="2.4"/>
+        <line x1="205" y1="12" x2="205" y2="30" stroke="#475569" stroke-width="1.8" stroke-dasharray="2,2"/>
+        <line x1="205" y1="30" x2="240" y2="30" stroke="#475569" stroke-width="2"/>
+
+        <circle cx="115" cy="46" r="3" fill="#ea580c"/>
+        <text x="110" y="58" font-family="JetBrains Mono" font-size="8" font-weight="700" fill="#ea580c">t_s</text>
+        <circle cx="205" cy="12" r="3" fill="#059669"/>
+        <text x="200" y="24" font-family="JetBrains Mono" font-size="8" font-weight="700" fill="#059669">t_f=T*</text>
+      </g>
     </g>
   </g>
 </svg>

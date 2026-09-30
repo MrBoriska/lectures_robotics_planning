@@ -3603,103 +3603,344 @@ def generate_bang_bang_phase_plane():
     filepath = os.path.join(OUTPUT_DIR, 'lecture-05', 'bang_bang_phase_plane.svg')
     ensure_dir(filepath)
 
-    svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+    # Coordinate mapping:
+    # Origin (0,0) at (215, 195)
+    # sx = 52 px / unit x, sy = 44 px / unit v
+    # SVG X = 215 + 52 * x
+    # SVG Y = 195 - 44 * v (v > 0 is up, v < 0 is down)
+
+    def to_svg(x, v):
+        return (215 + 52.0 * x, 195 - 44.0 * v)
+
+    # 1. Background parabolas for u = +1: x = 0.5 * v^2 + C, v in [-2.4, 2.4]
+    # v increases with time (flow UPWARDS)
+    u_plus_paths = []
+    for C in [-2.6, -1.6, -0.6, 0.4, 1.4]:
+        pts = []
+        for vi in [-2.3, -1.8, -1.2, -0.6, 0.0, 0.6, 1.2, 1.8, 2.3]:
+            xi = 0.5 * vi * vi + C
+            pts.append(to_svg(xi, vi))
+        d_str = "M " + " L ".join(f"{px:.1f},{py:.1f}" for px, py in pts)
+        u_plus_paths.append(d_str)
+
+    # 2. Background parabolas for u = -1: x = -0.5 * v^2 + C, v in [-2.4, 2.4]
+    # v decreases with time (flow DOWNWARDS)
+    u_minus_paths = []
+    for C in [-1.4, -0.4, 0.6, 1.6, 2.6]:
+        pts = []
+        for vi in [2.3, 1.8, 1.2, 0.6, 0.0, -0.6, -1.2, -1.8, -2.3]:
+            xi = -0.5 * vi * vi + C
+            pts.append(to_svg(xi, vi))
+        d_str = "M " + " L ".join(f"{px:.1f},{py:.1f}" for px, py in pts)
+        u_minus_paths.append(d_str)
+
+    # 3. Switching curve Gamma:
+    # Gamma- (v >= 0): x = -0.5 * v^2, v from 2.3 down to 0 (flows down-right into 0,0)
+    pts_gamma_minus = [to_svg(-0.5 * vi * vi, vi) for vi in [2.3, 1.9, 1.5, 1.1, 0.7, 0.35, 0.0]]
+    d_gamma_minus = "M " + " L ".join(f"{px:.1f},{py:.1f}" for px, py in pts_gamma_minus)
+
+    # Gamma+ (v <= 0): x = 0.5 * v^2, v from -2.3 up to 0 (flows up-left into 0,0)
+    pts_gamma_plus = [to_svg(0.5 * vi * vi, vi) for vi in [-2.3, -1.9, -1.5, -1.1, -0.7, -0.35, 0.0]]
+    d_gamma_plus = "M " + " L ".join(f"{px:.1f},{py:.1f}" for px, py in pts_gamma_plus)
+
+    # 4. Example optimal trajectory:
+    # Start at x0 = 0.8, v0 = 1.5. C1 = x0 + 0.5*v0^2 = 0.8 + 1.125 = 1.925
+    # Segment 1 (u = -1): x = -0.5*v^2 + 1.925.
+    # v goes from 1.5 down to vs = -sqrt(1.925) = -1.387.
+    # Crossing v=0 at x = 1.925 (X = 315.1, Y = 195).
+    # Intersects Gamma+ (x = 0.5*v^2) at vs = -1.387, xs = 0.9625.
+    pts_traj_seg1 = []
+    for vi in [1.5, 1.2, 0.9, 0.6, 0.3, 0.0, -0.3, -0.6, -0.9, -1.15, -1.387]:
+        xi = -0.5 * vi * vi + 1.925
+        pts_traj_seg1.append(to_svg(xi, vi))
+    d_traj_seg1 = "M " + " L ".join(f"{px:.1f},{py:.1f}" for px, py in pts_traj_seg1)
+
+    # Segment 2 (u = +1): on Gamma+, v goes from -1.387 up to 0.0, x = 0.5*v^2
+    pts_traj_seg2 = []
+    for vi in [-1.387, -1.1, -0.8, -0.5, -0.25, 0.0]:
+        xi = 0.5 * vi * vi
+        pts_traj_seg2.append(to_svg(xi, vi))
+    d_traj_seg2 = "M " + " L ".join(f"{px:.1f},{py:.1f}" for px, py in pts_traj_seg2)
+
+    p_start = to_svg(0.8, 1.5)
+    p_peak = to_svg(1.925, 0.0)
+    p_switch = to_svg(0.9625, -1.387)
+    p_origin = to_svg(0.0, 0.0)
+
+    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <defs>
+    <marker id="arr-blue" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="4" markerHeight="4" orient="auto">
+      <path d="M0,1 L7,4 L0,7 z" fill="#3b82f6"/>
+    </marker>
+    <marker id="arr-red" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="4" markerHeight="4" orient="auto">
+      <path d="M0,1 L7,4 L0,7 z" fill="#ef4444"/>
+    </marker>
+    <marker id="arr-traj1" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0,1 L7,4 L0,7 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-traj2" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0,1 L7,4 L0,7 z" fill="#059669"/>
+    </marker>
+    <marker id="arr-axis" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="4.5" markerHeight="4.5" orient="auto">
+      <path d="M0,1 L7,4 L0,7 z" fill="#64748b"/>
+    </marker>
+  </defs>
+
   <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
 
-  <g transform="translate(24, 24)">
+  <g transform="translate(24, 22)">
     <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Фазовая плоскость (x, ẋ) задачи о быстродействии: двойной интегратор</text>
     <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">ẍ = u, |u| ≤ 1. Кривая переключения Г = Г₊ ∪ Г₋ разделяет зоны предельного ускорения и торможения</text>
   </g>
 
   <!-- Left: Phase Plane Coordinate System -->
-  <g transform="translate(30, 65)">
-    <rect width="400" height="275" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+  <g transform="translate(24, 60)">
+    <rect width="410" height="280" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
 
-    <!-- Grid lines -->
-    <line x1="40" y1="137.5" x2="360" y2="137.5" stroke="#94a3b8" stroke-width="1.5"/>
-    <line x1="200" y1="20" x2="200" y2="255" stroke="#94a3b8" stroke-width="1.5"/>
-    <text x="365" y="141" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#475569">x</text>
-    <text x="204" y="22" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#475569">ẋ (скорость)</text>
+    <!-- Quadrant phase flow indicators -->
+    <text x="320" y="90" font-family="JetBrains Mono" font-size="10" fill="#94a3b8">ẋ &gt; 0 (вправо →)</text>
+    <text x="45" y="300" font-family="JetBrains Mono" font-size="10" fill="#94a3b8">(← влево) ẋ &lt; 0</text>
 
-    <!-- Background parabolas for u = +1 (blue dashed) -->
-    <path d="M 80,40 Q 140,137.5 80,235" stroke="#93c5fd" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
-    <path d="M 140,40 Q 200,137.5 140,235" stroke="#93c5fd" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
-    <path d="M 200,40 Q 260,137.5 200,235" stroke="#93c5fd" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
-    <path d="M 260,40 Q 320,137.5 260,235" stroke="#93c5fd" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
+    <!-- Axes -->
+    <line x1="30" y1="195" x2="395" y2="195" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-axis)"/>
+    <line x1="215" y1="325" x2="215" y2="70" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr-axis)"/>
+    <text x="398" y="199" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#475569">x</text>
+    <text x="219" y="75" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#475569">ẋ (v)</text>
 
-    <!-- Background parabolas for u = -1 (red dashed) -->
-    <path d="M 140,40 Q 80,137.5 140,235" stroke="#fca5a5" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
-    <path d="M 200,40 Q 140,137.5 200,235" stroke="#fca5a5" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
-    <path d="M 260,40 Q 200,137.5 260,235" stroke="#fca5a5" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
-    <path d="M 320,40 Q 260,137.5 320,235" stroke="#fca5a5" stroke-width="1.2" stroke-dasharray="3,3" fill="none"/>
+    <!-- Background parabolas u = +1 (blue dashed, flow upwards) -->
+'''
+    for p in u_plus_paths:
+        svg += f'    <path d="{p}" stroke="#93c5fd" stroke-width="1.1" stroke-dasharray="3,3" fill="none"/>\n'
 
-    <!-- Switching curve Gamma = Gamma+ U Gamma- (bold orange) -->
-    <path d="M 100,50 Q 170,100 200,137.5 Q 230,175 300,225" stroke="#ea580c" stroke-width="3.2" fill="none"/>
-    <text x="75" y="46" font-family="Inter" font-size="10.5" font-weight="700" fill="#ea580c">Г₋ (u = -1)</text>
-    <text x="295" y="240" font-family="Inter" font-size="10.5" font-weight="700" fill="#ea580c">Г₊ (u = +1)</text>
+    svg += '''    <!-- Background parabolas u = -1 (red dashed, flow downwards) -->\n'''
+    for p in u_minus_paths:
+        svg += f'    <path d="{p}" stroke="#fca5a5" stroke-width="1.1" stroke-dasharray="3,3" fill="none"/>\n'
+
+    svg += f'''
+    <!-- Flow direction arrows on background curves -->
+    <line x1="140" y1="210" x2="140" y2="198" stroke="#3b82f6" stroke-width="1.6" marker-end="url(#arr-blue)"/>
+    <line x1="290" y1="180" x2="290" y2="192" stroke="#ef4444" stroke-width="1.6" marker-end="url(#arr-red)"/>
+
+    <!-- Switching curve Gamma = Gamma- (v>=0) U Gamma+ (v<=0) -->
+    <path d="{d_gamma_minus}" stroke="#ea580c" stroke-width="3.2" fill="none"/>
+    <path d="{d_gamma_plus}" stroke="#ea580c" stroke-width="3.2" fill="none"/>
+
+    <!-- Switching curve labels -->
+    <rect x="70" y="80" width="85" height="20" rx="3" fill="#fff7ed" stroke="#fdba74" stroke-width="0.8"/>
+    <text x="75" y="94" font-family="JetBrains Mono" font-size="9.5" font-weight="700" fill="#ea580c">Г₋ (u = -1)</text>
+
+    <rect x="255" y="295" width="85" height="20" rx="3" fill="#fff7ed" stroke="#fdba74" stroke-width="0.8"/>
+    <text x="260" y="309" font-family="JetBrains Mono" font-size="9.5" font-weight="700" fill="#ea580c">Г₊ (u = +1)</text>
 
     <!-- Region Labels -->
-    <rect x="50" y="80" width="84" height="22" rx="4" fill="#eff6ff" stroke="#3b82f6" stroke-width="1"/>
-    <text x="58" y="95" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#1d4ed8">Область u=+1</text>
+    <rect x="42" y="130" width="94" height="22" rx="4" fill="#eff6ff" stroke="#3b82f6" stroke-width="1"/>
+    <text x="49" y="145" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#1d4ed8">Область u = +1</text>
 
-    <rect x="266" y="170" width="84" height="22" rx="4" fill="#fef2f2" stroke="#ef4444" stroke-width="1"/>
-    <text x="274" y="185" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#b91c1c">Область u=-1</text>
+    <rect x="270" y="240" width="94" height="22" rx="4" fill="#fef2f2" stroke="#ef4444" stroke-width="1"/>
+    <text x="277" y="255" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#b91c1c">Область u = -1</text>
 
-    <!-- Example Trajectory: Starts at (x0, v0), u=-1 -> hits switching curve -> u=+1 -> Origin -->
-    <path d="M 310,95 Q 280,140 248,192" stroke="#dc2626" stroke-width="2.8" fill="none"/>
-    <polygon points="274,152 268,142 278,145" fill="#dc2626"/>
+    <!-- Optimal Trajectory Example:
+         Phase 1 (red): u = -1, curves down & right (dx>0 while v>0), crosses v=0, then down & left (dx<0 while v<0) to S -->
+    <path d="{d_traj_seg1}" stroke="#dc2626" stroke-width="2.8" fill="none"/>
+    <line x1="{pts_traj_seg1[2][0]:.1f}" y1="{pts_traj_seg1[2][1]:.1f}"
+          x2="{pts_traj_seg1[3][0]:.1f}" y2="{pts_traj_seg1[3][1]:.1f}"
+          stroke="#dc2626" stroke-width="2" marker-end="url(#arr-traj1)"/>
 
-    <path d="M 248,192 Q 225,165 200,137.5" stroke="#059669" stroke-width="3" fill="none"/>
-    <polygon points="220,157 215,147 225,151" fill="#059669"/>
+    <!-- Phase 2 (green): u = +1, glides up & left along Gamma+ straight into (0,0) -->
+    <path d="{d_traj_seg2}" stroke="#059669" stroke-width="3.2" fill="none"/>
+    <line x1="{pts_traj_seg2[2][0]:.1f}" y1="{pts_traj_seg2[2][1]:.1f}"
+          x2="{pts_traj_seg2[3][0]:.1f}" y2="{pts_traj_seg2[3][1]:.1f}"
+          stroke="#059669" stroke-width="2" marker-end="url(#arr-traj2)"/>
 
     <!-- Start Node -->
-    <circle cx="310" cy="95" r="5" fill="#2563eb" stroke="#ffffff" stroke-width="1.8"/>
-    <text x="318" y="93" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#2563eb">(x₀, ẋ₀)</text>
+    <circle cx="{p_start[0]:.1f}" cy="{p_start[1]:.1f}" r="5" fill="#2563eb" stroke="#ffffff" stroke-width="1.8"/>
+    <text x="{p_start[0]+8:.1f}" y="{p_start[1]-4:.1f}" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#2563eb">(x₀, ẋ₀)</text>
 
-    <!-- Switching Node -->
-    <circle cx="248" cy="192" r="5.5" fill="#ea580c" stroke="#ffffff" stroke-width="1.8"/>
-    <text x="256" y="200" font-family="Inter" font-size="10" font-weight="700" fill="#ea580c">Точка переключения S</text>
+    <!-- Switching Node S -->
+    <circle cx="{p_switch[0]:.1f}" cy="{p_switch[1]:.1f}" r="5.5" fill="#ea580c" stroke="#ffffff" stroke-width="2"/>
+    <text x="{p_switch[0]-14:.1f}" y="{p_switch[1]+16:.1f}" font-family="Inter" font-size="10" font-weight="700" fill="#ea580c">Точка переключения S</text>
 
-    <!-- Origin Target -->
-    <circle cx="200" cy="137.5" r="6" fill="#059669" stroke="#ffffff" stroke-width="2"/>
-    <text x="180" y="128" font-family="JetBrains Mono" font-size="10.5" font-weight="700" fill="#059669">(0, 0)</text>
+    <!-- Origin Target (0,0) -->
+    <circle cx="{p_origin[0]:.1f}" cy="{p_origin[1]:.1f}" r="6" fill="#059669" stroke="#ffffff" stroke-width="2"/>
+    <text x="{p_origin[0]-35:.1f}" y="{p_origin[1]-10:.1f}" font-family="JetBrains Mono" font-size="10.5" font-weight="700" fill="#059669">Цель (0, 0)</text>
   </g>
 
-  <!-- Right: Rigorous Mathematical Cards -->
-  <g transform="translate(445, 65)">
+  <!-- Right: Rigorous Mathematical Cards & Time-Profile Inset -->
+  <g transform="translate(448, 60)">
     <!-- Card 1: PMP & Switching function -->
-    <rect width="290" height="82" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
-    <rect width="290" height="22" rx="6" fill="#0284c7"/>
+    <rect width="288" height="84" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+    <rect width="288" height="22" rx="6" fill="#0284c7"/>
     <text x="10" y="15" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff">1. Принцип максимума Понтрягина (ПМП)</text>
-    <text x="10" y="38" font-family="JetBrains Mono" font-size="9.5" fill="#0f172a">H = 1 + λ₁ẋ + λ₂u = 1 + λ₁ẋ + u·σ(t)</text>
-    <text x="10" y="54" font-family="Inter" font-size="9.5" fill="#475569">Функция переключения: <tspan font-family="JetBrains Mono" font-weight="700" fill="#ea580c">σ(t) = λ₂(t)</tspan></text>
-    <text x="10" y="70" font-family="JetBrains Mono" font-size="9.5" font-weight="700" fill="#0284c7">u*(t) = -sign(λ₂(t)) ∈ {-1, +1} (Bang-Bang)</text>
+    <text x="10" y="38" font-family="JetBrains Mono" font-size="9.5" fill="#0f172a">H = -1 + λ₁ẋ + λ₂u = -1 + λ₁ẋ + σ(t)·u</text>
+    <text x="10" y="54" font-family="Inter" font-size="9.5" fill="#475569">Функция переключения: <tspan font-family="JetBrains Mono" font-weight="700" fill="#ea580c">σ(t) = λ₂(t) = -c₁t + c₂</tspan></text>
+    <text x="10" y="70" font-family="JetBrains Mono" font-size="9.5" font-weight="700" fill="#0284c7">u*(t) = sign(λ₂(t)) ∈ {{-1, +1}} (Bang-Bang)</text>
 
     <!-- Card 2: Switching Curve Formula -->
     <g transform="translate(0, 92)">
-      <rect width="290" height="90" rx="6" fill="#fffbeb" stroke="#fcd34d" stroke-width="1.2"/>
-      <rect width="290" height="22" rx="6" fill="#d97706"/>
+      <rect width="288" height="88" rx="6" fill="#fffbeb" stroke="#fcd34d" stroke-width="1.2"/>
+      <rect width="288" height="22" rx="6" fill="#d97706"/>
       <text x="10" y="15" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff">2. Кривая переключения Г и синтез ОС</text>
       <text x="10" y="38" font-family="JetBrains Mono" font-size="9.5" font-weight="700" fill="#b45309">Г: x + ½ ẋ |ẋ| = 0</text>
-      <text x="10" y="54" font-family="Inter" font-size="9.5" fill="#78350f">• x &gt; -½ ẋ|ẋ| ⇒ u = -1 (предельное торможение)</text>
-      <text x="10" y="68" font-family="Inter" font-size="9.5" fill="#78350f">• x &lt; -½ ẋ|ẋ| ⇒ u = +1 (предельный разгон)</text>
-      <text x="10" y="82" font-family="Inter" font-size="9.5" font-weight="700" fill="#b45309">Максимум 1 переключение для 2-го порядка!</text>
+      <text x="10" y="53" font-family="Inter" font-size="9" fill="#78350f">• x + ½ ẋ|ẋ| &gt; 0 ⇒ u = -1 (предельное торможение)</text>
+      <text x="10" y="67" font-family="Inter" font-size="9" fill="#78350f">• x + ½ ẋ|ẋ| &lt; 0 ⇒ u = +1 (предельный разгон)</text>
+      <text x="10" y="81" font-family="Inter" font-size="9" font-weight="700" fill="#b45309">Теорема Фельдбаума: не более 1 переключения!</text>
     </g>
 
-    <!-- Card 3: Engineering Reality -->
-    <g transform="translate(0, 192)">
-      <rect width="290" height="83" rx="6" fill="#fef2f2" stroke="#fecaca" stroke-width="1.2"/>
-      <rect width="290" height="22" rx="6" fill="#dc2626"/>
-      <text x="10" y="15" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff">3. Ограничение: Эффект дребезга (Chattering)</text>
-      <text x="10" y="38" font-family="Inter" font-size="9.5" fill="#7f1d1d">• Дискретность времени (dt) приводит к</text>
-      <text x="10" y="52" font-family="Inter" font-size="9.5" fill="#7f1d1d">  высокочастотным колебаниям около нуля.</text>
-      <text x="10" y="66" font-family="Inter" font-size="9.5" fill="#7f1d1d">• Решение в робототехнике: пограничный слой</text>
-      <text x="10" y="80" font-family="Inter" font-size="9.5" font-weight="700" fill="#991b1b">  (sat вместо sign) или гладкий LQR.</text>
+    <!-- Card 3: Time Profile u*(t) Inset -->
+    <g transform="translate(0, 188)">
+      <rect width="288" height="92" rx="6" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+      <rect width="288" height="22" rx="6" fill="#475569"/>
+      <text x="10" y="15" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff">3. Временной профиль управления u*(t)</text>
+
+      <!-- Mini-plot of u(t) -->
+      <g transform="translate(20, 30)">
+        <!-- Axes -->
+        <line x1="10" y1="30" x2="245" y2="30" stroke="#94a3b8" stroke-width="1"/>
+        <line x1="20" y1="5" x2="20" y2="52" stroke="#94a3b8" stroke-width="1"/>
+        <text x="248" y="33" font-family="JetBrains Mono" font-size="8.5" fill="#64748b">t</text>
+        <text x="4" y="14" font-family="JetBrains Mono" font-size="8.5" fill="#059669">+1</text>
+        <text x="6" y="50" font-family="JetBrains Mono" font-size="8.5" fill="#dc2626">-1</text>
+
+        <!-- Step waveform: u = -1 from t=0 to ts=100, then +1 from ts to tf=190, then 0 -->
+        <line x1="20" y1="46" x2="115" y2="46" stroke="#dc2626" stroke-width="2.4"/>
+        <line x1="115" y1="46" x2="115" y2="12" stroke="#ea580c" stroke-width="1.8" stroke-dasharray="2,2"/>
+        <line x1="115" y1="12" x2="205" y2="12" stroke="#059669" stroke-width="2.4"/>
+        <line x1="205" y1="12" x2="205" y2="30" stroke="#475569" stroke-width="1.8" stroke-dasharray="2,2"/>
+        <line x1="205" y1="30" x2="240" y2="30" stroke="#475569" stroke-width="2"/>
+
+        <circle cx="115" cy="46" r="3" fill="#ea580c"/>
+        <text x="110" y="58" font-family="JetBrains Mono" font-size="8" font-weight="700" fill="#ea580c">t_s</text>
+        <circle cx="205" cy="12" r="3" fill="#059669"/>
+        <text x="200" y="24" font-family="JetBrains Mono" font-size="8" font-weight="700" fill="#059669">t_f=T*</text>
+      </g>
+    </g>
+  </g>
+</svg>'''
+
+# -------------------------------------------------------------------------
+# Diagram: Lecture 05 - Geometric Interpretation of PMP (Velocity Hodograph)
+# -------------------------------------------------------------------------
+def generate_pmp_geometry_hodograph():
+    filepath = os.path.join(OUTPUT_DIR, 'lecture-05', 'pmp_geometry_hodograph.svg')
+    ensure_dir(filepath)
+
+    svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 360" width="100%" height="100%">
+  <defs>
+    <marker id="arr-navy" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="4.5" markerHeight="4.5" orient="auto">
+      <path d="M0,1 L7,4 L0,7 z" fill="#0f172a"/>
+    </marker>
+    <marker id="arr-costate" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0,1 L7,4 L0,7 z" fill="#7c3aed"/>
+    </marker>
+    <marker id="arr-green-hodo" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M0,1 L7,4 L0,7 z" fill="#059669"/>
+    </marker>
+  </defs>
+
+  <rect width="100%" height="100%" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <g transform="translate(24, 22)">
+    <text x="0" y="0" font-family="Inter, sans-serif" font-size="15" font-weight="700" fill="#0f172a">Геометрический смысл ПМП: Скоростной годограф и теневые цены</text>
+    <text x="0" y="18" font-family="Inter, sans-serif" font-size="11.5" fill="#64748b">Вектор сопряженных переменных λ(t) задает опорную гиперплоскость к множеству скоростей</text>
+  </g>
+
+  <!-- Left Panel: State Space & Value Function Iso-surfaces -->
+  <g transform="translate(24, 60)">
+    <rect width="345" height="280" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+    <rect width="345" height="26" rx="8" fill="#4338ca"/>
+    <text x="12" y="18" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff">1. Пространство состояний x и вектор цены λ(t)</text>
+
+    <!-- State space plot -->
+    <g transform="translate(20, 36)">
+      <!-- Level curves of Value function V(x) -->
+      <ellipse cx="230" cy="130" rx="160" ry="90" fill="none" stroke="#e0e7ff" stroke-width="1.5"/>
+      <text x="75" y="80" font-family="JetBrains Mono" font-size="9" fill="#818cf8">V(x) = C₃</text>
+
+      <ellipse cx="230" cy="130" rx="110" ry="60" fill="none" stroke="#c7d2fe" stroke-width="1.5"/>
+      <text x="125" y="105" font-family="JetBrains Mono" font-size="9" fill="#6366f1">V(x) = C₂</text>
+
+      <ellipse cx="230" cy="130" rx="60" ry="32" fill="none" stroke="#a5b4fc" stroke-width="1.5"/>
+      <text x="175" y="125" font-family="JetBrains Mono" font-size="9" fill="#4f46e5">V(x) = C₁</text>
+
+      <!-- Goal point -->
+      <circle cx="230" cy="130" r="5" fill="#059669"/>
+      <text x="238" y="134" font-family="Inter" font-size="9.5" font-weight="700" fill="#059669">Цель (V = 0)</text>
+
+      <!-- Optimal Trajectory x*(t) -->
+      <path d="M 50,55 Q 110,85 140,115 T 230,130" fill="none" stroke="#dc2626" stroke-width="2.6"/>
+
+      <!-- Current State x*(t) -->
+      <circle cx="140" cy="115" r="5" fill="#dc2626" stroke="#ffffff" stroke-width="1.5"/>
+      <text x="115" y="132" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#dc2626">x*(t)</text>
+
+      <!-- Costate vector lambda(t) = -grad V -->
+      <line x1="140" y1="115" x2="205" y2="128" stroke="#7c3aed" stroke-width="3" marker-end="url(#arr-costate)"/>
+      <text x="195" y="118" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#7c3aed">λ(t)</text>
+
+      <!-- Tangent plane to V(x) -->
+      <line x1="125" y1="50" x2="155" y2="180" stroke="#7c3aed" stroke-width="1.2" stroke-dasharray="3,3"/>
+      <text x="80" y="170" font-family="Inter" font-size="9" fill="#7c3aed">Касательная к V(x)</text>
+    </g>
+
+    <!-- Explanatory note -->
+    <g transform="translate(14, 218)">
+      <rect width="317" height="48" rx="4" fill="#eef2ff" stroke="#c7d2fe" stroke-width="0.8"/>
+      <text x="10" y="18" font-family="Inter" font-size="9.5" font-weight="700" fill="#3730a3">Физический смысл λ(t):</text>
+      <text x="10" y="32" font-family="Inter" font-size="9" fill="#4338ca">• Сопряженный вектор λ(t) = -∇_x V(x) ортогонален фронту цены</text>
+      <text x="10" y="44" font-family="Inter" font-size="9" fill="#4338ca">• λ(t) указывает направление наибыстрейшего спуска к цели</text>
+    </g>
+  </g>
+
+  <!-- Right Panel: Velocity Hodograph & Supporting Hyperplane -->
+  <g transform="translate(391, 60)">
+    <rect width="345" height="280" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+    <rect width="345" height="26" rx="8" fill="#047857"/>
+    <text x="12" y="18" font-family="Inter" font-size="11" font-weight="700" fill="#ffffff">2. Скоростной годограф V(x) и опорная прямая</text>
+
+    <!-- Hodograph plot -->
+    <g transform="translate(35, 36)">
+      <!-- Axes in velocity space: x_dot_1 vs x_dot_2 -->
+      <line x1="20" y1="95" x2="250" y2="95" stroke="#94a3b8" stroke-width="1.2" marker-end="url(#arr-navy)"/>
+      <line x1="120" y1="180" x2="120" y2="15" stroke="#94a3b8" stroke-width="1.2" marker-end="url(#arr-navy)"/>
+      <text x="252" y="99" font-family="JetBrains Mono" font-size="10" fill="#64748b">ẋ₁</text>
+      <text x="124" y="20" font-family="JetBrains Mono" font-size="10" fill="#64748b">ẋ₂</text>
+
+      <!-- Accessible velocity segment V(x) = { [x2, u]^T, |u| <= 1 } -->
+      <line x1="180" y1="35" x2="180" y2="155" stroke="#0284c7" stroke-width="5" stroke-linecap="round"/>
+      <text x="190" y="98" font-family="JetBrains Mono" font-size="9.5" font-weight="700" fill="#0284c7">V(x)</text>
+
+      <!-- Endpoints of velocity set: u = +1 and u = -1 -->
+      <circle cx="180" cy="35" r="5.5" fill="#059669" stroke="#ffffff" stroke-width="1.5"/>
+      <text x="188" y="38" font-family="JetBrains Mono" font-size="9" font-weight="700" fill="#059669">f(x, +u_max)</text>
+
+      <circle cx="180" cy="155" r="5" fill="#ef4444" stroke="#ffffff" stroke-width="1.5"/>
+      <text x="188" y="160" font-family="JetBrains Mono" font-size="9" font-weight="700" fill="#ef4444">f(x, -u_max)</text>
+
+      <!-- Costate vector lambda in velocity space -->
+      <line x1="120" y1="95" x2="175" y2="45" stroke="#7c3aed" stroke-width="2.6" marker-end="url(#arr-costate)"/>
+      <text x="135" y="60" font-family="JetBrains Mono" font-size="10.5" font-weight="700" fill="#7c3aed">λ(t)</text>
+
+      <!-- Supporting Hyperplane orthogonal to lambda touching the tip! -->
+      <!-- Vector lambda is (55, -50), orthogonal is (50, 55) -->
+      <line x1="125" y1="-15" x2="235" y2="85" stroke="#059669" stroke-width="2" stroke-dasharray="4,3"/>
+      <text x="210" y="15" font-family="Inter" font-size="9" font-weight="700" fill="#059669">Опорная прямая: max λᵀf</text>
+
+      <!-- Projection indicator -->
+      <line x1="180" y1="35" x2="150" y2="68" stroke="#059669" stroke-width="1.2" stroke-dasharray="2,2"/>
+    </g>
+
+    <!-- Explanatory note -->
+    <g transform="translate(14, 218)">
+      <rect width="317" height="48" rx="4" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="0.8"/>
+      <text x="10" y="18" font-family="Inter" font-size="9.5" font-weight="700" fill="#065f46">Геометрическое доказательство Bang-Bang:</text>
+      <text x="10" y="32" font-family="Inter" font-size="9" fill="#047857">• max_u [λᵀ f(x,u)] ⇔ проекция вектора скорости на λ максимальна</text>
+      <text x="10" y="44" font-family="Inter" font-size="9" fill="#047857">• Опорная прямая касается отрезка V(x) ВСЕГДА в одной из вершин!</text>
     </g>
   </g>
 </svg>'''
 
     write_svg(filepath, svg)
+
 
 
 # -------------------------------------------------------------------------
@@ -4595,6 +4836,7 @@ def main():
     generate_dubins_and_reeds_shepp_lecture04()
     # Lecture 05 & 06 additions:
     generate_calculus_of_variations_vs_pmp()
+    generate_pmp_geometry_hodograph()
     generate_bang_bang_phase_plane()
     generate_transcription_methods()
     generate_hjb_lqr_concept()
