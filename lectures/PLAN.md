@@ -72,11 +72,11 @@ TODO (расширение лекции до 90 минут за счёт инк�
   - Феномен смещения Вороного (Voronoi Bias) и настройка Goal Biasing ($p_{goal}$);
   - Двунаправленный встречный рост RRT-Connect (`CONNECT` vs `EXTEND`, `SWAP`);
   - Интерактивный симулятор RRT vs RRT-Connect в лабиринтах (`widgets/rrt-exploration#connect`).
-- **Преодоление фундаментальных недостатков сэмплинга:**
+- **Преодоление фундаментальных недостатков методов на основе выборки:**
   - *Неоптимальность RRT:* теорема Карамана–Фраццоли $P(\lim \operatorname{Cost} = c^*) = 0$;
   - *Алгоритм RRT\*:* выбор лучшего родителя (`ChooseParent`) и переподключение (`Rewire`) в сжимающемся шаре $r_N \propto (\log N / N)^{1/d}$; интерактивный симулятор RRT\* (`widgets/rrt-exploration#star`);
   - *Дефект насыщения и Informed RRT\* :* сжатие выборки в пролатный гиперсфероид $\mathcal{C}_{inf}$, аффинное преобразование из единичного шара; интерактивный симулятор Informed RRT\* (`widgets/rrt-exploration#informed`);
-  - *Проблема узких проходов:* $\mu(\mathcal{C}_{narrow})/\mu(\mathcal{C}) \ll 1$; интеллектуальный сэмплинг: Bridge Test (мостовой тест), Gaussian sampling, Medial Axis; интерактивный симулятор Bridge Test (`widgets/narrow-passage`);
+  - *Проблема узких проходов:* $\mu(\mathcal{C}_{narrow})/\mu(\mathcal{C}) \ll 1$; стратегии адаптивной выборки: Bridge Test (мостовой тест), Gaussian sampling, Medial Axis; интерактивный симулятор Bridge Test (`widgets/narrow-passage`);
   - *Зазубренность путей:* лучевое отсечение (Ray-Casting Shortcutting) и сплайновое сглаживание;
   - *Вероятностная полнота:* проблема бесконечного цикла при отсутствии пути, критерии останова (таймауты, квазислучайные выборки Хальтона/Соболя);
   - *Вычислительные структуры:* $k$-d деревья ($\mathcal{O}(\log N)$), Continuous Collision Detection (CCD) против туннелирования.
@@ -190,7 +190,7 @@ Autonomous Mobile Robots» — кинематика шасси.
    - Преодоление разрыва Sim-to-Real: Domain Randomization (массы, трение, задержки приводов, шумы).
 2. **Имитационное обучение нового поколения: от BC к Diffusion Policy и ACT:**
    - Почему наивное поведенческое клонирование (Behavioral Cloning) страдает от накапливающейся ошибки (covariate shift).
-   - Action Chunking with Transformers (ACT): прогнозирование траекторий связными чанками по 16–50 шагов вперед.
+   - Action Chunking with Transformers (ACT): прогнозирование траекторий связными пакетами действий (Action Chunks) по 16–50 шагов вперед.
    - Diffusion Policy: моделирование мультимодальных распределений (обход препятствия слева/справа) вместо коллапса среднего значения в MSE-регрессии.
 3. **Архитектуры VLA (Vision-Language-Action):**
    - От VLM (LLaVA, GPT-4V) к генерации физических действий в реальном мире.
