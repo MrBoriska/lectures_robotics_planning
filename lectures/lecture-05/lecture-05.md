@@ -44,7 +44,7 @@ math: katex
 <div class="card card-success">
   <strong>Вариационная постановка (OCP)</strong>
   <ul>
-    <li>Переход от дискретного графа к непрерывному функциональному пространству $\mathcal{H}$.</li>
+    <li>Переход от дискретного графа к непрерывному функциональному пространству управлений.</li>
     <li>Управление рассматривается как непрерывная функция времени $u(t)$, формирующая траекторию состояния $x(t)$.</li>
     <li>Обеспечение строгой оптимальности в смысле заданного функционала при соблюдении уравнений динамики.</li>
   </ul>
@@ -139,9 +139,9 @@ math: katex
 
 ## Поиск экстремума: Классический подход vs ПМП
 
-<div class=\"diagram-box\">
+<div class="diagram-box">
 
-<img src=\"../../assets/images/lecture-05/calculus_of_variations_vs_pmp.svg\" alt=\"Вариационное исчисление и ПМП\" />
+<img src="../../assets/images/lecture-05/calculus_of_variations_vs_pmp.svg" alt="Вариационное исчисление и ПМП" />
 
 </div>
 
@@ -290,7 +290,7 @@ $$ \mathcal{H}(x, u, \lambda, t) = -L(x, u, t) + \lambda^T f(x, u, t) $$
   <strong>Синтез позиционного управления</strong>
   <p>Обратная связь по состоянию $u(x_1, x_2)$:</p>
   $$ u^*(x_1, x_2) = \begin{cases} -1, & x_1 > -\frac{1}{2} x_2 |x_2| \\ +1, & x_1 < -\frac{1}{2} x_2 |x_2| \\ -\operatorname{sign}(x_2), & (x_1, x_2) \in \Gamma \end{cases} $$
-  <p>На кривой $\Gamma$ управление удерживает систему в скользящем режиме до достижения начала координат.</p>
+  <p>На кривой $\Gamma$ управление $u = -\operatorname{sign}(x_2)$ направляет систему вдоль $\Gamma$ точно в начало координат $(0,0)$.</p>
 </div>
 </div>
 </div>
@@ -299,9 +299,9 @@ $$ \mathcal{H}(x, u, \lambda, t) = -L(x, u, t) + \lambda^T f(x, u, t) $$
 
 ## Фазовая плоскость задачи быстродействия
 
-<div class=\"diagram-box\">
+<div class="diagram-box">
 
-<img src=\"../../assets/images/lecture-05/bang_bang_phase_plane.svg\" alt=\"Фазовая плоскость Bang-Bang\" />
+<img src="../../assets/images/lecture-05/bang_bang_phase_plane.svg" alt="Фазовая плоскость Bang-Bang" />
 
 </div>
 

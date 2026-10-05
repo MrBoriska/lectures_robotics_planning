@@ -143,7 +143,7 @@ $$V^\pi(s_{t+1}) = \mathbb{E}_{a_{t+1}\sim\pi}[Q^\pi(s_{t+1}, a_{t+1})]$$
 
 **Вывод градиента**
 Для аналитического вычисления градиента функционала применяется Policy Gradient Theorem:
-$$\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}\left[ \sum_{t=0}^T \nabla_\theta \ln \pi_\theta(a_t|s_t) Q^\pi(s_t, a_t) \right]$$
+$$\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}\left[ \sum_{t=0}^T \gamma^t \nabla_\theta \ln \pi_\theta(a_t|s_t) A^{\pi}(s_t, a_t) \right]$$
 
 Логарифмическая производная масштабируется оценкой полезности действия.
 
@@ -197,7 +197,7 @@ $$L^{CLIP}(\theta) = \hat{\mathbb{E}}_t \left[ \min(r_t(\theta) \hat{A}_t, \text
 
 **Принцип максимальной энтропии (Maximum Entropy RL)**
 SAC стимулирует максимизацию энтропии $\mathcal{H}$ стохастической политики:
-$$J(\theta) = \sum_{t=0}^T \mathbb{E}\left[ \mathcal{R}(s_t, a_t) + \alpha \mathcal{H}(\pi(\cdot|s_t)) \right]$$
+$$J(\theta) = \mathbb{E}_{\tau}\left[\sum_{t=0}^T \gamma^t \left( \mathcal{R}(s_t, a_t) + \alpha \mathcal{H}(\pi(\cdot|s_t)) \right) \right]$$
 
 Стохастические непрерывные политики.
 
@@ -223,7 +223,7 @@ $$J(\theta) = \sum_{t=0}^T \mathbb{E}\left[ \mathcal{R}(s_t, a_t) + \alpha \math
 
 **Компромисс при формировании награды**
 - Следование целевой скорости.
-- Энергоэффективность моторов (штраф за $\sum \tau_i \dot{q}_i$).
+- Энергоэффективность моторов (штраф за $\sum M_i \dot{q}_i$, где $M_i$ — момент на $i$-м приводе).
 - Гладкость ускорений.
 - Штрафы за сильные удары о грунт.
 
