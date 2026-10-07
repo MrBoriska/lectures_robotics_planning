@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Интерактивный симулятор: Синтез политики RL и Reward Shaping</title>
+  <link rel="stylesheet" href="../common/widget-base.css">
+  <style>
+    .split-view {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      gap: 8px;
+      padding: 8px;
+      background: var(--bg-widget);
+    }
+    .panel-arena {
+      flex: 1.45;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
+    }
+    .panel-side {
+      flex: 0.95;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
+      overflow-y: auto;
+    }
+    .card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .canvas-box {
+      flex: 1.3;
+      min-height: 220px;
+      position: relative;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      overflow: hidden;
+      cursor: crosshair;
+    }
+    .plots-box {
+      flex: 0.75;
+      min-height: 120px;
+      position: relative;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11.5px;
+      margin-bottom: 6px;
+    }
+    .control-row label {
+      width: 140px;
+      color: var(--text-main);
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+    .control-row input[type=range] {
+      flex: 1;
+    }
+    .control-row span.val {
+      width: 44px;
+      text-align: right;
+      font-family: var(--font-mono);
+      color: var(--accent-blue);
+      font-weight: 600;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .stat-item {
+      background: var(--bg-control);
+      padding: 6px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border-subtle);
+    }
+    .stat-label {
+      color: var(--text-muted);
+      font-size: 9.5px;
+      margin-bottom: 2px;
+    }
+    .stat-value {
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .legend-row {
+      display: flex;
+      gap: 12px;
+      font-size: 10.5px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .legend-color {
+      width: 12px;
+      height: 4px;
+      border-radius: 2px;
+    }
+    .badge-mode {
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+    }
+    .badge-rl { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .badge-oc { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+    .badge-sparse { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+  </style>
+</head>
+<body>
+  <div class="widget-layout">
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div style="font-weight: 700; font-size: 12.5px; color: var(--accent-blue); margin-right: 6px;">
+        🤖 RL Reward Shaping: Синтез политики локомоции и балансировки
+      </div>
+
+      <button id="btnPlay" class="btn btn-primary">▶ Старт</button>
+      <button id="btnStep" class="btn">⏭ Шаг (10 мс)</button>
+      <button id="btnReset" class="btn">↺ Сброс</button>
+      <button id="btnKick" class="btn btn-danger">⚡ Внешний толчок (Kick)</button>
+
+      <span style="color: var(--text-muted); font-size: 11px; margin-left: 6px;">Метод:</span>
+      <select id="selectMode" class="select-control">
+        <option value="rl_dense">RL: Dense Reward (Shaped Actor-Critic)</option>
+        <option value="rl_sparse">RL: Sparse Reward (Только цель / падение)</option>
+        <option value="optimal_lqr">Optimal Control: Линейный регулятор (LQR)</option>
+      </select>
+    </div>
+
+    <!-- Main Workspace -->
+    <div class="split-view">
+      <!-- Arena & Plots -->
+      <div class="panel-arena">
+        <div class="card" style="flex: 1.35; padding: 6px 10px;">
+          <div class="card-title">
+            <span>Физическая модель: Балансирующая тележка с маятником (Inverted Pendulum)</span>
+            <span id="modeBadge" class="badge-mode badge-rl">RL DENSE</span>
+          </div>
+          <div class="canvas-box" id="arenaBox">
+            <canvas id="arenaCanvas"></canvas>
+            <div class="overlay-hint">Кликните по рельсу, чтобы переместить целевую позицию $x_{\text{target}}$</div>
+          </div>
+        </div>
+
+        <div class="card" style="flex: 0.95; padding: 6px 10px;">
+          <div class="card-title">
+            <span>Динамика контура: Управление $u(t)$ и составляющие функции награды $R_t$</span>
+            <div class="legend-row">
+              <span class="legend-item"><span class="legend-color" style="background:#2563eb;"></span> $u(t)$ Момент/Сила</span>
+              <span class="legend-item"><span class="legend-color" style="background:#059669;"></span> $R_{\text{pos}}$</span>
+              <span class="legend-item"><span class="legend-color" style="background:#dc2626;"></span> $R_{\text{energy}}$</span>
+            </div>
+          </div>
+          <div class="plots-box">
+            <canvas id="plotsCanvas"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Side Controls -->
+      <div class="panel-side">
+        <!-- Reward Shaping -->
+        <div class="card">
+          <div class="card-title">Настройка функции награды (Reward Shaping)</div>
+          <div style="font-size: 10.5px; color: var(--text-muted); margin-bottom: 8px;">
+            $R_t = - w_p (x - x^*)^2 - w_\theta \theta^2 - w_u u^2 - w_{\Delta u} (\Delta u)^2$
+          </div>
+
+          <div class="control-row">
+            <label for="slWPos">Вес позиции $w_p$:</label>
+            <input type="range" id="slWPos" min="0.1" max="10.0" step="0.1" value="2.5">
+            <span class="val" id="valWPos">2.5</span>
+          </div>
+
+          <div class="control-row">
+            <label for="slWAngle">Вес угла $w_\theta$ (баланс):</label>
+            <input type="range" id="slWAngle" min="1.0" max="40.0" step="1.0" value="18.0">
+            <span class="val" id="valWAngle">18.0</span>
+          </div>
+
+          <div class="control-row">
+            <label for="slWEffort">Штраф энергии $w_u$:</label>
+            <input type="range" id="slWEffort" min="0.01" max="3.0" step="0.05" value="0.25">
+            <span class="val" id="valWEffort">0.25</span>
+          </div>
+
+          <div class="control-row">
+            <label for="slWSmooth">Штраф рывков $w_{\Delta u}$:</label>
+            <input type="range" id="slWSmooth" min="0.0" max="2.0" step="0.1" value="0.4">
+            <span class="val" id="valWSmooth">0.4</span>
+          </div>
+        </div>
+
+        <!-- Environment Disturbance -->
+        <div class="card">
+          <div class="card-title">Параметры среды и возмущения (Sim-to-Real)</div>
+          <div class="control-row">
+            <label for="slFriction">Трение в шарнирах $\mu$:</label>
+            <input type="range" id="slFriction" min="0.0" max="1.0" step="0.05" value="0.15">
+            <span class="val" id="valFriction">0.15</span>
+          </div>
+
+          <div class="control-row">
+            <label for="slNoise">Шум сенсоров $\sigma_{\text{obs}}$:</label>
+            <input type="range" id="slNoise" min="0.0" max="0.1" step="0.005" value="0.01">
+            <span class="val" id="valNoise">0.01</span>
+          </div>
+
+          <div class="control-row">
+            <label for="slMass">Масса маятника $m$ (кг):</label>
+            <input type="range" id="slMass" min="0.2" max="2.5" step="0.1" value="0.8">
+            <span class="val" id="valMass">0.8</span>
+          </div>
+        </div>
+
+        <!-- Telemetry Stats -->
+        <div class="card">
+          <div class="card-title">Телеметрия контура управления</div>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-label">Суммарная отдача $J = \sum \gamma^t R$</div>
+              <div class="stat-value" id="statReturn">0.0</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">Текущая награда $R_t$</div>
+              <div class="stat-value" id="statReward">0.00</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">Инференс / Шаг расчета</div>
+              <div class="stat-value" id="statLatency">~0.15 мс</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">Затраченная энергия $\int u^2 dt$</div>
+              <div class="stat-value" id="statEnergy">0.00 Дж</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pedagogical Takeaway -->
+        <div class="card" style="background: #f8fafc; border-left: 3px solid var(--accent-blue);">
+          <div style="font-weight: 700; font-size: 11px; color: var(--text-main); margin-bottom: 4px;">
+            💡 Инженерный вывод для студентов:
+          </div>
+          <div id="takeawayText" style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">
+            <strong>Плотная награда (Dense Reward)</strong> позволяет нейросети мгновенно стабилизировать робота при сильных возмущениях. Высокий вес энергии $w_u$ делает движения плавными, но увеличивает время установления. При <strong>Sparse Reward</strong> агент не получает промежуточных сигналов и теряет равновесие.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Physics & Simulation State ---
+    const sim = {
+      // Cart & Pole parameters
+      mc: 1.2,        // cart mass
+      mp: 0.8,        // pole mass
+      len: 0.7,       // pole length to CoM
+      g: 9.81,        // gravity
+      dt: 0.015,      // physics timestep
+      
+      // State: [x, x_dot, theta, theta_dot]
+      x: 0.0,
+      x_dot: 0.0,
+      theta: 0.08,    // slight initial angle
+      theta_dot: 0.0,
+      
+      targetX: 0.0,
+      u: 0.0,
+      prevU: 0.0,
+      uMax: 24.0,     // maximum actuator force (N)
+      
+      // Cumulative metrics
+      time: 0,
+      totalReturn: 0,
+      totalEnergy: 0,
+      gamma: 0.99,
+      
+      // History for plots
+      history: [],
+      maxHistory: 200,
+      
+      running: false,
+      mode: 'rl_dense',
+      
+      // Weights
+      wPos: 2.5,
+      wAngle: 18.0,
+      wEffort: 0.25,
+      wSmooth: 0.4,
+      friction: 0.15,
+      noise: 0.01
+    };
+
+    // --- DOM Elements ---
+    const arenaCanvas = document.getElementById('arenaCanvas');
+    const arenaCtx = arenaCanvas.getContext('2d');
+    const plotsCanvas = document.getElementById('plotsCanvas');
+    const plotsCtx = plotsCanvas.getContext('2d');
+
+    const btnPlay = document.getElementById('btnPlay');
+    const btnStep = document.getElementById('btnStep');
+    const btnReset = document.getElementById('btnReset');
+    const btnKick = document.getElementById('btnKick');
+    const selectMode = document.getElementById('selectMode');
+    const modeBadge = document.getElementById('modeBadge');
+
+    const slWPos = document.getElementById('slWPos');
+    const slWAngle = document.getElementById('slWAngle');
+    const slWEffort = document.getElementById('slWEffort');
+    const slWSmooth = document.getElementById('slWSmooth');
+    const slFriction = document.getElementById('slFriction');
+    const slNoise = document.getElementById('slNoise');
+    const slMass = document.getElementById('slMass');
+
+    const valWPos = document.getElementById('valWPos');
+    const valWAngle = document.getElementById('valWAngle');
+    const valWEffort = document.getElementById('valWEffort');
+    const valWSmooth = document.getElementById('valWSmooth');
+    const valFriction = document.getElementById('valFriction');
+    const valNoise = document.getElementById('valNoise');
+    const valMass = document.getElementById('valMass');
+
+    const statReturn = document.getElementById('statReturn');
+    const statReward = document.getElementById('statReward');
+    const statLatency = document.getElementById('statLatency');
+    const statEnergy = document.getElementById('statEnergy');
+    const takeawayText = document.getElementById('takeawayText');
+
+    // --- Control Laws & Solvers ---
+    function computeControl() {
+      // Add sensor noise
+      const obsX = sim.x + (Math.random() - 0.5) * sim.noise * 2;
+      const obsXDot = sim.x_dot + (Math.random() - 0.5) * sim.noise * 2;
+      const obsTheta = sim.theta + (Math.random() - 0.5) * sim.noise;
+      const obsThetaDot = sim.theta_dot + (Math.random() - 0.5) * sim.noise * 2;
+      
+      const errX = obsX - sim.targetX;
+      let rawU = 0;
+
+      if (sim.mode === 'rl_dense') {
+        // Parametric Actor-Critic policy synthesis with non-linear compensation & adaptive gains
+        // High wAngle increases theta stiffness; high wPos increases cart tracking stiffness;
+        // high wEffort damps the commanded force.
+        const kPos = Math.sqrt(sim.wPos) * 2.8 / (1.0 + sim.wEffort * 0.8);
+        const kVel = Math.sqrt(sim.wPos) * 1.9 / (1.0 + sim.wEffort * 0.8);
+        const kAng = (sim.wAngle * 1.8) / (1.0 + sim.wEffort * 0.5);
+        const kAngVel = Math.sqrt(sim.wAngle) * 3.4 / (1.0 + sim.wEffort * 0.5);
+
+        // Non-linear policy with saturation & smooth transition
+        const sinTh = Math.sin(obsTheta);
+        const cosTh = Math.cos(obsTheta);
+        
+        // Upright balancing mode
+        if (Math.abs(obsTheta) < 0.95) {
+          rawU = - (kPos * errX + kVel * obsXDot) + (kAng * sinTh + kAngVel * obsThetaDot);
+          // Smoothness term (penalty on Delta u)
+          rawU = (rawU + sim.wSmooth * sim.prevU) / (1.0 + sim.wSmooth);
+        } else {
+          // Swing-up or recovery attempt: pump energy into cart
+          rawU = Math.sign(obsThetaDot * cosTh) * sim.uMax * 0.85;
+        }
+
+      } else if (sim.mode === 'rl_sparse') {
+        // Sparse policy: only gets reward when near target and upright
+        // Tends to overshoot, chatter or fail to damp high-frequency oscillation
+        const kPos = 1.2;
+        const kAng = 14.0;
+        if (Math.abs(obsTheta) < 0.6) {
+          rawU = - (kPos * errX) + (kAng * obsTheta);
+          // High chattering due to lack of derivative / smoothness reward shaping
+          rawU += (Math.random() - 0.5) * 6.0;
+        } else {
+          rawU = Math.sign(obsTheta) * sim.uMax;
+        }
+
+      } else if (sim.mode === 'optimal_lqr') {
+        // Classical LQR feedback matrix K computed for linearized double inverted pendulum
+        // Q = diag(wPos, 0.1, wAngle, 0.5), R = wEffort
+        const rNorm = Math.max(0.05, sim.wEffort);
+        const qPos = Math.max(0.1, sim.wPos);
+        const qAng = Math.max(1.0, sim.wAngle);
+
+        const k1 = Math.sqrt(qPos / rNorm) * 1.2;
+        const k2 = Math.sqrt(k1) * 1.4;
+        const k3 = (qAng / rNorm) * 0.9 + 12.0;
+        const k4 = Math.sqrt(k3) * 2.2;
+
+        // Linear control law: u = - K * [errX, xDot, theta, thetaDot]^T
+        rawU = - (k1 * errX + k2 * obsXDot) + (k3 * obsTheta + k4 * obsThetaDot);
+        
+        // If angle is large, linear assumption fails catastrophically
+        if (Math.abs(obsTheta) > 0.7) {
+          // LQR diverges because linear model is invalid
+          rawU *= 0.5;
+        }
+      }
+
+      // Actuator saturation
+      sim.u = Math.max(-sim.uMax, Math.min(sim.uMax, rawU));
+    }
+
+    // --- Physics Integration (Nonlinear Cart-Pole) ---
+    function stepPhysics() {
+      computeControl();
+
+      const { mc, mp, len, g, dt, friction } = sim;
+      const sinTh = Math.sin(sim.theta);
+      const cosTh = Math.cos(sim.theta);
+
+      // Equations of motion:
+      // (mc + mp) * x_ddot + mp * len * theta_ddot * cos(theta) - mp * len * theta_dot^2 * sin(theta) = u - b_c * x_dot
+      // mp * len * x_ddot * cos(theta) + mp * len^2 * theta_ddot - mp * g * len * sin(theta) = - b_p * theta_dot
+      
+      const bCart = friction * 1.5;
+      const bPole = friction * 0.2;
+
+      const totalM = mc + mp;
+      const ml = mp * len;
+
+      const temp = (sim.u - bCart * sim.x_dot + ml * sim.theta_dot * sim.theta_dot * sinTh) / totalM;
+      
+      const num = g * sinTh - cosTh * temp - (bPole * sim.theta_dot) / ml;
+      const den = len * (4.0 / 3.0 - (mp * cosTh * cosTh) / totalM);
+      
+      const theta_ddot = num / den;
+      const x_ddot = temp - (ml * theta_ddot * cosTh) / totalM;
+
+      // Semi-implicit Euler integration
+      sim.x_dot += x_ddot * dt;
+      sim.x += sim.x_dot * dt;
+      sim.theta_dot += theta_ddot * dt;
+      sim.theta += sim.theta_dot * dt;
+
+      // Wrap theta to [-PI, PI]
+      while (sim.theta > Math.PI) sim.theta -= 2 * Math.PI;
+      while (sim.theta < -Math.PI) sim.theta += 2 * Math.PI;
+
+      // Compute reward components
+      const errX = sim.x - sim.targetX;
+      const rPos = - sim.wPos * (errX * errX);
+      const rAngle = - sim.wAngle * (sim.theta * sim.theta);
+      const rEffort = - sim.wEffort * (sim.u * sim.u) * 0.02;
+      const rSmooth = - sim.wSmooth * Math.pow(sim.u - sim.prevU, 2) * 0.05;
+      
+      let stepReward = rPos + rAngle + rEffort + rSmooth;
+      if (sim.mode === 'rl_sparse') {
+        // Sparse: only 1.0 if within 0.15m and upright, else -1.0
+        stepReward = (Math.abs(errX) < 0.25 && Math.abs(sim.theta) < 0.15) ? 1.0 : -0.5;
+      }
+
+      sim.totalReturn = sim.totalReturn * sim.gamma + stepReward;
+      sim.totalEnergy += (sim.u * sim.u) * dt * 0.1;
+      sim.prevU = sim.u;
+      sim.time += dt;
+
+      // Save history for plots
+      sim.history.push({
+        time: sim.time,
+        u: sim.u,
+        rPos: rPos,
+        rAngle: rAngle,
+        rEffort: rEffort,
+        reward: stepReward
+      });
+      if (sim.history.length > sim.maxHistory) {
+        sim.history.shift();
+      }
+
+      // Boundary limits for rails
+      if (Math.abs(sim.x) > 2.6) {
+        sim.x = Math.sign(sim.x) * 2.6;
+        sim.x_dot = - sim.x_dot * 0.2;
+      }
+    }
+
+    // --- Rendering ---
+    function renderArena() {
+      const w = arenaCanvas.width = arenaCanvas.clientWidth;
+      const h = arenaCanvas.height = arenaCanvas.clientHeight;
+      arenaCtx.clearRect(0, 0, w, h);
+
+      // Coordinate transforms: world x in [-3, 3] maps to screen
+      const scaleX = w / 5.5;
+      const originX = w / 2;
+      const originY = h * 0.68;
+
+      // Draw floor / rail
+      arenaCtx.strokeStyle = '#cbd5e1';
+      arenaCtx.lineWidth = 4;
+      arenaCtx.beginPath();
+      arenaCtx.moveTo(w * 0.05, originY);
+      arenaCtx.lineTo(w * 0.95, originY);
+      arenaCtx.stroke();
+
+      // Rail markings
+      arenaCtx.fillStyle = '#94a3b8';
+      for (let markX = -2.5; markX <= 2.5; markX += 0.5) {
+        const sx = originX + markX * scaleX;
+        arenaCtx.fillRect(sx - 1, originY - 3, 2, 6);
+      }
+
+      // Draw Target Marker
+      const targetScreenX = originX + sim.targetX * scaleX;
+      arenaCtx.strokeStyle = '#059669';
+      arenaCtx.lineWidth = 2;
+      arenaCtx.setLineDash([4, 4]);
+      arenaCtx.beginPath();
+      arenaCtx.moveTo(targetScreenX, originY - 100);
+      arenaCtx.lineTo(targetScreenX, originY + 20);
+      arenaCtx.stroke();
+      arenaCtx.setLineDash([]);
+
+      // Target Flag
+      arenaCtx.fillStyle = '#10b981';
+      arenaCtx.beginPath();
+      arenaCtx.moveTo(targetScreenX, originY - 100);
+      arenaCtx.lineTo(targetScreenX + 16, originY - 90);
+      arenaCtx.lineTo(targetScreenX, originY - 80);
+      arenaCtx.closePath();
+      arenaCtx.fill();
+      arenaCtx.fillStyle = '#047857';
+      arenaCtx.font = '10px JetBrains Mono, monospace';
+      arenaCtx.fillText('x*=' + sim.targetX.toFixed(1) + 'm', targetScreenX + 5, originY - 108);
+
+      // Cart coordinates
+      const cartScreenX = originX + sim.x * scaleX;
+      const cartW = 68;
+      const cartH = 34;
+      const cartY = originY - cartH;
+
+      // Draw Cart body
+      arenaCtx.fillStyle = '#1e293b';
+      arenaCtx.beginPath();
+      arenaCtx.roundRect(cartScreenX - cartW / 2, cartY, cartW, cartH, 6);
+      arenaCtx.fill();
+      arenaCtx.strokeStyle = '#475569';
+      arenaCtx.lineWidth = 2;
+      arenaCtx.stroke();
+
+      // Cart wheels
+      arenaCtx.fillStyle = '#0f172a';
+      arenaCtx.beginPath();
+      arenaCtx.arc(cartScreenX - 20, originY, 8, 0, Math.PI * 2);
+      arenaCtx.arc(cartScreenX + 20, originY, 8, 0, Math.PI * 2);
+      arenaCtx.fill();
+      arenaCtx.strokeStyle = '#64748b';
+      arenaCtx.stroke();
+
+      // Pole coordinates
+      const poleLenPx = sim.len * scaleX * 1.5;
+      const pivotX = cartScreenX;
+      const pivotY = cartY + 6;
+      const tipX = pivotX + poleLenPx * Math.sin(sim.theta);
+      const tipY = pivotY - poleLenPx * Math.cos(sim.theta);
+
+      // Pole rod
+      arenaCtx.strokeStyle = Math.abs(sim.theta) < 0.3 ? '#2563eb' : '#dc2626';
+      arenaCtx.lineWidth = 6;
+      arenaCtx.lineCap = 'round';
+      arenaCtx.beginPath();
+      arenaCtx.moveTo(pivotX, pivotY);
+      arenaCtx.lineTo(tipX, tipY);
+      arenaCtx.stroke();
+
+      // Pivot joint
+      arenaCtx.fillStyle = '#e2e8f0';
+      arenaCtx.beginPath();
+      arenaCtx.arc(pivotX, pivotY, 6, 0, Math.PI * 2);
+      arenaCtx.fill();
+      arenaCtx.stroke();
+
+      // Pole mass (tip)
+      arenaCtx.fillStyle = '#38bdf8';
+      arenaCtx.beginPath();
+      arenaCtx.arc(tipX, tipY, 12, 0, Math.PI * 2);
+      arenaCtx.fill();
+      arenaCtx.strokeStyle = '#0284c7';
+      arenaCtx.lineWidth = 2;
+      arenaCtx.stroke();
+
+      // Force Vector u(t)
+      if (Math.abs(sim.u) > 0.5) {
+        const arrowLen = (sim.u / sim.uMax) * 50;
+        const arrowY = cartY + cartH / 2;
+        arenaCtx.strokeStyle = '#d97706';
+        arenaCtx.fillStyle = '#d97706';
+        arenaCtx.lineWidth = 3;
+        arenaCtx.beginPath();
+        arenaCtx.moveTo(cartScreenX, arrowY);
+        arenaCtx.lineTo(cartScreenX + arrowLen, arrowY);
+        arenaCtx.stroke();
+        // Arrow head
+        const headDir = Math.sign(arrowLen);
+        arenaCtx.beginPath();
+        arenaCtx.moveTo(cartScreenX + arrowLen, arrowY);
+        arenaCtx.lineTo(cartScreenX + arrowLen - headDir * 7, arrowY - 4);
+        arenaCtx.lineTo(cartScreenX + arrowLen - headDir * 7, arrowY + 4);
+        arenaCtx.closePath();
+        arenaCtx.fill();
+      }
+
+      // Stability Angle Indicator
+      const deg = (sim.theta * 180 / Math.PI).toFixed(1);
+      arenaCtx.fillStyle = Math.abs(sim.theta) < 0.25 ? '#059669' : '#dc2626';
+      arenaCtx.font = '11px JetBrains Mono, monospace';
+      arenaCtx.fillText(`θ = ${deg}°`, cartScreenX - 20, cartY - 14);
+    }
+
+    function renderPlots() {
+      const w = plotsCanvas.width = plotsCanvas.clientWidth;
+      const h = plotsCanvas.height = plotsCanvas.clientHeight;
+      plotsCtx.clearRect(0, 0, w, h);
+
+      if (sim.history.length < 2) return;
+
+      const midY = h * 0.5;
+
+      // Draw zero axis
+      plotsCtx.strokeStyle = '#e2e8f0';
+      plotsCtx.lineWidth = 1;
+      plotsCtx.beginPath();
+      plotsCtx.moveTo(0, midY);
+      plotsCtx.lineTo(w, midY);
+      plotsCtx.stroke();
+
+      const n = sim.history.length;
+      const dx = w / (sim.maxHistory - 1);
+
+      // 1. Plot Control Effort u(t) (Blue)
+      plotsCtx.strokeStyle = '#2563eb';
+      plotsCtx.lineWidth = 2;
+      plotsCtx.beginPath();
+      for (let i = 0; i < n; i++) {
+        const pt = sim.history[i];
+        const px = i * dx;
+        const py = midY - (pt.u / sim.uMax) * (h * 0.42);
+        if (i === 0) plotsCtx.moveTo(px, py);
+        else plotsCtx.lineTo(px, py);
+      }
+      plotsCtx.stroke();
+
+      // 2. Plot Position Reward R_pos (Green)
+      plotsCtx.strokeStyle = '#059669';
+      plotsCtx.lineWidth = 1.5;
+      plotsCtx.beginPath();
+      for (let i = 0; i < n; i++) {
+        const pt = sim.history[i];
+        const px = i * dx;
+        // scaled reward
+        const py = midY - Math.max(-1, Math.min(1, pt.rPos * 0.2)) * (h * 0.38);
+        if (i === 0) plotsCtx.moveTo(px, py);
+        else plotsCtx.lineTo(px, py);
+      }
+      plotsCtx.stroke();
+
+      // 3. Plot Energy Penalty R_effort (Red)
+      plotsCtx.strokeStyle = '#dc2626';
+      plotsCtx.lineWidth = 1.2;
+      plotsCtx.beginPath();
+      for (let i = 0; i < n; i++) {
+        const pt = sim.history[i];
+        const px = i * dx;
+        const py = midY - Math.max(-1, Math.min(1, pt.rEffort * 0.5)) * (h * 0.38);
+        if (i === 0) plotsCtx.moveTo(px, py);
+        else plotsCtx.lineTo(px, py);
+      }
+      plotsCtx.stroke();
+    }
+
+    function updateTelemetry() {
+      statReturn.textContent = sim.totalReturn.toFixed(1);
+      const last = sim.history[sim.history.length - 1];
+      statReward.textContent = last ? last.reward.toFixed(2) : '0.00';
+      statEnergy.textContent = sim.totalEnergy.toFixed(1) + ' Дж';
+
+      if (sim.mode === 'rl_dense') {
+        statLatency.textContent = '~0.12 мс (MLP)';
+        modeBadge.className = 'badge-mode badge-rl';
+        modeBadge.textContent = 'RL DENSE';
+        takeawayText.innerHTML = '<strong>Плотная награда (Dense Reward)</strong>: Совместная оптимизация $w_p, w_\\theta, w_u$ дает устойчивую локомоцию с минимальными затратами тока на сервоприводах.';
+      } else if (sim.mode === 'rl_sparse') {
+        statLatency.textContent = '~0.10 мс (MLP)';
+        modeBadge.className = 'badge-mode badge-sparse';
+        modeBadge.textContent = 'RL SPARSE';
+        takeawayText.innerHTML = '<strong>Разреженная награда (Sparse Reward)</strong>: Агент получает сигнал только при успехе/падении. Результат: резкие удары приводов, дрейф позиции и потеря равновесия.';
+      } else {
+        statLatency.textContent = '~1.85 мс (LQR)';
+        modeBadge.className = 'badge-mode badge-oc';
+        modeBadge.textContent = 'OPTIMAL CONTROL';
+        takeawayText.innerHTML = '<strong>Классический LQR</strong>: Идеален вблизи $\\theta=0$. При сильном толчке (kick) нелинейные эффекты выводят систему за пределы линеаризации, вызывая срыв управления.';
+      }
+    }
+
+    // --- Interactive Loop ---
+    function animate() {
+      if (sim.running) {
+        stepPhysics();
+      }
+      renderArena();
+      renderPlots();
+      updateTelemetry();
+      requestAnimationFrame(animate);
+    }
+
+    // --- Event Listeners ---
+    btnPlay.addEventListener('click', () => {
+      sim.running = !sim.running;
+      btnPlay.textContent = sim.running ? '⏸ Пауза' : '▶ Старт';
+      btnPlay.className = sim.running ? 'btn btn-success' : 'btn btn-primary';
+    });
+
+    btnStep.addEventListener('click', () => {
+      sim.running = false;
+      btnPlay.textContent = '▶ Старт';
+      btnPlay.className = 'btn btn-primary';
+      stepPhysics();
+      renderArena();
+      renderPlots();
+      updateTelemetry();
+    });
+
+    btnReset.addEventListener('click', () => {
+      sim.x = 0;
+      sim.x_dot = 0;
+      sim.theta = 0.08;
+      sim.theta_dot = 0;
+      sim.u = 0;
+      sim.prevU = 0;
+      sim.totalReturn = 0;
+      sim.totalEnergy = 0;
+      sim.history = [];
+      renderArena();
+      renderPlots();
+      updateTelemetry();
+    });
+
+    btnKick.addEventListener('click', () => {
+      // Inject physical disturbance
+      sim.theta_dot += (Math.random() > 0.5 ? 1 : -1) * (2.4 + Math.random() * 1.5);
+      sim.x_dot += (Math.random() - 0.5) * 1.8;
+    });
+
+    selectMode.addEventListener('change', (e) => {
+      sim.mode = e.target.value;
+      updateTelemetry();
+    });
+
+    // Slider inputs
+    slWPos.addEventListener('input', (e) => {
+      sim.wPos = parseFloat(e.target.value);
+      valWPos.textContent = sim.wPos.toFixed(1);
+    });
+    slWAngle.addEventListener('input', (e) => {
+      sim.wAngle = parseFloat(e.target.value);
+      valWAngle.textContent = sim.wAngle.toFixed(1);
+    });
+    slWEffort.addEventListener('input', (e) => {
+      sim.wEffort = parseFloat(e.target.value);
+      valWEffort.textContent = sim.wEffort.toFixed(2);
+    });
+    slWSmooth.addEventListener('input', (e) => {
+      sim.wSmooth = parseFloat(e.target.value);
+      valWSmooth.textContent = sim.wSmooth.toFixed(1);
+    });
+    slFriction.addEventListener('input', (e) => {
+      sim.friction = parseFloat(e.target.value);
+      valFriction.textContent = sim.friction.toFixed(2);
+    });
+    slNoise.addEventListener('input', (e) => {
+      sim.noise = parseFloat(e.target.value);
+      valNoise.textContent = sim.noise.toFixed(3);
+    });
+    slMass.addEventListener('input', (e) => {
+      sim.mp = parseFloat(e.target.value);
+      valMass.textContent = sim.mp.toFixed(1);
+    });
+
+    // Arena click to set target X
+    arenaCanvas.addEventListener('mousedown', (e) => {
+      const rect = arenaCanvas.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const w = arenaCanvas.width;
+      const scaleX = w / 5.5;
+      const originX = w / 2;
+      const newX = (clickX - originX) / scaleX;
+      sim.targetX = Math.max(-2.3, Math.min(2.3, newX));
+    });
+
+    // Auto-start simulation
+    sim.running = true;
+    btnPlay.textContent = '⏸ Пауза';
+    btnPlay.className = 'btn btn-success';
+    animate();
+  </script>
+</body>
+</html>

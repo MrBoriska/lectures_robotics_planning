@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Интерактивный симулятор: Diffusion Policy vs MSE и мультимодальность</title>
+  <link rel="stylesheet" href="../common/widget-base.css">
+  <style>
+    .split-view {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      gap: 8px;
+      padding: 8px;
+      background: var(--bg-widget);
+    }
+    .panel-arena {
+      flex: 1.5;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
+    }
+    .panel-side {
+      flex: 0.9;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
+      overflow-y: auto;
+    }
+    .card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .canvas-box {
+      flex: 1;
+      min-height: 340px;
+      position: relative;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      overflow: hidden;
+      cursor: crosshair;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11.5px;
+      margin-bottom: 6px;
+    }
+    .control-row label {
+      width: 145px;
+      color: var(--text-main);
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+    .control-row input[type=range] {
+      flex: 1;
+    }
+    .control-row span.val {
+      width: 44px;
+      text-align: right;
+      font-family: var(--font-mono);
+      color: var(--accent-blue);
+      font-weight: 600;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .stat-item {
+      background: var(--bg-control);
+      padding: 6px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border-subtle);
+    }
+    .stat-label {
+      color: var(--text-muted);
+      font-size: 9.5px;
+      margin-bottom: 2px;
+    }
+    .stat-value {
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .legend-row {
+      display: flex;
+      gap: 12px;
+      font-size: 10.5px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .legend-color {
+      width: 12px;
+      height: 4px;
+      border-radius: 2px;
+    }
+    .badge-algo {
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+    }
+    .badge-diff { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .badge-flow { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+    .badge-mse { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+  </style>
+</head>
+<body>
+  <div class="widget-layout">
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div style="font-weight: 700; font-size: 12.5px; color: var(--accent-blue); margin-right: 6px;">
+        🌊 Diffusion Policy: Генерация действий и преодоление усреднения MSE
+      </div>
+
+      <button id="btnDenoise" class="btn btn-primary">▶ Запустить Denoising</button>
+      <button id="btnStep" class="btn">⏭ Шаг $k \to k-1$</button>
+      <button id="btnResample" class="btn">🎲 Новый шум</button>
+      <button id="btnReset" class="btn">↺ Сброс</button>
+
+      <span style="color: var(--text-muted); font-size: 11px; margin-left: 6px;">Архитектура:</span>
+      <select id="selectModel" class="select-control">
+        <option value="diffusion">Diffusion Policy (DDPM: 16 итераций шумоподавления)</option>
+        <option value="flow">Flow Matching (Continuous ODE: 4 прямых шага)</option>
+        <option value="mse">Классический BC (MSE Loss: Усреднение мод)</option>
+      </select>
+    </div>
+
+    <!-- Main Workspace -->
+    <div class="split-view">
+      <!-- Arena -->
+      <div class="panel-arena">
+        <div class="card" style="flex: 1; padding: 6px 10px;">
+          <div class="card-title">
+            <span>Пространство действий робота: Сэмплирование траекторий в обход препятствия</span>
+            <span id="algoBadge" class="badge-algo badge-diff">DIFFUSION (DDPM)</span>
+          </div>
+          <div class="canvas-box" id="arenaBox">
+            <canvas id="arenaCanvas"></canvas>
+            <div class="overlay-hint">Перетаскивайте препятствие (красный круг), точку Старта (S) или Цели (G)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls & Theory -->
+      <div class="panel-side">
+        <!-- Diffusion Process Controls -->
+        <div class="card">
+          <div class="card-title">Параметры генеративного процесса</div>
+          
+          <div class="control-row">
+            <label for="slStep">Шаг диффузии $k$ (16 $\to$ 0):</label>
+            <input type="range" id="slStep" min="0" max="16" step="1" value="0">
+            <span class="val" id="valStep">0</span>
+          </div>
+
+          <div class="control-row">
+            <label for="slEnsemble">Число траекторий $N$:</label>
+            <input type="range" id="slEnsemble" min="1" max="25" step="1" value="12">
+            <span class="val" id="valEnsemble">12</span>
+          </div>
+
+          <div class="control-row">
+            <label for="slTemp">Температура шума $\sigma$:</label>
+            <input type="range" id="slTemp" min="0.1" max="2.0" step="0.1" value="0.9">
+            <span class="val" id="valTemp">0.9</span>
+          </div>
+
+          <div class="control-row">
+            <label for="slSpeed">Скорость анимации:</label>
+            <input type="range" id="slSpeed" min="1" max="5" step="1" value="3">
+            <span class="val" id="valSpeed">3x</span>
+          </div>
+        </div>
+
+        <!-- Telemetry Stats -->
+        <div class="card">
+          <div class="card-title">Вычислительный бюджет и безопасность</div>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-label">Число вызовов сети (NFE)</div>
+              <div class="stat-value" id="statNfe">16 шагов</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">Оценка задержки (Latency)</div>
+              <div class="stat-value" id="statLatency">~22 мс (45 Гц)</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">Коллизии с препятствием</div>
+              <div class="stat-value" id="statCollision">0% (0 / 12)</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">Мультимодальность распределения</div>
+              <div class="stat-value" id="statModes">2 моды (L / R)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mathematical Comparison -->
+        <div class="card" id="explanationCard" style="background: #f8fafc; border-left: 3px solid var(--accent-blue);">
+          <div style="font-weight: 700; font-size: 11px; color: var(--text-main); margin-bottom: 4px;">
+            🧠 Почему MSE терпит крах при мультимодальности?
+          </div>
+          <div id="explanationText" style="font-size: 11px; color: var(--text-muted); line-height: 1.45;">
+            Если демонстрации содержат два допустимых действия $a_1$ (обход слева) и $a_2$ (обход справа), среднеквадратичная ошибка $\mathbb{E}[(a - \pi(s))^2]$ оптимизирует математическое ожидание: $\pi(s) = (a_1 + a_2)/2$. Робот едет <strong>ровно в центр препятствия</strong>.<br><br>
+            <strong>Diffusion Policy</strong> начинает с шума $\mathcal{N}(0, I)$ и итеративно удаляет шум, скользя в один из локальных минимумов энергии (влево или вправо), никогда не генерируя опасное среднее!
+          </div>
+        </div>
+
+        <!-- Architecture Breakdown -->
+        <div class="card">
+          <div class="card-title">Архитектурная связь с классическим DL</div>
+          <div style="font-size: 10.5px; color: var(--text-muted); line-height: 1.4;">
+            • <strong>Визуальный энкодер (ResNet / ViT):</strong> Извлекает признак сцены $o_t$.<br>
+            • <strong>U-Net / DiT (Noise Predictor):</strong> Принимает зашумленный вектор действий $a_k$, шаг времени $k$ и условие $o_t$, предсказывая шум $\epsilon_\theta$.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Simulation & Canvas State ---
+    const arenaCanvas = document.getElementById('arenaCanvas');
+    const arenaCtx = arenaCanvas.getContext('2d');
+
+    const btnDenoise = document.getElementById('btnDenoise');
+    const btnStep = document.getElementById('btnStep');
+    const btnResample = document.getElementById('btnResample');
+    const btnReset = document.getElementById('btnReset');
+    const selectModel = document.getElementById('selectModel');
+    const algoBadge = document.getElementById('algoBadge');
+
+    const slStep = document.getElementById('slStep');
+    const slEnsemble = document.getElementById('slEnsemble');
+    const slTemp = document.getElementById('slTemp');
+    const slSpeed = document.getElementById('slSpeed');
+
+    const valStep = document.getElementById('valStep');
+    const valEnsemble = document.getElementById('valEnsemble');
+    const valTemp = document.getElementById('valTemp');
+    const valSpeed = document.getElementById('valSpeed');
+
+    const statNfe = document.getElementById('statNfe');
+    const statLatency = document.getElementById('statLatency');
+    const statCollision = document.getElementById('statCollision');
+    const statModes = document.getElementById('statModes');
+    const explanationText = document.getElementById('explanationText');
+    const explanationCard = document.getElementById('explanationCard');
+
+    // Scenario geometry
+    const state = {
+      model: 'diffusion',   // 'diffusion', 'flow', 'mse'
+      maxK: 16,
+      currentK: 0,          // 0 is fully denoised clean trajectory, 16 is pure noise
+      ensembleSize: 12,
+      temp: 0.9,
+      animating: false,
+      speed: 3,
+
+      // Geometry coordinates (normalized in arena)
+      start: { x: 0.12, y: 0.5 },
+      goal: { x: 0.88, y: 0.5 },
+      obstacle: { x: 0.5, y: 0.5, r: 0.12 },
+
+      // Interactive drag
+      dragging: null,
+
+      // Trajectories: Array of curves, each curve is array of points
+      trajectories: [],
+      rawNoise: []
+    };
+
+    const NUM_WAYPOINTS = 28;
+
+    // --- Generate Initial Trajectories ---
+    function initializeSamples() {
+      state.trajectories = [];
+      state.rawNoise = [];
+
+      for (let i = 0; i < state.ensembleSize; i++) {
+        // Choose intended target mode: roughly 50% left (-1), 50% right (+1)
+        const mode = (i % 2 === 0) ? -1 : 1;
+        
+        // Random Brownian noise sequence for this trajectory
+        const noise = [];
+        for (let j = 0; j < NUM_WAYPOINTS; j++) {
+          noise.push({
+            x: (Math.random() - 0.5) * state.temp * 0.45,
+            y: (Math.random() - 0.5) * state.temp * 0.45
+          });
+        }
+        state.rawNoise.push({ mode, noise });
+      }
+      updateTrajectoryGeometry();
+    }
+
+    // --- Denoising Physics / Algorithmic Geometry ---
+    function updateTrajectoryGeometry() {
+      state.trajectories = [];
+      const { start, goal, obstacle, currentK, maxK, model } = state;
+
+      const dx = goal.x - start.x;
+      const dy = goal.y - start.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const nx = -dy / dist; // normal vector
+      const ny = dx / dist;
+
+      for (let i = 0; i < state.ensembleSize; i++) {
+        const { mode, noise } = state.rawNoise[i];
+        const points = [];
+
+        if (model === 'mse') {
+          // MSE averages both modes: produces straight line through obstacle!
+          for (let j = 0; j < NUM_WAYPOINTS; j++) {
+            const alpha = j / (NUM_WAYPOINTS - 1);
+            const bx = start.x + alpha * dx;
+            const by = start.y + alpha * dy;
+            // Slight residual noise
+            const nScale = 0.01;
+            points.push({
+              x: bx + noise[j].x * nScale,
+              y: by + noise[j].y * nScale
+            });
+          }
+
+        } else if (model === 'diffusion') {
+          // DDPM: alpha noise schedule beta_k
+          const noiseWeight = currentK / maxK; // 1.0 at k=16, 0.0 at k=0
+          const signalWeight = 1.0 - noiseWeight;
+
+          // Target ideal clean trajectory for this mode (arc around obstacle)
+          for (let j = 0; j < NUM_WAYPOINTS; j++) {
+            const alpha = j / (NUM_WAYPOINTS - 1);
+            const bx = start.x + alpha * dx;
+            const by = start.y + alpha * dy;
+
+            // Lateral offset to clear obstacle: peak at center
+            const bell = Math.sin(alpha * Math.PI);
+            const clearOffset = (obstacle.r * 1.55) * mode * bell;
+
+            const cleanX = bx + nx * clearOffset;
+            const cleanY = by + ny * clearOffset;
+
+            // Blend clean signal with Gaussian noise based on current k
+            const ptX = cleanX * signalWeight + (bx + noise[j].x * 1.8) * noiseWeight;
+            const ptY = cleanY * signalWeight + (by + noise[j].y * 1.8) * noiseWeight;
+
+            points.push({ x: ptX, y: ptY });
+          }
+
+        } else if (model === 'flow') {
+          // Flow Matching: Linear vector field interpolation (OT flow)
+          // Steps: 4 steps (k in [0, 4, 8, 12, 16])
+          const stepFrac = Math.round(currentK / 4) * 4 / maxK;
+          const noiseWeight = stepFrac;
+          const signalWeight = 1.0 - noiseWeight;
+
+          for (let j = 0; j < NUM_WAYPOINTS; j++) {
+            const alpha = j / (NUM_WAYPOINTS - 1);
+            const bx = start.x + alpha * dx;
+            const by = start.y + alpha * dy;
+
+            const bell = Math.sin(alpha * Math.PI);
+            const clearOffset = (obstacle.r * 1.55) * mode * bell;
+
+            const cleanX = bx + nx * clearOffset;
+            const cleanY = by + ny * clearOffset;
+
+            // Straight linear transport
+            const ptX = cleanX * signalWeight + (bx + noise[j].x * 1.4) * noiseWeight;
+            const ptY = cleanY * signalWeight + (by + noise[j].y * 1.4) * noiseWeight;
+
+            points.push({ x: ptX, y: ptY });
+          }
+        }
+
+        // Fix exact start and goal points
+        points[0] = { x: start.x, y: start.y };
+        points[NUM_WAYPOINTS - 1] = { x: goal.x, y: goal.y };
+
+        state.trajectories.push(points);
+      }
+    }
+
+    // --- Collision & Metrics Evaluation ---
+    function evaluateTelemetry() {
+      let collisions = 0;
+      const { obstacle } = state;
+
+      state.trajectories.forEach(traj => {
+        let collides = false;
+        for (let pt of traj) {
+          const d2 = Math.pow(pt.x - obstacle.x, 2) + Math.pow(pt.y - obstacle.y, 2);
+          if (d2 < Math.pow(obstacle.r, 2)) {
+            collides = true;
+            break;
+          }
+        }
+        if (collides) collisions++;
+      });
+
+      const colRate = Math.round((collisions / state.ensembleSize) * 100);
+      statCollision.textContent = `${colRate}% (${collisions} / ${state.ensembleSize})`;
+      statCollision.style.color = colRate > 0 ? '#dc2626' : '#059669';
+
+      if (state.model === 'diffusion') {
+        algoBadge.className = 'badge-algo badge-diff';
+        algoBadge.textContent = 'DIFFUSION (DDPM)';
+        statNfe.textContent = '16 шагов (NFE)';
+        statLatency.textContent = '~22 мс (45 Гц)';
+        statModes.textContent = '2 моды (L / R)';
+        explanationCard.style.borderLeftColor = 'var(--accent-blue)';
+        explanationText.innerHTML = '<strong>Diffusion Policy</strong> сэмплирует чистые безаварийные пути за 16 шагов шумоподавления. При уменьшении $k$ от 16 к 0 случайные искажения устраняются нейросетью.';
+      } else if (state.model === 'flow') {
+        algoBadge.className = 'badge-algo badge-flow';
+        algoBadge.textContent = 'FLOW MATCHING (π₀)';
+        statNfe.textContent = '4 шага (NFE)';
+        statLatency.textContent = '~5.5 мс (180 Гц)';
+        statModes.textContent = '2 моды (L / R)';
+        explanationCard.style.borderLeftColor = '#059669';
+        explanationText.innerHTML = '<strong>Flow Matching (OT-Flow)</strong>: Прямолинейные векторные поля переносят распределение шума в моды решений всего за <strong>4 шага ОДУ</strong>. Это стандарт моделей нового поколения (Physical Intelligence π₀).';
+      } else {
+        algoBadge.className = 'badge-algo badge-mse';
+        algoBadge.textContent = 'BC REGRESSION (MSE)';
+        statNfe.textContent = '1 шаг (Прямой)';
+        statLatency.textContent = '~1.2 мс (800 Гц)';
+        statModes.textContent = 'Коллапс в 1 моду';
+        explanationCard.style.borderLeftColor = '#dc2626';
+        explanationText.innerHTML = '⚠️ <strong>Катастрофа усреднения MSE</strong>: Минимизация среднеквадратичной ошибки усредняет альтернативы $a_1$ и $a_2$. Робот врезается ровно в центр препятствия со 100% вероятностью аварии!';
+      }
+    }
+
+    // --- Rendering Canvas ---
+    function render() {
+      const w = arenaCanvas.width = arenaCanvas.clientWidth;
+      const h = arenaCanvas.height = arenaCanvas.clientHeight;
+      arenaCtx.clearRect(0, 0, w, h);
+
+      // Coordinate converter: norm (0..1) -> px
+      const toPx = (normPt) => ({ x: normPt.x * w, y: normPt.y * h });
+
+      // Draw subtle grid
+      arenaCtx.strokeStyle = '#f1f5f9';
+      arenaCtx.lineWidth = 1;
+      const gridSize = 40;
+      for (let x = 0; x < w; x += gridSize) {
+        arenaCtx.beginPath(); arenaCtx.moveTo(x, 0); arenaCtx.lineTo(x, h); arenaCtx.stroke();
+      }
+      for (let y = 0; y < h; y += gridSize) {
+        arenaCtx.beginPath(); arenaCtx.moveTo(0, y); arenaCtx.lineTo(w, y); arenaCtx.stroke();
+      }
+
+      // Draw Obstacle (Circle with safety boundary)
+      const obsPx = toPx(state.obstacle);
+      const obsRPx = state.obstacle.r * Math.min(w, h);
+
+      // Danger halo
+      arenaCtx.fillStyle = 'rgba(239, 68, 68, 0.08)';
+      arenaCtx.beginPath();
+      arenaCtx.arc(obsPx.x, obsPx.y, obsRPx * 1.35, 0, Math.PI * 2);
+      arenaCtx.fill();
+
+      // Main Obstacle
+      arenaCtx.fillStyle = '#fee2e2';
+      arenaCtx.beginPath();
+      arenaCtx.arc(obsPx.x, obsPx.y, obsRPx, 0, Math.PI * 2);
+      arenaCtx.fill();
+      arenaCtx.strokeStyle = '#ef4444';
+      arenaCtx.lineWidth = 3;
+      arenaCtx.stroke();
+
+      arenaCtx.fillStyle = '#b91c1c';
+      arenaCtx.font = '700 11px JetBrains Mono, monospace';
+      arenaCtx.textAlign = 'center';
+      arenaCtx.fillText('ПРЕПЯТСТВИЕ', obsPx.x, obsPx.y + 4);
+
+      // Draw Trajectories Ensemble
+      state.trajectories.forEach((traj, idx) => {
+        if (traj.length < 2) return;
+
+        // Check if this trajectory collides
+        let collides = false;
+        for (let pt of traj) {
+          const d2 = Math.pow(pt.x - state.obstacle.x, 2) + Math.pow(pt.y - state.obstacle.y, 2);
+          if (d2 < Math.pow(state.obstacle.r, 2)) {
+            collides = true;
+            break;
+          }
+        }
+
+        if (state.model === 'mse' || collides) {
+          arenaCtx.strokeStyle = collides ? 'rgba(220, 38, 38, 0.85)' : 'rgba(239, 68, 68, 0.6)';
+          arenaCtx.lineWidth = 2.5;
+        } else {
+          // Blue or Green hues for valid multimodal paths
+          const isLeft = traj[Math.floor(NUM_WAYPOINTS / 2)].y < state.obstacle.y;
+          arenaCtx.strokeStyle = isLeft ? 'rgba(37, 99, 235, 0.65)' : 'rgba(5, 150, 105, 0.65)';
+          arenaCtx.lineWidth = 2.0;
+        }
+
+        arenaCtx.beginPath();
+        const p0 = toPx(traj[0]);
+        arenaCtx.moveTo(p0.x, p0.y);
+        for (let j = 1; j < traj.length; j++) {
+          const pj = toPx(traj[j]);
+          arenaCtx.lineTo(pj.x, pj.y);
+        }
+        arenaCtx.stroke();
+      });
+
+      // Draw Start Marker (S)
+      const startPx = toPx(state.start);
+      arenaCtx.fillStyle = '#38bdf8';
+      arenaCtx.beginPath();
+      arenaCtx.arc(startPx.x, startPx.y, 11, 0, Math.PI * 2);
+      arenaCtx.fill();
+      arenaCtx.strokeStyle = '#0284c7';
+      arenaCtx.lineWidth = 2;
+      arenaCtx.stroke();
+      arenaCtx.fillStyle = '#ffffff';
+      arenaCtx.font = '700 11px Inter, sans-serif';
+      arenaCtx.textAlign = 'center';
+      arenaCtx.fillText('S', startPx.x, startPx.y + 4);
+
+      // Draw Goal Marker (G)
+      const goalPx = toPx(state.goal);
+      arenaCtx.fillStyle = '#34d399';
+      arenaCtx.beginPath();
+      arenaCtx.arc(goalPx.x, goalPx.y, 11, 0, Math.PI * 2);
+      arenaCtx.fill();
+      arenaCtx.strokeStyle = '#059669';
+      arenaCtx.lineWidth = 2;
+      arenaCtx.stroke();
+      arenaCtx.fillStyle = '#ffffff';
+      arenaCtx.fillText('G', goalPx.x, goalPx.y + 4);
+
+      // Current Denoising Level Indicator (Top left)
+      arenaCtx.fillStyle = '#475569';
+      arenaCtx.font = '11px JetBrains Mono, monospace';
+      arenaCtx.textAlign = 'left';
+      arenaCtx.fillText(`Шаг шума k = ${state.currentK} / ${state.maxK} (${state.currentK === 0 ? 'Чистый план a₀' : 'Зашумление aₖ'})`, 16, 24);
+    }
+
+    // --- Animation & Stepping ---
+    function stepDenoising() {
+      if (state.currentK > 0) {
+        state.currentK = Math.max(0, state.currentK - 1);
+        slStep.value = state.currentK;
+        valStep.textContent = state.currentK;
+        updateTrajectoryGeometry();
+        evaluateTelemetry();
+        render();
+        return true;
+      }
+      return false;
+    }
+
+    function runAnimation() {
+      if (!state.animating) return;
+
+      const hasNext = stepDenoising();
+      if (hasNext) {
+        const delay = 400 / state.speed;
+        setTimeout(runAnimation, delay);
+      } else {
+        state.animating = false;
+        btnDenoise.textContent = '▶ Запустить Denoising';
+        btnDenoise.className = 'btn btn-primary';
+      }
+    }
+
+    // --- Interactive Drag & Drop ---
+    arenaCanvas.addEventListener('mousedown', (e) => {
+      const rect = arenaCanvas.getBoundingClientRect();
+      const px = e.clientX - rect.left;
+      const py = e.clientY - rect.top;
+      const w = arenaCanvas.width;
+      const h = arenaCanvas.height;
+
+      const normX = px / w;
+      const normY = py / h;
+
+      // Check obstacle
+      const distObs = Math.hypot(normX - state.obstacle.x, normY - state.obstacle.y);
+      if (distObs < state.obstacle.r) {
+        state.dragging = 'obstacle';
+        return;
+      }
+
+      // Check start
+      if (Math.hypot(normX - state.start.x, normY - state.start.y) < 0.05) {
+        state.dragging = 'start';
+        return;
+      }
+
+      // Check goal
+      if (Math.hypot(normX - state.goal.x, normY - state.goal.y) < 0.05) {
+        state.dragging = 'goal';
+        return;
+      }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!state.dragging) return;
+      const rect = arenaCanvas.getBoundingClientRect();
+      const px = e.clientX - rect.left;
+      const py = e.clientY - rect.top;
+      const normX = Math.max(0.05, Math.min(0.95, px / arenaCanvas.width));
+      const normY = Math.max(0.05, Math.min(0.95, py / arenaCanvas.height));
+
+      if (state.dragging === 'obstacle') {
+        state.obstacle.x = normX;
+        state.obstacle.y = normY;
+      } else if (state.dragging === 'start') {
+        state.start.x = normX;
+        state.start.y = normY;
+      } else if (state.dragging === 'goal') {
+        state.goal.x = normX;
+        state.goal.y = normY;
+      }
+
+      updateTrajectoryGeometry();
+      evaluateTelemetry();
+      render();
+    });
+
+    window.addEventListener('mouseup', () => {
+      state.dragging = null;
+    });
+
+    // --- UI Controls Listeners ---
+    btnDenoise.addEventListener('click', () => {
+      if (state.animating) {
+        state.animating = false;
+        btnDenoise.textContent = '▶ Запустить Denoising';
+        btnDenoise.className = 'btn btn-primary';
+      } else {
+        // Start from noise
+        state.currentK = state.maxK;
+        slStep.value = state.currentK;
+        valStep.textContent = state.currentK;
+        updateTrajectoryGeometry();
+        evaluateTelemetry();
+        render();
+
+        state.animating = true;
+        btnDenoise.textContent = '⏸ Пауза';
+        btnDenoise.className = 'btn btn-success';
+        setTimeout(runAnimation, 250);
+      }
+    });
+
+    btnStep.addEventListener('click', () => {
+      state.animating = false;
+      btnDenoise.textContent = '▶ Запустить Denoising';
+      btnDenoise.className = 'btn btn-primary';
+      stepDenoising();
+    });
+
+    btnResample.addEventListener('click', () => {
+      initializeSamples();
+      evaluateTelemetry();
+      render();
+    });
+
+    btnReset.addEventListener('click', () => {
+      state.start = { x: 0.12, y: 0.5 };
+      state.goal = { x: 0.88, y: 0.5 };
+      state.obstacle = { x: 0.5, y: 0.5, r: 0.12 };
+      state.currentK = 0;
+      slStep.value = 0;
+      valStep.textContent = '0';
+      initializeSamples();
+      evaluateTelemetry();
+      render();
+    });
+
+    selectModel.addEventListener('change', (e) => {
+      state.model = e.target.value;
+      if (state.model === 'mse') {
+        state.currentK = 0;
+        slStep.value = 0;
+        valStep.textContent = '0';
+      }
+      updateTrajectoryGeometry();
+      evaluateTelemetry();
+      render();
+    });
+
+    slStep.addEventListener('input', (e) => {
+      state.animating = false;
+      btnDenoise.textContent = '▶ Запустить Denoising';
+      btnDenoise.className = 'btn btn-primary';
+      state.currentK = parseInt(e.target.value);
+      valStep.textContent = state.currentK;
+      updateTrajectoryGeometry();
+      evaluateTelemetry();
+      render();
+    });
+
+    slEnsemble.addEventListener('input', (e) => {
+      state.ensembleSize = parseInt(e.target.value);
+      valEnsemble.textContent = state.ensembleSize;
+      initializeSamples();
+      evaluateTelemetry();
+      render();
+    });
+
+    slTemp.addEventListener('input', (e) => {
+      state.temp = parseFloat(e.target.value);
+      valTemp.textContent = state.temp.toFixed(1);
+      initializeSamples();
+      evaluateTelemetry();
+      render();
+    });
+
+    slSpeed.addEventListener('input', (e) => {
+      state.speed = parseInt(e.target.value);
+      valSpeed.textContent = state.speed + 'x';
+    });
+
+    // Window resize
+    window.addEventListener('resize', render);
+
+    // Initial boot
+    initializeSamples();
+    evaluateTelemetry();
+    render();
+  </script>
+</body>
+</html>

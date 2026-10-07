@@ -452,7 +452,17 @@ const portalHtml = `<!DOCTYPE html>
           <a href="widgets/mpc-interactive-solver/index.html" class="widget-link-card" target="_blank">
             <h4>Нелинейный предиктивный MPC</h4>
             <p>Скользящий рецессивный горизонт (NMPC): обход динамических препятствий, оптимизация KKT, теплый старт и реакция на возмущения.</p>
+            <span class="lecture-num">Лекция 05 →</span>
+          </a>
+          <a href="widgets/rl-policy-shaping/index.html" class="widget-link-card" target="_blank">
+            <h4>RL: Reward Shaping & Policy</h4>
+            <p>Синтез политики в браузере: балансировка маятника, подбор весов точности, энергии и рывков, устойчивость к возмущениям.</p>
             <span class="lecture-num">Лекция 06 →</span>
+          </a>
+          <a href="widgets/diffusion-policy-interactive/index.html" class="widget-link-card" target="_blank">
+            <h4>Diffusion Policy vs MSE</h4>
+            <p>Генерация мультимодальных траекторий: устранение лобового тарана MSE, 16 шагов шумоподавления DDPM и непрерывный Flow Matching.</p>
+            <span class="lecture-num">Лекция 07 →</span>
           </a>
         </div>
       </div>
