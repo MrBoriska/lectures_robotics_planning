@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 450" width="100%" height="100%">
+  <defs>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#059669"/>
+    </marker>
+    <marker id="arrow-amber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#d97706"/>
+    </marker>
+    <filter id="shadow" x="-3%" y="-4%" width="106%" height="110%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.06"/>
+    </filter>
+  </defs>
+
+  <rect width="100%" height="100%" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- Title -->
+  <g transform="translate(28, 28)">
+    <text x="0" y="0" font-family="Inter, system-ui, sans-serif" font-size="16.5" font-weight="800" fill="#0f172a">Анатомия RL: Замкнутый цикл взаимодействия Агента и Среды</text>
+    <text x="0" y="20" font-family="Inter, system-ui, sans-serif" font-size="11.5" fill="#64748b">Фундаментальный контур: принятие решений на основе обратной связи методом проб и ошибок (Trial and Error)</text>
+  </g>
+
+  <!-- Left Box: Agent -->
+  <g transform="translate(36, 75)" filter="url(#shadow)">
+    <rect width="360" height="260" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+    <rect width="360" height="32" rx="10" fill="#2563eb"/>
+    <text x="16" y="21" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#ffffff">Агент (Agent / Бортовой контроллер)</text>
+
+    <g transform="translate(16, 44)" font-family="Inter, sans-serif" font-size="10.5" fill="#1e293b">
+      <!-- Policy component -->
+      <rect x="0" y="0" width="328" height="58" rx="6" fill="#ffffff" stroke="#bfdbfe"/>
+      <text x="12" y="20" font-weight="700" fill="#1e40af">1. Стратегия / Политика: π_θ(a | s)</text>
+      <text x="12" y="36" font-size="9.5" fill="#334155">• Отображает текущее состояние в управляющее действие</text>
+      <text x="12" y="50" font-family="JetBrains Mono" font-size="9" fill="#2563eb">aₜ = π_θ(sₜ) (детерминированная) или aₜ ~ π_θ(·|sₜ)</text>
+
+      <!-- Learning Algorithm -->
+      <g transform="translate(0, 68)">
+        <rect x="0" y="0" width="328" height="58" rx="6" fill="#ffffff" stroke="#bfdbfe"/>
+        <text x="12" y="20" font-weight="700" fill="#1e40af">2. Алгоритм обучения (Policy Optimization)</text>
+        <text x="12" y="36" font-size="9.5" fill="#334155">• Обновляет веса нейросети θ по градиенту отдачи</text>
+        <text x="12" y="50" font-family="JetBrains Mono" font-size="9" fill="#1d4ed8">θ ← θ + α · ∇_θ J(θ) (максимизация суммарной награды)</text>
+      </g>
+
+      <!-- Internal Value / Memory -->
+      <g transform="translate(0, 136)">
+        <rect x="0" y="0" width="328" height="56" rx="6" fill="#ffffff" stroke="#bfdbfe"/>
+        <text x="12" y="18" font-weight="700" fill="#1e40af">3. Память / Функция ценности (Value / Critic)</text>
+        <text x="12" y="34" font-size="9.5" fill="#334155">• Оценка перспективности текущей ситуации V(s), Q(s,a)</text>
+        <text x="12" y="48" font-size="9.5" fill="#64748b">• Буфер опыта 𝒟 = {(s, a, r, s')}</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Right Box: Environment -->
+  <g transform="translate(564, 75)" filter="url(#shadow)">
+    <rect width="360" height="260" rx="10" fill="#f8fafc" stroke="#64748b" stroke-width="2"/>
+    <rect width="360" height="32" rx="10" fill="#334155"/>
+    <text x="16" y="21" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#ffffff">Среда (Environment: Робот + Физический мир)</text>
+
+    <g transform="translate(16, 44)" font-family="Inter, sans-serif" font-size="10.5" fill="#1e293b">
+      <!-- Mechanics & Physics -->
+      <rect x="0" y="0" width="328" height="58" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+      <text x="12" y="20" font-weight="700" fill="#0f172a">1. Физическая динамика: P(s' | s, a)</text>
+      <text x="12" y="36" font-size="9.5" fill="#334155">• Уравнения движения шасси, контакт стоп с грунтом</text>
+      <text x="12" y="50" font-family="JetBrains Mono" font-size="9" fill="#059669">sₜ₊₁ = f(sₜ, aₜ) + шумы, трение, упругость</text>
+
+      <!-- Sensors -->
+      <g transform="translate(0, 68)">
+        <rect x="0" y="0" width="328" height="58" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+        <text x="12" y="20" font-weight="700" fill="#0f172a">2. Сенсорная подсистема (Observation)</text>
+        <text x="12" y="36" font-size="9.5" fill="#334155">• Энкодеры суставов (q, q̇), 6-DOF IMU (акселерометр)</text>
+        <text x="12" y="50" font-size="9.5" fill="#475569">• Камеры глубины, тактильные датчики стоп</text>
+      </g>
+
+      <!-- Reward Function -->
+      <g transform="translate(0, 136)">
+        <rect x="0" y="0" width="328" height="56" rx="6" fill="#fffbeb" stroke="#fde68a"/>
+        <text x="12" y="18" font-weight="700" fill="#92400e">3. Функция вознаграждения: R(s, a)</text>
+        <text x="12" y="34" font-size="9.5" fill="#78350f">• Формирует критерий успеха задачи (Reward Shaping)</text>
+        <text x="12" y="48" font-family="JetBrains Mono" font-size="9" fill="#b45309">rₜ₊₁ = + Скорость − w_u ||u||² − Штраф_падения</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Forward Flow: Action a_t (Top) -->
+  <path d="M 396,135 L 560,135" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)" fill="none"/>
+  <rect x="420" y="105" width="120" height="26" rx="5" fill="#eff6ff" stroke="#bfdbfe"/>
+  <text x="480" y="122" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#1d4ed8">Действие aₜ</text>
+
+  <!-- Backward Flow 1: State / Observation s_{t+1} (Center) -->
+  <path d="M 564,225 L 400,225" stroke="#059669" stroke-width="3" marker-end="url(#arrow-green)" fill="none"/>
+  <rect x="410" y="202" width="140" height="24" rx="5" fill="#ecfdf5" stroke="#a7f3d0"/>
+  <text x="480" y="218" text-anchor="middle" font-family="JetBrains Mono" font-size="10.5" font-weight="700" fill="#047857">Состояние sₜ₊₁</text>
+
+  <!-- Backward Flow 2: Reward r_{t+1} (Bottom) -->
+  <path d="M 564,285 L 400,285" stroke="#d97706" stroke-width="3" marker-end="url(#arrow-amber)" fill="none"/>
+  <rect x="420" y="262" width="120" height="24" rx="5" fill="#fffbeb" stroke="#fde68a"/>
+  <text x="480" y="278" text-anchor="middle" font-family="JetBrains Mono" font-size="10.5" font-weight="700" fill="#b45309">Награда rₜ₊₁</text>
+
+  <!-- Bottom Key Insight Callout -->
+  <g transform="translate(36, 360)">
+    <rect width="888" height="68" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#0f172a">
+      Ключевое отличие от Supervised Learning и классического управления:
+    </text>
+    <text x="16" y="42" font-family="Inter, sans-serif" font-size="10.5" fill="#334155">
+      1. <tspan font-weight="700" fill="#2563eb">Нет разметки идеальных действий:</tspan> Никто не сообщает роботу правильный крутящий момент; есть только скалярное подтверждение успеха rₜ₊₁.
+    </text>
+    <text x="16" y="58" font-family="Inter, sans-serif" font-size="10.5" fill="#334155">
+      2. <tspan font-weight="700" fill="#059669">Не требуется аналитическая модель динамики на борту:</tspan> Агент адаптируется к сложным нелинейным контактам через накопленный опыт.
+    </text>
+  </g>
+</svg>

@@ -4852,16 +4852,22 @@ def main():
         print(f"Warning: could not generate Lecture 07/08 diagrams: {e}")
     try:
         from generate_lecture_06_diagrams import (
+            generate_agent_environment_loop,
             generate_rl_taxonomy,
             generate_dqn_architecture,
             generate_actor_critic_architecture,
-            generate_teacher_student_sim2real
+            generate_teacher_student_sim2real,
+            generate_credit_assignment_problem,
+            generate_continuous_action_barrier
         )
         print("=== Generating Rigorous Diagrams for Lecture 06 ===")
+        generate_agent_environment_loop()
         generate_rl_taxonomy()
         generate_dqn_architecture()
         generate_actor_critic_architecture()
         generate_teacher_student_sim2real()
+        generate_credit_assignment_problem()
+        generate_continuous_action_barrier()
         print("=== Lecture 06 Diagrams Successfully Generated! ===")
     except Exception as e:
         print(f"Warning: could not generate Lecture 06 diagrams: {e}")

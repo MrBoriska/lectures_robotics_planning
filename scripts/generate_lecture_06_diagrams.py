@@ -693,10 +693,385 @@ def generate_teacher_student_sim2real():
         f.write(svg)
     print(f"Generated: {filepath}")
 
+def generate_agent_environment_loop():
+    svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 450" width="100%" height="100%">
+  <defs>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#059669"/>
+    </marker>
+    <marker id="arrow-amber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#d97706"/>
+    </marker>
+    <filter id="shadow" x="-3%" y="-4%" width="106%" height="110%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.06"/>
+    </filter>
+  </defs>
+
+  <rect width="100%" height="100%" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- Title -->
+  <g transform="translate(28, 28)">
+    <text x="0" y="0" font-family="Inter, system-ui, sans-serif" font-size="16.5" font-weight="800" fill="#0f172a">Анатомия RL: Замкнутый цикл взаимодействия Агента и Среды</text>
+    <text x="0" y="20" font-family="Inter, system-ui, sans-serif" font-size="11.5" fill="#64748b">Фундаментальный контур: принятие решений на основе обратной связи методом проб и ошибок (Trial and Error)</text>
+  </g>
+
+  <!-- Left Box: Agent -->
+  <g transform="translate(36, 75)" filter="url(#shadow)">
+    <rect width="360" height="260" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+    <rect width="360" height="32" rx="10" fill="#2563eb"/>
+    <text x="16" y="21" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#ffffff">Агент (Agent / Бортовой контроллер)</text>
+
+    <g transform="translate(16, 44)" font-family="Inter, sans-serif" font-size="10.5" fill="#1e293b">
+      <!-- Policy component -->
+      <rect x="0" y="0" width="328" height="58" rx="6" fill="#ffffff" stroke="#bfdbfe"/>
+      <text x="12" y="20" font-weight="700" fill="#1e40af">1. Стратегия / Политика: π_θ(a | s)</text>
+      <text x="12" y="36" font-size="9.5" fill="#334155">• Отображает текущее состояние в управляющее действие</text>
+      <text x="12" y="50" font-family="JetBrains Mono" font-size="9" fill="#2563eb">aₜ = π_θ(sₜ) (детерминированная) или aₜ ~ π_θ(·|sₜ)</text>
+
+      <!-- Learning Algorithm -->
+      <g transform="translate(0, 68)">
+        <rect x="0" y="0" width="328" height="58" rx="6" fill="#ffffff" stroke="#bfdbfe"/>
+        <text x="12" y="20" font-weight="700" fill="#1e40af">2. Алгоритм обучения (Policy Optimization)</text>
+        <text x="12" y="36" font-size="9.5" fill="#334155">• Обновляет веса нейросети θ по градиенту отдачи</text>
+        <text x="12" y="50" font-family="JetBrains Mono" font-size="9" fill="#1d4ed8">θ ← θ + α · ∇_θ J(θ) (максимизация суммарной награды)</text>
+      </g>
+
+      <!-- Internal Value / Memory -->
+      <g transform="translate(0, 136)">
+        <rect x="0" y="0" width="328" height="56" rx="6" fill="#ffffff" stroke="#bfdbfe"/>
+        <text x="12" y="18" font-weight="700" fill="#1e40af">3. Память / Функция ценности (Value / Critic)</text>
+        <text x="12" y="34" font-size="9.5" fill="#334155">• Оценка перспективности текущей ситуации V(s), Q(s,a)</text>
+        <text x="12" y="48" font-size="9.5" fill="#64748b">• Буфер опыта 𝒟 = {(s, a, r, s')}</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Right Box: Environment -->
+  <g transform="translate(564, 75)" filter="url(#shadow)">
+    <rect width="360" height="260" rx="10" fill="#f8fafc" stroke="#64748b" stroke-width="2"/>
+    <rect width="360" height="32" rx="10" fill="#334155"/>
+    <text x="16" y="21" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#ffffff">Среда (Environment: Робот + Физический мир)</text>
+
+    <g transform="translate(16, 44)" font-family="Inter, sans-serif" font-size="10.5" fill="#1e293b">
+      <!-- Mechanics & Physics -->
+      <rect x="0" y="0" width="328" height="58" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+      <text x="12" y="20" font-weight="700" fill="#0f172a">1. Физическая динамика: P(s' | s, a)</text>
+      <text x="12" y="36" font-size="9.5" fill="#334155">• Уравнения движения шасси, контакт стоп с грунтом</text>
+      <text x="12" y="50" font-family="JetBrains Mono" font-size="9" fill="#059669">sₜ₊₁ = f(sₜ, aₜ) + шумы, трение, упругость</text>
+
+      <!-- Sensors -->
+      <g transform="translate(0, 68)">
+        <rect x="0" y="0" width="328" height="58" rx="6" fill="#ffffff" stroke="#cbd5e1"/>
+        <text x="12" y="20" font-weight="700" fill="#0f172a">2. Сенсорная подсистема (Observation)</text>
+        <text x="12" y="36" font-size="9.5" fill="#334155">• Энкодеры суставов (q, q̇), 6-DOF IMU (акселерометр)</text>
+        <text x="12" y="50" font-size="9.5" fill="#475569">• Камеры глубины, тактильные датчики стоп</text>
+      </g>
+
+      <!-- Reward Function -->
+      <g transform="translate(0, 136)">
+        <rect x="0" y="0" width="328" height="56" rx="6" fill="#fffbeb" stroke="#fde68a"/>
+        <text x="12" y="18" font-weight="700" fill="#92400e">3. Функция вознаграждения: R(s, a)</text>
+        <text x="12" y="34" font-size="9.5" fill="#78350f">• Формирует критерий успеха задачи (Reward Shaping)</text>
+        <text x="12" y="48" font-family="JetBrains Mono" font-size="9" fill="#b45309">rₜ₊₁ = + Скорость − w_u ||u||² − Штраф_падения</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Forward Flow: Action a_t (Top) -->
+  <path d="M 396,135 L 560,135" stroke="#2563eb" stroke-width="3" marker-end="url(#arrow-blue)" fill="none"/>
+  <rect x="420" y="105" width="120" height="26" rx="5" fill="#eff6ff" stroke="#bfdbfe"/>
+  <text x="480" y="122" text-anchor="middle" font-family="JetBrains Mono" font-size="11" font-weight="700" fill="#1d4ed8">Действие aₜ</text>
+
+  <!-- Backward Flow 1: State / Observation s_{t+1} (Center) -->
+  <path d="M 564,225 L 400,225" stroke="#059669" stroke-width="3" marker-end="url(#arrow-green)" fill="none"/>
+  <rect x="410" y="202" width="140" height="24" rx="5" fill="#ecfdf5" stroke="#a7f3d0"/>
+  <text x="480" y="218" text-anchor="middle" font-family="JetBrains Mono" font-size="10.5" font-weight="700" fill="#047857">Состояние sₜ₊₁</text>
+
+  <!-- Backward Flow 2: Reward r_{t+1} (Bottom) -->
+  <path d="M 564,285 L 400,285" stroke="#d97706" stroke-width="3" marker-end="url(#arrow-amber)" fill="none"/>
+  <rect x="420" y="262" width="120" height="24" rx="5" fill="#fffbeb" stroke="#fde68a"/>
+  <text x="480" y="278" text-anchor="middle" font-family="JetBrains Mono" font-size="10.5" font-weight="700" fill="#b45309">Награда rₜ₊₁</text>
+
+  <!-- Bottom Key Insight Callout -->
+  <g transform="translate(36, 360)">
+    <rect width="888" height="68" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+    <text x="16" y="24" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#0f172a">
+      Ключевое отличие от Supervised Learning и классического управления:
+    </text>
+    <text x="16" y="42" font-family="Inter, sans-serif" font-size="10.5" fill="#334155">
+      1. <tspan font-weight="700" fill="#2563eb">Нет разметки идеальных действий:</tspan> Никто не сообщает роботу правильный крутящий момент; есть только скалярное подтверждение успеха rₜ₊₁.
+    </text>
+    <text x="16" y="58" font-family="Inter, sans-serif" font-size="10.5" fill="#334155">
+      2. <tspan font-weight="700" fill="#059669">Не требуется аналитическая модель динамики на борту:</tspan> Агент адаптируется к сложным нелинейным контактам через накопленный опыт.
+    </text>
+  </g>
+</svg>'''
+    filepath = os.path.join(OUTPUT_DIR, 'agent_environment_loop.svg')
+    with open(filepath, 'w', encoding='utf-8') as f:
+        f.write(svg)
+    print(f"Generated: {filepath}")
+
+def generate_credit_assignment_problem():
+    svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520" width="100%" height="100%">
+  <defs>
+    <linearGradient id="caBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f8fafc"/>
+    </linearGradient>
+    <filter id="caShadow" x="-3%" y="-4%" width="106%" height="110%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.06"/>
+    </filter>
+    <marker id="caArrowRed" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M 0,1 L 7,4 L 0,7 Z" fill="#dc2626"/>
+    </marker>
+    <marker id="caArrowGreen" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M 0,1 L 7,4 L 0,7 Z" fill="#059669"/>
+    </marker>
+    <marker id="caArrowBlue" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M 0,1 L 7,4 L 0,7 Z" fill="#2563eb"/>
+    </marker>
+  </defs>
+
+  <rect width="100%" height="100%" rx="12" fill="url(#caBg)" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- Title & Subtitle -->
+  <g transform="translate(28, 28)">
+    <text x="0" y="0" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="800" fill="#0f172a">Проблема приписывания заслуг (Credit Assignment Problem)</text>
+    <text x="0" y="20" font-family="Inter, system-ui, sans-serif" font-size="11.5" fill="#64748b">Сравнение слепой оценки Монте-Карло в чистом Policy Gradient и локальной TD-ошибки в Actor-Critic</text>
+  </g>
+
+  <!-- Section 1: Pure Policy Gradient / REINFORCE (Top) -->
+  <g transform="translate(28, 70)" filter="url(#caShadow)">
+    <rect width="904" height="195" rx="8" fill="#fef2f2" stroke="#fecaca" stroke-width="1.2"/>
+    <rect width="904" height="28" rx="8" fill="#fee2e2"/>
+    <text x="14" y="19" font-family="Inter, sans-serif" font-size="11.5" font-weight="700" fill="#991b1b">
+      1. Чистый Policy Gradient (REINFORCE): Слепая глобальная отдача Монте-Карло G_t
+    </text>
+
+    <!-- Timeline Steps -->
+    <g transform="translate(24, 48)">
+      <!-- Step 1 -->
+      <circle cx="40" cy="30" r="14" fill="#dcfce7" stroke="#16a34a" stroke-width="1.8"/>
+      <text x="40" y="34" text-anchor="middle" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#15803d">t=1</text>
+      <text x="40" y="58" text-anchor="middle" font-family="Inter" font-size="9" fill="#166534">Баланс ✓</text>
+
+      <!-- Step 2 -->
+      <path d="M 58,30 L 102,30" stroke="#94a3b8" stroke-width="1.5" fill="none"/>
+      <circle cx="120" cy="30" r="14" fill="#dcfce7" stroke="#16a34a" stroke-width="1.8"/>
+      <text x="120" y="34" text-anchor="middle" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#15803d">t=2</text>
+      <text x="120" y="58" text-anchor="middle" font-family="Inter" font-size="9" fill="#166534">Шаг ✓</text>
+
+      <!-- Dots -->
+      <path d="M 138,30 L 182,30" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3" fill="none"/>
+      <text x="210" y="34" text-anchor="middle" font-family="JetBrains Mono" font-size="14" font-weight="700" fill="#64748b">...</text>
+      <path d="M 238,30 L 282,30" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3" fill="none"/>
+
+      <!-- Step 99 -->
+      <circle cx="300" cy="30" r="14" fill="#dcfce7" stroke="#16a34a" stroke-width="1.8"/>
+      <text x="300" y="34" text-anchor="middle" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#15803d">t=99</text>
+      <text x="300" y="58" text-anchor="middle" font-family="Inter" font-size="9" fill="#166534">Бег 2 м/с ✓</text>
+
+      <!-- Step 100 Fall -->
+      <path d="M 318,30 L 372,30" stroke="#ef4444" stroke-width="2" marker-end="url(#caArrowRed)" fill="none"/>
+      <circle cx="395" cy="30" r="16" fill="#fee2e2" stroke="#dc2626" stroke-width="2.2"/>
+      <text x="395" y="34" text-anchor="middle" font-family="JetBrains Mono" font-size="10" font-weight="800" fill="#b91c1c">t=100</text>
+      <text x="395" y="60" text-anchor="middle" font-family="Inter" font-size="9.5" font-weight="700" fill="#dc2626">Падение ✗</text>
+
+      <!-- Episode Return block -->
+      <g transform="translate(450, 10)">
+        <rect width="395" height="56" rx="6" fill="#ffffff" stroke="#fca5a5" stroke-width="1.2"/>
+        <text x="12" y="20" font-family="Inter" font-size="10.5" font-weight="700" fill="#991b1b">Финал эпизода: штраф за падение r₁₀₀ = -100</text>
+        <text x="12" y="36" font-family="JetBrains Mono" font-size="10" fill="#dc2626">G₀ = ∑ γᵗ rₜ = -86.4 (отрицательная отдача)</text>
+        <text x="12" y="49" font-family="Inter" font-size="9" fill="#7f1d1d">Градиент: ∇_θ J = 𝔼 [ ∑ ∇ log π(aₜ|sₜ) · Gₜ ]</text>
+      </g>
+
+      <!-- Red Feedback Penalty Arrow sweeping backwards across ALL steps -->
+      <g transform="translate(10, 78)">
+        <path d="M 400,10 L 40,10" stroke="#dc2626" stroke-width="2.5" marker-end="url(#caArrowRed)" fill="none" stroke-dasharray="6,3"/>
+        <rect x="75" y="0" width="290" height="20" rx="4" fill="#fee2e2" stroke="#f87171"/>
+        <text x="220" y="14" text-anchor="middle" font-family="Inter" font-size="9.5" font-weight="700" fill="#b91c1c">
+          Штраф G_t &lt; 0 подавляет ВСЕ 100 шагов подряд!
+        </text>
+        <text x="15" y="36" font-family="Inter" font-size="10" fill="#7f1d1d">
+          <tspan font-weight="700">Катастрофа дисперсии:</tspan> Агент разучивается делать идеальные шаги 1–99 из-за единственной кочки на шаге 100.
+        </text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Section 2: Actor-Critic with Advantage / TD Error (Bottom) -->
+  <g transform="translate(28, 285)" filter="url(#caShadow)">
+    <rect width="904" height="205" rx="8" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.2"/>
+    <rect width="904" height="28" rx="8" fill="#dcfce7"/>
+    <text x="14" y="19" font-family="Inter, sans-serif" font-size="11.5" font-weight="700" fill="#166534">
+      2. Архитектура Actor-Critic: Локальное приписывание заслуг через TD-ошибку δ_t (Advantage)
+    </text>
+
+    <!-- Timeline Steps -->
+    <g transform="translate(24, 48)">
+      <!-- Step 1 Local TD -->
+      <circle cx="40" cy="30" r="14" fill="#ffffff" stroke="#16a34a" stroke-width="1.8"/>
+      <text x="40" y="34" text-anchor="middle" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#15803d">t=1</text>
+      <path d="M 40,48 L 40,64" stroke="#16a34a" stroke-width="2" marker-end="url(#caArrowGreen)" fill="none"/>
+      <text x="40" y="78" text-anchor="middle" font-family="JetBrains Mono" font-size="9" font-weight="700" fill="#15803d">δ₁ &gt; 0 (+)</text>
+
+      <!-- Step 2 Local TD -->
+      <path d="M 58,30 L 102,30" stroke="#94a3b8" stroke-width="1.5" fill="none"/>
+      <circle cx="120" cy="30" r="14" fill="#ffffff" stroke="#16a34a" stroke-width="1.8"/>
+      <text x="120" y="34" text-anchor="middle" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#15803d">t=2</text>
+      <path d="M 120,48 L 120,64" stroke="#16a34a" stroke-width="2" marker-end="url(#caArrowGreen)" fill="none"/>
+      <text x="120" y="78" text-anchor="middle" font-family="JetBrains Mono" font-size="9" font-weight="700" fill="#15803d">δ₂ &gt; 0 (+)</text>
+
+      <!-- Dots -->
+      <path d="M 138,30 L 182,30" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3" fill="none"/>
+      <text x="210" y="34" text-anchor="middle" font-family="JetBrains Mono" font-size="14" font-weight="700" fill="#64748b">...</text>
+      <path d="M 238,30 L 282,30" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3" fill="none"/>
+
+      <!-- Step 99 Local TD -->
+      <circle cx="300" cy="30" r="14" fill="#ffffff" stroke="#16a34a" stroke-width="1.8"/>
+      <text x="300" y="34" text-anchor="middle" font-family="JetBrains Mono" font-size="10" font-weight="700" fill="#15803d">t=99</text>
+      <path d="M 300,48 L 300,64" stroke="#16a34a" stroke-width="2" marker-end="url(#caArrowGreen)" fill="none"/>
+      <text x="300" y="78" text-anchor="middle" font-family="JetBrains Mono" font-size="9" font-weight="700" fill="#15803d">δ₉₉ &gt; 0 (+)</text>
+
+      <!-- Step 100 Fall Local TD -->
+      <path d="M 318,30 L 372,30" stroke="#ef4444" stroke-width="2" marker-end="url(#caArrowRed)" fill="none"/>
+      <circle cx="395" cy="30" r="16" fill="#fee2e2" stroke="#dc2626" stroke-width="2.2"/>
+      <text x="395" y="34" text-anchor="middle" font-family="JetBrains Mono" font-size="10" font-weight="800" fill="#b91c1c">t=100</text>
+      <path d="M 395,50 L 395,66" stroke="#dc2626" stroke-width="2.5" marker-end="url(#caArrowRed)" fill="none"/>
+      <text x="395" y="80" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" font-weight="800" fill="#b91c1c">δ₁₀₀ ≪ 0 (-)</text>
+
+      <!-- Critic Explanation Box -->
+      <g transform="translate(450, 10)">
+        <rect width="395" height="66" rx="6" fill="#ffffff" stroke="#86efac" stroke-width="1.2"/>
+        <text x="12" y="18" font-family="Inter" font-size="10.5" font-weight="700" fill="#166534">Критик оценивает каждый шаг локально (TD-ошибка):</text>
+        <text x="12" y="35" font-family="JetBrains Mono" font-size="10" fill="#15803d">δₜ = rₜ₊₁ + γ V_ϕ(sₜ₊₁) - V_ϕ(sₜ)</text>
+        <text x="12" y="50" font-family="Inter" font-size="9.5" fill="#334155">Шаги 1–99: результат не хуже ожиданий ⇒ <tspan font-weight="700" fill="#16a34a">δₜ ≥ 0 (поощрение)</tspan></text>
+        <text x="12" y="62" font-family="Inter" font-size="9.5" fill="#334155">Шаг 100: внезапный срыв траектории ⇒ <tspan font-weight="700" fill="#dc2626">δ₁₀₀ &lt; 0 (точечный штраф)</tspan></text>
+      </g>
+
+      <!-- Bottom takeaway -->
+      <g transform="translate(10, 96)">
+        <rect width="840" height="26" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+        <text x="12" y="17" font-family="Inter" font-size="10" fill="#1e293b">
+          💡 <tspan font-weight="700" fill="#047857">Точечное обучение:</tspan> Актор закрепляет успешные шаги бега (1–99) и пенализирует <tspan font-weight="700" fill="#b91c1c">исключительно ошибку на шаге 100</tspan>. Дисперсия снижена на порядки!
+        </text>
+      </g>
+    </g>
+  </g>
+</svg>'''
+    filepath = os.path.join(OUTPUT_DIR, 'credit_assignment_problem.svg')
+    with open(filepath, 'w', encoding='utf-8') as f:
+        f.write(svg)
+    print(f"Generated: {filepath}")
+
+def generate_continuous_action_barrier():
+    svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 480" width="100%" height="100%">
+  <defs>
+    <linearGradient id="cabBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f8fafc"/>
+    </linearGradient>
+    <filter id="cabShadow" x="-3%" y="-4%" width="106%" height="110%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.06"/>
+    </filter>
+  </defs>
+
+  <rect width="100%" height="100%" rx="12" fill="url(#cabBg)" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- Title & Subtitle -->
+  <g transform="translate(28, 28)">
+    <text x="0" y="0" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="800" fill="#0f172a">Барьер непрерывного действия в Value-Based методах</text>
+    <text x="0" y="20" font-family="Inter, system-ui, sans-serif" font-size="11.5" fill="#64748b">Почему классический Q-Learning / DQN терпит неудачу в реальном управлении приводами роботов</text>
+  </g>
+
+  <!-- Left: Discrete Action Space (DQN Success) -->
+  <g transform="translate(28, 70)" filter="url(#cabShadow)">
+    <rect width="436" height="375" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+    <rect width="436" height="30" rx="8" fill="#059669"/>
+    <text x="14" y="20" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#ffffff">
+      Дискретные действия (Atari / GridWorld) — DQN работает
+    </text>
+
+    <g transform="translate(16, 46)">
+      <text x="0" y="14" font-family="Inter" font-size="11" font-weight="700" fill="#166534">Пространство действий конечно: |A| = 4 кнопки</text>
+      <text x="0" y="30" font-family="JetBrains Mono" font-size="10" fill="#334155">A = { Влево, Вправо, Прыжок, Огонь }</text>
+
+      <!-- Architecture Box -->
+      <rect x="0" y="44" width="404" height="110" rx="6" fill="#ffffff" stroke="#bbf7d0"/>
+      <text x="12" y="64" font-family="Inter" font-size="10.5" font-weight="700" fill="#1e293b">Архитектура сети DQN:</text>
+      <text x="12" y="82" font-family="JetBrains Mono" font-size="10" fill="#2563eb">Вход: Состояние s (кадр пикселей 84×84)</text>
+      <text x="12" y="100" font-family="JetBrains Mono" font-size="10" fill="#059669">Выход: 4 числа [Q(s, a₁), Q(s, a₂), Q(s, a₃), Q(s, a₄)]</text>
+      <text x="12" y="130" font-family="Inter" font-size="9.5" fill="#475569">Сеть за один прямой проход вычисляет ценность ВСЕХ действий.</text>
+
+      <!-- Argmax Evaluation Box -->
+      <g transform="translate(0, 168)">
+        <rect width="404" height="66" rx="6" fill="#ecfdf5" stroke="#6ee7b7"/>
+        <text x="12" y="20" font-family="Inter" font-size="10.5" font-weight="700" fill="#065f46">Операция выбора оптимального действия:</text>
+        <text x="12" y="40" font-family="JetBrains Mono" font-size="12" font-weight="800" fill="#047857">a* = argmax_a Q(s, a)  ⇒  O(|A|) = 4 операции</text>
+        <text x="12" y="56" font-family="Inter" font-size="9.5" fill="#065f46">Выполняется за 0.001 мс (банальный поиск max в массиве из 4 чисел).</text>
+      </g>
+
+      <!-- Verdict Box -->
+      <g transform="translate(0, 248)">
+        <rect width="404" height="64" rx="6" fill="#ffffff" stroke="#a7f3d0"/>
+        <text x="12" y="20" font-family="Inter" font-size="10.5" font-weight="700" fill="#15803d">✅ Итог для дискретных задач:</text>
+        <text x="12" y="38" font-family="Inter" font-size="9.5" fill="#334155">Критик одновременно служит регулятором. Выбор действия детерминирован и вычислительно бесплатен.</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Right: Continuous Action Space (Robotics Failure of pure argmax) -->
+  <g transform="translate(496, 70)" filter="url(#cabShadow)">
+    <rect width="436" height="375" rx="8" fill="#fef2f2" stroke="#fca5a5" stroke-width="1.5"/>
+    <rect width="436" height="30" rx="8" fill="#dc2626"/>
+    <text x="14" y="20" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#ffffff">
+      Непрерывные действия (Робототехника) — Тупик DQN
+    </text>
+
+    <g transform="translate(16, 46)">
+      <text x="0" y="14" font-family="Inter" font-size="11" font-weight="700" fill="#991b1b">Пространство действий непрерывно: a ∈ ℝ¹²</text>
+      <text x="0" y="30" font-family="JetBrains Mono" font-size="10" fill="#334155">12 суставов: τ_i ∈ [-30, +30] Н·м (бесконечность)</text>
+
+      <!-- Architecture Box -->
+      <rect x="0" y="44" width="404" height="110" rx="6" fill="#ffffff" stroke="#fecaca"/>
+      <text x="12" y="64" font-family="Inter" font-size="10.5" font-weight="700" fill="#1e293b">Что вычисляет Q-сеть в непрерывном случае?</text>
+      <text x="12" y="82" font-family="JetBrains Mono" font-size="10" fill="#2563eb">Вход: Состояние s + вектор моментов a ∈ ℝ¹²</text>
+      <text x="12" y="100" font-family="JetBrains Mono" font-size="10" fill="#dc2626">Выход: ОДНО скалярное число Q(s, a) ∈ ℝ</text>
+      <text x="12" y="130" font-family="Inter" font-size="9.5" fill="#7f1d1d">Сеть НЕ МОЖЕТ выдать все Q сразу — их бесконечно много!</text>
+
+      <!-- Argmax Evaluation Box -->
+      <g transform="translate(0, 168)">
+        <rect width="404" height="66" rx="6" fill="#fee2e2" stroke="#f87171"/>
+        <text x="12" y="20" font-family="Inter" font-size="10.5" font-weight="700" fill="#991b1b">Проблема вычисления argmax на борту робота:</text>
+        <text x="12" y="38" font-family="JetBrains Mono" font-size="11" font-weight="800" fill="#b91c1c">a* = argmax_{a ∈ ℝ¹²} Q(s, a)  ⇒  Нелинейная NLP!</text>
+        <text x="12" y="56" font-family="Inter" font-size="9.5" fill="#7f1d1d">Численный градиентный поиск оптимума требует 50–200 мс (лимит 2 мс!).</text>
+      </g>
+
+      <!-- Discrete Grid Explosion Box -->
+      <g transform="translate(0, 248)">
+        <rect width="404" height="64" rx="6" fill="#ffffff" stroke="#fca5a5"/>
+        <text x="12" y="18" font-family="Inter" font-size="10" font-weight="700" fill="#991b1b">Дискретизация моторов (всего по 5 точек на сустав):</text>
+        <text x="12" y="34" font-family="JetBrains Mono" font-size="10.5" font-weight="700" fill="#b91c1c">5¹² = 244 140 625 комбинаций на каждом шаге!</text>
+        <text x="12" y="52" font-family="Inter" font-size="9.5" font-weight="700" fill="#15803d">💡 Решение: Нужна сеть Актора π_θ(s) → a (инференс 0.2 мс)!</text>
+      </g>
+    </g>
+  </g>
+</svg>'''
+    filepath = os.path.join(OUTPUT_DIR, 'continuous_action_barrier.svg')
+    with open(filepath, 'w', encoding='utf-8') as f:
+        f.write(svg)
+    print(f"Generated: {filepath}")
+
 if __name__ == '__main__':
     print("=== Generating Lecture 06 SVGs ===")
+    generate_agent_environment_loop()
     generate_rl_taxonomy()
     generate_dqn_architecture()
     generate_actor_critic_architecture()
     generate_teacher_student_sim2real()
+    generate_credit_assignment_problem()
+    generate_continuous_action_barrier()
     print("=== Lecture 06 SVGs Successfully Generated ===")

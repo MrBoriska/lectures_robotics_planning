@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 480" width="100%" height="100%">
+  <defs>
+    <linearGradient id="cabBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f8fafc"/>
+    </linearGradient>
+    <filter id="cabShadow" x="-3%" y="-4%" width="106%" height="110%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.06"/>
+    </filter>
+  </defs>
+
+  <rect width="100%" height="100%" rx="12" fill="url(#cabBg)" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- Title & Subtitle -->
+  <g transform="translate(28, 28)">
+    <text x="0" y="0" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="800" fill="#0f172a">Барьер непрерывного действия в Value-Based методах</text>
+    <text x="0" y="20" font-family="Inter, system-ui, sans-serif" font-size="11.5" fill="#64748b">Почему классический Q-Learning / DQN терпит неудачу в реальном управлении приводами роботов</text>
+  </g>
+
+  <!-- Left: Discrete Action Space (DQN Success) -->
+  <g transform="translate(28, 70)" filter="url(#cabShadow)">
+    <rect width="436" height="375" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+    <rect width="436" height="30" rx="8" fill="#059669"/>
+    <text x="14" y="20" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#ffffff">
+      Дискретные действия (Atari / GridWorld) — DQN работает
+    </text>
+
+    <g transform="translate(16, 46)">
+      <text x="0" y="14" font-family="Inter" font-size="11" font-weight="700" fill="#166534">Пространство действий конечно: |A| = 4 кнопки</text>
+      <text x="0" y="30" font-family="JetBrains Mono" font-size="10" fill="#334155">A = { Влево, Вправо, Прыжок, Огонь }</text>
+
+      <!-- Architecture Box -->
+      <rect x="0" y="44" width="404" height="110" rx="6" fill="#ffffff" stroke="#bbf7d0"/>
+      <text x="12" y="64" font-family="Inter" font-size="10.5" font-weight="700" fill="#1e293b">Архитектура сети DQN:</text>
+      <text x="12" y="82" font-family="JetBrains Mono" font-size="10" fill="#2563eb">Вход: Состояние s (кадр пикселей 84×84)</text>
+      <text x="12" y="100" font-family="JetBrains Mono" font-size="10" fill="#059669">Выход: 4 числа [Q(s, a₁), Q(s, a₂), Q(s, a₃), Q(s, a₄)]</text>
+      <text x="12" y="130" font-family="Inter" font-size="9.5" fill="#475569">Сеть за один прямой проход вычисляет ценность ВСЕХ действий.</text>
+
+      <!-- Argmax Evaluation Box -->
+      <g transform="translate(0, 168)">
+        <rect width="404" height="66" rx="6" fill="#ecfdf5" stroke="#6ee7b7"/>
+        <text x="12" y="20" font-family="Inter" font-size="10.5" font-weight="700" fill="#065f46">Операция выбора оптимального действия:</text>
+        <text x="12" y="40" font-family="JetBrains Mono" font-size="12" font-weight="800" fill="#047857">a* = argmax_a Q(s, a)  ⇒  O(|A|) = 4 операции</text>
+        <text x="12" y="56" font-family="Inter" font-size="9.5" fill="#065f46">Выполняется за 0.001 мс (банальный поиск max в массиве из 4 чисел).</text>
+      </g>
+
+      <!-- Verdict Box -->
+      <g transform="translate(0, 248)">
+        <rect width="404" height="64" rx="6" fill="#ffffff" stroke="#a7f3d0"/>
+        <text x="12" y="20" font-family="Inter" font-size="10.5" font-weight="700" fill="#15803d">✅ Итог для дискретных задач:</text>
+        <text x="12" y="38" font-family="Inter" font-size="9.5" fill="#334155">Критик одновременно служит регулятором. Выбор действия детерминирован и вычислительно бесплатен.</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Right: Continuous Action Space (Robotics Failure of pure argmax) -->
+  <g transform="translate(496, 70)" filter="url(#cabShadow)">
+    <rect width="436" height="375" rx="8" fill="#fef2f2" stroke="#fca5a5" stroke-width="1.5"/>
+    <rect width="436" height="30" rx="8" fill="#dc2626"/>
+    <text x="14" y="20" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#ffffff">
+      Непрерывные действия (Робототехника) — Тупик DQN
+    </text>
+
+    <g transform="translate(16, 46)">
+      <text x="0" y="14" font-family="Inter" font-size="11" font-weight="700" fill="#991b1b">Пространство действий непрерывно: a ∈ ℝ¹²</text>
+      <text x="0" y="30" font-family="JetBrains Mono" font-size="10" fill="#334155">12 суставов: τ_i ∈ [-30, +30] Н·м (бесконечность)</text>
+
+      <!-- Architecture Box -->
+      <rect x="0" y="44" width="404" height="110" rx="6" fill="#ffffff" stroke="#fecaca"/>
+      <text x="12" y="64" font-family="Inter" font-size="10.5" font-weight="700" fill="#1e293b">Что вычисляет Q-сеть в непрерывном случае?</text>
+      <text x="12" y="82" font-family="JetBrains Mono" font-size="10" fill="#2563eb">Вход: Состояние s + вектор моментов a ∈ ℝ¹²</text>
+      <text x="12" y="100" font-family="JetBrains Mono" font-size="10" fill="#dc2626">Выход: ОДНО скалярное число Q(s, a) ∈ ℝ</text>
+      <text x="12" y="130" font-family="Inter" font-size="9.5" fill="#7f1d1d">Сеть НЕ МОЖЕТ выдать все Q сразу — их бесконечно много!</text>
+
+      <!-- Argmax Evaluation Box -->
+      <g transform="translate(0, 168)">
+        <rect width="404" height="66" rx="6" fill="#fee2e2" stroke="#f87171"/>
+        <text x="12" y="20" font-family="Inter" font-size="10.5" font-weight="700" fill="#991b1b">Проблема вычисления argmax на борту робота:</text>
+        <text x="12" y="38" font-family="JetBrains Mono" font-size="11" font-weight="800" fill="#b91c1c">a* = argmax_{a ∈ ℝ¹²} Q(s, a)  ⇒  Нелинейная NLP!</text>
+        <text x="12" y="56" font-family="Inter" font-size="9.5" fill="#7f1d1d">Численный градиентный поиск оптимума требует 50–200 мс (лимит 2 мс!).</text>
+      </g>
+
+      <!-- Discrete Grid Explosion Box -->
+      <g transform="translate(0, 248)">
+        <rect width="404" height="64" rx="6" fill="#ffffff" stroke="#fca5a5"/>
+        <text x="12" y="18" font-family="Inter" font-size="10" font-weight="700" fill="#991b1b">Дискретизация моторов (всего по 5 точек на сустав):</text>
+        <text x="12" y="34" font-family="JetBrains Mono" font-size="10.5" font-weight="700" fill="#b91c1c">5¹² = 244 140 625 комбинаций на каждом шаге!</text>
+        <text x="12" y="52" font-family="Inter" font-size="9.5" font-weight="700" fill="#15803d">💡 Решение: Нужна сеть Актора π_θ(s) → a (инференс 0.2 мс)!</text>
+      </g>
+    </g>
+  </g>
+</svg>

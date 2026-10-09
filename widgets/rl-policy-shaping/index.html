@@ -5,7 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Интерактивный симулятор: Синтез политики RL и Reward Shaping</title>
   <link rel="stylesheet" href="../common/widget-base.css">
+  <link rel="stylesheet" href="../common/katex/katex.min.css">
+  <script defer src="../common/katex/katex.min.js"></script>
+  <script defer src="../common/katex/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}], throwOnError: false});"></script>
   <style>
+    .katex {
+      font-size: 1.0em !important;
+      line-height: 1 !important;
+      white-space: nowrap !important;
+    }
+    .katex-display {
+      margin: 2px 0 !important;
+    }
+    .formula-box {
+      font-size: 11px;
+      color: var(--text-main);
+      background: var(--bg-control);
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      padding: 4px 6px;
+      margin-bottom: 6px;
+      text-align: center;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
     .split-view {
       display: flex;
       flex: 1;
@@ -33,7 +57,7 @@
       background: var(--bg-panel);
       border: 1px solid var(--border-color);
       border-radius: 8px;
-      padding: 10px 12px;
+      padding: 6px 10px;
       display: flex;
       flex-direction: column;
       box-shadow: 0 1px 2px rgba(0,0,0,0.03);
@@ -76,25 +100,28 @@
     .control-row {
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 11.5px;
-      margin-bottom: 6px;
+      gap: 6px;
+      font-size: 11px;
+      margin-bottom: 4px;
     }
     .control-row label {
-      width: 140px;
+      width: 145px;
       color: var(--text-main);
       font-weight: 500;
       flex-shrink: 0;
+      white-space: nowrap;
     }
     .control-row input[type=range] {
       flex: 1;
+      min-width: 0;
     }
     .control-row span.val {
-      width: 44px;
+      width: 40px;
       text-align: right;
       font-family: var(--font-mono);
       color: var(--accent-blue);
       font-weight: 600;
+      font-size: 10.5px;
     }
     .stats-grid {
       display: grid;
@@ -203,7 +230,7 @@
         <!-- Reward Shaping -->
         <div class="card">
           <div class="card-title">Настройка функции награды (Reward Shaping)</div>
-          <div style="font-size: 10.5px; color: var(--text-muted); margin-bottom: 8px;">
+          <div class="formula-box">
             $R_t = - w_p (x - x^*)^2 - w_\theta \theta^2 - w_u u^2 - w_{\Delta u} (\Delta u)^2$
           </div>
 
@@ -259,7 +286,7 @@
           <div class="card-title">Телеметрия контура управления</div>
           <div class="stats-grid">
             <div class="stat-item">
-              <div class="stat-label">Суммарная отдача $J = \sum \gamma^t R$</div>
+              <div class="stat-label">Накопленная награда $J = \sum \gamma^t R$</div>
               <div class="stat-value" id="statReturn">0.0</div>
             </div>
             <div class="stat-item">
@@ -277,49 +304,11 @@
           </div>
         </div>
 
-        <!-- Student Practical Tasks (Слайд 15) -->
-        <div class="card" style="background: #f0fdf4; border: 1.5px solid #86efac;">
-          <div class="card-title" style="color: #166534; font-size: 11px;">
-            <span>📋 Задания для студентов (Слайд 15)</span>
-            <span class="badge-mode" style="background: #dcfce7; color: #15803d; border: 1px solid #86efac;">ПРАКТИКА</span>
-          </div>
-          <div style="font-size: 10.5px; color: #166534; line-height: 1.45; display: flex; flex-direction: column; gap: 7px;">
-            <div style="background: #ffffff; padding: 6px 8px; border-radius: 4px; border: 1px solid #bbf7d0;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
-                <strong>Задача 1: Штраф энергии $w_u$</strong>
-                <button id="btnTask1" class="btn" style="padding: 2px 6px; font-size: 9.5px; background: #ecfdf5; border-color: #a7f3d0; color: #047857;">Тест: $w_u \uparrow$</button>
-              </div>
-              <div style="color: #374151;">
-                Сравните быстродействие при $w_u=0.05$ (агрессивно, большие токи $u$) и $w_u=2.0$ (плавный расход, большее время установления).
-              </div>
-            </div>
-
-            <div style="background: #ffffff; padding: 6px 8px; border-radius: 4px; border: 1px solid #bbf7d0;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
-                <strong>Задача 2: Парирование толчка (Kick)</strong>
-                <button id="btnTask2" class="btn" style="padding: 2px 6px; font-size: 9.5px; background: #fef2f2; border-color: #fecaca; color: #dc2626;">⚡ Импульс</button>
-              </div>
-              <div style="color: #374151;">
-                Запустите <em>RL Dense</em>, <em>LQR</em> и <em>RL Sparse</em>. Нажмите толчок. Плотная награда стабилизирует тележку; Sparse раскачивается и падает.
-              </div>
-            </div>
-
-            <div style="background: #ffffff; padding: 6px 8px; border-radius: 4px; border: 1px solid #bbf7d0;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
-                <strong>Задача 3: Предел LQR ($\theta > 40^\circ$) vs RL</strong>
-                <button id="btnTask3" class="btn" style="padding: 2px 6px; font-size: 9.5px; background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8;">Тест: $\theta=43^\circ$</button>
-              </div>
-              <div style="color: #374151;">
-                При наклоне $\theta > 40^\circ$ ($>0.7$ рад) линейный регулятор (LQR) опрокидывается из-за нелинейного момента гравитации. RL удерживает равновесие!
-              </div>
-            </div>
-          </div>
-        </div>
 
         <!-- Pedagogical Takeaway -->
         <div class="card" style="background: #f8fafc; border-left: 3px solid var(--accent-blue);">
           <div style="font-weight: 700; font-size: 11px; color: var(--text-main); margin-bottom: 4px;">
-            💡 Инженерный вывод для студентов:
+            💡 Инженерный анализ динамики:
           </div>
           <div id="takeawayText" style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">
             <strong>Плотная награда (Dense Reward)</strong> позволяет нейросети мгновенно стабилизировать робота при сильных возмущениях. Высокий вес энергии $w_u$ делает движения плавными, но увеличивает время установления. При <strong>Sparse Reward</strong> агент не получает промежуточных сигналов и теряет равновесие.
@@ -382,9 +371,6 @@
     const btnStep = document.getElementById('btnStep');
     const btnReset = document.getElementById('btnReset');
     const btnKick = document.getElementById('btnKick');
-    const btnTask1 = document.getElementById('btnTask1');
-    const btnTask2 = document.getElementById('btnTask2');
-    const btnTask3 = document.getElementById('btnTask3');
     const selectMode = document.getElementById('selectMode');
     const modeBadge = document.getElementById('modeBadge');
 
@@ -769,6 +755,9 @@
         modeBadge.textContent = 'OPTIMAL CONTROL';
         takeawayText.innerHTML = '<strong>Классический LQR</strong>: Идеален вблизи $\\theta=0$. При сильном толчке (kick) нелинейные эффекты выводят систему за пределы линеаризации, вызывая срыв управления.';
       }
+      if (window.renderMathInElement) {
+        window.renderMathInElement(takeawayText, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});
+      }
     }
 
     // --- Interactive Loop ---
@@ -820,26 +809,6 @@
       sim.x_dot += (Math.random() - 0.5) * 1.8;
     });
 
-    btnTask1.addEventListener('click', () => {
-      sim.mode = 'rl_dense';
-      selectMode.value = 'rl_dense';
-      sim.wEffort = sim.wEffort > 1.0 ? 0.05 : 2.0;
-      slWEffort.value = sim.wEffort;
-      valWEffort.textContent = sim.wEffort.toFixed(2);
-      btnTask1.textContent = sim.wEffort > 1.0 ? 'w_u = 2.0 (Плавный)' : 'w_u = 0.05 (Агрессивный)';
-      updateTelemetry();
-    });
-
-    btnTask2.addEventListener('click', () => {
-      sim.theta_dot += (Math.random() > 0.5 ? 1 : -1) * (2.8 + Math.random() * 1.2);
-      sim.x_dot += (Math.random() - 0.5) * 2.2;
-    });
-
-    btnTask3.addEventListener('click', () => {
-      sim.theta = 0.75;
-      sim.theta_dot = 0.0;
-      updateTelemetry();
-    });
 
     selectMode.addEventListener('change', (e) => {
       sim.mode = e.target.value;
