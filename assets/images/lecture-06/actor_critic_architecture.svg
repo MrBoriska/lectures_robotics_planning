@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 490" width="100%" height="100%">
+  <defs>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#059669"/>
+    </marker>
+    <marker id="arrow-amber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#d97706"/>
+    </marker>
+    <marker id="arrow-purple" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#7c3aed"/>
+    </marker>
+    <filter id="shadow" x="-3%" y="-4%" width="106%" height="110%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.06"/>
+    </filter>
+  </defs>
+
+  <rect width="100%" height="100%" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- Title -->
+  <g transform="translate(28, 28)">
+    <text x="0" y="0" font-family="Inter, system-ui, sans-serif" font-size="16.5" font-weight="800" fill="#0f172a">Архитектура Actor-Critic: Замкнутый контур управления</text>
+    <text x="0" y="20" font-family="Inter, system-ui, sans-serif" font-size="11.5" fill="#64748b">Разделение ролей: Актёр формирует управляющее воздействие, Критик оценивает ценность состояния и вычисляет TD-ошибку</text>
+  </g>
+
+  <!-- Environment (Bottom Center) -->
+  <g transform="translate(260, 345)" filter="url(#shadow)">
+    <rect width="420" height="105" rx="8" fill="#1e293b" stroke="#0f172a" stroke-width="1.5"/>
+    <rect width="420" height="26" rx="8" fill="#0f172a"/>
+    <text x="16" y="17" font-family="Inter, sans-serif" font-size="11.5" font-weight="700" fill="#ffffff">Среда (Environment: Физический робот / Isaac Sim)</text>
+
+    <g transform="translate(16, 38)" font-family="Inter, sans-serif" font-size="10.5" fill="#e2e8f0">
+      <text x="0" y="14">• Физический отклик: sₜ₊₁ = f(sₜ, aₜ) + возмущения dₜ</text>
+      <text x="0" y="32">• Функция вознаграждения: rₜ₊₁ = R(sₜ, aₜ, sₜ₊₁) (Reward Shaping)</text>
+      <text x="0" y="50" fill="#94a3b8">• Частота контура: 50–500 Гц на бортовом компьютере робота</text>
+    </g>
+  </g>
+
+  <!-- Left: Actor Module -->
+  <g transform="translate(48, 85)" filter="url(#shadow)">
+    <rect width="360" height="215" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.8"/>
+    <rect width="360" height="28" rx="8" fill="#2563eb"/>
+    <text x="14" y="19" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#ffffff">Актёр (Actor / Policy Network): π_θ(a | s)</text>
+
+    <g transform="translate(14, 40)" font-family="Inter, sans-serif" font-size="10" fill="#1e293b">
+      <text x="0" y="12" font-weight="700" fill="#1e40af">Назначение:</text>
+      <text x="80" y="12" fill="#334155">Генерация команд приводам робота</text>
+
+      <!-- Architecture spec -->
+      <rect x="0" y="24" width="332" height="42" rx="4" fill="#ffffff" stroke="#bfdbfe"/>
+      <text x="8" y="40" font-family="Inter" font-weight="700" fill="#1e40af">Вход:</text>
+      <text x="44" y="40" font-family="JetBrains Mono" fill="#334155">sₜ (углы суставов q, скорости q̇, IMU ω, g)</text>
+      <text x="8" y="56" font-family="Inter" font-weight="700" fill="#1e40af">Выход:</text>
+      <text x="52" y="56" font-family="JetBrains Mono" fill="#2563eb">aₜ ~ 𝒩(μ_θ(sₜ), Σ_θ) (моменты / целевые углы)</text>
+
+      <text x="0" y="84" font-weight="700" fill="#1e40af">Правило обновления параметров θ (Policy Gradient):</text>
+      <rect x="0" y="92" width="332" height="44" rx="4" fill="#ffffff" stroke="#bfdbfe"/>
+      <text x="8" y="110" font-family="JetBrains Mono" font-size="10.5" font-weight="700" fill="#1d4ed8">∇_θ J(θ) = 𝔼 [ ∇_θ log π_θ(aₜ|sₜ) · δₜ ]</text>
+      <text x="8" y="126" font-family="Inter" font-size="9" fill="#64748b">где δₜ — сигнал преимущества (Advantage), полученный от Критика</text>
+
+      <text x="0" y="152" font-size="9.5" fill="#475569">
+        При <tspan font-weight="700" fill="#059669">δₜ &gt; 0</tspan>: действие успешнее среднего ⇒ вероятность ↑
+      </text>
+      <text x="0" y="166" font-size="9.5" fill="#475569">
+        При <tspan font-weight="700" fill="#dc2626">δₜ &lt; 0</tspan>: действие привело к штрафу ⇒ вероятность ↓
+      </text>
+    </g>
+  </g>
+
+  <!-- Right: Critic Module -->
+  <g transform="translate(532, 85)" filter="url(#shadow)">
+    <rect width="360" height="215" rx="8" fill="#f0fdf4" stroke="#10b981" stroke-width="1.8"/>
+    <rect width="360" height="28" rx="8" fill="#059669"/>
+    <text x="14" y="19" font-family="Inter, sans-serif" font-size="12" font-weight="700" fill="#ffffff">Критик (Critic / Value Network): V_ϕ(s)</text>
+
+    <g transform="translate(14, 40)" font-family="Inter, sans-serif" font-size="10" fill="#1e293b">
+      <text x="0" y="12" font-weight="700" fill="#166534">Назначение:</text>
+      <text x="80" y="12" fill="#334155">Оценка ожидаемой суммарной отдачи</text>
+
+      <!-- Architecture spec -->
+      <rect x="0" y="24" width="332" height="42" rx="4" fill="#ffffff" stroke="#bbf7d0"/>
+      <text x="8" y="40" font-family="Inter" font-weight="700" fill="#166534">Вход:</text>
+      <text x="44" y="40" font-family="JetBrains Mono" fill="#334155">sₜ (состояние системы) или (sₜ, aₜ)</text>
+      <text x="8" y="56" font-family="Inter" font-weight="700" fill="#166534">Выход:</text>
+      <text x="52" y="56" font-family="JetBrains Mono" fill="#15803d">V_ϕ(sₜ) ∈ ℝ (скалярная ценность состояния)</text>
+
+      <text x="0" y="84" font-weight="700" fill="#166534">Вычисление TD-ошибки (TD Error / Advantage):</text>
+      <rect x="0" y="92" width="332" height="44" rx="4" fill="#ffffff" stroke="#bbf7d0"/>
+      <text x="8" y="110" font-family="JetBrains Mono" font-size="10.5" font-weight="700" fill="#047857">δₜ = rₜ₊₁ + γ · V_ϕ(sₜ₊₁) − V_ϕ(sₜ)</text>
+      <text x="8" y="126" font-family="Inter" font-size="9" fill="#64748b">Оценка: насколько шаг превзошел средние ожидания</text>
+
+      <text x="0" y="152" font-size="9.5" fill="#475569">
+        Обучение критика: минимизация MSE ошибки Беллмана
+      </text>
+      <text x="0" y="166" font-family="JetBrains Mono" font-size="9" fill="#166534">
+        ℒ(ϕ) = 1/2 · δₜ² ⇒ ϕ ← ϕ − α_v · ∇_ϕ ℒ(ϕ)
+      </text>
+    </g>
+  </g>
+
+  <!-- Connectors and Information Flow -->
+  <!-- 1. Critic passes TD Error delta_t to Actor -->
+  <path d="M 532,192 L 410,192" stroke="#7c3aed" stroke-width="2.5" marker-end="url(#arrow-purple)" fill="none"/>
+  <rect x="424" y="174" width="94" height="20" rx="4" fill="#f5f3ff" stroke="#ddd6fe"/>
+  <text x="471" y="188" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" font-weight="700" fill="#6d28d9">Сигнал δₜ</text>
+
+  <!-- 2. Actor sends Action a_t to Environment -->
+  <path d="M 190,300 L 190,397 L 258,397" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)" fill="none"/>
+  <rect x="150" y="340" width="80" height="20" rx="4" fill="#eff6ff" stroke="#bfdbfe"/>
+  <text x="190" y="354" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" font-weight="700" fill="#1d4ed8">Действие aₜ</text>
+
+  <!-- 3. Environment sends State s_t to Actor and Critic -->
+  <path d="M 470,345 L 470,318 L 300,318 L 300,302" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)" fill="none"/>
+  <path d="M 470,318 L 650,318 L 650,302" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)" fill="none"/>
+  <rect x="426" y="308" width="88" height="20" rx="4" fill="#ecfdf5" stroke="#a7f3d0"/>
+  <text x="470" y="322" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" font-weight="700" fill="#047857">Состояние sₜ</text>
+
+  <!-- 4. Environment sends Reward r_t to Critic -->
+  <path d="M 680,380 L 780,380 L 780,302" stroke="#d97706" stroke-width="2" marker-end="url(#arrow-amber)" fill="none"/>
+  <rect x="735" y="340" width="90" height="20" rx="4" fill="#fffbeb" stroke="#fde68a"/>
+  <text x="780" y="354" text-anchor="middle" font-family="JetBrains Mono" font-size="9.5" font-weight="700" fill="#b45309">Награда rₜ₊₁</text>
+
+  <!-- Footer summary -->
+  <g transform="translate(28, 458)">
+    <rect width="884" height="24" rx="4" fill="#f8fafc" stroke="#e2e8f0"/>
+    <text x="12" y="16" font-family="Inter" font-size="9" fill="#475569">
+      <tspan font-weight="700" fill="#0f172a">Ключевой эффект:</tspan> Использование функции ценности Критика V(s) снижает дисперсию градиента на порядки по сравнению с REINFORCE, обеспечивая устойчивое обучение шагающих роботов.
+    </text>
+  </g>
+</svg>

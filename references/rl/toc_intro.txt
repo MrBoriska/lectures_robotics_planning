@@ -1,0 +1,886 @@
+arXiv:2412.05265v2 [cs.AI] 24 Mar 2025
+
+Reinforcement Learning: A Comprehensive Overview
+Kevin P. Murphy
+March 25, 2025
+
+2
+
+Contents
+1 Introduction
+1.1 Sequential decision making . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1.1.1 Maximizing expected utility . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1.1.2 Minimizing regret . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1.1.3 Episodic vs continual tasks . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1.1.4 Universal model . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1.1.5 Further reading . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1.2 Canonical models . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1.2.1 Partially observed MDPs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1.2.2 Markov decision process (MDPs) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1.2.3 Contextual MDPs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1.2.4 Contextual bandits . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1.2.5 Belief state MDPs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1.2.6 Optimization problems . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1.2.6.1 Best-arm identification . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1.2.6.2 Bayesian optimization . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1.2.6.3 Active learning . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1.2.6.4 Stochastic Gradient Descent (SGD) . . . . . . . . . . . . . . . . . . . . . . .
+1.3 Reinforcement Learning: a brief overview . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1.3.1 Value-based RL . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1.3.2 Policy-based RL . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1.3.3 Model-based RL . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1.3.4 State uncertainty (partial observability) . . . . . . . . . . . . . . . . . . . . . . . . . .
+1.3.4.1 Optimal solution . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1.3.4.2 Finite observation history . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1.3.4.3 Stateful (recurrent) policies . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1.3.5 Model uncertainty (exploration-exploitation tradeoff) . . . . . . . . . . . . . . . . . .
+1.3.6 Reward functions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1.3.6.1 The reward hypothesis . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1.3.6.2 Reward hacking . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1.3.6.3 Sparse reward . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1.3.6.4 Reward shaping . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1.3.6.5 Intrinsic reward . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+1.3.7 Software . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+9
+9
+9
+10
+10
+11
+12
+12
+13
+13
+14
+14
+15
+16
+17
+17
+17
+17
+17
+18
+19
+19
+19
+20
+20
+20
+20
+21
+21
+21
+22
+22
+22
+22
+
+2 Value-based RL
+25
+2.1 Basic concepts . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 25
+2.1.1 Value functions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 25
+2.1.2 Bellman’s equations . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 25
+2.1.3 Example: 1d grid world . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 26
+3
+
+2.2
+
+2.3
+
+2.4
+2.5
+
+Computing the value function and policy given a known world model . . . . . . . . . . . . . .
+2.2.1 Value iteration . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.2.2 Real-time dynamic programming (RTDP) . . . . . . . . . . . . . . . . . . . . . . . . .
+2.2.3 Policy iteration . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+Computing the value function without knowing the world model . . . . . . . . . . . . . . . .
+2.3.1 Monte Carlo estimation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.3.2 Temporal difference (TD) learning . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.3.3 Combining TD and MC learning using TD(λ) . . . . . . . . . . . . . . . . . . . . . . .
+2.3.4 Eligibility traces . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+SARSA: on-policy TD control . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+Q-learning: off-policy TD control . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.5.1 Tabular Q learning . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.5.2 Q learning with function approximation . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.5.2.1 Neural fitted Q . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.5.2.2 DQN . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.5.2.3 Experience replay . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.5.2.4 The deadly triad . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.5.2.5 Target networks . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.5.2.6 Gradient TD methods . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.5.2.7 Two time-scale methods . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.5.2.8 Layer norm . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.5.2.9 Other methods . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.5.3 Maximization bias . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.5.3.1 Double Q-learning . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.5.3.2 Double DQN . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.5.3.3 Randomized ensemble DQN . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.5.4 DQN extensions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.5.4.1 Q learning for continuous actions . . . . . . . . . . . . . . . . . . . . . . . . .
+2.5.4.2 Dueling DQN . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.5.4.3 Noisy nets and exploration . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.5.4.4 Multi-step DQN . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.5.4.5 Rainbow . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.5.4.6 Bigger, Better, Faster . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+2.5.4.7 Other methods . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+27
+27
+28
+28
+29
+29
+30
+30
+32
+32
+33
+33
+35
+35
+35
+36
+36
+37
+37
+37
+38
+38
+38
+39
+39
+39
+39
+40
+40
+40
+41
+41
+42
+42
+
+3 Policy-based RL
+43
+3.1 The policy gradient theorem . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 44
+3.2 REINFORCE . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 45
+3.3 Actor-critic methods . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 46
+3.3.1 Advantage actor critic (A2C) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 46
+3.3.2 Generalized advantage estimation (GAE) . . . . . . . . . . . . . . . . . . . . . . . . . 47
+3.3.3 Two-time scale actor critic algorithms . . . . . . . . . . . . . . . . . . . . . . . . . . . 48
+3.3.4 Natural policy gradient methods . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 49
+3.3.4.1 Natural gradient descent . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 49
+3.3.4.2 Natural actor critic . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 50
+3.3.5 Architectural issues . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 51
+3.4 Policy improvement methods . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 51
+3.4.1 Policy improvement lower bound . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 51
+3.4.2 Trust region policy optimization (TRPO) . . . . . . . . . . . . . . . . . . . . . . . . . 51
+3.4.3 Proximal Policy Optimization (PPO) . . . . . . . . . . . . . . . . . . . . . . . . . . . . 52
+3.4.4 Variational Maximum a Posteriori Policy Optimization (VMPO) . . . . . . . . . . . . 52
+3.5 Off-policy methods . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 53
+4
+
+3.5.1
+3.5.2
+
+3.6
+
+3.7
+3.8
+
+Policy evaluation using importance sampling . . . . . . . . . . . . . . . . . . . . . . .
+Off-policy actor critic methods . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+3.5.2.1 Learning the critic using V-trace . . . . . . . . . . . . . . . . . . . . . . . . .
+3.5.2.2 Learning the actor . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+3.5.2.3 Example: IMPALA . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+3.5.3 Off-policy policy improvement methods . . . . . . . . . . . . . . . . . . . . . . . . . .
+3.5.3.1 Off-policy PPO . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+3.5.3.2 Off-policy TRPO . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+3.5.3.3 Off-policy VMPO . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+RL as inference . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+3.6.1 Deterministic case (planning/control as inference) . . . . . . . . . . . . . . . . . . . .
+3.6.2 Stochastic case (policy learning as variational inference) . . . . . . . . . . . . . . . . .
+3.6.3 EM control . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+3.6.4 KL control (maximum entropy RL) . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+3.6.5 Maximum a Posteriori Policy Optimization (MPO) . . . . . . . . . . . . . . . . . . . .
+3.6.6 Sequential Monte Carlo Policy Optimisation (SPO) . . . . . . . . . . . . . . . . . . . .
+3.6.7 AWR and AWAC . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+3.6.8 Soft Actor Critic (SAC) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+3.6.8.1 SAC objective . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+3.6.8.2 Policy evaluation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+3.6.8.3 Policy improvement . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+3.6.8.4 Adjusting the temperature . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+Deterministic policy gradient methods . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+3.7.1 DDPG . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+3.7.2 Twin Delayed DDPG (TD3) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+Gradient-free policy optimization . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+54
+54
+55
+56
+56
+56
+57
+57
+57
+57
+58
+59
+60
+60
+60
+61
+61
+62
+62
+62
+63
+63
+63
+65
+66
+67
+
+4 Model-based RL
+69
+4.1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 69
+4.2 Decision-time (online) planning . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 71
+4.2.1 Receeding horizon control . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 71
+4.2.1.1 Forward search . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 71
+4.2.1.2 Branch and bound . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 71
+4.2.1.3 Sparse sampling . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 71
+4.2.1.4 Heuristic search . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 72
+4.2.2 Monte Carlo tree search (MCTS) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 72
+4.2.2.1 MCTS for two-player games: AlphaGo, AlphaGoZero, and AlphaZero . . . . 73
+4.2.2.2 MCTS with learned world model: MuZero and EfficientZero . . . . . . . . . 74
+4.2.3 Sequential Monte Carlo (SMC) for online planning . . . . . . . . . . . . . . . . . . . . 75
+4.2.4 Model predictive control (MPC), aka open loop planning . . . . . . . . . . . . . . . . 76
+4.2.4.1 Suboptimality of open-loop planning for stochastic environments . . . . . . . 77
+4.2.4.2 Trajectory optimization . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 77
+4.2.4.3 LQR . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 77
+4.2.4.4 Random shooting . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 78
+4.2.4.5 CEM . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 78
+4.2.4.6 MPPI . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 78
+4.2.4.7 GP-MPC . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 78
+4.3 Background (offline) planning . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 79
+4.3.1 A game-theoretic perspective on MBRL . . . . . . . . . . . . . . . . . . . . . . . . . . 79
+4.3.2 Dyna . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 80
+4.3.2.1 Tabular Dyna . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 81
+4.3.2.2 Dyna with function approximation . . . . . . . . . . . . . . . . . . . . . . . . 81
+5
+
+4.3.3
+
+Dealing with model errors and uncertainty . . . . . . . . . . . . . . . . . . . . . . . . . 82
+4.3.3.1 Avoiding compounding errors in rollouts . . . . . . . . . . . . . . . . . . . . . 82
+4.3.3.2 End-to-end differentiable learning of model and planner . . . . . . . . . . . . 82
+4.3.3.3 Unified model and planning variational lower bound . . . . . . . . . . . . . . 82
+4.3.3.4 Dynamically switching between MFRL and MBRL . . . . . . . . . . . . . . . 83
+4.4 World models . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 83
+4.4.1 World models which are trained to predict observation targets . . . . . . . . . . . . . 83
+4.4.1.1 Generative world models without latent variables . . . . . . . . . . . . . . . 84
+4.4.1.2 Generative world models with latent variables . . . . . . . . . . . . . . . . . 84
+4.4.1.3 Example: Dreamer . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 84
+4.4.1.4 Example: IRIS . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 87
+4.4.1.5 Code world models (WIP) . . . . . . . . . . . . . . . . . . . . . . . . . . . . 87
+4.4.1.6 Partial observation prediction . . . . . . . . . . . . . . . . . . . . . . . . . . 87
+4.4.2 World models that are trained to predict other targets . . . . . . . . . . . . . . . . . . 87
+4.4.2.1 The objective mismatch problem . . . . . . . . . . . . . . . . . . . . . . . . . 87
+4.4.2.2 Observation prediction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 88
+4.4.2.3 Value prediction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 89
+4.4.2.4 Self prediction (self distillation) . . . . . . . . . . . . . . . . . . . . . . . . . 89
+4.4.2.5 Reward prediction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 89
+4.4.2.6 Policy prediction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 90
+4.4.2.7 JEPA . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 90
+4.4.2.8 Example: TD-MPC . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 91
+4.4.2.9 Example: BYOL-Explore . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 92
+4.4.2.10 Example: imagination-augmented agents . . . . . . . . . . . . . . . . . . . . 93
+4.4.2.11 Using pre-trained visual representations . . . . . . . . . . . . . . . . . . . . . 93
+4.4.3 Exploration for learning world models . . . . . . . . . . . . . . . . . . . . . . . . . . . 93
+4.5 Beyond one-step models: predictive representations . . . . . . . . . . . . . . . . . . . . . . . . 93
+4.5.1 General value functions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 94
+4.5.2 Successor representations . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 94
+4.5.3 Successor models . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 96
+4.5.3.1 Learning SMs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 97
+4.5.3.2 Jumpy models using geometric policy composition . . . . . . . . . . . . . . . 97
+4.5.4 Successor features . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 98
+4.5.4.1 Generalized policy improvement . . . . . . . . . . . . . . . . . . . . . . . . . 98
+4.5.4.2 Option keyboard . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 99
+4.5.4.3 Learning SFs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 99
+4.5.4.4 Choosing the tasks . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 100
+4.5.5 Forwards-backwards representations: TODO . . . . . . . . . . . . . . . . . . . . . . . 100
+5 Multi-agent RL
+101
+5.1 Types of games . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 101
+5.1.1 Normal-form games . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 101
+5.1.2 Stochastic games . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 103
+5.1.3 Partially observed stochastic games (POSG) . . . . . . . . . . . . . . . . . . . . . . . 103
+5.1.4 Extensive form games (EFG) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 104
+5.2 Types of solutions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 105
+5.2.1 Notation and definitions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 105
+5.2.2 Minimax . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 106
+5.2.3 Nash equilibrium . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 106
+5.2.4 Correlated equilibrium . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 107
+5.2.5 Limitations of equilibrium solutions . . . . . . . . . . . . . . . . . . . . . . . . . . . . 107
+5.2.6 Pareto optimality . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 107
+6
+
+5.3
+5.4
+
+5.5
+
+5.2.7 Social welfare and fairness . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 108
+5.2.8 No regret . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 108
+Reductions to single agent learning . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 109
+5.3.1 Central learning . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 109
+5.3.2 Independent learning . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 109
+Model-free MARL algorithms . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 111
+5.4.1 Best response against game-theoretic agents . . . . . . . . . . . . . . . . . . . . . . . . 111
+5.4.2 Best response against learned agents . . . . . . . . . . . . . . . . . . . . . . . . . . . . 111
+5.4.2.1 Fictitious play for normal-form games . . . . . . . . . . . . . . . . . . . . . . 111
+5.4.2.2 Tabular agent learning . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 112
+5.4.2.3 Parametric agent learning . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 112
+5.4.3 Policy learning . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 112
+5.4.3.1 Warmup: two-player normal-form games . . . . . . . . . . . . . . . . . . . . 112
+5.4.3.2 Policy gradient methods . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 113
+5.4.3.3 Centralized training and decentralized execution (CTDE) . . . . . . . . . . . 113
+5.4.3.4 Policy learning with agent models . . . . . . . . . . . . . . . . . . . . . . . . 114
+5.4.4 Value decomposition methods for common-reward games . . . . . . . . . . . . . . . . . 115
+5.4.5 Population-based training . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 115
+5.4.5.1 PSRO . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 115
+5.4.5.2 AlphaStar . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 116
+Model-based MARL algorithms . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 117
+5.5.1 Model learning . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 117
+5.5.2 Background (offline) planning . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 117
+5.5.3 Decision-time (online) planning . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 117
+
+6 LLMs and RL
+119
+6.1 RL for LLMs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 119
+6.1.1 Multi-turn RL . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 119
+6.1.2 Agents which “think” . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 120
+6.1.2.1 Chain of thought . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 120
+6.1.2.2 DeepSeek-R1, ChatGPT-o1, Gemini-Thinking, etc . . . . . . . . . . . . . . . 122
+6.1.2.3 GRPO . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 122
+6.1.3 Reward models for LLMs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 123
+6.1.3.1 RLHF . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 123
+6.1.3.2 Other kinds of reward models . . . . . . . . . . . . . . . . . . . . . . . . . . 123
+6.1.3.3 Outcome vs process reward . . . . . . . . . . . . . . . . . . . . . . . . . . . . 123
+6.1.4 Assistance game . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 123
+6.2 LLMs for RL . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 124
+6.2.1 LLMs for pre-processing the input . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 124
+6.2.2 LLMs for rewards . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 124
+6.2.3 LLMs for world models . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 125
+6.2.4 LLMs for policies . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 125
+7 Other topics in RL
+127
+7.1 Exploration-exploitation tradeoff revisited . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 127
+7.1.1 Methods based on the belief state MDP . . . . . . . . . . . . . . . . . . . . . . . . . . 127
+7.1.1.1 Bandit case (Gittins indices) . . . . . . . . . . . . . . . . . . . . . . . . . . . 127
+7.1.1.2 MDP case (Bayes Adaptive MDPs) . . . . . . . . . . . . . . . . . . . . . . . 127
+7.1.2 Upper confidence bounds (UCBs) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 127
+7.1.2.1 Basic idea . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 128
+7.1.2.2 Bandit case: Frequentist approach . . . . . . . . . . . . . . . . . . . . . . . . 128
+7.1.2.3 Bandit case: Bayesian approach . . . . . . . . . . . . . . . . . . . . . . . . . 128
+7
+
+7.1.2.4 MDP case . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 129
+Thompson sampling . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 129
+7.1.3.1 Bandit case . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 129
+7.1.3.2 MDP case (posterior sampling RL) . . . . . . . . . . . . . . . . . . . . . . . 130
+Distributional RL . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 130
+7.2.1 Quantile regression methods . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 131
+7.2.2 Replacing regression with classification . . . . . . . . . . . . . . . . . . . . . . . . . . . 131
+Intrinsic reward . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 131
+7.3.1 Knowledge-based intrinsic motivation . . . . . . . . . . . . . . . . . . . . . . . . . . . 132
+7.3.2 Goal-based intrinsic motivation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 133
+Hierarchical RL . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 133
+7.4.1 Feudal (goal-conditioned) HRL . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 133
+7.4.1.1 Hindsight Experience Relabeling (HER) . . . . . . . . . . . . . . . . . . . . . 134
+7.4.1.2 Hierarchical HER . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 134
+7.4.1.3 Learning the subgoal space . . . . . . . . . . . . . . . . . . . . . . . . . . . . 134
+7.4.2 Options . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 135
+7.4.2.1 Definitions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 135
+7.4.2.2 Learning options . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 135
+Imitation learning . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 136
+7.5.1 Imitation learning by behavior cloning . . . . . . . . . . . . . . . . . . . . . . . . . . . 136
+7.5.2 Imitation learning by inverse reinforcement learning . . . . . . . . . . . . . . . . . . . 137
+7.5.3 Imitation learning by divergence minimization . . . . . . . . . . . . . . . . . . . . . . 137
+Offline RL . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 138
+7.6.1 Offline model-free RL . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 138
+7.6.1.1 Policy constraint methods . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 139
+7.6.1.2 Behavior-constrained policy gradient methods . . . . . . . . . . . . . . . . . 139
+7.6.1.3 Uncertainty penalties . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 140
+7.6.1.4 Conservative Q-learning and pessimistic value functions . . . . . . . . . . . . 140
+7.6.2 Offline model-based RL . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 140
+7.6.3 Offline RL using reward-conditioned sequence modeling . . . . . . . . . . . . . . . . . 141
+7.6.4 Hybrid offline/online methods . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 141
+General RL, AIXI and universal AGI . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 142
+Acknowledgements . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 142
+7.1.3
+
+7.2
+7.3
+7.4
+
+7.5
+
+7.6
+
+7.7
+7.8
+
+8
+
+Chapter 1
+
+Introduction
+1.1
+
+Sequential decision making
+
+Reinforcement learning or RL is a class of methods for solving various kinds of sequential decision making
+tasks. In such tasks, we want to design an agent that interacts with an external environment. The agent
+maintains an internal state st , which it passes to its policy π to choose an action at = π(st ). The environment
+responds by sending back an observation ot+1 , which the agent uses to update its internal state using the
+state-update function st+1 = U (st , at , ot+1 ). See Figure 1.1 for an illustration. There are many real-world
+applications of these kinds of methods1 , although the methods are more complicated than supervised learning
+(e.g., training a classifier) or self-supervised learning (e.g., training a language model).
+
+1.1.1
+
+Maximizing expected utility
+
+The goal of the agent is to choose a policy π so as to maximize the sum of expected rewards:
+" T
+#
+X
+Vπ (s0 ) = Ep(a0 ,s1 ,a1 ,...,aT ,sT |s0 ,π)
+R(st , at )|s0
+
+(1.1)
+
+t=0
+
+where s0 is the agent’s initial state, R(st , at ) is the reward function that the agent uses to measure the
+value of performing an action in a given state, Vπ (s0 ) is the value function for policy π evaluated at s0 , and
+the expectation is wrt
+p(a0 , s1 , a1 , . . . , aT , sT |s0 , π) = π(a0 |s0 )penv (o1 |a0 )δ(s1 = U (s0 , a0 , o1 ))
+
+× π(a1 |s1 )penv (o2 |a1 , o1 )δ(s2 = U (s1 , a1 , o2 ))
+
+× π(a2 |s2 )penv (o3 |a1:2 , o1:2 )δ(s3 = U (s2 , a2 , o3 )) . . .
+
+(1.2)
+(1.3)
+(1.4)
+
+where penv is the environment’s distribution over observations (which is usually unknown).
+We define the optimal policy as
+π ∗ = arg max Ep0 (s0 ) [Vπ (s0 )]
+π
+
+(1.5)
+
+Note that picking a policy to maximize the sum of expected rewards is an instance of the maximum
+expected utility principle. There are various ways to design or learn an optimal policy, depending on the
+assumptions we make about the environment, and the form of the agent. We will discuss some of these
+options below.
+1 See e.g., https://bit.ly/42V7dIJ from Csaba szepesvari (2024), https://bit.ly/3EMMYCW from Vitaly Kurin (2022), and
+https://github.com/montrealrobotics/DeepRLInTheWorld, which seems to be kept up to date.
+
+9
+
+Figure 1.1: A small agent interacting with a big external world.
+
+1.1.2
+
+Minimizing regret
+
+So far we have defined the RL problem in terms of maximizing the expected reward (utility). However, the
+upper bound on this is usually unknown, so it can be hard to know how well a given agent is doing. An
+alternative approach is to try to minimize the regret, which is defined as the difference between the expected
+reward under the agent’s policy and the oracle policy π∗ , which knows the true MDP. Specifically, let πt be
+the agent’s policy at time t. Then the per-step regret at t is defined as
+
+
+lt ≜ Es1:t R(st , π∗ (st )) − Eπ(at |st ) [R(st , at )]
+(1.6)
+Here the expectation is with respect to randomness in choosing actions using the policy π, as well as earlier
+observations, actions and rewards, as well as other potential sources of randomness.
+
+1.1.3
+
+Episodic vs continual tasks
+
+If the agent can potentially interact with the environment forever, we call it a continual task [Nai+21].
+In this case, we replace the sum of rewards (when defining the value function) with the average reward
+[WNS21].
+Alternatively, we say the agent is in an episodic task if its interaction terminates once the system enters
+a terminal state or absorbing state, which is a state which transitions to itself with 0 reward. After
+entering a terminal state, we may start a new episode from a new initial world state z0 ∼ p0 . (The agent will
+typically also reinitialize its own internal state s0 .) The episode length is in general random. (For example,
+the length of an interaction with a chatbot may be quite variable, depending on the decisions taken by the
+chatbot agent and the randomness in the environment (i.e., the responses from the user)). Finally, if the
+trajectory length T in an episodic task is fixed and known, it is called a finite horizon problem.
+We define the return for a state at time t to be the sum of expected rewards obtained going forwards,
+where each reward is multiplied by a discount factor γ ∈ [0, 1]:
+Gt ≜ rt + γrt+1 + γ 2 rt+2 + · · · + γ T −t−1 rT −1
+=
+
+TX
+−t−1
+k=0
+
+γ k rt+k =
+
+T
+−1
+X
+
+γ j−t rj
+
+(1.7)
+(1.8)
+
+j=t
+
+where rt = R(st , at ) is the reward, and Gt is the reward-to-go. For episodic tasks that terminate at time T ,
+we define Gt = 0 for t ≥ T . Clearly, the return satisfies the following recursive relationship:
+Gt = rt + γ(rt+1 + γrt+2 + · · · ) = rt + γGt+1
+10
+
+(1.9)
+
+Figure 1.2: Diagram illustrating the interaction of the agent and environment. The agent has internal state st , and
+chooses action at based on its policy πt . It then predicts its next internal states, st+1|t , via the predict function P ,
+and optionally predicts the resulting observation, ôt+1 , via the observation decoder D. The environment has (hidden)
+internal state et , which gets updated by the world model W to give the new state et+1 = W (et , at ) in response to the
+agent’s action. The environment also emits an observation ot+1 via the observation model O. This gets encoded to et+1
+by the agent’s observation encoder E, which the agent uses to update its internal state using st+1 = U (st , at , et+1 ).
+The policy is parameterized by θt , and these parameters may be updated (at a slower time scale) by the RL policy π RL .
+Square nodes are functions, circles are variables (either random or deterministic). Dashed square nodes are stochastic
+functions that take an extra source of randomness (not shown).
+
+Furthermore, we define the value function to be the expected reward-to-go:
+Vπ (st ) = E [Gt |π]
+
+(1.10)
+
+The discount factor γ plays two roles. First, it ensures the return is finite even if T = ∞ (i.e., infinite
+horizon), provided we use γ < 1 and the rewards rt are bounded. Second, it puts more weight on short-term
+rewards, which generally has the effect of encouraging the agent to achieve its goals more quickly. (For
+example, if γ = 0.99, then an agent that reaches a terminal reward of 1.0 in 15 steps will receive an expected
+discounted reward of 0.9915 = 0.86, whereas if it takes 17 steps it will only get 0.9917 = 0.84.) However, if γ is
+too small, the agent will become too greedy. In the extreme case where γ = 0, the agent is completely myopic,
+and only tries to maximize its immediate reward. In general, the discount factor reflects the assumption
+that there is a probability of 1 − γ that the interaction will end at the next step. (If γ = 1 − T1 , the agent
+expects to live on the order of T steps; for example, if each step is 0.1 seconds, then γ = 0.95 corresponds to
+2 seconds.) For finite horizon problems, where T is known, we can set γ = 1, since we know the life time of
+the agent a priori.
+
+1.1.4
+
+Universal model
+
+A generic representation for sequential decision making problems (which is an extended version of the
+“universal modeling framework” proposed in [Pow19; Pow22]) is shown in Figure 1.2. Here we have assumed
+11
+
+the environment can be modeled by a controlled Markov process2 with hidden state et , which gets updated
+at each step in response to the agent’s action at . To allow for non-deterministic dynamics, we write this as
+et+1 = W (et , at , ϵet ), where W is the environment’s state transition function (which is usually not known
+to the agent) and ϵet is random system noise.3 , The agent does not see the world state et , but instead
+sees a potentially noisy and/or partial observation ot+1 = O(et+1 , ϵot+1 ) at each step, where ϵot+1 is random
+observation noise. For example, when navigating a maze, the agent may only see what is in front of it, rather
+than seeing everything in the world all at once; furthermore, even the current view may be corrupted by
+sensor noise. Any given image, such as one containing a door, could correspond to many different locations in
+the world (this is called perceptual aliasing), each of which may require a different action. Thus the agent
+needs use these observations to incrementally update its own internal belief state about the world, using
+the state update function st+1 = SU (st , at , ot+1 ); this represents the agent’s beliefs about the underlying
+world state et , as well as the unknown world model W itself (or some proxy thereof). In the simplest setting,
+the internal st can just store all the past observations, ht = (o1:t , a1:t−1 ), but such non-parametric models
+can take a lot of time and space to work with, so we will usually consider parametric approximations. The
+agent can then pass its state to its policy to pick actions, using at+1 = πt (st+1 ).
+We can further elaborate the behavior of the agent by breaking the state-update function into two
+parts. First the agent predicts its own next state, st+1|t = P (st , at ), using a prediction function P ,
+and then it updates this prediction given the observation using update function U , to give st+1 =
+U (st+1|t , ot+1 ). Thus the SU function is defined as the composition of the predict and update functions:
+st+1 = SU (st , at , ot+1 ) = U (P (st , at ), ot+1 ). If the observations are high dimensional (e.g., images), the
+agent may choose to encode its observations into a low-dimensional embedding et+1 using an encoder,
+et+1 = E(ot+1 ); this can encourage the agent to focus on the relevant parts of the sensory signal. (The state
+update then becomes st+1 = U (st+1|t , et+1 ).) Optionally the agent can also learn to invert this encoder by
+training a decoder to predict the next observation using ôt+1 = D(st+1|t ); this can be a useful training signal,
+as we will discuss in Chapter 4. Finally, the agent needs to learn the action policy πt . We parameterize this
+by θt , so πt (st ) = π(st ; θt ). These parameters themselves may need to be learned; we use the notation π RL
+to denote the RL policy which specifies how to update the policy parameters at each step. See Figure 1.2 for
+an illustration.
+We see that, in general, there are three interacting stochastic processes we need to deal with: the
+environment’s states et (which are usually affected by the agents actions); the agent’s internal states st (which
+reflect its beliefs about the environment based on the observed data); and the the agent’s policy parameters
+θt (which are updated based on the information stored in the belief state). The reason there are so many
+RL algorithms is that this framework is very general. In the rest of this manuscript we will study special
+cases, where we make different assumptions about the environment’s state et and dynamics, the agent’s state
+st and dynamics, the form of the action policy at = π(st , θt ), and the form of the policy learning method
+θt+1 = π RL (θt , st , at , ot+1 ).
+
+1.1.5
+
+Further reading
+
+In later chapters, we will describe methods for learning the best policy to maximize Vπ (s0 ) = E [G0 |s0 , π]).
+More details on RL can be found in textbooks such as [Sze10; SB18; Aga+22a; Pla22; ID19; RJ22; Li23;
+MMT24], and reviews such as [Aru+17; FL+18; Li18; Wen18a]. For details on how RL relates to control
+theory, see e.g., [Son98; Rec19; Ber19; Mey22], and for connections to operations research, see [Pow22].
+
+1.2
+
+Canonical models
+
+In this section, we describe different forms of model for the environment and the agent that have been studied
+in the literature.
+2 The Markovian assumption is without loss of generality, since we can always condition on the entire past sequence of states
+by suitably expanding the Markovian state space.
+3 Representing a stochastic function as a deterministic function with some noisy inputs is known as a functional causal model,
+or structural equation model. This is standard practice in the control theory and causality communities.
+
+12
+
+Figure 1.3: Illustration of an MDP as a finite state machine (FSM). The MDP has three discrete states (green
+cirlces), two discrete actions (orange circles), and two non-zero rewards (orange arrows). The numbers on the
+black edges represent state transition probabilities, e.g., p(s′ = s0 |a = a0 , s′ = s0 ) = 0.7; most state transitions
+are impossible (probability 0), so the graph is sparse. The numbers on the yellow wiggly edges represent expected
+rewards, e.g., R(s = s1 , a = a0 , s′ = s0 ) = +5; state transitions with zero reward are not annotated. From
+https: // en. wikipedia. org/ wiki/ Markov_ decision_ process . Used with kind permission of Wikipedia author
+waldoalvarez.
+
+1.2.1
+
+Partially observed MDPs
+
+The model shown in Figure 1.2 is called a partially observable Markov decision process or POMDP
+(pronounced “pom-dee-pee”) [KLC98]. Typically the environment’s dynamics model is represented by a
+stochastic transition function, rather than a deterministic function with noise as an input. We can derive this
+transition function as follows:
+p(et+1 |et , at ) = Eϵet [I (et+1 = W (et , at , ϵet ))]
+
+(1.11)
+
+Similarly the stochastic observation function is given by
+
+
+p(ot+1 |et+1 ) = Eϵot+1 I ot+1 = O(et+1 , ϵot+1 )
+
+(1.12)
+
+Note that we can combine these two distributions to derive the joint world model pW O (et+1 , ot+1 |et , at ).
+Also, we can use these distributions to derive the environment’s non-Markovian observation distribution,
+penv (ot+1 |o1:t , a1:t ), used in Equation (1.4), as follows:
+X
+penv (ot+1 |o1:t , a1:t ) =
+p(ot+1 |et+1 )p(et+1 |a1:t )
+(1.13)
+et+1
+
+p(et+1 |a1:t ) =
+
+X
+e1
+
+···
+
+X
+et
+
+p(e1 |a1 )p(e2 |e1 , a1 ) . . . p(et+1 |et , at )
+
+(1.14)
+
+If the world model (both p(o|z) and p(z ′ |z, a)) is known, then we can — in principle — solve for the optimal
+policy. The method requires that the agent’s internal state correspond to the belief state st = bt = p(et |ht ),
+where ht = (o1:t , a1:t−1 ) is the observation history. The belief state can be updated recursively using Bayes rule.
+See Section 1.2.5 for details. The belief state forms a sufficient statistic for the optimal policy. Unfortunately,
+computing the belief state and the resulting optimal policy is wildly intractable [PT87; KLC98]. We discuss
+some approximate methods in Section 1.3.4.
+
+1.2.2
+
+Markov decision process (MDPs)
+
+A Markov decision process [Put94] is a special case of a POMDP in which the environment states are
+observed, so et = ot = st . We usually define an MDP in terms of the state transition matrix induced by the
+world model:
+pS (st+1 |st , at ) = Eϵst [I (st+1 = W (st , at , ϵst ))]
+(1.15)
+13
+
+In lieu of an observation model, we assume the environment (as opposed to the agent) sends out a reward
+signal, sampled from pR (rt |st , at , st+1 ). The expected reward is then given by
+X
+R(st , at , st+1 ) =
+r pR (r|st , at , st+1 )
+(1.16)
+r
+
+R(st , at ) =
+
+X
+
+st+1
+
+pS (st+1 |st , at )R(st , at , st+1 )
+
+(1.17)
+
+Note that the field of control theory uses slightly different terminology and notation when describing the
+same setup: the environment is called the plant, the agent is called the controller, States are denoted by
+xt ∈ X ⊆ RD , actions are denoted by ut ∈ U ⊆ RK , and rewards are replaced by costs ct ∈ R.
+Given a stochastic policy π(at |st ), the agent can interact with the environment over many steps. Each
+step is called a transition, and consists of the tuple (st , at , rt , st+1 ), where at ∼ π(·|st ), st+1 ∼ pS (st , at ),
+and rt ∼ pR (st , at , st+1 ). Hence, under policy π, the probability of generating a trajectory length T ,
+τ = (s0 , a0 , r0 , s1 , a1 , r1 , s2 , . . . , sT ), can be written explicitly as
+p(τ ) = p0 (s0 )
+
+TY
+−1
+t=0
+
+π(at |st )pS (st+1 |st , at )pR (rt |st , at , st+1 )
+
+(1.18)
+
+In general, the state and action sets of an MDP can be discrete or continuous. When both sets are finite,
+we can represent these functions as lookup tables; this is known as a tabular representation. In this case,
+we can represent the MDP as a finite state machine, which is a graph where nodes correspond to states,
+and edges correspond to actions and the resulting rewards and next states. Figure 1.3 gives a simple example
+of an MDP with 3 states and 2 actions.
+If we know the world model pS and pR , and if the state and action space is tabular, then we can solve for
+the optimal policy using dynamic programming techniques, as we discuss in Section 2.2. However, typically
+the world model is unknown, and the states and actions may need complex nonlinear models to represent
+their transitions. In such cases, we will have to use RL methods to learn a good policy.
+
+1.2.3
+
+Contextual MDPs
+
+A Contextual MDP [HDCM15] is an MDP where the dynamics and rewards of the environment depend
+on a hidden static parameter referred to as the context. (This is different to a contextual bandit, discussed
+in Section 1.2.4, where the context is observed at each step.) A simple example of a contextual MDP is a
+video game, where each level of the game is procedurally generated, that is, it is randomly generated
+each time the agent starts a new episode. Thus the agent must solve a sequence of related MDPs, which are
+drawn from a common distribution. This requires the agent to generalize across multiple MDPs, rather than
+overfitting to a specific environment [Cob+19; Kir+21; Tom+22]. (This form of generalization is different
+from generalization within an MDP, which requires generalizing across states, rather than across environments;
+both are important.)
+A contextual MDP is a special kind of POMDP where the hidden variable corresponds to the unknown
+parameters of the model. In [Gho+21], they call this an epistemic POMDP, which is closely related to the
+concept of belief state MDP which we discuss in Section 1.2.5.
+
+1.2.4
+
+Contextual bandits
+
+A contextual bandit is a special case of a POMDP where the world state transition function is independent
+of the action of the agent and the previous state, i.e., p(et |et−1 , at ) = p(et ). In this case, we call the world
+states “contexts”; these are observable by the agent, i.e., ot = et . Since the world state distribution is
+independent of the agents actions, the agent has no effect on the external environment. However, its actions
+do affect the rewards that it receives. Thus the agent’s internal belief state — about the underlying reward
+function R(o, a) — does change over time, as the agent learns a model of the world (see Section 1.2.5).
+14
+
+A special case of a contextual bandit is a regular bandit, in which there is no context, or equivalently, st is
+some fixed constant that never changes. When there are a finite number of possible actions, A = {a1 , . . . , aK },
+this is called a multi-armed bandit.4 In this case the reward model has the form R(a) = f (wa ), where wa
+are the parameters for arm a.
+Contextual bandits have many applications. For example, consider an online advertising system. In
+this case, the state st represents features of the web page that the user is currently looking at, and the action
+at represents the identity of the ad which the system chooses to show. Since the relevance of the ad depends
+on the page, the reward function has the form R(st , at ), and hence the problem is contextual. The goal is to
+maximize the expected reward, which is equivalent to the expected number of times people click on ads; this
+is known as the click through rate or CTR. (See e.g., [Gra+10; Li+10; McM+13; Aga+14; Du+21; YZ22]
+for more information about this application.) Another application of contextual bandits arises in clinical
+trials [VBW15]. In this case, the state st are features of the current patient we are treating, and the action
+at is the treatment the doctor chooses to give them (e.g., a new drug or a placebo).
+For more details on bandits, see e.g., [LS19; Sli19].
+
+1.2.5
+
+Belief state MDPs
+
+In this section, we describe a kind of MDP where the state represents a probability distribution, known as a
+belief state or information state, which is updated by the agent (“in its head”) as it receives information
+from the environment.5 More precisely, consider a contextual bandit problem, where the agent approximates
+the unknown reward by a function R(o, a) = f (o, a; w). Let us denote the posterior over the unknown
+parameters by bt = p(w|ht ), where ht = {o1:t , a1:t , r1:t } is the history of past observations, actions and
+rewards. This belief state can be updated deterministically using Bayes’ rule; we denote this operation by
+bt+1 = BayesRule(bt , ot+1 , at+1 , rt+1 ). (This corresponds to the state update SU defined earlier.) Using this,
+we can define the following belief state MDP, with deterministic dynamics given by
+p(bt+1 |bt , ot+1 , at+1 , rt+1 ) = I (bt+1 = BayesRule(bt , ot+1 , at+1 , rt+1 ))
+
+and reward function given by
+
+p(rt |ot , at , bt ) =
+
+Z
+
+pR (rt |ot , at ; w)p(w|bt )dw
+
+(1.19)
+
+(1.20)
+
+If we can solve this (PO)MDP, we have the optimal solution to the exploration-exploitation problem (see
+Section 1.3.5).
+As a simple example, consider a context-free Bernoulli bandit, where pR (r|a) = Ber(r|µa ), and
+µa = pR (r = 1|a) = R(a) is the expected reward for taking action a. The only unknown parameters are
+w = µ1:A . Suppose we use a factored beta prior
+Y
+p0 (w) =
+Beta(µa |α0a , β0a )
+(1.21)
+a
+
+where w = (µ1 , . . . , µK ). We can compute the posterior in closed form to get
+Y
+p(w|Dt ) =
+Beta(µa | α0a + Nt0 (a), β0a + Nt1 (a))
+|
+{z
+} |
+{z
+}
+a
+αa
+t
+
+where
+
+Ntr (a) =
+
+t−1
+X
+
+I (ai = a, ri = r)
+
+(1.22)
+
+βta
+
+(1.23)
+
+i=1
+
+4 The terminology arises by analogy to a slot machine (sometimes called a “bandit”) in a casino. If there are K slot machines,
+each with different rewards (payout rates), then the agent (player) must explore the different machines until they have discovered
+which one is best, and can then stick to exploiting it.
+5 Technically speaking, this is a POMDP, where we assume the states are observed, and the parameters are the unknown
+hidden random variables. This is in contrast to Section 1.2.1, where the states were not observed, and the parameters were
+assumed to be known.
+
+15
+
+

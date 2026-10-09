@@ -9,39 +9,56 @@ footer: "Курс лекций • Лекция 06"
 ---
 
 <!-- Slide 1 -->
-<div class="lead">
+<!-- _class: lead -->
+<!-- _header: "" -->
+<!-- _footer: "" -->
 
 # **Планирование движений мобильных роботов**
-## Лекция 06: Обучение с подкреплением (Deep RL) в робототехнике: от марковских процессов к Sim-to-Real и управлению локомоцией
+## Лекция 06: Обучение с подкреплением (Reinforcement Learning) и его применение в робототехнике
 
-<span class="badge badge-accent">Бакалавриат, 3 курс</span> <span class="badge badge-info">⏱️ 90 минут</span> <span class="badge badge-success">Sim-to-Real • Isaac Sim • PPO • SAC</span>
+<div class="mt-4">
+
+<span class="badge badge-blue">⏱️ 90 минут</span>
+<span class="badge badge-green">Фундаментальные основы и Sim-to-Real</span>
+<span class="badge badge-purple">MDP • Уравнения Беллмана • DQN • Actor-Critic • PPO • SAC • Isaac Sim</span>
+
+</div>
+
+<div class="mt-4" style="font-size: 14px; color: #475569; max-width: 820px; margin: 0 auto; line-height: 1.5;">
+
+Введение в парадигму последовательного принятия решений. Отказ от аналитических уравнений контактов в пользу обучения во взаимодействии со средой. Преодоление барьера переноса из симуляции в физический мир.
 
 </div>
 
 ---
 
 <!-- Slide 2 -->
-## Введение: Кризис классического управления в динамической локомоции <span class="badge badge-time">00–05 мин</span>
+## Место RL в машинном обучении <span class="badge badge-time">05–10 мин</span>
 
 <div class="grid-2">
 <div class="col">
-<div class="card card-alert">
+<div class="card card-accent">
 
-### 🛑 Ограничения классического MPC
-- **Разрывные контакты:** Удар стопы о грунт приводит к мгновенной смене динамики. Градиентные оптимизаторы QP/NLP в MPC теряют сходимость.
-- **Сложные грунты:** Сыпучие насыпи, снег, мокрый лед и деформируемые поверхности не имеют точных аналитических моделей трения.
-- **Вычислительное запаздывание:** Решение нелинейного OCP на каждом такте требует 10–50 мс, что критично для балансировки при внезапных толчках.
+### 🎯 Парадигма принятия решений (Kevin Murphy, 2023)
+- **Supervised Learning ($y \approx f(x)$):** Требует разметки эксперта; при выходе робота за распределение обучающих данных (Out-of-Distribution) ошибка катастрофически накапливается.
+- **Unsupervised Learning ($p(x)$):** Выявляет структуру и латентные представления без целевого сигнала управления.
+- **Reinforcement Learning:** Агент оптимизирует долгосрочную отдачу $\mathbb{E}[\sum \gamma^t R_t]$ через активное исследование среды (Trial and Error). Обучающий сигнал — скалярная награда, которая может быть отложенной.
+
+</div>
+
+<div class="card card-success mt-2">
+
+### 🚀 Почему RL критически важен в робототехнике?
+- Контакты с грунтом, трение и сыпучие среды не имеют строгих гладких аналитических моделей для классического MPC.
+- Инференс обученной нейросети занимает $<1$ мс на бортовом GPU/TPU.
 
 </div>
 </div>
 
 <div class="col">
-<div class="card card-success">
+<div class="card" style="padding: 6px;">
 
-### 🚀 Парадигма обучения с подкреплением (RL)
-- **Black-Box динамика:** Модель движения — это физический симулятор, а не система дифференциальных уравнений на борту.
-- **Офлайн-синтез:** Миллионы часов падений и проб отрабатываются на GPU до включения реального робота.
-- **Инференс за 1 миллисекунду:** На борту выполняется только прямой прогон легкой нейросети (MLP, 500+ Гц), мгновенно парирующей удары.
+![Taxonomy](../../assets/images/lecture-06/rl_taxonomy_murphy.svg)
 
 </div>
 </div>
@@ -50,33 +67,54 @@ footer: "Курс лекций • Лекция 06"
 ---
 
 <!-- Slide 3 -->
-## План лекции на 90 минут <span class="badge badge-time">05–07 мин</span>
+## Марковский процесс принятия решений (MDP) <span class="badge badge-time">10–15 мин</span>
 
 <div class="grid-2">
 <div class="col">
-<div class="card card-accent">
+<div class="card">
 
-### Часть 1: Основы непрерывного RL и классификация (43 мин)
-1. Марковский процесс принятия решений (MDP) и отдача
-2. Функции ценности $V(s), Q(s, a)$ и интуиция Policy Gradient
-3. **Классификация современных методов RL** (Model-Free / Model-Based)
-4. Алгоритмы локомоции: **PPO** и **SAC**
-5. Конструирование функций награды (Reward Shaping)
-6. **Интерактивный симулятор: Синтез политики и Reward Shaping в браузере**
+### 📐 Формальное определение кортежа $\mathcal{M}$
+Марковский процесс принятия решений задается пятеркой:
+
+<div class="math-block">
+
+$$ \mathcal{M} = \langle \mathcal{S}, \mathcal{A}, \mathcal{P}, \mathcal{R}, \gamma \rangle $$
+
+</div>
+
+- **Пространство состояний $\mathcal{S}$:** Положение, скорости, углы суставов робота $s_t \in \mathbb{R}^n$.
+- **Пространство действий $\mathcal{A}$:** Управляющие моменты $\tau_t$ или целевые положения сервоприводов $a_t \in \mathbb{R}^m$.
+- **Вероятность переходов $\mathcal{P}$:** Динамика среды
+  $$\mathcal{P}(s' \mid s, a) = \mathbb{P}(S_{t+1} = s' \mid S_t = s, A_t = a)$$
+- **Функция вознаграждения $\mathcal{R}$:** Скалярное поощрение
+  $$\mathcal{R}(s, a) = \mathbb{E}[R_{t+1} \mid S_t = s, A_t = a]$$
+- **Фактор дисконтирования $\gamma \in [0, 1)$:** Приоритет сиюминутной выгоды над далеким будущим.
 
 </div>
 </div>
 
 <div class="col">
-<div class="card card-success">
+<div class="card card-alert">
 
-### Часть 2: Sim-to-Real, достижения и сравнение с OC (40 мин)
-7. Разрыв моделирования (Sim-to-Real Gap) и рандомизация (Domain Randomization)
-8. GPU-симуляторы физики (Isaac Sim, MuJoCo MJX)
-9. Архитектура привилегированного обучения (Teacher-Student)
-10. **Современные достижения RL в робототехнике (SOTA)**
-11. **Сравнительный анализ: Оптимальное управление (MPC) vs Deep RL**
-12. Гибридные архитектуры (MPC + RL) и резюме
+### 🔄 Свойство Маркова (Markov Property)
+Будущее состояние зависит исключительно от текущего состояния и действия, но не от предыстории:
+
+<div class="math-block">
+
+$$ \mathbb{P}(S_{t+1} \mid S_t, A_t, S_{t-1}, A_{t-1}, \dots) = \mathbb{P}(S_{t+1} \mid S_t, A_t) $$
+
+</div>
+
+- Если датчики робота не дают полной картины (нет скорости, окклюзии лидара), среда становится **POMDP** (Partially Observable MDP).
+- В POMDP агенту требуется память (буфер истории $H_t$ или рекуррентная сеть LSTM/GRU).
+
+</div>
+
+<div class="card card-accent mt-2">
+
+### 💰 Дисконтированная отдача (Return)
+$$ G_t = \sum_{k=0}^\infty \gamma^k R_{t+k+1} $$
+Цель агента — найти стратегию $\pi(a \mid s)$, максимизирующую $J(\pi) = \mathbb{E}_{\tau \sim \pi}[G_0]$.
 
 </div>
 </div>
@@ -85,32 +123,45 @@ footer: "Курс лекций • Лекция 06"
 ---
 
 <!-- Slide 4 -->
-## 1. Марковский процесс принятия решений (MDP) <span class="badge badge-time">07–14 мин</span>
+## Функции ценности и уравнения Беллмана <span class="badge badge-time">15–20 мин</span>
 
 <div class="grid-2">
 <div class="col">
+<div class="card">
 
-Формализация задачи взаимодействия робота со средой описывается кортежем MDP:
-$$\langle \mathcal{S}, \mathcal{A}, \mathcal{P}, \mathcal{R}, \gamma \rangle$$
+### 📊 Функции ценности $V^\pi(s)$ и $Q^\pi(s, a)$
+- **Ценность состояния (State-Value Function):**
+  $$ V^\pi(s) = \mathbb{E}_\pi \left[ \sum_{k=0}^\infty \gamma^k R_{t+k+1} \;\middle|\; S_t = s \right] $$
+- **Ценность действия (Action-Value / Q-Function):**
+  $$ Q^\pi(s, a) = \mathbb{E}_\pi \left[ \sum_{k=0}^\infty \gamma^k R_{t+k+1} \;\middle|\; S_t = s, A_t = a \right] $$
+- **Функция преимущества (Advantage Function):**
+  $$ A^\pi(s, a) = Q^\pi(s, a) - V^\pi(s) $$
+  Показывает, насколько действие $a$ лучше среднего действия стратегии $\pi$.
 
-- $\mathcal{S} \subset \mathbb{R}^n$ — непрерывное **пространство состояний** (углы суставов $q$, скорости $\dot{q}$, ориентация IMU, линейные ускорения).
-- $\mathcal{A} \subset \mathbb{R}^m$ — непрерывное **пространство действий** (целевые углы для ПД-контроллеров или моменты $\tau$).
-- $\mathcal{P}(s_{t+1}|s_t, a_t)$ — физика среды (гравитация, реакции опор, трение).
-- $\mathcal{R}(s_t, a_t)$ — скалярная локальная награда.
-- $\gamma \in [0.95, 0.99]$ — коэффициент дисконтирования горизонта.
-
+</div>
 </div>
 
 <div class="col">
 <div class="card card-accent">
 
-### 🎯 Целевой функционал
-Робот ищет параметры $\theta$ стохастической политики $\pi_\theta(a|s)$, максимизируя математическое ожидание дисконтированной отдачи:
+### ⚡ Рекуррентные уравнения Беллмана
+Ценность текущего шага разбивается на мгновенную награду и дисконтированную ценность следующего состояния:
 
-$$J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta} \left[ \sum_{t=0}^{\infty} \gamma^t \mathcal{R}(s_t, a_t) \right] \to \max_\theta$$
+<div class="math-block">
 
-- **Политика** $\pi_\theta(a|s) = \mathcal{N}(\mu_\theta(s), \Sigma_\theta(s))$ выдает распределение вероятностей действий.
-- Стохастичность необходима на этапе обучения для исследования пространства движений (Exploration).
+$$ V^\pi(s) = \sum_{a \in \mathcal{A}} \pi(a|s) \sum_{s', r} p(s', r | s, a) \left[ r + \gamma V^\pi(s') \right] $$
+
+</div>
+
+<div class="math-block">
+
+$$ Q^\pi(s, a) = \sum_{s', r} p(s', r | s, a) \left[ r + \gamma \sum_{a'} \pi(a'|s') Q^\pi(s', a') \right] $$
+
+</div>
+
+### 🏆 Уравнение оптимальности Беллмана для $Q^*$
+$$ Q^*(s, a) = \mathcal{R}(s, a) + \gamma \sum_{s'} \mathcal{P}(s'|s, a) \max_{a'} Q^*(s', a') $$
+Оптимальная стратегия извлекается жадно: $\pi^*(s) = \arg\max_a Q^*(s, a)$.
 
 </div>
 </div>
@@ -119,30 +170,48 @@ $$J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta} \left[ \sum_{t=0}^{\infty} \gamm
 ---
 
 <!-- Slide 5 -->
-## 2. Функции ценности и интуиция Policy Gradient <span class="badge badge-time">14–22 мин</span>
+## Динамическое программирование: Policy & Value Iteration <span class="badge badge-time">20–25 мин</span>
 
 <div class="grid-2">
 <div class="col">
+<div class="card card-accent">
 
-### Функции ценности: Оценка качества состояний
-- **Функция ценности состояния:** Ожидаемая отдача из состояния $s$:
-  $$V^\pi(s) = \mathbb{E}_\pi \left[ \sum_{t=0}^\infty \gamma^t \mathcal{R}_t \;\Big|\; s_0 = s \right]$$
-- **Функция действия-ценности:** Ценность выбора конкретного действия $a$:
-  $$Q^\pi(s, a) = \mathbb{E}_\pi \left[ \sum_{t=0}^\infty \gamma^t \mathcal{R}_t \;\Big|\; s_0 = s, a_0 = a \right]$$
+### 🔄 Policy Iteration (Итерация по стратегиям)
+Чередование оценивания и улучшения до сходимости:
 
+1. **Policy Evaluation (Оценка ценности):**
+   Решение системы линейных уравнений для текущей $\pi_k$:
+   $$ V_{i+1}(s) = \sum_a \pi_k(a|s) \sum_{s', r} p(s', r|s, a)[r + \gamma V_i(s')] $$
+2. **Policy Improvement (Жадное улучшение):**
+   $$ \pi_{k+1}(s) = \arg\max_a \sum_{s', r} p(s', r|s, a)[r + \gamma V^{\pi_k}(s')] $$
+- **Теорема об улучшении стратегии:** гарантирует $V^{\pi_{k+1}}(s) \ge V^{\pi_k}(s)$ для всех $s$.
+
+</div>
 </div>
 
 <div class="col">
 <div class="card card-success">
 
-### 💡 Физический смысл теоремы Policy Gradient
-Градиент функционала качества вычисляется без дифференцирования динамики среды $\mathcal{P}$:
+### 📈 Value Iteration (Итерация по ценностям)
+Объединение шага оценки и жадного выбора в единый оператор Беллмана:
 
-$$\nabla_\theta J(\theta) = \mathbb{E} \left[ \sum_{t=0}^T \nabla_\theta \ln \pi_\theta(a_t|s_t) \cdot A^\pi(s_t, a_t) \right]$$
+<div class="math-block">
 
-- **Преимущество (Advantage):**
-  $$A^\pi(s, a) = Q^\pi(s, a) - V^\pi(s)$$
-- **Интуиция:** Если действие $a_t$ оказалось лучше среднего ($A > 0$), увеличиваем вероятность его выбора. Если действие привело к падению ($A < 0$) — снижаем его вероятность.
+$$ V_{k+1}(s) = \max_{a \in \mathcal{A}} \sum_{s', r} p(s', r \mid s, a) \left[ r + \gamma V_k(s') \right] $$
+
+</div>
+
+- **Теорема Банаха о неподвижной точке:**
+  Оператор Беллмана $\mathcal{T}^*$ является сжимающим отображением с коэффициентом $\gamma < 1$:
+  $$ \|\mathcal{T}^* V - \mathcal{T}^* U\|_\infty \le \gamma \|V - U\|_\infty $$
+  Гарантирует экспоненциальную сходимость к $V^*$.
+
+</div>
+
+<div class="card card-alert mt-2">
+
+### 🛑 Вычислительный барьер в робототехнике
+Требует полного знания модели $\mathcal{P}(s'|s,a)$. Дискретизация 12-мерного шасси дает $100^{12}$ состояний (Curse of Dimensionality).
 
 </div>
 </div>
@@ -151,44 +220,46 @@ $$\nabla_\theta J(\theta) = \mathbb{E} \left[ \sum_{t=0}^T \nabla_\theta \ln \pi
 ---
 
 <!-- Slide 6 -->
-## 3. Классификация современных подходов RL в робототехнике <span class="badge badge-time">22–29 мин</span>
+## Внестратегическое обучение: Q-Learning <span class="badge badge-time">25–30 мин</span>
 
-<div class="grid-3" style="font-size: 0.9em;">
+<div class="grid-2">
 <div class="col">
-<div class="card card-accent">
+<div class="card">
 
-### 🟢 Model-Free On-Policy
-**Алгоритм:** **PPO (Proximal Policy Optimization)**
-- Обучается **только на свежих данных**, собранных текущей политикой.
-- **Плюсы:** Предельная стабильность сходимости, простая параллелизация на GPU.
-- **Минусы:** Низкая эффективность использования данных (Sample Inefficient).
-- **Область:** Доминирует в локомоции роботов в симуляторах.
+### 🎲 Model-Free: Обучение по опыту (Watkins, 1989)
+Агент исследует среду, совершая шаги $(s_t, a_t, r_{t+1}, s_{t+1})$, без знания матрицы вероятностей переходов $\mathcal{P}$.
+
+<div class="math-block">
+
+$$ Q(S_t, A_t) \leftarrow Q(S_t, A_t) + \alpha \delta_t $$
 
 </div>
-</div>
 
-<div class="col">
-<div class="card card-info">
+Где **ошибка временной разности (TD Error):**
+$$ \delta_t = \underbrace{R_{t+1} + \gamma \max_{a} Q(S_{t+1}, a)}_{\text{TD Target (оценка Беллмана)}} - \underbrace{Q(S_t, A_t)}_{\text{Текущая оценка}} $$
 
-### 🔵 Model-Free Off-Policy
-**Алгоритмы:** **SAC (Soft Actor-Critic), TD3**
-- Повторно использует старый опыт из буфера памяти (**Replay Buffer**).
-- **Плюсы:** Требует в 10–20 раз меньше шагов среды для обучения.
-- **Минусы:** Труднее масштабировать на 4096 параллельных сред GPU.
-- **Область:** Обучение манипуляторов напрямую на физических роботах.
+- **Скорость обучения $\alpha \in (0, 1]$:** вес нового опыта.
+- **Off-Policy свойство:** данные собираются по исследовательской $\epsilon$-жадной стратегии, а целевое значение использует $\max_a Q(s', a)$.
 
 </div>
 </div>
 
 <div class="col">
-<div class="card card-success">
+<div class="card card-accent">
 
-### 🟣 Model-Based RL
-**Алгоритмы:** **DreamerV3, MBPO**
-- Обучает компактную модель мира $\hat{s}_{t+1} = f(s_t, a_t)$ в латентном пространстве.
-- **Плюсы:** «Мечтает» о миллионах вариантов без обращения к симулятору.
-- **Минусы:** Ошибки аппроксимации модели накапливаются на длинном горизонте.
-- **Область:** Перспективные гибриды с VLA и навигация.
+### ⚖️ Компромисс Exploration vs Exploitation
+- **$\epsilon$-жадная стратегия:**
+  $$ a_t = \begin{cases} \arg\max_a Q(s_t, a), & \text{с вер. } 1 - \epsilon \\ \text{случайное действие}, & \text{с вер. } \epsilon \end{cases} $$
+- **Условия сходимости Роббинса-Монро:**
+  $$ \sum_{t=1}^\infty \alpha_t = \infty, \quad \sum_{t=1}^\infty \alpha_t^2 < \infty $$
+  Гарантируют сходимость $Q \to Q^*$ почти наверное при посещении всех пар $(s, a)$.
+
+</div>
+
+<div class="card card-alert mt-2">
+
+### ⚠️ Проблема табличного подхода
+В робототехнике состояния непрерывны (угол сустава $\theta \in [-\pi, \pi]$). Таблица $Q(s, a)$ требует непрерывной аппроксимации нейросетями!
 
 </div>
 </div>
@@ -197,33 +268,36 @@ $$\nabla_\theta J(\theta) = \mathbb{E} \left[ \sum_{t=0}^T \nabla_\theta \ln \pi
 ---
 
 <!-- Slide 7 -->
-## 4. Рабочие лошадки локомоции: PPO и SAC <span class="badge badge-time">29–36 мин</span>
+## Аппроксимация с помощью нейронных сетей (DQN) <span class="badge badge-time">30–35 мин</span>
 
 <div class="grid-2">
 <div class="col">
 <div class="card card-accent">
 
-### 🛡️ PPO: Защита от разрушительных обновлений
-Стандартный градиентный шаг может катастрофически сломать походку робота. PPO вводит клиппинг отношения вероятностей $r_t(\theta) = \frac{\pi_\theta(a_t|s_t)}{\pi_{\theta_{\text{old}}}(a_t|s_t)}$:
+### 🧠 Deep Q-Network (Mnih et al., Nature 2015)
+Замена таблицы нейросетью с весами $\theta$: $Q(s, a; \theta) \approx Q^*(s, a)$.
 
-$$L^{\text{CLIP}}(\theta) = \hat{\mathbb{E}}_t \left[ \min\Big(r_t(\theta) \hat{A}_t, \; \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t\Big) \right]$$
+<div class="math-block">
 
-- Клиппинг (обычно $\epsilon = 0.2$) запрещает политике меняться слишком резко за одну итерацию.
-- **Золотой стандарт** для ANYmal, Unitree, Figure и Tesla Optimus.
+$$ \mathcal{L}(\theta) = \mathbb{E}_{(s, a, r, s') \sim \mathcal{D}} \left[ \left( r + \gamma \max_{a'} Q(s', a'; \theta^-) - Q(s, a; \theta) \right)^2 \right] $$
+
+</div>
+
+### 🛡️ Две ключевые стабилизирующие инновации
+1. **Experience Replay Buffer $\mathcal{D}$:**
+   - Хранит $10^5 - 10^6$ переходов $(s, a, r, s')$.
+   - Сэмплирование случайных мини-батчей разрушает временную автокорреляцию данных.
+2. **Target Network $\theta^-$:**
+   - Замороженная копия весов для вычисления TD-цели; обновляется каждые $C$ шагов.
+   - Устраняет проблему «гонки за движущейся мишенью».
 
 </div>
 </div>
 
 <div class="col">
-<div class="card card-success">
+<div class="card" style="padding: 6px;">
 
-### 🎲 SAC: Принцип максимальной энтропии
-SAC решает задачу не только максимизации награды, но и сохранения вариативности (стохастичности) действий:
-
-$$J(\theta) = \mathbb{E} \left[ \sum_{t=0}^T \gamma^t \Big(\mathcal{R}(s_t, a_t) + \alpha \mathcal{H}(\pi(\cdot|s_t))\Big) \right]$$
-
-- Энтропия $\mathcal{H}$ стимулирует исследовать альтернативные позы.
-- Робот не «закрепощается» в одной позе, что делает походку устойчивой к случайным внешним толчкам.
+![DQN Architecture](../../assets/images/lecture-06/dqn_architecture.svg)
 
 </div>
 </div>
@@ -232,32 +306,49 @@ $$J(\theta) = \mathbb{E} \left[ \sum_{t=0}^T \gamma^t \Big(\mathcal{R}(s_t, a_t)
 ---
 
 <!-- Slide 8 -->
-## 5. Конструирование функций награды (Reward Shaping) <span class="badge badge-time">36–42 мин</span>
+## Методы градиента стратегии (Policy Gradient) <span class="badge badge-time">35–40 мин</span>
 
 <div class="grid-2">
 <div class="col">
+<div class="card">
 
-В отличие от игр, где награда бинарна (+1 за победу), локомоция требует многокритериального проектирования:
-
-$$\mathcal{R}_t = w_v R_{\text{speed}} + w_\theta R_{\text{balance}} - w_\tau R_{\text{torque}} - w_{\Delta} R_{\text{smooth}} - w_c R_{\text{slip}}$$
-
-1. **Целевые слагаемые (Task Rewards):**
-   - Отслеживание линейной скорости: $\exp(-\|v_{xy} - v_{xy}^*\|^2 / \sigma_v)$
-   - Отслеживание рыскания: $\exp(-(\omega_z - \omega_z^*)^2 / \sigma_\omega)$
-2. **Физические штрафы (Regularization):**
-   - Нагрев обмоток двигателей: $-\sum \tau_i^2$ (Омические потери $I^2 R$)
-   - Механические рывки: $-\sum (\tau_{t} - \tau_{t-1})^2$ (Защита редукторов)
-   - Проскальзывание опорных стоп: $-\|v_{\text{foot}}\| \cdot F_{\text{contact}}$
+### 🎯 Прямая параметризация стратегии $\pi_\theta(a|s)$
+В робототехнике управления приводами непрерывны ($a \in \mathbb{R}^m$). Поиск $\max_a Q(s, a)$ вычислительно невозможен на каждом такте 500 Гц.
+- Политика параметризуется нейросетью: например, гауссиана $\pi_\theta(a|s) = \mathcal{N}(\mu_\theta(s), \Sigma_\theta)$.
+- **Целевой функционал:** $J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[R(\tau)]$.
 
 </div>
 
-<div class="col">
-<div class="card card-alert">
+<div class="card card-accent mt-2">
 
-### ⚠️ Ловушки локальных оптимумов
-- **Слишком высокий штраф за энергию:** Робот предпочитает лечь на живот и не двигаться, чтобы не тратить ток.
-- **Слишком малый штраф за рывки:** Появляется высокочастотный дребезг (Chattering), разрушающий волновые редукторы на физическом шасси.
-- **Reward Exploitation:** Агент находит нефизичные артефакты симулятора (например, отталкивание от невидимых граней коллизий).
+### 📜 Теорема о градиенте стратегии (Sutton et al.)
+Градиент целевого функционала не требует знания производных физики среды $\nabla_\theta \mathcal{P}$:
+
+<div class="math-block">
+
+$$ \nabla_\theta J(\theta) = \mathbb{E}_{\pi_\theta} \left[ \sum_{t=0}^T \nabla_\theta \log \pi_\theta(A_t \mid S_t) G_t \right] $$
+
+</div>
+
+</div>
+</div>
+
+<div class="col">
+<div class="card card-success">
+
+### 💡 Алгоритм REINFORCE (Williams, 1992)
+1. Собрать траекторию $\tau = (s_0, a_0, r_1, \dots, s_T)$ по политике $\pi_\theta$.
+2. Вычислить отдачи для каждого шага: $G_t = \sum_{k=t}^T \gamma^{k-t} R_{k+1}$.
+3. Обновить параметры:
+   $$ \theta \leftarrow \theta + \alpha \sum_{t=0}^T \nabla_\theta \log \pi_\theta(a_t|s_t) \cdot (G_t - b(s_t)) $$
+
+</div>
+
+<div class="card card-alert mt-2">
+
+### 📉 Базисная линия (Baseline) $b(s)$
+- Вычитание $b(s) \approx V(s)$ не смещает математическое ожидание градиента ($\mathbb{E}[\nabla \log \pi \cdot b] = 0$), но колоссально **снижает дисперсию**.
+- Недостаток REINFORCE: оценка $G_t$ методом Монте-Карло медленна и требует дожидаться конца эпизода.
 
 </div>
 </div>
@@ -266,44 +357,86 @@ $$\mathcal{R}_t = w_v R_{\text{speed}} + w_\theta R_{\text{balance}} - w_\tau R_
 ---
 
 <!-- Slide 9 -->
-## Интерактивный симулятор: Синтез политики и Reward Shaping <span class="badge badge-time">42–48 мин</span>
+## Actor-Critic Архитектуры <span class="badge badge-time">40–45 мин</span>
 
-<div class="interactive-container">
-<div class="interactive-header">
-<span><i class="interactive-dot"></i> Интерактивная среда RL: Балансировка и трекинг целевой позы</span>
-<span>Исследование влияния весов w_p, w_θ, w_u и сравнение с классическим LQR</span>
+<div class="grid-2">
+<div class="col">
+<div class="card card-accent">
+
+### 🎭 Синергия двух нейросетей
+Actor-Critic объединяет преимущества Policy Gradient и функций ценности:
+
+- **Актёр (Actor) $\pi_\theta(a|s)$:** Формирует управляющие воздействия на приводы робота.
+- **Критик (Critic) $V_\phi(s)$:** Оценивает ценность состояний и учит Актёра.
+- Вместо Монте-Карло $G_t$ используется TD-ошибка (сигнал преимущества):
+  $$ \delta_t = R_{t+1} + \gamma V_\phi(S_{t+1}) - V_\phi(S_t) \approx A(S_t, A_t) $$
+
+### ⚡ Правила обновления
+- **Актёр:** $\theta \leftarrow \theta + \alpha_\theta \nabla_\theta \log \pi_\theta(a_t|s_t) \cdot \delta_t$
+- **Критик:** $\phi \leftarrow \phi - \alpha_\phi \nabla_\phi \left( \frac{1}{2} \delta_t^2 \right)$
+
 </div>
-<iframe src="http://localhost:5599/widgets/rl-policy-shaping/index.html" class="interactive-frame"></iframe>
+</div>
+
+<div class="col">
+<div class="card" style="padding: 6px;">
+
+![Actor-Critic Architecture](../../assets/images/lecture-06/actor_critic_architecture.svg)
+
+</div>
+</div>
 </div>
 
 ---
 
 <!-- Slide 10 -->
-## 6. Разрыв моделирования (Sim-to-Real Gap) и Domain Randomization <span class="badge badge-time">48–54 мин</span>
+## Proximal Policy Optimization (PPO) <span class="badge badge-time">45–50 мин</span>
 
 <div class="grid-2">
 <div class="col">
+<div class="card card-accent">
 
-### В чем корень разрыва реальности?
-Политика, обученная в идеальном симуляторе, падает на реальном роботе за 2 секунды из-за факторов:
-1. **Люфты и упругость:** Волновые редукторы имеют нелинейный люфт и крутильную жесткость.
-2. **Задержки в шине (CAN Bus):** Команда на мотор запаздывает на 5–15 мс; задержка асимметрична.
-3. **Температурный дрейф:** При нагреве мотора сопротивление обмотки растет, снижая развиваемый момент.
+### 🛑 Проблема коллапса политики (Policy Collapse)
+В стандартном Policy Gradient слишком большой шаг оптимизатора в пространстве параметров $\theta$ приводит к необратимому падению робота и разрушению стратегии.
+
+### ✂️ Клиппированный функционал PPO (Schulman, 2017)
+Отношение вероятностей действий: $r_t(\theta) = \frac{\pi_\theta(a_t|s_t)}{\pi_{\theta_{\text{old}}}(a_t|s_t)}$.
+
+<div class="math-block">
+
+$$ L^{CLIP}(\theta) = \hat{\mathbb{E}}_t \left[ \min\left( r_t(\theta)\hat{A}_t, \, \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t \right) \right] $$
 
 </div>
 
+- Если $A_t > 0$ (действие удачное), $r_t$ ограничивается сверху $1+\epsilon$ ($\epsilon \approx 0.2$).
+- Если $A_t < 0$ (действие плохое), $r_t$ ограничивается снизу $1-\epsilon$.
+- Предотвращает разрушительно большие обновления стратегии без дорогой матрицы Фишера (как в TRPO).
+
+</div>
+</div>
+
 <div class="col">
-<div class="card card-accent">
+<div class="card card-success">
 
-### 🎲 Domain Randomization (DR)
-При обучении каждый из 4096 параллельных роботов помещается в уникальный физический мир:
-- Масса корпуса: $m \sim \mathcal{U}(0.85 m_0, 1.25 m_0)$
-- Трение стопы о грунт: $\mu \sim \mathcal{U}(0.2, 1.2)$
-- Смещение центра масс: $\Delta \text{CoM} \sim \mathcal{U}(-3\,\text{см}, +3\,\text{см})$
-- Задержка контура: $\Delta t \sim \mathcal{U}(2\,\text{мс}, 20\,\text{мс})$
-- Шум энкодеров суставов: $\sigma_q \sim \mathcal{N}(0, 0.02\,\text{рад})$
+### 📐 Generalized Advantage Estimation (GAE)
+Оценка преимущества с балансировкой смещения и дисперсии:
 
-*Результат:* Политика учится быть инвариантной к неточностям динамики.
+<div class="math-block">
+
+$$ \hat{A}_t^{\text{GAE}(\gamma, \lambda)} = \sum_{l=0}^\infty (\gamma \lambda)^l \delta_{t+l}^V $$
+
+</div>
+
+- $\lambda = 0 \implies \hat{A}_t = \delta_t$ (минимальная дисперсия, смещение от $V$).
+- $\lambda = 1 \implies \hat{A}_t = G_t - V(s_t)$ (без смещения, максимальная дисперсия).
+- Для робототехники стандарт: $\lambda \in [0.95, 0.98]$.
+
+</div>
+
+<div class="card card-alert mt-2">
+
+### 🏆 Почему PPO — стандарт локомоции?
+Идеально параллелится на GPU (Isaac Sim, 4096 сред), численно стабилен, не требует калибровки гиперпараметров под каждый мотор.
 
 </div>
 </div>
@@ -312,51 +445,25 @@ $$\mathcal{R}_t = w_v R_{\text{speed}} + w_\theta R_{\text{balance}} - w_\tau R_
 ---
 
 <!-- Slide 11 -->
-## 7. Высокопроизводительные GPU-симуляторы физики <span class="badge badge-time">54–59 мин</span>
+## Алгоритмы для непрерывного управления (SAC) <span class="badge badge-time">50–55 мин</span>
 
 <div class="grid-2">
 <div class="col">
 <div class="card card-accent">
 
-### ⚡ Парадигма тензорной симуляции на GPU
-Раньше (CPU, Gazebo/Bullet): 1 робот = 1 поток процессора. Обучение походки занимало недели.
+### 🔥 Принцип максимума энтропии (Haarnoja, 2018)
+Soft Actor-Critic максимизирует не только суммарное вознаграждение, но и случайность поведения (разнообразие исследуемых действий):
 
-**Современный стек (NVIDIA Isaac Sim / MuJoCo MJX):**
-- Вся симуляция (4096+ сред) исполняется **полностью в тензорной памяти одного GPU** (NVIDIA RTX 4090 / A100).
-- Данные наблюдений $s_t$ не копируются через шину PCIe в память CPU — нейросеть обучается прямо в тензорах Torch/JAX.
-- **Скорость сбора опыта:** 100 000+ кадров физики в секунду. 10 лет реального опыта набирается за **20–30 минут**.
+<div class="math-block">
 
-</div>
-</div>
-
-<div class="col">
-
-### Ключевые программные среды (2024–2026)
-1. **NVIDIA Isaac Sim / Isaac Lab (PhysX 5 & Warp):**
-   - Индустриальный стандарт для четвероногих и гуманоидных роботов (Unitree, Figure, Boston Dynamics).
-   - Точные модели контактов и поддержка параллельного рейкастинга лидаров.
-2. **MuJoCo MJX (DeepMind / Google):**
-   - Портирование физического движка MuJoCo на компилятор JAX.
-   - Идеально для легковесных платформ и дифференцируемой физики.
+$$ J(\pi) = \sum_{t=0}^T \mathbb{E}_{(s_t, a_t) \sim \rho_\pi} \left[ r(s_t, a_t) + \alpha \mathcal{H}(\pi(\cdot \mid s_t)) \right] $$
 
 </div>
-</div>
 
----
+Где энтропия распределения действий:
+$$ \mathcal{H}(\pi(\cdot \mid s_t)) = \mathbb{E}_{a \sim \pi}[-\log \pi(a \mid s_t)] $$
 
-<!-- Slide 12 -->
-## 8. Архитектура Teacher-Student (Привилегированное обучение) <span class="badge badge-time">59–67 мин</span>
-
-<div class="grid-2">
-<div class="col">
-<div class="card card-accent">
-
-### Фаза 1: Учитель (Teacher Policy)
-Обучается в симуляторе с доступом к **привилегированной информации** $e_t$, которую невозможно измерить датчиками реального робота:
-- Точная карта высот рельефа под стопами;
-- Векторы контактных сил и коэффициент трения $\mu$;
-- Точное положение центра масс CoM.
-*Учитель оперирует полным марковским состоянием $s_t = (o_t, e_t)$.*
+- **Температура $\alpha > 0$:** баланс между жадной оптимизацией задачи и исследованием пространства действий. Настраивается автоматически через градиентный спуск.
 
 </div>
 </div>
@@ -364,11 +471,65 @@ $$\mathcal{R}_t = w_v R_{\text{speed}} + w_\theta R_{\text{balance}} - w_\tau R_
 <div class="col">
 <div class="card card-success">
 
-### Фаза 2: Ученик (Student Policy)
-Дистиллируется из Учителя через имитационное обучение (MSE потерь действий):
-- На вход поступает **только бортовая история** сенсоров: $H_t = [o_t, o_{t-1}, \dots, o_{t-K}]$ (углы суставов, IMU).
-- Рекуррентная сеть (TCN / GRU / MLP) сжимает историю в латентный вектор $z_t$.
-- **Неявная идентификация системы:** Вектор $z_t$ автоматически восстанавливает свойства рельефа и трение по проскальзыванию ног!
+### 🛡️ Архитектурные преимущества SAC
+1. **Off-Policy буфер опыта:** переиспользует прошлые данные, повышая эффективность по сэмплам в 10–20 раз по сравнению с On-Policy PPO.
+2. **Двойной критик (Clipped Double Q-Learning):**
+   $$ y = r + \gamma \left( \min_{i=1,2} Q_{\bar{\phi}_i}(s', a') - \alpha \log \pi_\theta(a'|s') \right) $$
+   Исключает систематическую переоценку Q-функции.
+3. **Робастность к внешним ударам:** максимальная энтропия учит робота нескольким равноценным способам парирования возмущений.
+
+</div>
+
+<div class="card mt-2">
+
+### ⚙️ Практика применения
+Стандарт де-факто для манипуляций манипуляторами и реальных стендов без симулятора (обучение прямо на железе).
+
+</div>
+</div>
+</div>
+
+---
+
+<!-- Slide 12 -->
+## Обучение с использованием модели (Model-Based RL) <span class="badge badge-time">55–60 мин</span>
+
+<div class="grid-2">
+<div class="col">
+<div class="card card-accent">
+
+### 🔮 Парадигма изучения динамики среды
+Вместо прямой аппроксимации стратегии агент обучает модель перехода:
+$$ s_{t+1} = f_\phi(s_t, a_t) + \epsilon $$
+
+### Две ветви использования модели:
+1. **Планирование в реальном времени (Planning / MPC):**
+   - На каждом шаге модель генерирует сотни прогнозов траекторий.
+   - Метод кросс-энтропии (CEM) или MPPI выбирает оптимальную последовательность действий $a_{t:t+H}$.
+   - Примеры: **PETS** (Chua et al.), **PlaNet**, **Dreamer** (Hafner et al.).
+2. **Синтез опыта (Dyna / World Models):**
+   - Модель используется как бесконечный симулятор для генерации синтетических rollouts для обучения Model-Free алгоритма (SAC/PPO).
+   - Пример: **MBPO** (Janner et al.).
+
+</div>
+</div>
+
+<div class="col">
+<div class="card card-success">
+
+### 📈 Ключевой плюс: Sample Efficiency
+Требует на 1–2 порядка меньше реальных взаимодействий со средой (часы вместо месяцев работы шасси).
+
+</div>
+
+<div class="card card-alert mt-2">
+
+### ⚠️ Фундаментальный вызов: Compounding Error
+Накопление ошибки прогноза шагов:
+$$ \|s_{t+H} - \hat{s}_{t+H}\| \sim \mathcal{O}(e^{L H}) $$
+
+- Неточность в модели контакта приводит к нереалистичным симуляциям (робот «левитирует» над землей в воображаемой модели).
+- Решение: ансамбли нейросетей для оценки эпистемической неопределенности и ограничение длины воображаемого горизонта ($H \le 5$).
 
 </div>
 </div>
@@ -377,29 +538,20 @@ $$\mathcal{R}_t = w_v R_{\text{speed}} + w_\theta R_{\text{balance}} - w_\tau R_
 ---
 
 <!-- Slide 13 -->
-## Диаграмма: Преодоление разрыва моделирования Sim-to-Real <span class="badge badge-time">67–70 мин</span>
+## Инженерия функции вознаграждения (Reward Shaping) <span class="badge badge-time">60–65 мин</span>
 
-<div style="text-align: center;">
-<img src="../../assets/images/lecture-07/teacher_student_sim2real.svg" alt="Teacher-Student Sim2Real Architecture" style="max-height: 420px;">
-</div>
-
-<div class="card card-info" style="margin-top: 0.5rem; text-align: center; font-size: 0.9em;">
-Двухэтапная дистилляция: от идеального всеведения Учителя на GPU к компактной робастной бортовой политике Ученика.
-</div>
-
----
-
-<!-- Slide 14 -->
-## 9. Современные достижения RL в робототехнике (SOTA) <span class="badge badge-time">70–77 мин</span>
-
-<div class="grid-3" style="font-size: 0.9em;">
+<div class="grid-2">
 <div class="col">
-<div class="card card-info">
+<div class="card card-accent">
 
-### 🐕 Слепой паркур ANYmal
-*(ETH Zürich, Science Robotics)*
-- Робот преодолевает каменистые завалы и лестничные марши **вслепую** (без лидара и камер), опираясь только на латентную оценку $z_t$.
-- Бег по снегу, мокрому льду и грязи со скоростью до 3.5 м/с.
+### 🎯 Разреженная (Sparse) vs Плотная (Dense) награда
+- **Sparse Reward:** $R = +1$ при достижении цели, $0$ иначе. Исключает нежелательное поведение, но требует миллиардов шагов случайного блуждания.
+- **Dense Reward:** Скалярный градиент на каждом шаге. Направляет оптимизацию, но подвержен явлению **Reward Hacking**.
+
+### 📜 Теорема Ng, Harada, Russell (1999)
+Потенциальное преобразование награды сохраняет оптимальную стратегию $\pi^*$:
+$$ F(s, a, s') = \gamma \Phi(s') - \Phi(s) $$
+Любое другое произвольное добавление штрафов может привести к паразитным локальным минимумам!
 
 </div>
 </div>
@@ -407,21 +559,55 @@ $$\mathcal{R}_t = w_v R_{\text{speed}} + w_\theta R_{\text{balance}} - w_\tau R_
 <div class="col">
 <div class="card card-success">
 
-### 🏃 Динамический бег Cassie / H1
-*(UC Berkeley & Unitree)*
-- Двуногие платформы с плавающей базой удерживают равновесие при сильных ударах человека.
-- Сальто назад, прыжки на тумбу и динамический бег на 100 метров, синтезированные сквозным RL в Isaac Sim.
+### 🦿 Типовой профиль награды для четвероногого робота
+$$ R_t = R_{\text{task}} - R_{\text{penalty}} $$
+
+- **Отслеживание скорости:** $w_v \exp(-\|v_{xy} - v^*\|^2 / \sigma_v^2)$
+- **Стабилизация корпуса:** $- w_\omega (\omega_x^2 + \omega_y^2) - w_{\text{pitch}} \theta^2$
+- **Энергоэффективность:** $- w_\tau \sum_{i=1}^{12} \tau_i^2 - w_{\text{power}} \sum |\tau_i \dot{q}_i|$
+- **Плавность моментов:** $- w_{\Delta \tau} \|\tau_t - \tau_{t-1}\|^2$ (защита редукторов)
+- **Контакт стоп:** $- w_{\text{slip}} \|v_{\text{foot}}\| \cdot \mathbb{I}_{\text{contact}}$ (запрет проскальзывания)
+
+</div>
+
+<div class="card card-alert mt-2">
+
+### 🕵️ Inverse RL (Обучение по демонстрациям)
+Если функцию награды невозможно сформулировать аналитически, её извлекают из демонстраций эксперта-оператора (IRL / GAIL).
+
+</div>
+</div>
+</div>
+
+---
+
+<!-- Slide 14 -->
+## Перенос из симуляции в реальность (Sim-to-Real) <span class="badge badge-time">65–70 мин</span>
+
+<div class="grid-2">
+<div class="col">
+<div class="card card-accent">
+
+### 🌉 Разрыв реальности (Reality Gap)
+Физические симуляторы неизбежно упрощают мир:
+- Люфты в циклоидальных редукторах и упругость звеньев.
+- Задержки в CAN/EtherCAT шинах (10–30 мс).
+- Немоделируемое трение резины о влажный грунт и траву.
+
+### 🎲 Domain Randomization (Рандомизация среды)
+Варьирование параметров физики во время обучения в 4096 параллельных мирах GPU:
+- Масса звеньев: $m \sim U(0.8m_0, 1.2m_0)$
+- Трение стоп: $\mu \sim U(0.2, 1.25)$
+- Запаздывание управляющего сигнала: $\Delta t \sim U(5, 35)$ мс
+- Шум энкодеров и IMU: $\sigma_{\text{pos}}, \sigma_{\text{vel}}, \sigma_{\text{acc}}$
 
 </div>
 </div>
 
 <div class="col">
-<div class="card card-accent">
+<div class="card" style="padding: 6px;">
 
-### 🖐️ Ловкие манипуляции кистями
-*(OpenAI, Сбер, ИТМО)*
-- Сборка кубика Рубика и вращение двух шаров в ладони (In-Hand Manipulation).
-- Синтез сотен координационных синергий пальцев при наличии трения качения и скольжения.
+![Teacher Student](../../assets/images/lecture-06/teacher_student_sim2real.svg)
 
 </div>
 </div>
@@ -430,83 +616,39 @@ $$\mathcal{R}_t = w_v R_{\text{speed}} + w_\theta R_{\text{balance}} - w_\tau R_
 ---
 
 <!-- Slide 15 -->
-## 10. Сравнение классического MPC и нейросетевого RL <span class="badge badge-time">77–84 мин</span>
+## Интерактивный стенд: Управление обратным маятником (Cart-Pole: LQR vs RL) <span class="badge badge-time">70–85 мин</span>
 
-<div class="grid-2">
-<div class="col">
-<div class="card card-info">
+<div class="interactive-container">
+<div class="interactive-header">
 
-### 📐 Оптимальное управление (MPC)
-- **Плюсы:**
-  - Строгие математические доказательства устойчивости (функции Ляпунова).
-  - Жесткое гарантированное соблюдение ограничений ($u \in \mathcal{U}, x \in \mathcal{X}$).
-- **Минусы:**
-  - Тяжелые численные расчеты онлайн (50 Гц макс).
-  - Сбои при разрывах контактов (Infeasible QP).
-  - Требует кропотливой ручной калибровки физических моделей.
+<span><i class="interactive-dot"></i> Интерактивная демонстрация: Синтез политики локомоции и балансировки (LQR vs Shaped RL)</span>
+<span>Исследование влияния штрафа за энергию $w_u$, парирование внешних толчков и пределы устойчивости</span>
 
 </div>
-</div>
-
-<div class="col">
-<div class="card card-accent">
-
-### 🧠 Обучение с подкреплением (Deep RL)
-- **Плюсы:**
-  - Время инференса **$< 1$ мс** на борту (частота 500–1000 Гц).
-  - Робастность к ударным разрывным контактам и скольжению.
-  - Синтезирует сложные нелинейные биомеханические компенсации.
-- **Минусы:**
-  - «Черный ящик»: отсутствие формальных гарантий безопасности.
-  - Риск аварии при попадании в состояния вне распределения обучения (OOD).
+<iframe src="http://localhost:5599/widgets/rl-policy-shaping/index.html" class="interactive-frame"></iframe>
 
 </div>
-</div>
-</div>
+
+<!-- 
+Методические указания лектору (15 минут семинарской практики):
+1. Задача 1: Продемонстрируйте студентам влияние веса wu. При малом wu (0.05) тележка агрессивно позиционируется, но токи и графики u(t) зашкаливают. При wu=2.0 движение плавное, но время установления возрастает.
+2. Задача 2: Нажмите «⚡ Внешний толчок». В режиме Dense RL каскадный регулятор быстро парирует импульс. В режиме Sparse RL система раскачивается и теряет равновесие.
+3. Задача 3: Переключите в Optimal LQR и задайте сильное отклонение (>40°). Линейный регулятор теряет устойчивость из-за неучтенной нелинейности гравитации sin(θ) != θ.
+-->
 
 ---
 
 <!-- Slide 16 -->
-## 11. Гибридные архитектуры: Синергия MPC и RL <span class="badge badge-time">84–88 мин</span>
-
-<div class="grid-2">
-<div class="col">
-
-В передовых роботах MPC и RL не исключают, а дополняют друг друга:
-
-1. **RL как генератор референсов для MPC:**
-   Нейросеть генерирует оптимальные точки постановки ног (Footstep Planning) и профили реакций опор, а быстрый выпуклый QP-регулятор рассчитывает моменты.
-2. **RL как терминальная стоимость (Cost-to-Go):**
-   Функция ценности $V^\pi(x)$ обученного RL выступает терминальным слагаемым $\Phi(x_N)$ в MPC, сжимая необходимый предиктивный горизонт с 2 секунд до 0.2 секунд!
-
-</div>
-
-<div class="col">
-<div class="card card-success">
-
-### 🛡️ MPC как фильтр безопасности (Safety Filter)
-- Нейросетевая политика формирует желаемое действие $u_{\text{RL}}$.
-- На выходе стоит легковесный контроллер на базе функций барьера управления (**Control Barrier Functions, CBF**):
-  $$\min_{u} \|u - u_{\text{RL}}\|^2 \quad \text{s.t.} \quad L_f B(x) + L_g B(x) u + \alpha(B(x)) \ge 0$$
-- Если действие RL грозит опрокидыванием или превышением предела момента, CBF мгновенно корректирует команду до безопасной границы.
-
-</div>
-</div>
-</div>
-
----
-
-<!-- Slide 17 -->
-## Резюме лекции <span class="badge badge-time">88–90 мин</span>
+## Итоги и перспективы RL в робототехнике <span class="badge badge-time">85–90 мин</span>
 
 <div class="grid-2">
 <div class="col">
 <div class="card card-accent">
 
-### 🔑 Ключевые выводы
-- Разрывные контакты ломают классический градиентный MPC — решение лежит в переходе к обучению на основе взаимодействия (RL).
-- **PPO** является стандартом локомоции благодаря суррогатному клиппингу, а **SAC** дает максимальную робастность за счет энтропии.
-- Параллельные симуляторы на GPU (Isaac Sim) позволяют генерировать десятилетия опыта за минуты.
+### 📌 Ключевые выводы лекции
+1. **Смена парадигмы:** Сложные контакты (шагающие роботы, манипуляция) эффективнее моделировать в высокопроизводительных GPU-симуляторах (Isaac Sim, MuJoCo MJX), чем аналитически в OCP.
+2. **Actor-Critic (PPO / SAC):** Рабочие лошадки робототехники. Обеспечивают стабильное обучение в непрерывных пространствах действий с инференсом $< 1$ мс.
+3. **Reward Shaping & Sim-to-Real:** Грамотный дизайн штрафов за энергию и рывки в связке с Teacher-Student дистилляцией позволяет переносить обученные политики на реальные шасси ANYmal, Spot, Unitree.
 
 </div>
 </div>
@@ -514,39 +656,17 @@ $$\mathcal{R}_t = w_v R_{\text{speed}} + w_\theta R_{\text{balance}} - w_\tau R_
 <div class="col">
 <div class="card card-success">
 
-### 🚀 Инженерный мост к Лекции 07
-- Преодоление Sim-to-Real gap строится на двух китах: **Domain Randomization** и **Teacher-Student**.
-- RL решил задачу стабильного перемещения ног в пространстве.
-- **Следующий вопрос курса (Лекция 07):** Как перейти от слепого бега ног к осмысленному манипулированию предметами и пониманию команд человека через мультимодальные модели (VLA)?
+### 🔮 Мост к Лекции 07: Foundation Models и VLA
+- Обучение с подкреплением дает превосходную низкоуровневую моторику, но не понимает семантику окружающей среды.
+- В следующей лекции: **Vision-Language-Action (VLA)**, диффузионные политики (**Diffusion Policy**) и мультимодальные модели действий для манипуляций мобильных платформ.
 
 </div>
-</div>
-</div>
 
----
+<div class="card mt-2">
 
-<!-- Slide 18 -->
-## Рекомендуемая академическая литература <span class="badge badge-time">90 мин</span>
-
-<div class="grid-2">
-<div class="col">
-
-**Фундаментальные учебники:**
-- Sutton, R. S., & Barto, A. G. (2018). *Reinforcement Learning: An Introduction*. MIT Press.
-- Bertsekas, D. (2019). *Reinforcement Learning and Optimal Control*. Athena Scientific.
-
-**Ключевые статьи по алгоритмам:**
-- Schulman, J., et al. (2017). *Proximal Policy Optimization Algorithms* (PPO). arXiv.
-- Haarnoja, T., et al. (2018). *Soft Actor-Critic: Off-Policy Maximum Entropy Deep RL* (SAC). ICML.
-
-</div>
-<div class="col">
-<div class="card card-info">
-
-**Прорывы Sim-to-Real и локомоции:**
-- Miki, T., Lee, J., Hwangbo, J., & Hutter, M. (2022). *Learning robust perceptive locomotion for quadrupedal robots in the wild*. Science Robotics.
-- Lee, J., et al. (2020). *Learning quadrupedal locomotion over challenging terrain*. Science Robotics.
-- Rudin, N., et al. (2022). *Learning to Walk in Minutes Using Massively Parallel Deep Reinforcement Learning*. CoRL.
+### ❓ Вопросы для самопроверки
+1. Почему в непрерывном управлении шагающим роботом Q-Learning уступает Policy Gradient?
+2. За счет чего Teacher-Student архитектура способна ориентироваться на рельефе без прямого измерения карты высот?
 
 </div>
 </div>

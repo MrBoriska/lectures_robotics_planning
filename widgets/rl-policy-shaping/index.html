@@ -277,6 +277,45 @@
           </div>
         </div>
 
+        <!-- Student Practical Tasks (Слайд 15) -->
+        <div class="card" style="background: #f0fdf4; border: 1.5px solid #86efac;">
+          <div class="card-title" style="color: #166534; font-size: 11px;">
+            <span>📋 Задания для студентов (Слайд 15)</span>
+            <span class="badge-mode" style="background: #dcfce7; color: #15803d; border: 1px solid #86efac;">ПРАКТИКА</span>
+          </div>
+          <div style="font-size: 10.5px; color: #166534; line-height: 1.45; display: flex; flex-direction: column; gap: 7px;">
+            <div style="background: #ffffff; padding: 6px 8px; border-radius: 4px; border: 1px solid #bbf7d0;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                <strong>Задача 1: Штраф энергии $w_u$</strong>
+                <button id="btnTask1" class="btn" style="padding: 2px 6px; font-size: 9.5px; background: #ecfdf5; border-color: #a7f3d0; color: #047857;">Тест: $w_u \uparrow$</button>
+              </div>
+              <div style="color: #374151;">
+                Сравните быстродействие при $w_u=0.05$ (агрессивно, большие токи $u$) и $w_u=2.0$ (плавный расход, большее время установления).
+              </div>
+            </div>
+
+            <div style="background: #ffffff; padding: 6px 8px; border-radius: 4px; border: 1px solid #bbf7d0;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                <strong>Задача 2: Парирование толчка (Kick)</strong>
+                <button id="btnTask2" class="btn" style="padding: 2px 6px; font-size: 9.5px; background: #fef2f2; border-color: #fecaca; color: #dc2626;">⚡ Импульс</button>
+              </div>
+              <div style="color: #374151;">
+                Запустите <em>RL Dense</em>, <em>LQR</em> и <em>RL Sparse</em>. Нажмите толчок. Плотная награда стабилизирует тележку; Sparse раскачивается и падает.
+              </div>
+            </div>
+
+            <div style="background: #ffffff; padding: 6px 8px; border-radius: 4px; border: 1px solid #bbf7d0;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                <strong>Задача 3: Предел LQR ($\theta > 40^\circ$) vs RL</strong>
+                <button id="btnTask3" class="btn" style="padding: 2px 6px; font-size: 9.5px; background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8;">Тест: $\theta=43^\circ$</button>
+              </div>
+              <div style="color: #374151;">
+                При наклоне $\theta > 40^\circ$ ($>0.7$ рад) линейный регулятор (LQR) опрокидывается из-за нелинейного момента гравитации. RL удерживает равновесие!
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Pedagogical Takeaway -->
         <div class="card" style="background: #f8fafc; border-left: 3px solid var(--accent-blue);">
           <div style="font-weight: 700; font-size: 11px; color: var(--text-main); margin-bottom: 4px;">
@@ -343,6 +382,9 @@
     const btnStep = document.getElementById('btnStep');
     const btnReset = document.getElementById('btnReset');
     const btnKick = document.getElementById('btnKick');
+    const btnTask1 = document.getElementById('btnTask1');
+    const btnTask2 = document.getElementById('btnTask2');
+    const btnTask3 = document.getElementById('btnTask3');
     const selectMode = document.getElementById('selectMode');
     const modeBadge = document.getElementById('modeBadge');
 
@@ -369,7 +411,7 @@
     const takeawayText = document.getElementById('takeawayText');
 
     // --- Control Laws & Solvers ---
-    function computeControl() {
+        function computeControl() {
       // Add sensor noise
       const obsX = sim.x + (Math.random() - 0.5) * sim.noise * 2;
       const obsXDot = sim.x_dot + (Math.random() - 0.5) * sim.noise * 2;
@@ -380,21 +422,20 @@
       let rawU = 0;
 
       if (sim.mode === 'rl_dense') {
-        // Parametric Actor-Critic policy synthesis with non-linear compensation & adaptive gains
-        // High wAngle increases theta stiffness; high wPos increases cart tracking stiffness;
-        // high wEffort damps the commanded force.
-        const kPos = Math.sqrt(sim.wPos) * 2.8 / (1.0 + sim.wEffort * 0.8);
-        const kVel = Math.sqrt(sim.wPos) * 1.9 / (1.0 + sim.wEffort * 0.8);
-        const kAng = (sim.wAngle * 1.8) / (1.0 + sim.wEffort * 0.5);
-        const kAngVel = Math.sqrt(sim.wAngle) * 3.4 / (1.0 + sim.wEffort * 0.5);
+        const kPos = 0.05 * Math.sqrt(sim.wPos) / (1.0 + sim.wEffort * 0.3);
+        const kVel = 0.07 * Math.sqrt(sim.wPos) / (1.0 + sim.wEffort * 0.3);
+        const kAng = 2.4 * sim.wAngle / (1.0 + sim.wEffort * 0.2);
+        const kAngVel = 2.8 * Math.sqrt(sim.wAngle) / (1.0 + sim.wEffort * 0.2);
 
-        // Non-linear policy with saturation & smooth transition
         const sinTh = Math.sin(obsTheta);
         const cosTh = Math.cos(obsTheta);
         
         // Upright balancing mode
         if (Math.abs(obsTheta) < 0.95) {
-          rawU = - (kPos * errX + kVel * obsXDot) + (kAng * sinTh + kAngVel * obsThetaDot);
+          // Cascaded control: reference tilt angle is clamped to +/- 14 deg
+          let thetaRef = - (kPos * errX + kVel * obsXDot);
+          thetaRef = Math.max(-0.25, Math.min(0.25, thetaRef));
+          rawU = kAng * (obsTheta - thetaRef) + kAngVel * obsThetaDot;
           // Smoothness term (penalty on Delta u)
           rawU = (rawU + sim.wSmooth * sim.prevU) / (1.0 + sim.wSmooth);
         } else {
@@ -404,11 +445,10 @@
 
       } else if (sim.mode === 'rl_sparse') {
         // Sparse policy: only gets reward when near target and upright
-        // Tends to overshoot, chatter or fail to damp high-frequency oscillation
         const kPos = 1.2;
         const kAng = 14.0;
         if (Math.abs(obsTheta) < 0.6) {
-          rawU = - (kPos * errX) + (kAng * obsTheta);
+          rawU = kPos * errX + kAng * obsTheta;
           // High chattering due to lack of derivative / smoothness reward shaping
           rawU += (Math.random() - 0.5) * 6.0;
         } else {
@@ -417,22 +457,20 @@
 
       } else if (sim.mode === 'optimal_lqr') {
         // Classical LQR feedback matrix K computed for linearized double inverted pendulum
-        // Q = diag(wPos, 0.1, wAngle, 0.5), R = wEffort
         const rNorm = Math.max(0.05, sim.wEffort);
         const qPos = Math.max(0.1, sim.wPos);
         const qAng = Math.max(1.0, sim.wAngle);
 
         const k1 = Math.sqrt(qPos / rNorm) * 1.2;
         const k2 = Math.sqrt(k1) * 1.4;
-        const k3 = (qAng / rNorm) * 0.9 + 12.0;
-        const k4 = Math.sqrt(k3) * 2.2;
+        const k3 = (qAng / rNorm) * 0.9 + 18.0;
+        const k4 = Math.sqrt(k3) * 2.8;
 
-        // Linear control law: u = - K * [errX, xDot, theta, thetaDot]^T
-        rawU = - (k1 * errX + k2 * obsXDot) + (k3 * obsTheta + k4 * obsThetaDot);
+        // Correct LQR sign convention for stabilization!
+        rawU = k1 * errX + k2 * obsXDot + k3 * obsTheta + k4 * obsThetaDot;
         
         // If angle is large, linear assumption fails catastrophically
         if (Math.abs(obsTheta) > 0.7) {
-          // LQR diverges because linear model is invalid
           rawU *= 0.5;
         }
       }
@@ -780,6 +818,27 @@
       // Inject physical disturbance
       sim.theta_dot += (Math.random() > 0.5 ? 1 : -1) * (2.4 + Math.random() * 1.5);
       sim.x_dot += (Math.random() - 0.5) * 1.8;
+    });
+
+    btnTask1.addEventListener('click', () => {
+      sim.mode = 'rl_dense';
+      selectMode.value = 'rl_dense';
+      sim.wEffort = sim.wEffort > 1.0 ? 0.05 : 2.0;
+      slWEffort.value = sim.wEffort;
+      valWEffort.textContent = sim.wEffort.toFixed(2);
+      btnTask1.textContent = sim.wEffort > 1.0 ? 'w_u = 2.0 (Плавный)' : 'w_u = 0.05 (Агрессивный)';
+      updateTelemetry();
+    });
+
+    btnTask2.addEventListener('click', () => {
+      sim.theta_dot += (Math.random() > 0.5 ? 1 : -1) * (2.8 + Math.random() * 1.2);
+      sim.x_dot += (Math.random() - 0.5) * 2.2;
+    });
+
+    btnTask3.addEventListener('click', () => {
+      sim.theta = 0.75;
+      sim.theta_dot = 0.0;
+      updateTelemetry();
     });
 
     selectMode.addEventListener('change', (e) => {

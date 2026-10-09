@@ -1,0 +1,176 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 540" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f8fafc"/>
+    </linearGradient>
+    <filter id="shadow" x="-3%" y="-4%" width="106%" height="110%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.06"/>
+    </filter>
+  </defs>
+
+  <rect width="100%" height="100%" rx="12" fill="url(#bgGrad)" stroke="#e2e8f0" stroke-width="1.5"/>
+
+  <!-- Title & Subtitle -->
+  <g transform="translate(28, 30)">
+    <text x="0" y="0" font-family="Inter, system-ui, sans-serif" font-size="17" font-weight="800" fill="#0f172a">Таксономия обучения с подкреплением (Murphy, 2023)</text>
+    <text x="0" y="20" font-family="Inter, system-ui, sans-serif" font-size="12" fill="#64748b">Иерархическая классификация алгоритмов: Model-Free vs Model-Based и способы представления политики</text>
+  </g>
+
+  <!-- Level 0: Root Machine Learning -->
+  <g transform="translate(380, 72)" filter="url(#shadow)">
+    <rect width="220" height="38" rx="8" fill="#1e293b" stroke="#0f172a" stroke-width="1.2"/>
+    <text x="110" y="23" text-anchor="middle" font-family="Inter, sans-serif" font-size="12.5" font-weight="700" fill="#ffffff">Machine Learning</text>
+  </g>
+
+  <!-- Connectors from Root to 3 ML Paradigms -->
+  <path d="M 430,110 L 430,126 L 140,126 L 140,140" stroke="#94a3b8" stroke-width="1.5" fill="none"/>
+  <path d="M 490,110 L 490,140" stroke="#94a3b8" stroke-width="1.5" fill="none"/>
+  <path d="M 550,110 L 550,126 L 660,126 L 660,140" stroke="#2563eb" stroke-width="2" fill="none"/>
+
+  <!-- Level 1: 3 Paradigms -->
+  <!-- Supervised -->
+  <g transform="translate(45, 140)">
+    <rect width="190" height="42" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="95" y="21" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#475569">Supervised Learning</text>
+    <text x="95" y="34" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#64748b">y ≈ f(x), разметка пар</text>
+  </g>
+
+  <!-- Unsupervised -->
+  <g transform="translate(395, 140)">
+    <rect width="190" height="42" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="95" y="21" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#475569">Unsupervised Learning</text>
+    <text x="95" y="34" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#64748b">p(x), кластеризация</text>
+  </g>
+
+  <!-- Reinforcement Learning Highlighted -->
+  <g transform="translate(560, 140)" filter="url(#shadow)">
+    <rect width="200" height="42" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="1.8"/>
+    <text x="100" y="21" text-anchor="middle" font-family="Inter, sans-serif" font-size="11.5" font-weight="700" fill="#1e40af">Reinforcement Learning</text>
+    <text x="100" y="34" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#2563eb">max E[∑ γᵗ Rₜ], скалярная награда</text>
+  </g>
+
+  <!-- Connectors from RL to Model-Free and Model-Based -->
+  <path d="M 660,182 L 660,202 L 315,202 L 315,218" stroke="#2563eb" stroke-width="1.8" fill="none"/>
+  <path d="M 660,182 L 660,202 L 815,202 L 815,218" stroke="#d97706" stroke-width="1.8" fill="none"/>
+
+  <!-- Level 2: Model-Free vs Model-Based -->
+  <!-- Left Big Branch: Model-Free RL -->
+  <g transform="translate(24, 218)">
+    <rect width="580" height="260" rx="8" fill="#f8fafc" stroke="#bfdbfe" stroke-width="1.5"/>
+    <rect width="580" height="28" rx="8" fill="#1d4ed8"/>
+    <text x="16" y="19" font-family="Inter, sans-serif" font-size="11.5" font-weight="700" fill="#ffffff">Model-Free RL (Без модели динамики среды)</text>
+    <text x="564" y="19" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#bfdbfe">Опыт: (s, a, r, s')</text>
+
+    <!-- 3 Sub-families inside Model-Free -->
+    <!-- 1. Value-Based -->
+    <g transform="translate(12, 38)">
+      <rect width="176" height="210" rx="6" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+      <rect width="176" height="22" rx="6" fill="#f1f5f9"/>
+      <text x="88" y="15" text-anchor="middle" font-family="Inter, sans-serif" font-size="10.5" font-weight="700" fill="#1e293b">Value-Based</text>
+      
+      <g transform="translate(8, 30)" font-family="Inter, sans-serif" font-size="9.5" fill="#334155">
+        <text x="0" y="12" font-weight="700" fill="#0f172a">Идея:</text>
+        <text x="0" y="26">Оценка Q*(s, a),</text>
+        <text x="0" y="39">π(s) = argmax Q</text>
+        
+        <text x="0" y="60" font-weight="700" fill="#0f172a">Ключевые алгоритмы:</text>
+        <text x="0" y="74" font-family="JetBrains Mono" font-size="9" fill="#2563eb">• Q-Learning (табл.)</text>
+        <text x="0" y="88" font-family="JetBrains Mono" font-size="9" fill="#2563eb">• DQN (Mnih 2015)</text>
+        <text x="0" y="102" font-family="JetBrains Mono" font-size="9" fill="#2563eb">• Double DQN</text>
+        <text x="0" y="116" font-family="JetBrains Mono" font-size="9" fill="#2563eb">• Rainbow</text>
+
+        <text x="0" y="138" font-weight="700" fill="#d97706">Пространство действий:</text>
+        <text x="0" y="152" fill="#475569">Дискретное |A| &lt; ∞</text>
+        <text x="0" y="168" font-size="8.5" fill="#64748b">argmax по непрерывному A вычислительно дорог</text>
+      </g>
+    </g>
+
+    <!-- 2. Policy-Based -->
+    <g transform="translate(200, 38)">
+      <rect width="176" height="210" rx="6" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+      <rect width="176" height="22" rx="6" fill="#f1f5f9"/>
+      <text x="88" y="15" text-anchor="middle" font-family="Inter, sans-serif" font-size="10.5" font-weight="700" fill="#1e293b">Policy-Based</text>
+      
+      <g transform="translate(8, 30)" font-family="Inter, sans-serif" font-size="9.5" fill="#334155">
+        <text x="0" y="12" font-weight="700" fill="#0f172a">Идея:</text>
+        <text x="0" y="26">Прямая параметризация</text>
+        <text x="0" y="39">политики π_θ(a|s)</text>
+        
+        <text x="0" y="60" font-weight="700" fill="#0f172a">Ключевые алгоритмы:</text>
+        <text x="0" y="74" font-family="JetBrains Mono" font-size="9" fill="#059669">• REINFORCE (MC)</text>
+        <text x="0" y="88" font-family="JetBrains Mono" font-size="9" fill="#059669">• Natural PG</text>
+        <text x="0" y="102" font-family="JetBrains Mono" font-size="9" fill="#059669">• TRPO (Trust Region)</text>
+
+        <text x="0" y="124" font-weight="700" fill="#dc2626">Ограничение:</text>
+        <text x="0" y="138" fill="#475569">Высокая дисперсия</text>
+        <text x="0" y="152" fill="#475569">оценки Монте-Карло,</text>
+        <text x="0" y="166" fill="#475569">медленная сходимость</text>
+      </g>
+    </g>
+
+    <!-- 3. Actor-Critic (SOTA Robotics) -->
+    <g transform="translate(388, 38)">
+      <rect width="180" height="210" rx="6" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.3"/>
+      <rect width="180" height="22" rx="6" fill="#2563eb"/>
+      <text x="90" y="15" text-anchor="middle" font-family="Inter, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">Actor-Critic (Робототехника)</text>
+      
+      <g transform="translate(8, 30)" font-family="Inter, sans-serif" font-size="9.5" fill="#1e293b">
+        <text x="0" y="12" font-weight="700" fill="#1e40af">Идея: Синергия</text>
+        <text x="0" y="26">Actor π_θ(a|s) + Critic V_ϕ(s)</text>
+        <text x="0" y="39" fill="#2563eb">Критик гасит дисперсию</text>
+        
+        <text x="0" y="60" font-weight="700" fill="#1e40af">Рабочие лошадки SOTA:</text>
+        <text x="0" y="74" font-family="JetBrains Mono" font-size="9" font-weight="700" fill="#1d4ed8">• PPO (On-policy, клиппинг)</text>
+        <text x="0" y="88" font-family="JetBrains Mono" font-size="9" font-weight="700" fill="#1d4ed8">• SAC (Off-policy, энтропия)</text>
+        <text x="0" y="102" font-family="JetBrains Mono" font-size="9" fill="#334155">• TD3 / DDPG</text>
+
+        <text x="0" y="124" font-weight="700" fill="#059669">Стандарт локомоции:</text>
+        <text x="0" y="138" fill="#047857">Непрерывные приводы A ⊆ ℝᵈ</text>
+        <text x="0" y="152" fill="#047857">Масштабируется на GPU</text>
+        <text x="0" y="166" font-size="8.5" fill="#64748b">Isaac Sim, MuJoCo MJX</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Right Branch: Model-Based RL -->
+  <g transform="translate(620, 218)">
+    <rect width="336" height="260" rx="8" fill="#fffbeb" stroke="#fde68a" stroke-width="1.5"/>
+    <rect width="336" height="28" rx="8" fill="#d97706"/>
+    <text x="16" y="19" font-family="Inter, sans-serif" font-size="11.5" font-weight="700" fill="#ffffff">Model-Based RL (Модель s' = f(s, a))</text>
+    <text x="320" y="19" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#fef3c7">Sample-Efficient</text>
+
+    <!-- Sub-branches -->
+    <g transform="translate(12, 38)">
+      <!-- Known Model -->
+      <rect width="312" height="96" rx="6" fill="#ffffff" stroke="#fde68a" stroke-width="1"/>
+      <text x="10" y="18" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#92400e">Априорная модель (Given Physics Model)</text>
+      <g transform="translate(10, 24)" font-family="Inter, sans-serif" font-size="9.5" fill="#451a03">
+        <text x="0" y="14">• Динамическое программирование (Value Iteration)</text>
+        <text x="0" y="28">• Оптимальное управление: LQR, iLQR, NMPC</text>
+        <text x="0" y="42">• Поиск по дереву решений: MCTS (AlphaZero)</text>
+        <text x="0" y="58" font-size="8.5" fill="#78350f">Требует точных аналитических уравнений контактов</text>
+      </g>
+
+      <!-- Learned Model -->
+      <g transform="translate(0, 106)">
+        <rect width="312" height="104" rx="6" fill="#ffffff" stroke="#fde68a" stroke-width="1"/>
+        <text x="10" y="18" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#92400e">Обучаемая модель (Learned World Model)</text>
+        <g transform="translate(10, 24)" font-family="Inter, sans-serif" font-size="9.5" fill="#451a03">
+          <text x="0" y="14">• Планирование на лету: PETS, PlaNet, Dreamer</text>
+          <text x="0" y="28">• Синтез опыта (Dyna): Dyna-Q, MBPO, MuZero</text>
+          <text x="0" y="44" font-weight="700" fill="#b45309">Плюс: Высокая эффективность данных</text>
+          <text x="0" y="58" font-size="8.5" fill="#78350f">Минус: Накопление ошибки модели (Compounding error)</text>
+        </g>
+      </g>
+    </g>
+  </g>
+
+  <!-- Bottom Takeaway Badge -->
+  <g transform="translate(28, 492)">
+    <rect width="928" height="32" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="14" y="20" font-family="Inter, sans-serif" font-size="10.5" fill="#334155">
+      <tspan font-weight="700" fill="#0f172a">Вывод для робототехники:</tspan> В непрерывной локомоции доминирует <tspan font-weight="700" fill="#2563eb">Model-Free Actor-Critic (PPO / SAC)</tspan> благодаря параллельной симуляции на GPU, снимающей дефицит сэмплов.
+    </text>
+  </g>
+</svg>

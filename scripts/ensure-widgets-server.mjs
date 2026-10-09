@@ -37,10 +37,11 @@ async function main() {
   });
   child.unref();
 
-  for (let i = 0; i < 15; i++) {
+  for (let i = 0; i < 20; i++) {
     await new Promise((r) => setTimeout(r, 200));
-    if (await checkPort(5599) && await checkPort(5500)) {
-      console.log(`🎉 [Widgets Server] Успешно запущен на http://localhost:5599 и http://localhost:5500`);
+    if (await checkPort(5599)) {
+      const is5500Now = await checkPort(5500);
+      console.log(`🎉 [Widgets Server] Успешно запущен на http://localhost:5599 (5500: ${is5500Now})`);
       process.exit(0);
     }
   }

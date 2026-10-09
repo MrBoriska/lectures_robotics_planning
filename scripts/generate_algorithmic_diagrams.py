@@ -4850,6 +4850,21 @@ def main():
         generate_lecture_07_08_diagrams()
     except Exception as e:
         print(f"Warning: could not generate Lecture 07/08 diagrams: {e}")
+    try:
+        from generate_lecture_06_diagrams import (
+            generate_rl_taxonomy,
+            generate_dqn_architecture,
+            generate_actor_critic_architecture,
+            generate_teacher_student_sim2real
+        )
+        print("=== Generating Rigorous Diagrams for Lecture 06 ===")
+        generate_rl_taxonomy()
+        generate_dqn_architecture()
+        generate_actor_critic_architecture()
+        generate_teacher_student_sim2real()
+        print("=== Lecture 06 Diagrams Successfully Generated! ===")
+    except Exception as e:
+        print(f"Warning: could not generate Lecture 06 diagrams: {e}")
     print("=== All Algorithmic Diagrams Successfully Generated! ===")
 
 if __name__ == '__main__':
