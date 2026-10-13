@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 400" width="1100" height="400" font-family="Inter, 'Segoe UI', Roboto, Arial, sans-serif">
+<rect width="1100" height="400" fill="#ffffff"/>
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker><marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker><marker id="arrR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker><marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker><marker id="arrP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker><marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d97706"/></marker></defs>
+<text x="24.0" y="30.0" font-size="18" fill="#0f172a" text-anchor="start" font-weight="700">Начальное приближение в методах прямой транскрипции: x(0) = 0, x(2) = 1, N = 4</text>
+<rect x="60.0" y="100.0" width="300.0" height="200.0" rx="0" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="60.0" y1="100.0" x2="60.0" y2="300.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="60.0" y="318.0" font-size="12" fill="#475569" text-anchor="middle" font-weight="400">0</text>
+<line x1="135.0" y1="100.0" x2="135.0" y2="300.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="135.0" y="318.0" font-size="12" fill="#475569" text-anchor="middle" font-weight="400">0.5</text>
+<line x1="210.0" y1="100.0" x2="210.0" y2="300.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="210.0" y="318.0" font-size="12" fill="#475569" text-anchor="middle" font-weight="400">1</text>
+<line x1="285.0" y1="100.0" x2="285.0" y2="300.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="285.0" y="318.0" font-size="12" fill="#475569" text-anchor="middle" font-weight="400">1.5</text>
+<line x1="360.0" y1="100.0" x2="360.0" y2="300.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="360.0" y="318.0" font-size="12" fill="#475569" text-anchor="middle" font-weight="400">2</text>
+<line x1="60.0" y1="271.4" x2="360.0" y2="271.4" stroke="#e2e8f0" stroke-width="1"/>
+<text x="52.0" y="275.4" font-size="12" fill="#475569" text-anchor="end" font-weight="400">0</text>
+<line x1="60.0" y1="200.0" x2="360.0" y2="200.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="52.0" y="204.0" font-size="12" fill="#475569" text-anchor="end" font-weight="400">0.5</text>
+<line x1="60.0" y1="128.6" x2="360.0" y2="128.6" stroke="#e2e8f0" stroke-width="1"/>
+<text x="52.0" y="132.6" font-size="12" fill="#475569" text-anchor="end" font-weight="400">1</text>
+<line x1="60.0" y1="271.4" x2="360.0" y2="271.4" stroke="#94a3b8" stroke-width="1.3"/>
+<text x="360.0" y="336.0" font-size="15" fill="#0f172a" text-anchor="end" font-weight="400" font-style="italic" font-family="'Times New Roman', 'STIX Two Text', serif">t</text>
+<text x="60.0" y="66.0" font-size="16" fill="#0f172a" text-anchor="start" font-weight="700">Одиночная стрельба</text>
+<text x="60.0" y="88.0" font-size="13" fill="#475569" text-anchor="start" font-weight="400" font-style="italic" font-family="'Times New Roman', 'STIX Two Text', serif">положение x<tspan baseline-shift="sub" font-size="72%">1</tspan>(t)</text>
+<circle cx="360.0" cy="128.6" r="6" fill="#fff" stroke="#059669" stroke-width="2.4"/>
+<rect x="420.0" y="100.0" width="300.0" height="200.0" rx="0" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="420.0" y1="100.0" x2="420.0" y2="300.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="420.0" y="318.0" font-size="12" fill="#475569" text-anchor="middle" font-weight="400">0</text>
+<line x1="495.0" y1="100.0" x2="495.0" y2="300.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="495.0" y="318.0" font-size="12" fill="#475569" text-anchor="middle" font-weight="400">0.5</text>
+<line x1="570.0" y1="100.0" x2="570.0" y2="300.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="570.0" y="318.0" font-size="12" fill="#475569" text-anchor="middle" font-weight="400">1</text>
+<line x1="645.0" y1="100.0" x2="645.0" y2="300.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="645.0" y="318.0" font-size="12" fill="#475569" text-anchor="middle" font-weight="400">1.5</text>
+<line x1="720.0" y1="100.0" x2="720.0" y2="300.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="720.0" y="318.0" font-size="12" fill="#475569" text-anchor="middle" font-weight="400">2</text>
+<line x1="420.0" y1="271.4" x2="720.0" y2="271.4" stroke="#e2e8f0" stroke-width="1"/>
+<text x="412.0" y="275.4" font-size="12" fill="#475569" text-anchor="end" font-weight="400">0</text>
+<line x1="420.0" y1="200.0" x2="720.0" y2="200.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="412.0" y="204.0" font-size="12" fill="#475569" text-anchor="end" font-weight="400">0.5</text>
+<line x1="420.0" y1="128.6" x2="720.0" y2="128.6" stroke="#e2e8f0" stroke-width="1"/>
+<text x="412.0" y="132.6" font-size="12" fill="#475569" text-anchor="end" font-weight="400">1</text>
+<line x1="420.0" y1="271.4" x2="720.0" y2="271.4" stroke="#94a3b8" stroke-width="1.3"/>
+<text x="720.0" y="336.0" font-size="15" fill="#0f172a" text-anchor="end" font-weight="400" font-style="italic" font-family="'Times New Roman', 'STIX Two Text', serif">t</text>
+<text x="420.0" y="66.0" font-size="16" fill="#0f172a" text-anchor="start" font-weight="700">Многократная стрельба</text>
+<text x="420.0" y="88.0" font-size="13" fill="#475569" text-anchor="start" font-weight="400" font-style="italic" font-family="'Times New Roman', 'STIX Two Text', serif">положение x<tspan baseline-shift="sub" font-size="72%">1</tspan>(t)</text>
+<circle cx="720.0" cy="128.6" r="6" fill="#fff" stroke="#059669" stroke-width="2.4"/>
+<rect x="780.0" y="100.0" width="300.0" height="200.0" rx="0" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="780.0" y1="100.0" x2="780.0" y2="300.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="780.0" y="318.0" font-size="12" fill="#475569" text-anchor="middle" font-weight="400">0</text>
+<line x1="855.0" y1="100.0" x2="855.0" y2="300.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="855.0" y="318.0" font-size="12" fill="#475569" text-anchor="middle" font-weight="400">0.5</text>
+<line x1="930.0" y1="100.0" x2="930.0" y2="300.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="930.0" y="318.0" font-size="12" fill="#475569" text-anchor="middle" font-weight="400">1</text>
+<line x1="1005.0" y1="100.0" x2="1005.0" y2="300.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="1005.0" y="318.0" font-size="12" fill="#475569" text-anchor="middle" font-weight="400">1.5</text>
+<line x1="1080.0" y1="100.0" x2="1080.0" y2="300.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="1080.0" y="318.0" font-size="12" fill="#475569" text-anchor="middle" font-weight="400">2</text>
+<line x1="780.0" y1="271.4" x2="1080.0" y2="271.4" stroke="#e2e8f0" stroke-width="1"/>
+<text x="772.0" y="275.4" font-size="12" fill="#475569" text-anchor="end" font-weight="400">0</text>
+<line x1="780.0" y1="200.0" x2="1080.0" y2="200.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="772.0" y="204.0" font-size="12" fill="#475569" text-anchor="end" font-weight="400">0.5</text>
+<line x1="780.0" y1="128.6" x2="1080.0" y2="128.6" stroke="#e2e8f0" stroke-width="1"/>
+<text x="772.0" y="132.6" font-size="12" fill="#475569" text-anchor="end" font-weight="400">1</text>
+<line x1="780.0" y1="271.4" x2="1080.0" y2="271.4" stroke="#94a3b8" stroke-width="1.3"/>
+<text x="1080.0" y="336.0" font-size="15" fill="#0f172a" text-anchor="end" font-weight="400" font-style="italic" font-family="'Times New Roman', 'STIX Two Text', serif">t</text>
+<text x="780.0" y="66.0" font-size="16" fill="#0f172a" text-anchor="start" font-weight="700">Коллокация Эрмита–Симпсона</text>
+<text x="780.0" y="88.0" font-size="13" fill="#475569" text-anchor="start" font-weight="400" font-style="italic" font-family="'Times New Roman', 'STIX Two Text', serif">положение x<tspan baseline-shift="sub" font-size="72%">1</tspan>(t)</text>
+<circle cx="1080.0" cy="128.6" r="6" fill="#fff" stroke="#059669" stroke-width="2.4"/>
+<polyline points="60.0,271.4 63.8,271.4 67.5,271.4 71.2,271.3 75.0,271.1 78.8,271.0 82.5,270.8 86.2,270.6 90.0,270.3 93.8,270.0 97.5,269.6 101.2,269.3 105.0,268.9 108.8,268.4 112.5,267.9 116.2,267.4 120.0,266.9 123.8,266.3 127.5,265.6 131.2,265.0 135.0,264.3 138.8,263.6 142.5,262.8 146.2,262.1 150.0,261.4 153.8,260.6 157.5,259.8 161.2,259.1 165.0,258.3 168.8,257.5 172.5,256.7 176.2,255.9 180.0,255.1 183.8,254.2 187.5,253.4 191.2,252.6 195.0,251.7 198.8,250.9 202.5,250.0 206.2,249.1 210.0,248.2 213.8,247.3 217.5,246.4 221.2,245.6 225.0,244.7 228.8,243.9 232.5,243.0 236.2,242.2 240.0,241.4 243.8,240.5 247.5,239.7 251.2,238.9 255.0,238.1 258.8,237.4 262.5,236.6 266.2,235.8 270.0,235.1 273.8,234.3 277.5,233.6 281.2,232.9 285.0,232.1 288.8,231.4 292.5,230.8 296.2,230.1 300.0,229.4 303.8,228.8 307.5,228.2 311.2,227.6 315.0,227.0 318.8,226.4 322.5,225.9 326.2,225.4 330.0,224.9 333.8,224.4 337.5,223.9 341.2,223.4 345.0,223.0 348.8,222.6 352.5,222.2 356.2,221.8 360.0,221.4" fill="none" stroke="#2563eb" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<circle cx="60.0" cy="271.4" r="5" fill="#2563eb" stroke="none" stroke-width="1.5"/>
+<line x1="360.0" y1="221.4" x2="360.0" y2="128.6" stroke="#dc2626" stroke-width="2" stroke-dasharray="4 3"/>
+<text x="352.5" y="179.0" font-size="13" fill="#dc2626" text-anchor="end" font-weight="600">невязка x(T) − x<tspan baseline-shift="sub" font-size="72%">f</tspan></text>
+<text x="60.0" y="344.0" font-size="13" fill="#475569" text-anchor="start" font-weight="400">переменные NLP: u<tspan baseline-shift="sub" font-size="72%">0</tspan> … u<tspan baseline-shift="sub" font-size="72%">N−1</tspan>;</text>
+<text x="60.0" y="362.0" font-size="13" fill="#475569" text-anchor="start" font-weight="400">x<tspan baseline-shift="sub" font-size="72%">k</tspan> вычисляются интегрированием от x<tspan baseline-shift="sub" font-size="72%">0</tspan></text>
+<polyline points="420.0,271.4 423.8,271.4 427.5,271.4 431.2,271.4 435.0,271.3 438.8,271.3 442.5,271.2 446.2,271.1 450.0,271.0 453.8,270.9 457.5,270.8 461.2,270.6 465.0,270.5 468.8,270.3 472.5,270.1 476.2,269.9 480.0,269.7 483.8,269.5 487.5,269.3 491.2,269.0 495.0,268.8" fill="none" stroke="#2563eb" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<line x1="495.0" y1="268.8" x2="495.0" y2="235.7" stroke="#dc2626" stroke-width="2.2" stroke-dasharray="4 3"/>
+<polyline points="495.0,235.7 498.8,235.7 502.5,235.7 506.2,235.7 510.0,235.6 513.8,235.5 517.5,235.5 521.2,235.4 525.0,235.3 528.8,235.2 532.5,235.0 536.2,234.9 540.0,234.8 543.8,234.6 547.5,234.4 551.2,234.2 555.0,234.0 558.8,233.8 562.5,233.5 566.2,233.3 570.0,233.0" fill="none" stroke="#2563eb" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<line x1="570.0" y1="233.0" x2="570.0" y2="200.0" stroke="#dc2626" stroke-width="2.2" stroke-dasharray="4 3"/>
+<polyline points="570.0,200.0 573.8,200.0 577.5,200.0 581.2,199.9 585.0,199.9 588.8,199.8 592.5,199.8 596.2,199.7 600.0,199.6 603.8,199.5 607.5,199.3 611.2,199.2 615.0,199.0 618.8,198.9 622.5,198.7 626.2,198.5 630.0,198.3 633.8,198.1 637.5,197.8 641.2,197.6 645.0,197.3" fill="none" stroke="#2563eb" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<line x1="645.0" y1="197.3" x2="645.0" y2="164.3" stroke="#dc2626" stroke-width="2.2" stroke-dasharray="4 3"/>
+<polyline points="645.0,164.3 648.8,164.3 652.5,164.3 656.2,164.2 660.0,164.2 663.8,164.1 667.5,164.0 671.2,164.0 675.0,163.9 678.8,163.7 682.5,163.6 686.2,163.5 690.0,163.3 693.8,163.2 697.5,163.0 701.2,162.8 705.0,162.6 708.8,162.4 712.5,162.1 716.2,161.9 720.0,161.6" fill="none" stroke="#2563eb" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<line x1="720.0" y1="161.6" x2="720.0" y2="128.6" stroke="#dc2626" stroke-width="2.2" stroke-dasharray="4 3"/>
+<circle cx="420.0" cy="271.4" r="5" fill="#2563eb" stroke="#fff" stroke-width="1.5"/>
+<circle cx="495.0" cy="235.7" r="5" fill="#2563eb" stroke="#fff" stroke-width="1.5"/>
+<circle cx="570.0" cy="200.0" r="5" fill="#2563eb" stroke="#fff" stroke-width="1.5"/>
+<circle cx="645.0" cy="164.3" r="5" fill="#2563eb" stroke="#fff" stroke-width="1.5"/>
+<circle cx="720.0" cy="128.6" r="5" fill="#2563eb" stroke="#fff" stroke-width="1.5"/>
+<text x="427.5" y="128.6" font-size="13" fill="#dc2626" text-anchor="start" font-weight="600">дефекты x<tspan baseline-shift="sub" font-size="72%">k+1</tspan> − F(x<tspan baseline-shift="sub" font-size="72%">k</tspan>, u<tspan baseline-shift="sub" font-size="72%">k</tspan>)</text>
+<text x="420.0" y="344.0" font-size="13" fill="#475569" text-anchor="start" font-weight="400">переменные NLP: x<tspan baseline-shift="sub" font-size="72%">0</tspan> … x<tspan baseline-shift="sub" font-size="72%">N</tspan>, u<tspan baseline-shift="sub" font-size="72%">0</tspan> … u<tspan baseline-shift="sub" font-size="72%">N−1</tspan>;</text>
+<text x="420.0" y="362.0" font-size="13" fill="#475569" text-anchor="start" font-weight="400">узлы задаются независимо, интегратор на интервале</text>
+<polyline points="780.0,271.4 782.5,271.3 785.0,271.0 787.5,270.4 790.0,269.7 792.5,268.8 795.0,267.7 797.5,266.5 800.0,265.2 802.5,263.7 805.0,262.2 807.5,260.5 810.0,258.9 812.5,257.1 815.0,255.4 817.5,253.6 820.0,251.8 822.5,250.0 825.0,248.3 827.5,246.6 830.0,245.0 832.5,243.4 835.0,242.0 837.5,240.6 840.0,239.4 842.5,238.4 845.0,237.4 847.5,236.7 850.0,236.2 852.5,235.8 855.0,235.7" fill="none" stroke="#2563eb" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<line x1="798.0" y1="267.5" x2="837.0" y2="239.6" stroke="#7c3aed" stroke-width="2.0"/>
+<line x1="798.0" y1="253.6" x2="837.0" y2="253.6" stroke="#dc2626" stroke-width="2.2" stroke-dasharray="4 3"/>
+<circle cx="817.5" cy="253.6" r="4" fill="#d97706" stroke="none" stroke-width="1.5"/>
+<polyline points="855.0,235.7 857.5,235.6 860.0,235.3 862.5,234.7 865.0,234.0 867.5,233.1 870.0,232.0 872.5,230.8 875.0,229.4 877.5,228.0 880.0,226.5 882.5,224.8 885.0,223.1 887.5,221.4 890.0,219.6 892.5,217.9 895.0,216.1 897.5,214.3 900.0,212.6 902.5,210.9 905.0,209.3 907.5,207.7 910.0,206.3 912.5,204.9 915.0,203.7 917.5,202.6 920.0,201.7 922.5,201.0 925.0,200.5 927.5,200.1 930.0,200.0" fill="none" stroke="#2563eb" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<line x1="873.0" y1="231.8" x2="912.0" y2="203.9" stroke="#7c3aed" stroke-width="2.0"/>
+<line x1="873.0" y1="217.9" x2="912.0" y2="217.9" stroke="#dc2626" stroke-width="2.2" stroke-dasharray="4 3"/>
+<circle cx="892.5" cy="217.9" r="4" fill="#d97706" stroke="none" stroke-width="1.5"/>
+<polyline points="930.0,200.0 932.5,199.9 935.0,199.5 937.5,199.0 940.0,198.3 942.5,197.4 945.0,196.3 947.5,195.1 950.0,193.7 952.5,192.3 955.0,190.7 957.5,189.1 960.0,187.4 962.5,185.7 965.0,183.9 967.5,182.1 970.0,180.4 972.5,178.6 975.0,176.9 977.5,175.2 980.0,173.5 982.5,172.0 985.0,170.6 987.5,169.2 990.0,168.0 992.5,166.9 995.0,166.0 997.5,165.3 1000.0,164.7 1002.5,164.4 1005.0,164.3" fill="none" stroke="#2563eb" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<line x1="948.0" y1="196.1" x2="987.0" y2="168.2" stroke="#7c3aed" stroke-width="2.0"/>
+<line x1="948.0" y1="182.1" x2="987.0" y2="182.1" stroke="#dc2626" stroke-width="2.2" stroke-dasharray="4 3"/>
+<circle cx="967.5" cy="182.1" r="4" fill="#d97706" stroke="none" stroke-width="1.5"/>
+<polyline points="1005.0,164.3 1007.5,164.2 1010.0,163.8 1012.5,163.3 1015.0,162.6 1017.5,161.6 1020.0,160.6 1022.5,159.4 1025.0,158.0 1027.5,156.6 1030.0,155.0 1032.5,153.4 1035.0,151.7 1037.5,150.0 1040.0,148.2 1042.5,146.4 1045.0,144.6 1047.5,142.9 1050.0,141.1 1052.5,139.5 1055.0,137.8 1057.5,136.3 1060.0,134.8 1062.5,133.5 1065.0,132.3 1067.5,131.2 1070.0,130.3 1072.5,129.6 1075.0,129.0 1077.5,128.7 1080.0,128.6" fill="none" stroke="#2563eb" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<line x1="1023.0" y1="160.4" x2="1062.0" y2="132.5" stroke="#7c3aed" stroke-width="2.0"/>
+<line x1="1023.0" y1="146.4" x2="1062.0" y2="146.4" stroke="#dc2626" stroke-width="2.2" stroke-dasharray="4 3"/>
+<circle cx="1042.5" cy="146.4" r="4" fill="#d97706" stroke="none" stroke-width="1.5"/>
+<circle cx="780.0" cy="271.4" r="5" fill="#2563eb" stroke="#fff" stroke-width="1.5"/>
+<circle cx="855.0" cy="235.7" r="5" fill="#2563eb" stroke="#fff" stroke-width="1.5"/>
+<circle cx="930.0" cy="200.0" r="5" fill="#2563eb" stroke="#fff" stroke-width="1.5"/>
+<circle cx="1005.0" cy="164.3" r="5" fill="#2563eb" stroke="#fff" stroke-width="1.5"/>
+<circle cx="1080.0" cy="128.6" r="5" fill="#2563eb" stroke="#fff" stroke-width="1.5"/>
+<text x="787.5" y="117.1" font-size="13" fill="#7c3aed" text-anchor="start" font-weight="600">в средней точке: наклон сплайна</text>
+<text x="787.5" y="140.0" font-size="13" fill="#dc2626" text-anchor="start" font-weight="600">против f(x<tspan baseline-shift="sub" font-size="72%">c</tspan>, u<tspan baseline-shift="sub" font-size="72%">c</tspan>) = x<tspan baseline-shift="sub" font-size="72%">2</tspan>(t<tspan baseline-shift="sub" font-size="72%">c</tspan>) = 0</text>
+<text x="780.0" y="344.0" font-size="13" fill="#475569" text-anchor="start" font-weight="400">переменные NLP: x<tspan baseline-shift="sub" font-size="72%">k</tspan>, u<tspan baseline-shift="sub" font-size="72%">k</tspan>, u<tspan baseline-shift="sub" font-size="72%">c</tspan>; дефекты —</text>
+<text x="780.0" y="362.0" font-size="13" fill="#475569" text-anchor="start" font-weight="400">алгебраические, интегратор не вызывается</text>
+</svg>

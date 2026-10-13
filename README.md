@@ -14,8 +14,8 @@ Docker DevContainer, публикация — на GitHub Pages.
 | 02 | Дискретное планирование на графах и сетках | [презентация](lectures/lecture-02/lecture-02.md) · [план](lectures/lecture-02/timing.md) |
 | 03 | Методы планирования, основанные на выборке | [презентация](lectures/lecture-03/lecture-03.md) · [план](lectures/lecture-03/timing.md) |
 | 04 | Учёт модели движения: кинодинамическое планирование, DWA и MPPI | [презентация](lectures/lecture-04/lecture-04.md) · [план](lectures/lecture-04/timing.md) |
-| 05 | Оптимальное управление: от физики моторов к принципу Понтрягина и Bang-Bang | [презентация](lectures/lecture-05/lecture-05.md) · [план](lectures/lecture-05/timing.md) |
-| 06 | Численное оптимальное управление и MPC: оптимизация траекторий в реальном времени | [презентация](lectures/lecture-06/lecture-06.md) · [план](lectures/lecture-06/timing.md) |
+| 05 | Оптимальное управление: от принципа максимума Понтрягина к численному решению и MPC | [презентация](lectures/lecture-05/lecture-05.md) · [план](lectures/lecture-05/timing.md) |
+| 06 | Обучение с подкреплением в робототехнике: от марковских процессов к переносу политик на реальных роботов | [презентация](lectures/lecture-06/lecture-06.md) · [план](lectures/lecture-06/timing.md) |
 | 07 | Обучение с подкреплением и фундаментальные модели: RL, VLA и World Action Models (WAM) | [презентация](lectures/lecture-07/lecture-07.md) · [план](lectures/lecture-07/timing.md) |
 | 08 | Современная антропоморфная робототехника: архитектура SOTA, индустрия, бум в Китае и фундаментальные вызовы | [презентация](lectures/lecture-08/lecture-08.md) · [план](lectures/lecture-08/timing.md) |
 
@@ -42,8 +42,8 @@ Docker DevContainer, публикация — на GitHub Pages.
 | [`hybrid-astar`](widgets/hybrid-astar/index.html) | Hybrid $A^*$: планирование для шасси с кинематикой Ридса–Шеппа / Дубинса | 04 |
 | [`kinodynamic-rrt`](widgets/kinodynamic-rrt/index.html) | Кинодинамический RRT: прямое интегрирование ODE с динамическими ограничениями | 04 |
 | [`bang-bang-simulator`](widgets/bang-bang-simulator/index.html) | Фазовая плоскость двойного интегратора: релейное Bang-Bang управление vs LQR | 05 |
-| [`shooting-collocation-simulator`](widgets/shooting-collocation-simulator/index.html) | Прямая дискретизация OCP: Single Shooting vs Multiple Shooting vs Direct Collocation | 05, 06 |
-| [`mpc-interactive-solver`](widgets/mpc-interactive-solver/index.html) | Нелинейный MPC на рецессивном горизонте: обход препятствий, KKT и теплый старт | 06 |
+| [`shooting-collocation-simulator`](widgets/shooting-collocation-simulator/index.html) | Прямая дискретизация OCP: Single Shooting vs Multiple Shooting vs Direct Collocation | 05 |
+| [`mpc-interactive-solver`](widgets/mpc-interactive-solver/index.html) | Нелинейный MPC на рецессивном горизонте: обход препятствий, KKT и теплый старт | 05 |
 
 ## Иллюстрации
 

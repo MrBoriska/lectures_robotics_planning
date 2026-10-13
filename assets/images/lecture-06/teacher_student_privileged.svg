@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 400" width="1100" height="400" font-family="Inter, 'Segoe UI', Roboto, Arial, sans-serif">
+<rect width="1100" height="400" fill="#ffffff"/>
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker><marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker><marker id="arrR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker><marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker><marker id="arrP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker><marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d97706"/></marker></defs>
+<text x="550.0" y="30.0" font-size="18" fill="#0f172a" text-anchor="middle" font-weight="700">Обучение с привилегированной информацией (учитель–ученик)</text>
+<rect x="20.0" y="50.0" width="1060.0" height="150.0" rx="12" fill="#eff6ff" stroke="#2563eb" stroke-width="1.4" stroke-dasharray="6 4"/>
+<text x="36.0" y="74.0" font-size="15" fill="#2563eb" text-anchor="start" font-weight="700">Этап 1. Симулятор, RL (PPO)</text>
+<rect x="40.0" y="88.0" width="300.0" height="96.0" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="2"/>
+<text x="190.0" y="114.0" font-size="14" fill="#d97706" text-anchor="middle" font-weight="700">Привилегированные данные</text>
+<text x="190.0" y="138.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">карта высот, силы контакта,</text>
+<text x="190.0" y="159.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">трение, масса груза</text>
+<rect x="400.0" y="88.0" width="300.0" height="96.0" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+<text x="550.0" y="114.0" font-size="14" fill="#2563eb" text-anchor="middle" font-weight="700">Учитель π<tspan baseline-shift="sub" font-size="72%">T</tspan>(a | o<tspan baseline-shift="sub" font-size="72%">t</tspan>, e<tspan baseline-shift="sub" font-size="72%">t</tspan>)</text>
+<text x="550.0" y="138.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">e<tspan baseline-shift="sub" font-size="72%">t</tspan> — скрытые параметры среды</text>
+<text x="550.0" y="159.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">обучается максимизацией J</text>
+<line x1="340.0" y1="136.0" x2="396.0" y2="136.0" stroke="#d97706" stroke-width="2.2" marker-end="url(#arrA)"/>
+<rect x="760.0" y="88.0" width="300.0" height="96.0" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+<text x="910.0" y="114.0" font-size="14" fill="#2563eb" text-anchor="middle" font-weight="700">Учитель → действие a<tspan baseline-shift="sub" font-size="72%">t</tspan><tspan baseline-shift="super" font-size="72%">T</tspan></text>
+<text x="910.0" y="138.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">используется как разметка</text>
+<text x="910.0" y="159.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">на втором этапе</text>
+<line x1="700.0" y1="136.0" x2="756.0" y2="136.0" stroke="#2563eb" stroke-width="2.2" marker-end="url(#arrB)"/>
+<rect x="20.0" y="222.0" width="1060.0" height="160.0" rx="12" fill="#ecfdf5" stroke="#059669" stroke-width="1.4" stroke-dasharray="6 4"/>
+<text x="36.0" y="246.0" font-size="15" fill="#059669" text-anchor="start" font-weight="700">Этап 2. Симулятор, обучение с учителем (дистилляция, DAgger)</text>
+<rect x="40.0" y="262.0" width="300.0" height="100.0" rx="10" fill="#ffffff" stroke="#0f172a" stroke-width="2"/>
+<text x="190.0" y="288.0" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="700">История бортовых данных</text>
+<text x="190.0" y="312.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">o<tspan baseline-shift="sub" font-size="72%">t−H:t</tspan> = (q, q̇, ω, g, a<tspan baseline-shift="sub" font-size="72%">t−1</tspan>)</text>
+<text x="190.0" y="333.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">только то, что есть на роботе</text>
+<rect x="400.0" y="262.0" width="300.0" height="100.0" rx="10" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+<text x="550.0" y="288.0" font-size="14" fill="#059669" text-anchor="middle" font-weight="700">Ученик π<tspan baseline-shift="sub" font-size="72%">S</tspan>(a | o<tspan baseline-shift="sub" font-size="72%">t−H:t</tspan>)</text>
+<text x="550.0" y="312.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">ẑ<tspan baseline-shift="sub" font-size="72%">t</tspan> = g<tspan baseline-shift="sub" font-size="72%">ψ</tspan>(o<tspan baseline-shift="sub" font-size="72%">t−H:t</tspan>) — оценка e<tspan baseline-shift="sub" font-size="72%">t</tspan></text>
+<text x="550.0" y="333.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">рекуррентная или свёрточная сеть</text>
+<line x1="340.0" y1="312.0" x2="396.0" y2="312.0" stroke="#0f172a" stroke-width="2.2" marker-end="url(#arr)"/>
+<rect x="760.0" y="262.0" width="300.0" height="100.0" rx="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+<text x="910.0" y="288.0" font-size="14" fill="#7c3aed" text-anchor="middle" font-weight="700">Функция потерь</text>
+<text x="910.0" y="312.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">‖π<tspan baseline-shift="sub" font-size="72%">S</tspan> − a<tspan baseline-shift="sub" font-size="72%">t</tspan><tspan baseline-shift="super" font-size="72%">T</tspan>‖² + β‖ẑ<tspan baseline-shift="sub" font-size="72%">t</tspan> − z<tspan baseline-shift="sub" font-size="72%">t</tspan><tspan baseline-shift="super" font-size="72%">T</tspan>‖²</text>
+<text x="910.0" y="333.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">действия берутся у ученика</text>
+<line x1="700.0" y1="312.0" x2="756.0" y2="312.0" stroke="#059669" stroke-width="2.2" marker-end="url(#arrG)"/>
+<polyline points="910.0,184.0 910.0,258.0" fill="none" stroke="#2563eb" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round" opacity="1.0" stroke-dasharray="5 4" marker-end="url(#arrB)"/>
+</svg>

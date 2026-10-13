@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 400" width="1000" height="400" font-family="Inter, 'Segoe UI', Roboto, Arial, sans-serif">
+<rect width="1000" height="400" fill="#ffffff"/>
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker><marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker><marker id="arrR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker><marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker><marker id="arrP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker><marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d97706"/></marker></defs>
+<text x="24.0" y="30.0" font-size="18" fill="#0f172a" text-anchor="start" font-weight="700">Максимизация функции Гамильтона по управлению на отрезке U = [−1, 1]</text>
+<rect x="70.0" y="70.0" width="380.0" height="250.0" rx="0" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="133.3" y1="70.0" x2="133.3" y2="320.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="133.3" y="338.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">-1</text>
+<line x1="260.0" y1="70.0" x2="260.0" y2="320.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="260.0" y="338.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">0</text>
+<line x1="386.7" y1="70.0" x2="386.7" y2="320.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="386.7" y="338.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">1</text>
+<line x1="70.0" y1="273.1" x2="450.0" y2="273.1" stroke="#e2e8f0" stroke-width="1"/>
+<text x="62.0" y="277.1" font-size="13" fill="#475569" text-anchor="end" font-weight="400">-1</text>
+<line x1="70.0" y1="195.0" x2="450.0" y2="195.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="62.0" y="199.0" font-size="13" fill="#475569" text-anchor="end" font-weight="400">0</text>
+<line x1="70.0" y1="116.9" x2="450.0" y2="116.9" stroke="#e2e8f0" stroke-width="1"/>
+<text x="62.0" y="120.9" font-size="13" fill="#475569" text-anchor="end" font-weight="400">1</text>
+<line x1="70.0" y1="195.0" x2="450.0" y2="195.0" stroke="#94a3b8" stroke-width="1.3"/>
+<line x1="260.0" y1="70.0" x2="260.0" y2="320.0" stroke="#94a3b8" stroke-width="1.3"/>
+<text x="450.0" y="356.0" font-size="15" fill="#0f172a" text-anchor="end" font-weight="400" font-style="italic" font-family="'Times New Roman', 'STIX Two Text', serif">u</text>
+<text x="70.0" y="60.0" font-size="15" fill="#0f172a" text-anchor="start" font-weight="400" font-style="italic" font-family="'Times New Roman', 'STIX Two Text', serif">H(u)</text>
+<polygon points="133.3,320.0 386.7,320.0 386.7,70.0 133.3,70.0" fill="#dbeafe" fill-opacity="0.45" stroke="none"/>
+<polyline points="70.0,292.7 450.0,81.7" fill="none" stroke="#2563eb" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" opacity="0.6" stroke-dasharray="5 4"/>
+<polyline points="133.3,257.5 386.7,116.9" fill="none" stroke="#2563eb" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<circle cx="386.7" cy="116.9" r="6" fill="#2563eb" stroke="#fff" stroke-width="2"/>
+<text x="396.7" y="106.9" font-size="14" fill="#2563eb" text-anchor="start" font-weight="600">σ &gt; 0:  u* = +1</text>
+<polyline points="70.0,116.9 450.0,257.5" fill="none" stroke="#dc2626" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" opacity="0.6" stroke-dasharray="5 4"/>
+<polyline points="133.3,140.3 386.7,234.1" fill="none" stroke="#dc2626" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<circle cx="133.3" cy="140.3" r="6" fill="#dc2626" stroke="#fff" stroke-width="2"/>
+<text x="123.3" y="130.3" font-size="14" fill="#dc2626" text-anchor="end" font-weight="600">σ &lt; 0:  u* = -1</text>
+<text x="260.0" y="378.0" font-size="14" fill="#475569" text-anchor="middle" font-weight="400">(а) H = h₀(x, λ) + σ·u: ∂H/∂u = σ не зависит от u,</text>
+<text x="260.0" y="397.0" font-size="14" fill="#475569" text-anchor="middle" font-weight="400">максимум достигается на границе, u* = sign σ</text>
+<rect x="580.0" y="70.0" width="380.0" height="250.0" rx="0" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="643.3" y1="70.0" x2="643.3" y2="320.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="643.3" y="338.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">-1</text>
+<line x1="770.0" y1="70.0" x2="770.0" y2="320.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="770.0" y="338.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">0</text>
+<line x1="896.7" y1="70.0" x2="896.7" y2="320.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="896.7" y="338.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">1</text>
+<line x1="580.0" y1="273.1" x2="960.0" y2="273.1" stroke="#e2e8f0" stroke-width="1"/>
+<text x="572.0" y="277.1" font-size="13" fill="#475569" text-anchor="end" font-weight="400">-1</text>
+<line x1="580.0" y1="195.0" x2="960.0" y2="195.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="572.0" y="199.0" font-size="13" fill="#475569" text-anchor="end" font-weight="400">0</text>
+<line x1="580.0" y1="116.9" x2="960.0" y2="116.9" stroke="#e2e8f0" stroke-width="1"/>
+<text x="572.0" y="120.9" font-size="13" fill="#475569" text-anchor="end" font-weight="400">1</text>
+<line x1="580.0" y1="195.0" x2="960.0" y2="195.0" stroke="#94a3b8" stroke-width="1.3"/>
+<line x1="770.0" y1="70.0" x2="770.0" y2="320.0" stroke="#94a3b8" stroke-width="1.3"/>
+<text x="960.0" y="356.0" font-size="15" fill="#0f172a" text-anchor="end" font-weight="400" font-style="italic" font-family="'Times New Roman', 'STIX Two Text', serif">u</text>
+<text x="580.0" y="60.0" font-size="15" fill="#0f172a" text-anchor="start" font-weight="400" font-style="italic" font-family="'Times New Roman', 'STIX Two Text', serif">H(u)</text>
+<polygon points="643.3,320.0 896.7,320.0 896.7,70.0 643.3,70.0" fill="#dbeafe" fill-opacity="0.45" stroke="none"/>
+<clipPath id="clipH"><rect x="580" y="70" width="380" height="250"/></clipPath>
+<g clip-path="url(#clipH)">
+<polyline points="580.0,325.9 583.2,321.9 586.4,318.1 589.6,314.3 592.8,310.5 596.0,306.8 599.2,303.1 602.4,299.5 605.5,295.9 608.7,292.4 611.9,289.0 615.1,285.5 618.3,282.2 621.5,278.8 624.7,275.6 627.9,272.4 631.1,269.2 634.3,266.1 637.5,263.0 640.7,260.0 643.9,257.0 647.1,254.1 650.3,251.2 653.4,248.4 656.6,245.6 659.8,242.9 663.0,240.2 666.2,237.6 669.4,235.0 672.6,232.5 675.8,230.0 679.0,227.6 682.2,225.2 685.4,222.9 688.6,220.6 691.8,218.4 695.0,216.2 698.2,214.1 701.3,212.0 704.5,210.0 707.7,208.0 710.9,206.1 714.1,204.2 717.3,202.4 720.5,200.6 723.7,198.9 726.9,197.2 730.1,195.6 733.3,194.0 736.5,192.5 739.7,191.0 742.9,189.5 746.1,188.2 749.2,186.8 752.4,185.5 755.6,184.3 758.8,183.1 762.0,182.0 765.2,180.9 768.4,179.9 771.6,178.9 774.8,178.0 778.0,177.1 781.2,176.2 784.4,175.4 787.6,174.7 790.8,174.0 793.9,173.4 797.1,172.8 800.3,172.3 803.5,171.8 806.7,171.3 809.9,170.9 813.1,170.6 816.3,170.3 819.5,170.1 822.7,169.9 825.9,169.7 829.1,169.7 832.3,169.6 835.5,169.6 838.7,169.7 841.8,169.8 845.0,169.9 848.2,170.2 851.4,170.4 854.6,170.7 857.8,171.1 861.0,171.5 864.2,171.9 867.4,172.4 870.6,173.0 873.8,173.6 877.0,174.2 880.2,174.9 883.4,175.7 886.6,176.5 889.7,177.4 892.9,178.3 896.1,179.2 899.3,180.2 902.5,181.3 905.7,182.4 908.9,183.5 912.1,184.7 915.3,186.0 918.5,187.3 921.7,188.6 924.9,190.0 928.1,191.5 931.3,193.0 934.5,194.5 937.6,196.1 940.8,197.7 944.0,199.4 947.2,201.2 950.4,203.0 953.6,204.8 956.8,206.7 960.0,208.7" fill="none" stroke="#059669" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" opacity="0.6" stroke-dasharray="5 4"/>
+<polyline points="643.3,257.5 646.5,254.6 649.7,251.7 653.0,248.8 656.2,246.0 659.4,243.3 662.6,240.6 665.8,238.0 669.0,235.4 672.2,232.8 675.4,230.3 678.6,227.9 681.8,225.5 685.0,223.2 688.2,220.9 691.4,218.6 694.6,216.4 697.8,214.3 701.1,212.2 704.3,210.2 707.5,208.2 710.7,206.2 713.9,204.3 717.1,202.5 720.3,200.7 723.5,199.0 726.7,197.3 729.9,195.6 733.1,194.1 736.3,192.5 739.5,191.0 742.7,189.6 745.9,188.2 749.2,186.9 752.4,185.6 755.6,184.3 758.8,183.1 762.0,182.0 765.2,180.9 768.4,179.9 771.6,178.9 774.8,177.9 778.0,177.1 781.2,176.2 784.4,175.4 787.6,174.7 790.8,174.0 794.1,173.4 797.3,172.8 800.5,172.2 803.7,171.8 806.9,171.3 810.1,170.9 813.3,170.6 816.5,170.3 819.7,170.1 822.9,169.9 826.1,169.7 829.3,169.6 832.5,169.6 835.7,169.6 838.9,169.7 842.2,169.8 845.4,170.0 848.6,170.2 851.8,170.4 855.0,170.8 858.2,171.1 861.4,171.5 864.6,172.0 867.8,172.5 871.0,173.1 874.2,173.7 877.4,174.3 880.6,175.1 883.8,175.8 887.0,176.6 890.3,177.5 893.5,178.4 896.7,179.4" fill="none" stroke="#059669" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<circle cx="833.3" cy="169.6" r="4" fill="#fff" stroke="#059669" stroke-width="2"/>
+<circle cx="833.3" cy="169.6" r="6" fill="#059669" stroke="#fff" stroke-width="2"/>
+<polyline points="580.0,486.0 583.2,479.9 586.4,473.9 589.6,467.9 592.8,462.0 596.0,456.1 599.2,450.3 602.4,444.5 605.5,438.8 608.7,433.1 611.9,427.4 615.1,421.9 618.3,416.3 621.5,410.8 624.7,405.4 627.9,400.0 631.1,394.7 634.3,389.4 637.5,384.2 640.7,379.0 643.9,373.8 647.1,368.7 650.3,363.7 653.4,358.7 656.6,353.8 659.8,348.9 663.0,344.1 666.2,339.3 669.4,334.5 672.6,329.8 675.8,325.2 679.0,320.6 682.2,316.1 685.4,311.6 688.6,307.1 691.8,302.7 695.0,298.4 698.2,294.1 701.3,289.9 704.5,285.7 707.7,281.5 710.9,277.4 714.1,273.4 717.3,269.4 720.5,265.4 723.7,261.5 726.9,257.7 730.1,253.9 733.3,250.1 736.5,246.5 739.7,242.8 742.9,239.2 746.1,235.7 749.2,232.2 752.4,228.7 755.6,225.3 758.8,222.0 762.0,218.7 765.2,215.4 768.4,212.2 771.6,209.1 774.8,206.0 778.0,202.9 781.2,199.9 784.4,196.9 787.6,194.0 790.8,191.2 793.9,188.4 797.1,185.6 800.3,182.9 803.5,180.3 806.7,177.7 809.9,175.1 813.1,172.6 816.3,170.2 819.5,167.7 822.7,165.4 825.9,163.1 829.1,160.8 832.3,158.6 835.5,156.5 838.7,154.3 841.8,152.3 845.0,150.3 848.2,148.3 851.4,146.4 854.6,144.6 857.8,142.7 861.0,141.0 864.2,139.3 867.4,137.6 870.6,136.0 873.8,134.4 877.0,132.9 880.2,131.5 883.4,130.0 886.6,128.7 889.7,127.4 892.9,126.1 896.1,124.9 899.3,123.7 902.5,122.6 905.7,121.5 908.9,120.5 912.1,119.6 915.3,118.6 918.5,117.8 921.7,117.0 924.9,116.2 928.1,115.5 931.3,114.8 934.5,114.2 937.6,113.6 940.8,113.1 944.0,112.6 947.2,112.2 950.4,111.8 953.6,111.5 956.8,111.2 960.0,111.0" fill="none" stroke="#d97706" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" opacity="0.6" stroke-dasharray="5 4"/>
+<polyline points="643.3,374.7 646.5,369.6 649.7,364.5 653.0,359.5 656.2,354.5 659.4,349.6 662.6,344.7 665.8,339.9 669.0,335.2 672.2,330.4 675.4,325.8 678.6,321.2 681.8,316.6 685.0,312.1 688.2,307.6 691.4,303.2 694.6,298.8 697.8,294.5 701.1,290.2 704.3,286.0 707.5,281.9 710.7,277.7 713.9,273.7 717.1,269.7 720.3,265.7 723.5,261.8 726.7,257.9 729.9,254.1 733.1,250.3 736.3,246.6 739.5,242.9 742.7,239.3 745.9,235.8 749.2,232.3 752.4,228.8 755.6,225.4 758.8,222.0 762.0,218.7 765.2,215.4 768.4,212.2 771.6,209.0 774.8,205.9 778.0,202.9 781.2,199.9 784.4,196.9 787.6,194.0 790.8,191.1 794.1,188.3 797.3,185.5 800.5,182.8 803.7,180.2 806.9,177.5 810.1,175.0 813.3,172.5 816.5,170.0 819.7,167.6 822.9,165.2 826.1,162.9 829.3,160.6 832.5,158.4 835.7,156.3 838.9,154.2 842.2,152.1 845.4,150.1 848.6,148.1 851.8,146.2 855.0,144.3 858.2,142.5 861.4,140.8 864.6,139.1 867.8,137.4 871.0,135.8 874.2,134.2 877.4,132.7 880.6,131.2 883.8,129.8 887.0,128.5 890.3,127.2 893.5,125.9 896.7,124.7" fill="none" stroke="#d97706" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<circle cx="896.7" cy="124.7" r="6" fill="#d97706" stroke="#fff" stroke-width="2"/>
+</g>
+<text x="833.3" y="197.6" font-size="14" fill="#059669" text-anchor="middle" font-weight="600">σ/r = 0.5: u* = σ/r</text>
+<text x="814.3" y="93.4" font-size="14" fill="#d97706" text-anchor="middle" font-weight="600">σ/r = 1.6: u* = 1 (насыщение)</text>
+<text x="770.0" y="378.0" font-size="14" fill="#475569" text-anchor="middle" font-weight="400">(б) H = h₀ + σ·u − r·u²/2: внутренний максимум u = σ/r,</text>
+<text x="770.0" y="397.0" font-size="14" fill="#475569" text-anchor="middle" font-weight="400">при |σ/r| &gt; 1 решение — проекция на U: u* = sat(σ/r)</text>
+</svg>

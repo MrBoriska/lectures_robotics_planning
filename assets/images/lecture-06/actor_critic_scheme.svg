@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 360" width="1000" height="360" font-family="Inter, 'Segoe UI', Roboto, Arial, sans-serif">
+<rect width="1000" height="360" fill="#ffffff"/>
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker><marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker><marker id="arrR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker><marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker><marker id="arrP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker><marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d97706"/></marker></defs>
+<rect x="40.0" y="60.0" width="290.0" height="120.0" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+<text x="185.0" y="86.0" font-size="16" fill="#2563eb" text-anchor="middle" font-weight="700">Актор π<tspan baseline-shift="sub" font-size="72%">θ</tspan>(a | s)</text>
+<text x="185.0" y="110.0" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="400">выдаёт действие a<tspan baseline-shift="sub" font-size="72%">t</tspan></text>
+<text x="185.0" y="131.0" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="400">обновление: ∇<tspan baseline-shift="sub" font-size="72%">θ</tspan> log π<tspan baseline-shift="sub" font-size="72%">θ</tspan>(a<tspan baseline-shift="sub" font-size="72%">t</tspan>|s<tspan baseline-shift="sub" font-size="72%">t</tspan>) · Â<tspan baseline-shift="sub" font-size="72%">t</tspan></text>
+<rect x="670.0" y="60.0" width="290.0" height="120.0" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
+<text x="815.0" y="86.0" font-size="16" fill="#059669" text-anchor="middle" font-weight="700">Критик V<tspan baseline-shift="sub" font-size="72%">φ</tspan>(s)</text>
+<text x="815.0" y="110.0" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="400">оценивает ценность состояния</text>
+<text x="815.0" y="131.0" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="400">обновление: min (V<tspan baseline-shift="sub" font-size="72%">φ</tspan>(s<tspan baseline-shift="sub" font-size="72%">t</tspan>) − ŷ<tspan baseline-shift="sub" font-size="72%">t</tspan>)²</text>
+<rect x="355.0" y="230.0" width="290.0" height="100.0" rx="10" fill="#f8fafc" stroke="#0f172a" stroke-width="2"/>
+<text x="500.0" y="256.0" font-size="16" fill="#0f172a" text-anchor="middle" font-weight="700">Среда</text>
+<text x="500.0" y="280.0" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="400">s<tspan baseline-shift="sub" font-size="72%">t+1</tspan> ~ P(· | s<tspan baseline-shift="sub" font-size="72%">t</tspan>, a<tspan baseline-shift="sub" font-size="72%">t</tspan>)</text>
+<text x="500.0" y="301.0" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="400">r<tspan baseline-shift="sub" font-size="72%">t+1</tspan></text>
+<polyline points="185.0,180.0 185.0,280.0 351.0,280.0" fill="none" stroke="#2563eb" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" opacity="1.0" marker-end="url(#arrB)"/>
+<text x="192.0" y="262.0" font-size="15" fill="#2563eb" text-anchor="start" font-weight="700">a<tspan baseline-shift="sub" font-size="72%">t</tspan></text>
+<polyline points="649.0,280.0 815.0,280.0 815.0,184.0" fill="none" stroke="#059669" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" opacity="1.0" marker-end="url(#arrG)"/>
+<text x="808.0" y="262.0" font-size="15" fill="#059669" text-anchor="end" font-weight="700">s<tspan baseline-shift="sub" font-size="72%">t+1</tspan>, r<tspan baseline-shift="sub" font-size="72%">t+1</tspan></text>
+<rect x="370.0" y="70.0" width="260.0" height="100.0" rx="10" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+<text x="500.0" y="96.0" font-size="16" fill="#7c3aed" text-anchor="middle" font-weight="700">TD-ошибка</text>
+<text x="500.0" y="120.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">δ<tspan baseline-shift="sub" font-size="72%">t</tspan> = r<tspan baseline-shift="sub" font-size="72%">t+1</tspan> + γV<tspan baseline-shift="sub" font-size="72%">φ</tspan>(s<tspan baseline-shift="sub" font-size="72%">t+1</tspan>) − V<tspan baseline-shift="sub" font-size="72%">φ</tspan>(s<tspan baseline-shift="sub" font-size="72%">t</tspan>)</text>
+<text x="500.0" y="141.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">Â<tspan baseline-shift="sub" font-size="72%">t</tspan> = Σ (γλ)ˡ δ<tspan baseline-shift="sub" font-size="72%">t+l</tspan>  (GAE)</text>
+<line x1="666.0" y1="120.0" x2="634.0" y2="120.0" stroke="#7c3aed" stroke-width="2.2" marker-end="url(#arrP)"/>
+<line x1="366.0" y1="120.0" x2="334.0" y2="120.0" stroke="#7c3aed" stroke-width="2.2" marker-end="url(#arrP)"/>
+<text x="500.0" y="34.0" font-size="17" fill="#0f172a" text-anchor="middle" font-weight="700">Схема актор–критик: критик снижает дисперсию оценки градиента политики</text>
+</svg>

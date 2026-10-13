@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 330" width="1000" height="330" font-family="Inter, 'Segoe UI', Roboto, Arial, sans-serif">
+<rect width="1000" height="330" fill="#ffffff"/>
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker><marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker><marker id="arrR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker><marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker><marker id="arrP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker><marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d97706"/></marker></defs>
+<rect x="60.0" y="70.0" width="300.0" height="150.0" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+<text x="210.0" y="96.0" font-size="16" fill="#2563eb" text-anchor="middle" font-weight="700">Агент</text>
+<text x="210.0" y="120.0" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="400">политика a<tspan baseline-shift="sub" font-size="72%">t</tspan> ~ π<tspan baseline-shift="sub" font-size="72%">θ</tspan>(· | s<tspan baseline-shift="sub" font-size="72%">t</tspan>)</text>
+<text x="210.0" y="141.0" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="400">обучение: θ ← θ + α ĝ</text>
+<text x="210.0" y="162.0" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="400">(оценка ĝ по опыту)</text>
+<rect x="640.0" y="70.0" width="300.0" height="150.0" rx="10" fill="#f8fafc" stroke="#0f172a" stroke-width="2"/>
+<text x="790.0" y="96.0" font-size="16" fill="#0f172a" text-anchor="middle" font-weight="700">Среда</text>
+<text x="790.0" y="120.0" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="400">переход s<tspan baseline-shift="sub" font-size="72%">t+1</tspan> ~ P(· | s<tspan baseline-shift="sub" font-size="72%">t</tspan>, a<tspan baseline-shift="sub" font-size="72%">t</tspan>)</text>
+<text x="790.0" y="141.0" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="400">награда r<tspan baseline-shift="sub" font-size="72%">t+1</tspan> = r(s<tspan baseline-shift="sub" font-size="72%">t</tspan>, a<tspan baseline-shift="sub" font-size="72%">t</tspan>, s<tspan baseline-shift="sub" font-size="72%">t+1</tspan>)</text>
+<text x="790.0" y="162.0" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="400">робот + окружающий мир</text>
+<line x1="360.0" y1="110.0" x2="636.0" y2="110.0" stroke="#2563eb" stroke-width="2.4" marker-end="url(#arrB)"/>
+<text x="498.0" y="100.0" font-size="15" fill="#2563eb" text-anchor="middle" font-weight="700">действие a<tspan baseline-shift="sub" font-size="72%">t</tspan></text>
+<polyline points="790.0,220.0 790.0,280.0 210.0,280.0 210.0,224.0" fill="none" stroke="#059669" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" opacity="1.0" marker-end="url(#arrG)"/>
+<text x="500.0" y="272.0" font-size="15" fill="#059669" text-anchor="middle" font-weight="700">состояние s<tspan baseline-shift="sub" font-size="72%">t+1</tspan> и награда r<tspan baseline-shift="sub" font-size="72%">t+1</tspan>  (задержка на один такт)</text>
+<text x="500.0" y="40.0" font-size="16" fill="#0f172a" text-anchor="middle" font-weight="600">Цикл взаимодействия: такт t = 0, 1, 2, …; эпизод τ = (s₀, a₀, r₁, s₁, a₁, r₂, …)</text>
+</svg>
