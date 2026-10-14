@@ -33,6 +33,17 @@ if (existsSync(algoScript)) {
   }
 }
 
+const extraDiagramScripts = ['generate_lectures_05_06_diagrams.py'];
+for (const name of extraDiagramScripts) {
+  const script = join(ROOT_DIR, 'scripts', name);
+  if (!existsSync(script)) continue;
+  try {
+    execSync(`python3 "${script}"`, { stdio: 'inherit' });
+  } catch (err) {
+    console.warn(`⚠️ [Diagrams Warning] ${name}:`, err.message);
+  }
+}
+
 // 1. Copy themes, widgets & assets
 console.log('🎨 [Assets] Копирование тем оформления, интерактивных виджетов и иллюстраций...');
 mkdirSync(join(DIST_DIR, 'themes'), { recursive: true });

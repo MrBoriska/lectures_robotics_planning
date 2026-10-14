@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 275" width="1100" height="275" font-family="Inter, 'Segoe UI', Roboto, Arial, sans-serif">
+<rect width="1100" height="275" fill="#ffffff"/>
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker><marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker><marker id="arrR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker><marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker><marker id="arrP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker><marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d97706"/></marker></defs>
+<text x="24.0" y="30.0" font-size="18" fill="#0f172a" text-anchor="start" font-weight="700">Сквозной пример: робот в коридоре. Награда +10 за вход в цель, иначе 0; γ = 0.9</text>
+<rect x="60.0" y="70.0" width="190.0" height="130.0" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<text x="70.0" y="92.0" font-size="14" fill="#475569" text-anchor="start" font-weight="400">клетка 1</text>
+<text x="155.0" y="134.0" font-size="20" fill="#2563eb" text-anchor="middle" font-weight="700">V* = 7.29</text>
+<text x="72.0" y="182.0" font-size="15" fill="#475569" text-anchor="start" font-weight="400">← 6.56</text>
+<text x="238.0" y="182.0" font-size="15" fill="#059669" text-anchor="end" font-weight="700">7.29 →</text>
+<rect x="260.0" y="70.0" width="190.0" height="130.0" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<text x="270.0" y="92.0" font-size="14" fill="#475569" text-anchor="start" font-weight="400">клетка 2</text>
+<text x="355.0" y="134.0" font-size="20" fill="#2563eb" text-anchor="middle" font-weight="700">V* = 8.10</text>
+<text x="272.0" y="182.0" font-size="15" fill="#475569" text-anchor="start" font-weight="400">← 6.56</text>
+<text x="438.0" y="182.0" font-size="15" fill="#059669" text-anchor="end" font-weight="700">8.10 →</text>
+<rect x="460.0" y="70.0" width="190.0" height="130.0" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<text x="470.0" y="92.0" font-size="14" fill="#475569" text-anchor="start" font-weight="400">клетка 3</text>
+<text x="555.0" y="134.0" font-size="20" fill="#2563eb" text-anchor="middle" font-weight="700">V* = 9.00</text>
+<text x="472.0" y="182.0" font-size="15" fill="#475569" text-anchor="start" font-weight="400">← 7.29</text>
+<text x="638.0" y="182.0" font-size="15" fill="#059669" text-anchor="end" font-weight="700">9.00 →</text>
+<rect x="660.0" y="70.0" width="190.0" height="130.0" rx="8" fill="#ffffff" stroke="#94a3b8" stroke-width="2"/>
+<text x="670.0" y="92.0" font-size="14" fill="#475569" text-anchor="start" font-weight="400">клетка 4</text>
+<text x="755.0" y="134.0" font-size="20" fill="#2563eb" text-anchor="middle" font-weight="700">V* = 10.00</text>
+<text x="672.0" y="182.0" font-size="15" fill="#475569" text-anchor="start" font-weight="400">← 8.10</text>
+<text x="838.0" y="182.0" font-size="15" fill="#059669" text-anchor="end" font-weight="700">10.00 →</text>
+<rect x="860.0" y="70.0" width="190.0" height="130.0" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
+<text x="870.0" y="92.0" font-size="14" fill="#475569" text-anchor="start" font-weight="400">клетка 5</text>
+<text x="955.0" y="132.0" font-size="20" fill="#059669" text-anchor="middle" font-weight="700">ЦЕЛЬ</text>
+<text x="955.0" y="160.0" font-size="13" fill="#059669" text-anchor="middle" font-weight="400">эпизод завершается</text>
+<circle cx="220.0" cy="98.0" r="11" fill="#d97706" stroke="#fff" stroke-width="2"/>
+<text x="220.0" y="103.0" font-size="12" fill="#fff" text-anchor="middle" font-weight="700">Р</text>
+<text x="60.0" y="234.0" font-size="15" fill="#0f172a" text-anchor="start" font-weight="400">В каждой клетке: V* — ценность клетки; внизу Q*(s, ←) и Q*(s, →) — ценности двух действий.</text>
+<text x="60.0" y="258.0" font-size="15" fill="#0f172a" text-anchor="start" font-weight="400">Оптимальное действие — с большей ценностью (зелёное): везде «вправо». У стены «влево» оставляет робота на месте.</text>
+</svg>

@@ -237,6 +237,16 @@ pre code {
   border-left: 4px solid var(--accent-success);
 }
 
+.card-term {
+  background: #f5f3ff;
+  border: 1px solid #ede9fe;
+  border-left: 4px solid #7c3aed;
+}
+
+.card-term h3 {
+  color: #5b21b6;
+}
+
 .card h3, .card-accent h3, .card-alert h3, .card-success h3 {
   font-size: 19px;
   font-weight: 700;

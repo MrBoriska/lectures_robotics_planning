@@ -1,0 +1,123 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 480" width="1100" height="480" font-family="Inter, 'Segoe UI', Roboto, Arial, sans-serif">
+<rect width="1100" height="480" fill="#ffffff"/>
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker><marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker><marker id="arrR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker><marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker><marker id="arrP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker><marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d97706"/></marker></defs>
+<text x="24.0" y="30.0" font-size="18" fill="#0f172a" text-anchor="start" font-weight="700">Скользящий горизонт: Δt = 0.25 с, N = 10, |u| ≤ 1; объект: ẍ = 0.7u, толчок при t = 4 с</text>
+<rect x="70.0" y="76.0" width="960.0" height="220.0" rx="0" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="70.0" y1="76.0" x2="70.0" y2="296.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="70.0" y="314.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">0</text>
+<line x1="165.0" y1="76.0" x2="165.0" y2="296.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="165.0" y="314.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">1</text>
+<line x1="260.1" y1="76.0" x2="260.1" y2="296.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="260.1" y="314.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">2</text>
+<line x1="355.1" y1="76.0" x2="355.1" y2="296.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="355.1" y="314.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">3</text>
+<line x1="450.2" y1="76.0" x2="450.2" y2="296.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="450.2" y="314.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">4</text>
+<line x1="545.2" y1="76.0" x2="545.2" y2="296.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="545.2" y="314.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">5</text>
+<line x1="640.3" y1="76.0" x2="640.3" y2="296.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="640.3" y="314.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">6</text>
+<line x1="735.3" y1="76.0" x2="735.3" y2="296.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="735.3" y="314.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">7</text>
+<line x1="830.4" y1="76.0" x2="830.4" y2="296.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="830.4" y="314.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">8</text>
+<line x1="925.4" y1="76.0" x2="925.4" y2="296.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="925.4" y="314.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">9</text>
+<line x1="1020.5" y1="76.0" x2="1020.5" y2="296.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="1020.5" y="314.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">10</text>
+<line x1="70.0" y1="270.6" x2="1030.0" y2="270.6" stroke="#e2e8f0" stroke-width="1"/>
+<text x="62.0" y="274.6" font-size="13" fill="#475569" text-anchor="end" font-weight="400">0</text>
+<line x1="70.0" y1="228.3" x2="1030.0" y2="228.3" stroke="#e2e8f0" stroke-width="1"/>
+<text x="62.0" y="232.3" font-size="13" fill="#475569" text-anchor="end" font-weight="400">1</text>
+<line x1="70.0" y1="186.0" x2="1030.0" y2="186.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="62.0" y="190.0" font-size="13" fill="#475569" text-anchor="end" font-weight="400">2</text>
+<line x1="70.0" y1="143.7" x2="1030.0" y2="143.7" stroke="#e2e8f0" stroke-width="1"/>
+<text x="62.0" y="147.7" font-size="13" fill="#475569" text-anchor="end" font-weight="400">3</text>
+<line x1="70.0" y1="101.4" x2="1030.0" y2="101.4" stroke="#e2e8f0" stroke-width="1"/>
+<text x="62.0" y="105.4" font-size="13" fill="#475569" text-anchor="end" font-weight="400">4</text>
+<line x1="70.0" y1="270.6" x2="1030.0" y2="270.6" stroke="#94a3b8" stroke-width="1.3"/>
+<text x="1030.0" y="332.0" font-size="15" fill="#0f172a" text-anchor="end" font-weight="400" font-style="italic" font-family="'Times New Roman', 'STIX Two Text', serif">t, с</text>
+<text x="70.0" y="66.0" font-size="15" fill="#0f172a" text-anchor="start" font-weight="400" font-style="italic" font-family="'Times New Roman', 'STIX Two Text', serif">положение x<tspan baseline-shift="sub" font-size="72%">1</tspan></text>
+<clipPath id="clipMPC"><rect x="70" y="76" width="960" height="220"/></clipPath>
+<g clip-path="url(#clipMPC)">
+<polyline points="70.0,164.8 93.8,165.8 117.5,168.5 141.3,173.2 165.0,179.7 188.8,188.0 212.6,197.5 236.3,207.0 260.1,215.8 283.9,223.5 307.6,229.7 331.4,234.5 355.1,238.0 378.9,240.3 402.7,241.6 426.4,242.1 450.2,242.2 474.0,225.9 497.7,209.5 521.5,192.9 545.2,176.4 569.0,159.9 592.8,143.5 616.5,127.3 640.3,111.2 664.1,95.2 687.8,79.3 711.6,63.5 735.3,47.7 759.1,32.0 782.9,16.3 806.6,0.6 830.4,-15.1 854.2,-30.8 877.9,-46.6 901.7,-62.4 925.4,-78.2 949.2,-94.0 973.0,-109.9 996.7,-125.8 1020.5,-141.7" fill="none" stroke="#dc2626" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" opacity="1.0" stroke-dasharray="3 4"/>
+</g>
+<polyline points="70.0,164.8 93.8,166.2 117.5,170.1 141.3,176.7 165.0,186.0 188.8,197.9 212.6,212.4 236.3,227.6 260.1,240.8 283.9,251.3 307.6,259.1" fill="none" stroke="#7c3aed" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round" opacity="1.0" stroke-dasharray="6 4"/>
+<circle cx="70.0" cy="164.8" r="2.6" fill="#7c3aed" stroke="none" stroke-width="1.5"/>
+<circle cx="93.8" cy="166.2" r="2.6" fill="#7c3aed" stroke="none" stroke-width="1.5"/>
+<circle cx="117.5" cy="170.1" r="2.6" fill="#7c3aed" stroke="none" stroke-width="1.5"/>
+<circle cx="141.3" cy="176.7" r="2.6" fill="#7c3aed" stroke="none" stroke-width="1.5"/>
+<circle cx="165.0" cy="186.0" r="2.6" fill="#7c3aed" stroke="none" stroke-width="1.5"/>
+<circle cx="188.8" cy="197.9" r="2.6" fill="#7c3aed" stroke="none" stroke-width="1.5"/>
+<circle cx="212.6" cy="212.4" r="2.6" fill="#7c3aed" stroke="none" stroke-width="1.5"/>
+<circle cx="236.3" cy="227.6" r="2.6" fill="#7c3aed" stroke="none" stroke-width="1.5"/>
+<circle cx="260.1" cy="240.8" r="2.6" fill="#7c3aed" stroke="none" stroke-width="1.5"/>
+<circle cx="283.9" cy="251.3" r="2.6" fill="#7c3aed" stroke="none" stroke-width="1.5"/>
+<circle cx="307.6" cy="259.1" r="2.6" fill="#7c3aed" stroke="none" stroke-width="1.5"/>
+<line x1="70.0" y1="76.0" x2="70.0" y2="296.0" stroke="#7c3aed" stroke-width="1" stroke-dasharray="2 3"/>
+<polyline points="165.0,179.7 188.8,188.4 212.6,199.8 236.3,213.8 260.1,228.9 283.9,242.6 307.6,253.6 331.4,262.0 355.1,267.7 378.9,270.9 402.7,272.0" fill="none" stroke="#d97706" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round" opacity="1.0" stroke-dasharray="6 4"/>
+<circle cx="165.0" cy="179.7" r="2.6" fill="#d97706" stroke="none" stroke-width="1.5"/>
+<circle cx="188.8" cy="188.4" r="2.6" fill="#d97706" stroke="none" stroke-width="1.5"/>
+<circle cx="212.6" cy="199.8" r="2.6" fill="#d97706" stroke="none" stroke-width="1.5"/>
+<circle cx="236.3" cy="213.8" r="2.6" fill="#d97706" stroke="none" stroke-width="1.5"/>
+<circle cx="260.1" cy="228.9" r="2.6" fill="#d97706" stroke="none" stroke-width="1.5"/>
+<circle cx="283.9" cy="242.6" r="2.6" fill="#d97706" stroke="none" stroke-width="1.5"/>
+<circle cx="307.6" cy="253.6" r="2.6" fill="#d97706" stroke="none" stroke-width="1.5"/>
+<circle cx="331.4" cy="262.0" r="2.6" fill="#d97706" stroke="none" stroke-width="1.5"/>
+<circle cx="355.1" cy="267.7" r="2.6" fill="#d97706" stroke="none" stroke-width="1.5"/>
+<circle cx="378.9" cy="270.9" r="2.6" fill="#d97706" stroke="none" stroke-width="1.5"/>
+<circle cx="402.7" cy="272.0" r="2.6" fill="#d97706" stroke="none" stroke-width="1.5"/>
+<line x1="165.0" y1="76.0" x2="165.0" y2="296.0" stroke="#d97706" stroke-width="1" stroke-dasharray="2 3"/>
+<polyline points="450.2,287.9 474.0,274.0 497.7,262.7 521.5,254.1 545.2,248.1 569.0,244.7 592.8,244.1 616.5,246.0 640.3,250.6 664.1,256.4 687.8,260.8" fill="none" stroke="#0284c7" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round" opacity="1.0" stroke-dasharray="6 4"/>
+<circle cx="450.2" cy="287.9" r="2.6" fill="#0284c7" stroke="none" stroke-width="1.5"/>
+<circle cx="474.0" cy="274.0" r="2.6" fill="#0284c7" stroke="none" stroke-width="1.5"/>
+<circle cx="497.7" cy="262.7" r="2.6" fill="#0284c7" stroke="none" stroke-width="1.5"/>
+<circle cx="521.5" cy="254.1" r="2.6" fill="#0284c7" stroke="none" stroke-width="1.5"/>
+<circle cx="545.2" cy="248.1" r="2.6" fill="#0284c7" stroke="none" stroke-width="1.5"/>
+<circle cx="569.0" cy="244.7" r="2.6" fill="#0284c7" stroke="none" stroke-width="1.5"/>
+<circle cx="592.8" cy="244.1" r="2.6" fill="#0284c7" stroke="none" stroke-width="1.5"/>
+<circle cx="616.5" cy="246.0" r="2.6" fill="#0284c7" stroke="none" stroke-width="1.5"/>
+<circle cx="640.3" cy="250.6" r="2.6" fill="#0284c7" stroke="none" stroke-width="1.5"/>
+<circle cx="664.1" cy="256.4" r="2.6" fill="#0284c7" stroke="none" stroke-width="1.5"/>
+<circle cx="687.8" cy="260.8" r="2.6" fill="#0284c7" stroke="none" stroke-width="1.5"/>
+<line x1="450.2" y1="76.0" x2="450.2" y2="296.0" stroke="#0284c7" stroke-width="1" stroke-dasharray="2 3"/>
+<text x="301.6" y="279.1" font-size="13" fill="#7c3aed" text-anchor="end" font-weight="600">прогноз при k = 0</text>
+<text x="355.1" y="251.6" font-size="13" fill="#d97706" text-anchor="start" font-weight="600">прогноз при k = 4</text>
+<text x="545.2" y="285.4" font-size="13" fill="#0284c7" text-anchor="start" font-weight="600">прогноз при k = 16 (сразу после толчка)</text>
+<polyline points="70.0,164.8 93.8,165.8 117.5,168.5 141.3,173.2 165.0,179.7 188.8,188.0 212.6,198.2 236.3,210.2 260.1,224.0 283.9,238.1 307.6,250.8 331.4,261.6 355.1,270.5 378.9,277.6 402.7,282.9 426.4,286.3 450.2,287.9 474.0,273.6 497.7,261.1 521.5,250.5 545.2,241.7 569.0,234.8 592.8,229.8 616.5,226.6 640.3,225.2 664.1,225.7 687.8,228.1 711.6,232.3 735.3,238.3 759.1,245.8 782.9,253.6 806.6,260.5 830.4,266.0 854.2,270.0 877.9,272.5 901.7,273.7 925.4,274.1 949.2,273.9 973.0,273.3 996.7,272.6 1020.5,271.9" fill="none" stroke="#0f172a" stroke-width="3.0" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<text x="84.3" y="88.7" font-size="14" fill="#0f172a" text-anchor="start" font-weight="700">MPC: фактическая траектория объекта</text>
+<text x="659.3" y="118.3" font-size="14" fill="#dc2626" text-anchor="start" font-weight="700">без обратной связи: первый план исполняется вслепую</text>
+<rect x="70.0" y="340.0" width="960.0" height="100.0" rx="0" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="70.0" y1="340.0" x2="70.0" y2="440.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="70.0" y="458.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">0</text>
+<line x1="165.0" y1="340.0" x2="165.0" y2="440.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="165.0" y="458.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">1</text>
+<line x1="260.1" y1="340.0" x2="260.1" y2="440.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="260.1" y="458.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">2</text>
+<line x1="355.1" y1="340.0" x2="355.1" y2="440.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="355.1" y="458.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">3</text>
+<line x1="450.2" y1="340.0" x2="450.2" y2="440.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="450.2" y="458.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">4</text>
+<line x1="545.2" y1="340.0" x2="545.2" y2="440.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="545.2" y="458.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">5</text>
+<line x1="640.3" y1="340.0" x2="640.3" y2="440.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="640.3" y="458.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">6</text>
+<line x1="735.3" y1="340.0" x2="735.3" y2="440.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="735.3" y="458.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">7</text>
+<line x1="830.4" y1="340.0" x2="830.4" y2="440.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="830.4" y="458.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">8</text>
+<line x1="925.4" y1="340.0" x2="925.4" y2="440.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="925.4" y="458.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">9</text>
+<line x1="1020.5" y1="340.0" x2="1020.5" y2="440.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="1020.5" y="458.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">10</text>
+<line x1="70.0" y1="430.0" x2="1030.0" y2="430.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="62.0" y="434.0" font-size="13" fill="#475569" text-anchor="end" font-weight="400">-1</text>
+<line x1="70.0" y1="390.0" x2="1030.0" y2="390.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="62.0" y="394.0" font-size="13" fill="#475569" text-anchor="end" font-weight="400">0</text>
+<line x1="70.0" y1="350.0" x2="1030.0" y2="350.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="62.0" y="354.0" font-size="13" fill="#475569" text-anchor="end" font-weight="400">1</text>
+<line x1="70.0" y1="390.0" x2="1030.0" y2="390.0" stroke="#94a3b8" stroke-width="1.3"/>
+<text x="1030.0" y="476.0" font-size="15" fill="#0f172a" text-anchor="end" font-weight="400" font-style="italic" font-family="'Times New Roman', 'STIX Two Text', serif">t, с</text>
+<text x="70.0" y="330.0" font-size="15" fill="#0f172a" text-anchor="start" font-weight="400" font-style="italic" font-family="'Times New Roman', 'STIX Two Text', serif">применённое управление u<tspan baseline-shift="sub" font-size="72%">0</tspan>*</text>
+<polyline points="70.0,430.0 93.8,430.0 93.8,430.0 117.5,430.0 117.5,430.0 141.3,430.0 141.3,430.0 165.0,430.0 165.0,430.0 188.8,430.0 188.8,430.0 212.6,430.0 212.6,430.0 236.3,430.0 236.3,426.1 260.1,426.1 260.1,367.5 283.9,367.5 283.9,350.0 307.6,350.0 307.6,350.0 331.4,350.0 331.4,350.0 355.1,350.0 355.1,350.0 378.9,350.0 378.9,350.0 402.7,350.0 402.7,350.0 426.4,350.0 426.4,350.0 450.2,350.0 450.2,430.0 474.0,430.0 474.0,430.0 497.7,430.0 497.7,430.0 521.5,430.0 521.5,430.0 545.2,430.0 545.2,430.0 569.0,430.0 569.0,430.0 592.8,430.0 592.8,430.0 616.5,430.0 616.5,430.0 640.3,430.0 640.3,430.0 664.1,430.0 664.1,430.0 687.8,430.0 687.8,430.0 711.6,430.0 711.6,430.0 735.3,430.0 735.3,411.7 759.1,411.7 759.1,380.8 782.9,380.8 782.9,363.2 806.6,363.2 806.6,356.0 830.4,356.0 830.4,356.0 854.2,356.0 854.2,360.5 877.9,360.5 877.9,367.0 901.7,367.0 901.7,373.9 925.4,373.9 925.4,380.3 949.2,380.3 949.2,385.4 973.0,385.4 973.0,389.1 996.7,389.1 996.7,391.4 1020.5,391.4" fill="none" stroke="#0f172a" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+</svg>
