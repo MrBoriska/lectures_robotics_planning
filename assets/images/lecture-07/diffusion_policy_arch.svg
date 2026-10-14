@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 380" width="1100" height="380" font-family="Inter, 'Segoe UI', Roboto, Arial, sans-serif">
+<rect width="1100" height="380" fill="#ffffff"/>
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker><marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker><marker id="arrR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker><marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker><marker id="arrP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker><marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d97706"/></marker></defs>
+<text x="550.0" y="30.0" font-size="17" fill="#0f172a" text-anchor="middle" font-weight="700">Диффузионная политика: на каждом такте — генерация пакета действий по наблюдениям</text>
+<rect x="30.0" y="60.0" width="220.0" height="110.0" rx="10" fill="#f8fafc" stroke="#0f172a" stroke-width="2"/>
+<text x="140.0" y="86.0" font-size="15" fill="#0f172a" text-anchor="middle" font-weight="700">Наблюдения o<tspan baseline-shift="sub" font-size="72%">t</tspan></text>
+<text x="140.0" y="110.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">изображения камер,</text>
+<text x="140.0" y="131.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">положения суставов</text>
+<text x="140.0" y="152.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">(последние 2 кадра)</text>
+<rect x="30.0" y="210.0" width="220.0" height="110.0" rx="10" fill="#faf5ff" stroke="#7c3aed" stroke-width="2"/>
+<text x="140.0" y="236.0" font-size="15" fill="#7c3aed" text-anchor="middle" font-weight="700">Кодировщик</text>
+<text x="140.0" y="260.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">ResNet / ViT:</text>
+<text x="140.0" y="281.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">изображение →</text>
+<text x="140.0" y="302.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">вектор признаков</text>
+<line x1="140.0" y1="170.0" x2="140.0" y2="206.0" stroke="#475569" stroke-width="2.0" marker-end="url(#arr)"/>
+<rect x="330.0" y="60.0" width="220.0" height="110.0" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="2"/>
+<text x="440.0" y="86.0" font-size="15" fill="#d97706" text-anchor="middle" font-weight="700">Шум a<tspan baseline-shift="super" font-size="72%">K</tspan></text>
+<text x="440.0" y="110.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">случайный пакет</text>
+<text x="440.0" y="131.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">из H действий</text>
+<text x="440.0" y="152.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">~ N(0, I)</text>
+<rect x="330.0" y="210.0" width="260.0" height="110.0" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+<text x="460.0" y="236.0" font-size="15" fill="#2563eb" text-anchor="middle" font-weight="700">Сеть ε<tspan baseline-shift="sub" font-size="72%">θ</tspan>(a<tspan baseline-shift="super" font-size="72%">k</tspan>, k, o<tspan baseline-shift="sub" font-size="72%">t</tspan>)</text>
+<text x="460.0" y="260.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">U-Net или трансформер:</text>
+<text x="460.0" y="281.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">предсказывает шум</text>
+<text x="460.0" y="302.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">в пакете действий</text>
+<line x1="250.0" y1="265.0" x2="326.0" y2="265.0" stroke="#7c3aed" stroke-width="2.0" marker-end="url(#arrP)"/>
+<text x="288.0" y="255.0" font-size="12" fill="#7c3aed" text-anchor="middle" font-weight="400">условие</text>
+<line x1="440.0" y1="170.0" x2="440.0" y2="206.0" stroke="#d97706" stroke-width="2.0" marker-end="url(#arrA)"/>
+<polyline points="590.0,250.0 640.0,250.0 640.0,190.0 560.0,190.0 560.0,206.0" fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" opacity="1.0" stroke-dasharray="5 4" marker-end="url(#arrB)"/>
+<text x="650.0" y="222.0" font-size="13" fill="#2563eb" text-anchor="start" font-weight="700">повторить K раз</text>
+<text x="650.0" y="240.0" font-size="13" fill="#2563eb" text-anchor="start" font-weight="400">(k = K, …, 1)</text>
+<rect x="770.0" y="210.0" width="300.0" height="110.0" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
+<text x="920.0" y="236.0" font-size="15" fill="#059669" text-anchor="middle" font-weight="700">Пакет действий a<tspan baseline-shift="sub" font-size="72%">t:t+H</tspan></text>
+<text x="920.0" y="260.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">H = 16 шагов (≈ 1.6 с при 10 Гц);</text>
+<text x="920.0" y="281.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">исполняются первые n<tspan baseline-shift="sub" font-size="72%">a</tspan> = 8,</text>
+<text x="920.0" y="302.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">затем новый пакет</text>
+<line x1="590.0" y1="290.0" x2="766.0" y2="290.0" stroke="#059669" stroke-width="2.0" marker-end="url(#arrG)"/>
+<text x="680.0" y="280.0" font-size="13" fill="#059669" text-anchor="middle" font-weight="700">a<tspan baseline-shift="super" font-size="72%">0</tspan></text>
+<text x="30.0" y="352.0" font-size="13" fill="#475569" text-anchor="start" font-weight="400">Обучение: берём действие из демонстрации, добавляем шум уровня k, учим сеть угадывать этот шум (MSE по шуму).</text>
+<text x="30.0" y="370.0" font-size="13" fill="#475569" text-anchor="start" font-weight="400">Вывод: K шагов очистки (DDPM ~100, DDIM ~10). Числа H и n<tspan baseline-shift="sub" font-size="72%">a</tspan> — из статьи Chi et al., 2023.</text>
+</svg>

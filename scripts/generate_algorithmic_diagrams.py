@@ -4844,12 +4844,6 @@ def main():
     generate_sqp_iteration_pipeline()
     generate_interior_point_barrier()
     generate_casadi_l4casadi_pipeline()
-    # Lecture 07 & 08 diagrams (RL, VLA, WAM & Humanoids SOTA):
-    try:
-        from diagrams_lecture_07_08 import generate_lecture_07_08_diagrams
-        generate_lecture_07_08_diagrams()
-    except Exception as e:
-        print(f"Warning: could not generate Lecture 07/08 diagrams: {e}")
     try:
         from generate_lecture_06_diagrams import (
             generate_agent_environment_loop,

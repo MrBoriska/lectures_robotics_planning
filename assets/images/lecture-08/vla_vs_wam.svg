@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 340" width="1100" height="340" font-family="Inter, 'Segoe UI', Roboto, Arial, sans-serif">
+<rect width="1100" height="340" fill="#ffffff"/>
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker><marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker><marker id="arrR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker><marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker><marker id="arrP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker><marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d97706"/></marker></defs>
+<text x="550.0" y="28.0" font-size="17" fill="#0f172a" text-anchor="middle" font-weight="700">VLA и модель мира с действиями (WAM): что предсказывает сеть</text>
+<rect x="20.0" y="50.0" width="520.0" height="270.0" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.4"/>
+<text x="280.0" y="78.0" font-size="16" fill="#2563eb" text-anchor="middle" font-weight="700">VLA: «зрение + язык → действие»</text>
+<rect x="40.0" y="100.0" width="170.0" height="80.0" rx="10" fill="#ffffff" stroke="#0f172a" stroke-width="2"/>
+<text x="125.0" y="126.0" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="700">Вход</text>
+<text x="125.0" y="150.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">кадр + команда</text>
+<rect x="250.0" y="100.0" width="270.0" height="80.0" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+<text x="385.0" y="126.0" font-size="14" fill="#2563eb" text-anchor="middle" font-weight="700">Предобученная VLM</text>
+<text x="385.0" y="150.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">+ голова действий</text>
+<line x1="210.0" y1="140.0" x2="246.0" y2="140.0" stroke="#2563eb" stroke-width="2.0" marker-end="url(#arrB)"/>
+<rect x="250.0" y="210.0" width="270.0" height="70.0" rx="10" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+<text x="385.0" y="236.0" font-size="14" fill="#059669" text-anchor="middle" font-weight="700">Выход</text>
+<text x="385.0" y="260.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">действия a<tspan baseline-shift="sub" font-size="72%">t:t+H</tspan></text>
+<line x1="385.0" y1="180.0" x2="385.0" y2="206.0" stroke="#2563eb" stroke-width="2.0" marker-end="url(#arrB)"/>
+<text x="40.0" y="300.0" font-size="13" fill="#475569" text-anchor="start" font-weight="400">RT-2, OpenVLA, π₀, GR00T N1, Helix</text>
+<rect x="560.0" y="50.0" width="520.0" height="270.0" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.4"/>
+<text x="820.0" y="78.0" font-size="16" fill="#059669" text-anchor="middle" font-weight="700">WAM: «видео + действие» совместно</text>
+<rect x="580.0" y="100.0" width="170.0" height="80.0" rx="10" fill="#ffffff" stroke="#0f172a" stroke-width="2"/>
+<text x="665.0" y="126.0" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="700">Вход</text>
+<text x="665.0" y="150.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">кадры + команда</text>
+<rect x="790.0" y="100.0" width="270.0" height="80.0" rx="10" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+<text x="925.0" y="126.0" font-size="14" fill="#059669" text-anchor="middle" font-weight="700">Предобученная</text>
+<text x="925.0" y="150.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">видеодиффузионная модель</text>
+<line x1="750.0" y1="140.0" x2="786.0" y2="140.0" stroke="#059669" stroke-width="2.0" marker-end="url(#arrG)"/>
+<rect x="790.0" y="210.0" width="130.0" height="70.0" rx="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+<text x="855.0" y="236.0" font-size="14" fill="#7c3aed" text-anchor="middle" font-weight="700">Будущие</text>
+<text x="855.0" y="260.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">кадры</text>
+<rect x="930.0" y="210.0" width="130.0" height="70.0" rx="10" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+<text x="995.0" y="236.0" font-size="14" fill="#059669" text-anchor="middle" font-weight="700">Действия</text>
+<text x="995.0" y="260.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">a<tspan baseline-shift="sub" font-size="72%">t:t+H</tspan></text>
+<line x1="925.0" y1="180.0" x2="855.0" y2="206.0" stroke="#059669" stroke-width="2.0" marker-end="url(#arrG)"/>
+<line x1="925.0" y1="180.0" x2="995.0" y2="206.0" stroke="#059669" stroke-width="2.0" marker-end="url(#arrG)"/>
+<text x="580.0" y="300.0" font-size="13" fill="#475569" text-anchor="start" font-weight="400">DreamZero (NVIDIA, 2026): 14 млрд параметров, 7 Гц</text>
+</svg>

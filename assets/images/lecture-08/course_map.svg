@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 380" width="1100" height="380" font-family="Inter, 'Segoe UI', Roboto, Arial, sans-serif">
+<rect width="1100" height="380" fill="#ffffff"/>
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker><marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker><marker id="arrR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker><marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker><marker id="arrP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker><marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d97706"/></marker></defs>
+<text x="550.0" y="28.0" font-size="17" fill="#0f172a" text-anchor="middle" font-weight="700">Гуманоид как сумма курса: какой уровень опирается на какую лекцию</text>
+<rect x="30.0" y="52.0" width="1040.0" height="38.0" rx="4" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<text x="46.0" y="77.0" font-size="15" fill="#7c3aed" text-anchor="start" font-weight="700">Понять задачу и сцену</text>
+<text x="420.0" y="77.0" font-size="14" fill="#0f172a" text-anchor="start" font-weight="400">VLM / VLA, язык (S2)</text>
+<text x="1054.0" y="77.0" font-size="14" fill="#475569" text-anchor="end" font-weight="700">лекция 08</text>
+<rect x="30.0" y="96.0" width="1040.0" height="38.0" rx="4" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+<text x="46.0" y="121.0" font-size="15" fill="#0f172a" text-anchor="start" font-weight="700">Где можно стоять и идти</text>
+<text x="420.0" y="121.0" font-size="14" fill="#0f172a" text-anchor="start" font-weight="400">карты, проходимость, C-пространство</text>
+<text x="1054.0" y="121.0" font-size="14" fill="#475569" text-anchor="end" font-weight="700">лекция 01</text>
+<rect x="30.0" y="140.0" width="1040.0" height="38.0" rx="4" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<text x="46.0" y="165.0" font-size="15" fill="#0f172a" text-anchor="start" font-weight="700">Маршрут и места шагов</text>
+<text x="420.0" y="165.0" font-size="14" fill="#0f172a" text-anchor="start" font-weight="400">поиск на графе, выборка</text>
+<text x="1054.0" y="165.0" font-size="14" fill="#475569" text-anchor="end" font-weight="700">лекции 02–03</text>
+<rect x="30.0" y="184.0" width="1040.0" height="38.0" rx="4" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+<text x="46.0" y="209.0" font-size="15" fill="#2563eb" text-anchor="start" font-weight="700">Как двигаться к цели</text>
+<text x="420.0" y="209.0" font-size="14" fill="#0f172a" text-anchor="start" font-weight="400">модели движения, MPPI, профиль скорости</text>
+<text x="1054.0" y="209.0" font-size="14" fill="#475569" text-anchor="end" font-weight="700">лекции 04, 07</text>
+<rect x="30.0" y="228.0" width="1040.0" height="38.0" rx="4" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<text x="46.0" y="253.0" font-size="15" fill="#2563eb" text-anchor="start" font-weight="700">Равновесие и траектория ЦМ</text>
+<text x="420.0" y="253.0" font-size="14" fill="#0f172a" text-anchor="start" font-weight="400">LIPM, точка захвата, MPC</text>
+<text x="1054.0" y="253.0" font-size="14" fill="#475569" text-anchor="end" font-weight="700">лекции 05, 08</text>
+<rect x="30.0" y="272.0" width="1040.0" height="38.0" rx="4" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+<text x="46.0" y="297.0" font-size="15" fill="#059669" text-anchor="start" font-weight="700">Поведение по данным</text>
+<text x="420.0" y="297.0" font-size="14" fill="#0f172a" text-anchor="start" font-weight="400">RL, имитация, диффузия</text>
+<text x="1054.0" y="297.0" font-size="14" fill="#475569" text-anchor="end" font-weight="700">лекции 06–07</text>
+<rect x="30.0" y="316.0" width="1040.0" height="38.0" rx="4" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<text x="46.0" y="341.0" font-size="15" fill="#dc2626" text-anchor="start" font-weight="700">Безопасность</text>
+<text x="420.0" y="341.0" font-size="14" fill="#0f172a" text-anchor="start" font-weight="400">ограничения в MPC, фильтр CBF</text>
+<text x="1054.0" y="341.0" font-size="14" fill="#475569" text-anchor="end" font-weight="700">лекции 05–06</text>
+</svg>

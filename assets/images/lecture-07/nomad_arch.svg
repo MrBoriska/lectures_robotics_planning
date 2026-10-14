@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 400" width="1100" height="400" font-family="Inter, 'Segoe UI', Roboto, Arial, sans-serif">
+<rect width="1100" height="400" fill="#ffffff"/>
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker><marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker><marker id="arrR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker><marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker><marker id="arrP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker><marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d97706"/></marker></defs>
+<text x="550.0" y="30.0" font-size="17" fill="#0f172a" text-anchor="middle" font-weight="700">NoMaD: одна сеть для движения к цели и для исследования (19 млн параметров)</text>
+<rect x="30.0" y="60.0" width="120.0" height="80.0" rx="4" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.4"/>
+<rect x="52.0" y="70.0" width="120.0" height="80.0" rx="4" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.4"/>
+<rect x="74.0" y="80.0" width="120.0" height="80.0" rx="4" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.4"/>
+<rect x="96.0" y="90.0" width="120.0" height="80.0" rx="4" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.4"/>
+<text x="110.0" y="178.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">текущий и прошлые</text>
+<text x="110.0" y="196.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">кадры камеры</text>
+<rect x="40.0" y="240.0" width="140.0" height="90.0" rx="4" fill="#fef3c7" stroke="#d97706" stroke-width="1.6"/>
+<text x="110.0" y="280.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">изображение</text>
+<text x="110.0" y="298.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">цели</text>
+<rect x="230.0" y="70.0" width="190.0" height="90.0" rx="10" fill="#faf5ff" stroke="#7c3aed" stroke-width="2"/>
+<text x="325.0" y="96.0" font-size="14" fill="#7c3aed" text-anchor="middle" font-weight="700">EfficientNet-B0</text>
+<text x="325.0" y="120.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">кадр → токен</text>
+<text x="325.0" y="141.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">(256 чисел)</text>
+<rect x="230.0" y="240.0" width="190.0" height="90.0" rx="10" fill="#faf5ff" stroke="#7c3aed" stroke-width="2"/>
+<text x="325.0" y="266.0" font-size="14" fill="#7c3aed" text-anchor="middle" font-weight="700">Кодировщик цели</text>
+<text x="325.0" y="290.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">(кадр, цель) → токен</text>
+<line x1="180.0" y1="115.0" x2="226.0" y2="115.0" stroke="#475569" stroke-width="2.0" marker-end="url(#arr)"/>
+<line x1="180.0" y1="285.0" x2="226.0" y2="285.0" stroke="#475569" stroke-width="2.0" marker-end="url(#arr)"/>
+<rect x="480.0" y="140.0" width="200.0" height="120.0" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+<text x="580.0" y="166.0" font-size="15" fill="#2563eb" text-anchor="middle" font-weight="700">Трансформер</text>
+<text x="580.0" y="190.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">4 слоя, 4 головы;</text>
+<text x="580.0" y="211.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">контекст c<tspan baseline-shift="sub" font-size="72%">t</tspan></text>
+<line x1="420.0" y1="115.0" x2="476.0" y2="170.0" stroke="#475569" stroke-width="2.0" marker-end="url(#arr)"/>
+<line x1="420.0" y1="285.0" x2="476.0" y2="230.0" stroke="#475569" stroke-width="2.0" marker-end="url(#arr)"/>
+<rect x="440.0" y="290.0" width="150.0" height="50.0" rx="6" fill="#fee2e2" stroke="#dc2626" stroke-width="1.6"/>
+<text x="515.0" y="312.0" font-size="13" fill="#dc2626" text-anchor="middle" font-weight="700">маска цели m</text>
+<text x="515.0" y="330.0" font-size="12" fill="#dc2626" text-anchor="middle" font-weight="400">m = 1: цель скрыта</text>
+<rect x="740.0" y="60.0" width="330.0" height="110.0" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
+<text x="905.0" y="86.0" font-size="15" fill="#059669" text-anchor="middle" font-weight="700">Диффузионная голова</text>
+<text x="905.0" y="110.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">1D U-Net, K = 10 шагов очистки:</text>
+<text x="905.0" y="131.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">последовательность будущих</text>
+<text x="905.0" y="152.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">путевых точек робота</text>
+<rect x="740.0" y="220.0" width="330.0" height="90.0" rx="10" fill="#fffbeb" stroke="#d97706" stroke-width="2"/>
+<text x="905.0" y="246.0" font-size="15" fill="#d97706" text-anchor="middle" font-weight="700">Голова расстояния</text>
+<text x="905.0" y="270.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">сколько шагов до цели</text>
+<text x="905.0" y="291.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">(для топологического графа)</text>
+<line x1="680.0" y1="180.0" x2="736.0" y2="120.0" stroke="#059669" stroke-width="2.0" marker-end="url(#arrG)"/>
+<line x1="680.0" y1="220.0" x2="736.0" y2="262.0" stroke="#d97706" stroke-width="2.0" marker-end="url(#arrA)"/>
+<text x="30.0" y="362.0" font-size="13" fill="#475569" text-anchor="start" font-weight="400">Обучение: более 100 часов езды разных роботов (наборы GNM, SACSoN); маска цели включается с вероятностью 0.5.</text>
+<text x="30.0" y="380.0" font-size="13" fill="#475569" text-anchor="start" font-weight="400">Результат (Sridhar et al., 2024): исследование без цели — 98 % успеха против 77 % у модели с генерацией подцелей в 335 млн параметров.</text>
+</svg>

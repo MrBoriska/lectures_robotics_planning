@@ -16,8 +16,8 @@ Docker DevContainer, публикация — на GitHub Pages.
 | 04 | Учёт модели движения: кинодинамическое планирование, DWA и MPPI | [презентация](lectures/lecture-04/lecture-04.md) · [план](lectures/lecture-04/timing.md) |
 | 05 | Оптимальное управление: от принципа максимума Понтрягина к численному решению и MPC | [презентация](lectures/lecture-05/lecture-05.md) · [план](lectures/lecture-05/timing.md) |
 | 06 | Обучение с подкреплением в робототехнике: от марковских процессов к переносу политик на реальных роботов | [презентация](lectures/lecture-06/lecture-06.md) · [план](lectures/lecture-06/timing.md) |
-| 07 | Обучение с подкреплением и фундаментальные модели: RL, VLA и World Action Models (WAM) | [презентация](lectures/lecture-07/lecture-07.md) · [план](lectures/lecture-07/timing.md) |
-| 08 | Современная антропоморфная робототехника: архитектура SOTA, индустрия, бум в Китае и фундаментальные вызовы | [презентация](lectures/lecture-08/lecture-08.md) · [план](lectures/lecture-08/timing.md) |
+| 07 | Продвинутые алгоритмы: профиль скорости, планирование в координатах Френе, диффузионные политики и NoMaD | [презентация](lectures/lecture-07/lecture-07.md) · [план](lectures/lecture-07/timing.md) |
+| 08 | Антропоморфные роботы: от точки нулевого момента до моделей «зрение–язык–действие» | [презентация](lectures/lecture-08/lecture-08.md) · [план](lectures/lecture-08/timing.md) |
 
 Все 8 лекций курса полностью разработаны, снабжены подробными методическими планами (тайминг 90 минут), математически строгими диаграммами и интерактивными симуляторами.
 
@@ -45,6 +45,10 @@ Docker DevContainer, публикация — на GitHub Pages.
 | [`shooting-collocation-simulator`](widgets/shooting-collocation-simulator/index.html) | Одиночная и многократная стрельба, коллокация: настоящий SQP по шагам, дефекты и невязки; неустойчивая система | 05 |
 | [`mpc-interactive-solver`](widgets/mpc-interactive-solver/index.html) | MPC для робота на плоскости: скользящий горизонт, короткий горизонт, неточная модель и толчок, локальный минимум | 05 |
 | [`rl-policy-shaping`](widgets/rl-policy-shaping/index.html) | Табличный Q-learning на клеточном поле и точное решение; исследование, дисконт, скольжение; разреженная, потенциальная награда и взлом награды | 06 |
+| [`velocity-profile`](widgets/velocity-profile/index.html) | Профиль скорости по пути: предел по кривизне, прямой и обратный проходы, ломаная против сплайна, сравнение с постоянной скоростью | 07 |
+| [`frenet-planner`](widgets/frenet-planner/index.html) | Планирование в координатах Френе: веер полиномов, стоимость, проверка столкновений с движущимися машинами, пересчёт 10 раз в секунду | 07 |
+| [`diffusion-policy-interactive`](widgets/diffusion-policy-interactive/index.html) | Объезд препятствия по демонстрациям: регрессия MSE, диффузия (DDPM) и согласование потоков на точной модели данных; наведение по стоимости | 07 |
+| [`lipm-capture-point`](widgets/lipm-capture-point/index.html) | Модель перевёрнутого маятника: толчок, удержание голеностопом, шаг в точку захвата, фиксированный шаг | 08 |
 
 ## Иллюстрации
 
