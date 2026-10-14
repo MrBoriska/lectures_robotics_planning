@@ -204,16 +204,60 @@ def dint(x, u):
 # Лекция 05
 # ---------------------------------------------------------------------------
 
+def l05_cart_example():
+    """Сквозной пример лекции 05: тележка на рельсе и её состояние на фазовой плоскости."""
+    W, H = 1100, 310
+    out = svg_open(W, H)
+    out.append(text(24, 30, 'Сквозной пример: тележка (мобильный робот) должна остановиться точно у отметки x = 0', 18, INK, weight=700))
+    # рельс и шкала
+    X = lambda v: 110 + (v + 1.2) / 1.6 * 520
+    out.append(line(X(-1.25), 200, X(0.35), 200, INK, 3))
+    for v in (-1.0, -0.5, 0.0):
+        out.append(line(X(v), 200, X(v), 212, INK, 2))
+        out.append(text(X(v), 234, f'{v:g} м'.replace('-', '−'), 14, MUTED, 'middle'))
+    out.append(line(X(0), 110, X(0), 200, RED, 3, '6 4'))
+    out.append(text(X(0) + 8, 120, 'точка остановки', 14, RED, 'start', 700))
+    # тележка в x = -1
+    cx = X(-1.0)
+    out.append(rect(cx - 50, 148, 100, 40, '#dbeafe', BLUE, 6, 2))
+    out.append(circle(cx - 30, 192, 8, INK))
+    out.append(circle(cx + 30, 192, 8, INK))
+    out.append(line(cx, 140, cx, 200, BLUE, 1.5, '3 3'))
+    out.append(line(cx + 52, 168, cx + 130, 168, AMBER, 3, marker='arrA'))
+    out.append(text(cx + 60, 152, 'u — ускорение, |u| ≤ 1 м/с²', 14, AMBER, 'start', 700))
+    out.append(text(cx, 136, 'x₁ — положение', 14, BLUE, 'middle', 700))
+    out.append(text(110, 270, 'Состояние: x₁ — положение (м), x₂ = ẋ₁ — скорость (м/с).', 15, INK))
+    out.append(text(110, 294, 'Модель: ẋ₁ = x₂,  ẋ₂ = u. Старт: x = (−1; 0). Цель: x = (0; 0).', 15, INK))
+    # фазовая плоскость
+    a = Axes(760, 70, 290, 190, (-1.4, 0.6), (-0.6, 1.3))
+    out += a.frame(xticks=(-1, 0), yticks=(0, 1), xlabel='x₁', ylabel='x₂ (фазовая плоскость)')
+    out.append(circle(*a.p(-1, 0), 7, BLUE, '#fff', 2))
+    out.append(text(a.px(-1) + 4, a.py(0) + 24, 'старт', 14, BLUE, 'middle', 700))
+    out.append(circle(*a.p(0, 0), 7, GREEN, '#fff', 2))
+    out.append(text(a.px(0) + 10, a.py(0) + 24, 'цель', 14, GREEN, 'start', 700))
+    ts = linspace(0, 2, 60)
+    pts = []
+    for t in ts:
+        if t <= 1:
+            pts.append(a.p(-1 + t * t / 2, t))
+        else:
+            tau = t - 1
+            pts.append(a.p(-0.5 + tau - tau * tau / 2, 1 - tau))
+    out.append(polyline(pts, PURPLE, 2.2, '6 4'))
+    out.append(text(a.px(-0.5), a.py(1.0) - 10, 'одно из движений', 13, PURPLE, 'middle'))
+    write(os.path.join(OUT05, 'cart_example.svg'), out)
+
+
 def l05_hamiltonian_vs_u():
     W, H = 1000, 400
     out = svg_open(W, H)
-    out.append(text(24, 30, 'Максимизация функции Гамильтона по управлению на отрезке U = [−1, 1]', 18, INK, weight=700))
+    out.append(text(24, 30, 'Где находится наибольшее значение функции на отрезке −1 ≤ u ≤ 1 (голубая полоса)', 18, INK, weight=700))
 
     # (а) аффинная по u динамика: H = h0 + sigma*u
     a = Axes(70, 70, 380, 250, (-1.5, 1.5), (-1.6, 1.6))
-    out += a.frame(xticks=(-1, 0, 1), yticks=(-1, 0, 1), xlabel='u', ylabel='H(u)')
+    out += a.frame(xticks=(-1, 0, 1), yticks=(-1, 0, 1), xlabel='u', ylabel='F(u)')
     out.append(polygon([a.p(-1, -1.6), a.p(1, -1.6), a.p(1, 1.6), a.p(-1, 1.6)], '#dbeafe', 0.45))
-    for sig, col, lab in ((0.9, BLUE, 'σ > 0'), (-0.6, RED, 'σ < 0')):
+    for sig, col, lab in ((0.9, BLUE, 'наклон > 0'), (-0.6, RED, 'наклон < 0')):
         us = linspace(-1.5, 1.5, 2)
         out.append(polyline(a.pts(us, [0.1 + sig * u for u in us]), col, 1.4, '5 4', opacity=0.6))
         us = linspace(-1, 1, 2)
@@ -221,13 +265,13 @@ def l05_hamiltonian_vs_u():
         ustar = 1 if sig > 0 else -1
         X, Y = a.p(ustar, 0.1 + sig * ustar)
         out.append(circle(X, Y, 6, col, '#fff', 2))
-        out.append(text(X + (10 if sig > 0 else -10), Y - 10, f'{lab}:  u* = {ustar:+d}', 14, col, 'start' if sig > 0 else 'end', 600))
-    out.append(text(a.x0 + a.w / 2, a.y0 + a.h + 58, '(а) H = h₀(x, λ) + σ·u: ∂H/∂u = σ не зависит от u,', 14, MUTED, 'middle'))
-    out.append(text(a.x0 + a.w / 2, a.y0 + a.h + 77, 'максимум достигается на границе, u* = sign σ', 14, MUTED, 'middle'))
+        out.append(text(X + 10, Y - 12, f'{lab}:  u* = {ustar:+d}', 14, col, 'start', 600))
+    out.append(text(a.x0 + a.w / 2, a.y0 + a.h + 58, '(а) Прямая F = c + σu: производная σ нигде не равна нулю,', 14, MUTED, 'middle'))
+    out.append(text(a.x0 + a.w / 2, a.y0 + a.h + 77, 'наибольшее значение — на конце отрезка: u* = +1 или −1', 14, MUTED, 'middle'))
 
     # (б) строго вогнутая по u функция: H = h0 + sigma*u - r u^2 / 2
     b = Axes(580, 70, 380, 250, (-1.5, 1.5), (-1.6, 1.6))
-    out += b.frame(xticks=(-1, 0, 1), yticks=(-1, 0, 1), xlabel='u', ylabel='H(u)')
+    out += b.frame(xticks=(-1, 0, 1), yticks=(-1, 0, 1), xlabel='u', ylabel='F(u)')
     out.append(polygon([b.p(-1, -1.6), b.p(1, -1.6), b.p(1, 1.6), b.p(-1, 1.6)], '#dbeafe', 0.45))
     r = 1.0
     out.append(b.clip_id('clipH'))
@@ -244,10 +288,10 @@ def l05_hamiltonian_vs_u():
         X, Y = b.p(ustar, h0 + sig * ustar - r * ustar ** 2 / 2)
         out.append(circle(X, Y, 6, col, '#fff', 2))
     out.append('</g>')
-    out.append(text(b.px(0.5), b.py(0.325) + 28, 'σ/r = 0.5: u* = σ/r', 14, GREEN, 'middle', 600))
-    out.append(text(b.px(0.35), b.py(1.3), 'σ/r = 1.6: u* = 1 (насыщение)', 14, AMBER, 'middle', 600))
-    out.append(text(b.x0 + b.w / 2, b.y0 + b.h + 58, '(б) H = h₀ + σ·u − r·u²/2: внутренний максимум u = σ/r,', 14, MUTED, 'middle'))
-    out.append(text(b.x0 + b.w / 2, b.y0 + b.h + 77, 'при |σ/r| > 1 решение — проекция на U: u* = sat(σ/r)', 14, MUTED, 'middle'))
+    out.append(text(b.px(0.55), b.py(-0.6), 'вершина внутри: u* = 0.5', 14, GREEN, 'middle', 600))
+    out.append(text(b.px(0.35), b.py(1.3), 'вершина вне отрезка: u* = 1', 14, AMBER, 'middle', 600))
+    out.append(text(b.x0 + b.w / 2, b.y0 + b.h + 58, '(б) Парабола F = c + σu − u²/2: если вершина u = σ внутри,', 14, MUTED, 'middle'))
+    out.append(text(b.x0 + b.w / 2, b.y0 + b.h + 77, 'то F′(u*) = 0; если вне — максимум на ближайшем конце', 14, MUTED, 'middle'))
     write(os.path.join(OUT05, 'pmp_hamiltonian_vs_u.svg'), out)
 
 
@@ -309,7 +353,7 @@ def l05_time_optimal_phase():
 
     # две оптимальные траектории (аналитически)
     traj_info = []
-    for (x10, x20), col in (((2.0, 1.0), '#b91c1c'), ((-2.0, -0.5), '#1d4ed8')):
+    for (x10, x20), col in (((-1.0, 0.0), '#1d4ed8'), ((2.0, 1.0), '#b91c1c')):
         u1, ts, T, x1s, x2s = time_optimal_arc(x10, x20)
         t1 = linspace(0, ts, 60)
         p1 = [(x10 + x20 * t + u1 * t * t / 2, x20 + u1 * t) for t in t1]
@@ -323,14 +367,14 @@ def l05_time_optimal_phase():
         out.append(circle(*a.p(x10, x20), 6, col, '#fff', 2))
         out.append(circle(*a.p(x1s, x2s), 6, AMBER, '#fff', 2))
         traj_info.append((x10, x20, u1, ts, T, x1s, x2s))
-    out.append(text(a.px(2.0) + 10, a.py(1.0) - 10, 'A (2; 1)', 14, '#b91c1c', 'start', 700))
-    out.append(text(a.px(-2.0) - 6, a.py(-0.5) + 22, 'B (−2; −0.5)', 14, '#1d4ed8', 'middle', 700))
+    out.append(text(a.px(-1.0) - 8, a.py(0.0) + 24, 'A (−1; 0)', 14, '#1d4ed8', 'end', 700))
+    out.append(text(a.px(2.0) + 10, a.py(1.0) - 10, 'B (2; 1)', 14, '#b91c1c', 'start', 700))
     out.append(circle(*a.p(0, 0), 6, GREEN, '#fff', 2))
 
     # временные зависимости для траектории A
     x10, x20, u1, ts, T, x1s, x2s = traj_info[0]
-    b = Axes(680, 66, 380, 160, (0, 4.6), (-2.2, 2.6))
-    out += b.frame(xticks=(0, 1, 2, 3, 4), yticks=(-2, 0, 2), xlabel='', ylabel='состояние, траектория A')
+    b = Axes(680, 66, 380, 160, (0, 2.4), (-1.3, 1.3))
+    out += b.frame(xticks=(0, 0.5, 1, 1.5, 2), yticks=(-1, 0, 1), xlabel='', ylabel='состояние, траектория A')
     tt = linspace(0, T, 200)
     xs1, xs2 = [], []
     for t in tt:
@@ -343,42 +387,42 @@ def l05_time_optimal_phase():
             xs2.append(x2s - u1 * tau)
     out.append(polyline(b.pts(tt, xs1), INK, 2.4))
     out.append(polyline(b.pts(tt, xs2), SKY, 2.4, '7 4'))
-    out += legend(b.x0 + b.w - 110, b.y0 + 22, [('x₁(t)', INK, None), ('x₂(t)', SKY, '7 4')], 14)
+    out += legend(b.x0 + b.w - 100, b.y0 + b.h - 34, [('x₁(t)', INK, None), ('x₂(t)', SKY, '7 4')], 14)
 
-    c = Axes(680, 290, 380, 160, (0, 4.6), (-1.6, 1.6))
-    out += c.frame(xticks=(0, 1, 2, 3, 4), yticks=(-1, 0, 1), xlabel='t', ylabel='управление и функция переключения')
+    c = Axes(680, 290, 380, 160, (0, 2.4), (-1.6, 1.6))
+    out += c.frame(xticks=(0, 0.5, 1, 1.5, 2), yticks=(-1, 0, 1), xlabel='t', ylabel='управление и функция переключения')
     out.append(polyline([c.p(0, u1), c.p(ts, u1), c.p(ts, -u1), c.p(T, -u1)], RED, 2.8))
     lam = [(t - ts) / (T - ts) * (-u1) for t in tt]
     out.append(polyline(c.pts(tt, lam), PURPLE, 2.4, '7 4'))
     out.append(line(c.px(ts), c.y0, c.px(ts), c.y0 + c.h, AMBER, 1.6, '3 3'))
-    out.append(text(c.px(ts + 0.08), c.py(-1.3), f't_s = {ts:.2f}', 14, AMBER, 'start', 700))
+    out.append(text(c.px(ts + 0.04), c.py(-1.3), f't_s = {ts:.2f}', 14, AMBER, 'start', 700))
     out.append(line(c.px(T), c.y0, c.px(T), c.y0 + c.h, GREEN, 1.6, '3 3'))
-    out.append(text(c.px(T - 0.08), c.py(-0.55), f'T* = {T:.2f}', 14, GREEN, 'end', 700))
-    out += legend(c.x0 + 12, c.y0 + 22, [('u*(t)', RED, None), ('σ(t) = λ₂(t)', PURPLE, '7 4')], 14)
+    out.append(text(c.px(T - 0.04), c.py(0.25), f'T* = {T:.2f}', 14, GREEN, 'end', 700))
+    out += legend(c.px(1.04), c.y0 + 22, [('u*(t)', RED, None), ('σ(t) = λ₂(t)', PURPLE, '7 4')], 14)
     write(os.path.join(OUT05, 'time_optimal_phase_portrait.svg'), out)
     return traj_info
 
 
 def l05_criteria_comparison():
-    """Перевод из (1, 0) в (0, 0): быстродействие, минимум энергии, LQR с насыщением."""
+    """Перевод из (−1, 0) в (0, 0): быстродействие, минимум энергии, LQR с насыщением."""
     W, H = 1100, 430
     out = svg_open(W, H)
-    out.append(text(24, 30, 'Перевод из x = 1, ẋ = 0 в начало координат при |u| ≤ 1: три критерия качества', 18, INK, weight=700))
+    out.append(text(24, 30, 'Подъезд к точке остановки из x = −1 м, ẋ = 0 при |u| ≤ 1: три критерия качества', 18, INK, weight=700))
     d, Tbb = 1.0, 2.0
     Te = 2.5
     dt = 0.002
     tt = [i * dt for i in range(int(8.0 / dt) + 1)]
 
     def u_bb(t):
-        return -1.0 if t < 1.0 else (1.0 if t < 2.0 else 0.0)
+        return 1.0 if t < 1.0 else (-1.0 if t < 2.0 else 0.0)
 
     def u_en(t):
-        return -(6 * d / Te ** 2) * (1 - 2 * t / Te) if t < Te else 0.0
+        return (6 * d / Te ** 2) * (1 - 2 * t / Te) if t < Te else 0.0
 
     k1, k2 = 1.0, math.sqrt(3.0)  # LQR: Q = diag(1, 1), R = 1  =>  K = [1, sqrt(3)]
 
     def sim(ctrl, feedback=False):
-        x = [1.0, 0.0]
+        x = [-1.0, 0.0]
         X1, U = [], []
         energy = 0.0
         for t in tt:
@@ -393,8 +437,8 @@ def l05_criteria_comparison():
     xe, ue, ee = sim(u_en)
     xl, ul, el = sim(None, True)
 
-    a = Axes(70, 66, 440, 270, (0, 8), (-0.15, 1.1))
-    out += a.frame(xticks=(0, 2, 4, 6, 8), yticks=(0, 0.5, 1), xlabel='t', ylabel='x(t)')
+    a = Axes(70, 66, 440, 270, (0, 8), (-1.1, 0.15))
+    out += a.frame(xticks=(0, 2, 4, 6, 8), yticks=(-1, -0.5, 0), xlabel='t', ylabel='x(t)')
     out.append(polyline(a.pts(tt, xb), RED, 2.6))
     out.append(polyline(a.pts(tt, xe), BLUE, 2.6, '8 4'))
     out.append(polyline(a.pts(tt, xl), GREEN, 2.6, '2 4'))
@@ -645,10 +689,13 @@ def l05_mpc_receding():
 
     Модель регулятора: x2' = u. Объект: x2' = 0.7 u (привод слабее модели),
     в момент t = 4 с — толчок, мгновенно добавляющий скорость +1.5.
+    Для сравнения тот же объект управляется без обратной связи: план на 10 с,
+    рассчитанный один раз в начальный момент, исполняется вслепую.
     """
     dt, Np = 0.25, 10
     gain_plant = 0.7
     push_step, push_dv = 16, 1.5
+    steps = 40
     A = [[1, dt], [0, 1]]
     B = [dt * dt / 2, dt]
     q1, q2, r = 1.0, 0.1, 0.05
@@ -658,27 +705,27 @@ def l05_mpc_receding():
         return [sum(M_[i][j] * v[j] for j in range(len(v))) for i in range(len(M_))]
 
     Apow = [[[1, 0], [0, 1]]]
-    for _ in range(Np):
+    for _ in range(steps):
         Pm = Apow[-1]
         Apow.append([[sum(A[i][l] * Pm[l][j] for l in range(2)) for j in range(2)] for i in range(2)])
 
     def S(k, j):  # влияние u_j на x_k при k > j
         return mat_vec(Apow[k - 1 - j], B)
 
-    def qp(x0):
+    def qp(x0, n):
         """Конденсированная QP: min Σ x_kᵀQx_k + r u_k² + x_Nᵀ P_f x_N при |u_k| ≤ 1."""
-        Hm = [[0.0] * Np for _ in range(Np)]
-        g = [0.0] * Np
-        for k in range(1, Np + 1):
-            Q = Pf if k == Np else [[q1, 0], [0, q2]]
+        Hm = [[0.0] * n for _ in range(n)]
+        g = [0.0] * n
+        for k in range(1, n + 1):
+            Q = Pf if k == n else [[q1, 0], [0, q2]]
             free = mat_vec(Apow[k], x0)
-            cols = [S(k, j) if j < k else [0, 0] for j in range(Np)]
-            for i in range(Np):
+            cols = [S(k, j) if j < k else [0, 0] for j in range(n)]
+            for i in range(n):
                 Qi = mat_vec(Q, cols[i])
                 g[i] += sum(Qi[l] * free[l] for l in range(2))
-                for j in range(Np):
+                for j in range(n):
                     Hm[i][j] += sum(Qi[l] * cols[j][l] for l in range(2))
-        for i in range(Np):
+        for i in range(n):
             Hm[i][i] += r
         U = solve_box_qp(Hm, g, -1.0, 1.0)
         pred, x = [x0], x0
@@ -687,28 +734,45 @@ def l05_mpc_receding():
             pred.append(x)
         return U, pred
 
+    def plant(x, u):
+        return [x[0] + dt * x[1] + gain_plant * B[0] * u, x[1] + gain_plant * B[1] * u]
+
     x = [2.5, 0.0]
-    steps = 40
     X, Uapp, preds = [x], [], {}
     for k in range(steps):
         if k == push_step:
             x = [x[0], x[1] + push_dv]
             X[-1] = x
-        U, pred = qp(x)
+        U, pred = qp(x, Np)
         if k in (0, 4, push_step):
             preds[k] = pred
         u = U[0]
         Uapp.append(u)
-        gp = gain_plant
-        x = [x[0] + dt * x[1] + gp * B[0] * u, x[1] + gp * B[1] * u]
+        x = plant(x, u)
         X.append(x)
+
+    # без обратной связи: один план на весь интервал
+    Uol, _ = qp([2.5, 0.0], steps)
+    x = [2.5, 0.0]
+    Xol = [x]
+    for k in range(steps):
+        if k == push_step:
+            x = [x[0], x[1] + push_dv]
+            Xol[-1] = x
+        x = plant(x, Uol[k])
+        Xol.append(x)
 
     W, H = 1100, 480
     out = svg_open(W, H)
     out.append(text(24, 30, f'Скользящий горизонт: Δt = {dt} с, N = {Np}, |u| ≤ 1; объект: ẍ = 0.7u, толчок при t = 4 с', 18, INK, weight=700))
     tmax = steps * dt + 0.1
-    a = Axes(70, 76, 960, 220, (0, tmax), (-0.6, 2.8))
-    out += a.frame(xticks=list(range(0, 11)), yticks=(0, 1, 2), xlabel='t, с', ylabel='положение x_1')
+    a = Axes(70, 76, 960, 220, (0, tmax), (-0.6, 4.6))
+    out += a.frame(xticks=list(range(0, 11)), yticks=(0, 1, 2, 3, 4), xlabel='t, с', ylabel='положение x_1')
+    out.append(a.clip_id('clipMPC'))
+    out.append('<g clip-path="url(#clipMPC)">')
+    tsx = [i * dt for i in range(len(X))]
+    out.append(polyline(a.pts(tsx, [p[0] for p in Xol]), RED, 2.4, '3 4'))
+    out.append('</g>')
     cols = {0: PURPLE, 4: AMBER, push_step: SKY}
     for k, pred in preds.items():
         ts = [(k + i) * dt for i in range(len(pred))]
@@ -718,18 +782,19 @@ def l05_mpc_receding():
         out.append(line(a.px(k * dt), a.y0, a.px(k * dt), a.y0 + a.h, cols[k], 1, '2 3'))
     out.append(text(a.px(2.5) - 6, a.py(preds[0][-1][0]) + 20, 'прогноз при k = 0', 13, PURPLE, 'end', 600))
     out.append(text(a.px(3.0), a.py(0.45), 'прогноз при k = 4', 13, AMBER, 'start', 600))
-    out.append(text(a.px(5.0), a.py(-0.45), f'прогноз при k = {push_step} (сразу после толчка)', 13, SKY, 'start', 600))
-    tsx = [i * dt for i in range(len(X))]
+    out.append(text(a.px(5.0), a.py(-0.35), f'прогноз при k = {push_step} (сразу после толчка)', 13, SKY, 'start', 600))
     out.append(polyline(a.pts(tsx, [p[0] for p in X]), INK, 3.0))
-    out.append(text(a.px(0.15), a.py(2.62), 'фактическая траектория объекта', 14, INK, 'start', 700))
+    out.append(text(a.px(0.15), a.py(4.3), 'MPC: фактическая траектория объекта', 14, INK, 'start', 700))
+    out.append(text(a.px(6.2), a.py(3.6), 'без обратной связи: первый план исполняется вслепую', 14, RED, 'start', 700))
 
     b = Axes(70, 340, 960, 100, (0, tmax), (-1.25, 1.25))
     out += b.frame(xticks=list(range(0, 11)), yticks=(-1, 0, 1), xlabel='t, с', ylabel='применённое управление u_0*')
     stair = []
     for k, u in enumerate(Uapp):
         stair += [b.p(k * dt, u), b.p((k + 1) * dt, u)]
-    out.append(polyline(stair, RED, 2.4))
+    out.append(polyline(stair, INK, 2.4))
     write(os.path.join(OUT05, 'mpc_receding_horizon.svg'), out)
+    return X[-1], Xol[-1]
 
 
 # ---------------------------------------------------------------------------
@@ -747,14 +812,71 @@ def box(x, y, w, h, title, lines_, color=BLUE, fill='#eff6ff', tsize=16, lsize=1
 def l06_rl_loop():
     W, H = 1000, 330
     out = svg_open(W, H)
-    out += box(60, 70, 300, 150, 'Агент', ['политика a_t ~ π_θ(· | s_t)', 'обучение: θ ← θ + α ĝ', '(оценка ĝ по опыту)'], BLUE, '#eff6ff')
-    out += box(640, 70, 300, 150, 'Среда', ['переход s_{t+1} ~ P(· | s_t, a_t)', 'награда r_{t+1} = r(s_t, a_t, s_{t+1})', 'робот + окружающий мир'], INK, PANEL)
+    out += box(60, 70, 300, 150, 'Агент (регулятор)', ['выбирает действие a_t', 'по политике π(a | s)', 'и учится на опыте'], BLUE, '#eff6ff')
+    out += box(640, 70, 300, 150, 'Среда (робот и мир)', ['переходит в новое', 'состояние s_{t+1}', 'и выдаёт награду r_{t+1}'], INK, PANEL)
     out.append(line(360, 110, 636, 110, BLUE, 2.4, marker='arrB'))
     out.append(text(498, 100, 'действие a_t', 15, BLUE, 'middle', 700))
     out.append(polyline([(790, 220), (790, 280), (210, 280), (210, 224)], GREEN, 2.4, marker='arrG'))
-    out.append(text(500, 272, 'состояние s_{t+1} и награда r_{t+1}  (задержка на один такт)', 15, GREEN, 'middle', 700))
-    out.append(text(500, 40, 'Цикл взаимодействия: такт t = 0, 1, 2, …; эпизод τ = (s₀, a₀, r₁, s₁, a₁, r₂, …)', 16, INK, 'middle', 600))
+    out.append(text(500, 272, 'новое состояние s_{t+1} и награда r_{t+1}', 15, GREEN, 'middle', 700))
+    out.append(text(500, 40, 'Один такт: s_t → a_t → (r_{t+1}, s_{t+1}); эпизод — последовательность тактов от начала до конца попытки', 16, INK, 'middle', 600))
     write(os.path.join(OUT06, 'rl_interaction_loop.svg'), out)
+
+
+def l06_corridor():
+    """Сквозной пример лекции 06: коридор из пяти клеток, цель справа.
+
+    Награда +10 за вход в цель, 0 за остальные шаги, γ = 0.9, действия «влево» и
+    «вправо» (у левой стены действие «влево» оставляет робота на месте).
+    Ценности V* и Q* вычисляются итерацией по ценности.
+    """
+    gamma, R = 0.9, 10.0
+    n = 4  # нетерминальные клетки 1..4, клетка 5 — цель
+    V = [0.0] * (n + 2)
+
+    def step(s, a):
+        s2 = max(1, s - 1) if a == 'L' else s + 1
+        return s2, (R if s2 == n + 1 else 0.0)
+
+    hist = [V[1:n + 1]]
+    for _ in range(20):
+        V2 = V[:]
+        for s in range(1, n + 1):
+            vals = []
+            for a in 'LR':
+                s2, r = step(s, a)
+                vals.append(r + gamma * (0.0 if s2 == n + 1 else V[s2]))
+            V2[s] = max(vals)
+        V = V2
+        hist.append(V[1:n + 1])
+    Q = {}
+    for s in range(1, n + 1):
+        for a in 'LR':
+            s2, r = step(s, a)
+            Q[(s, a)] = r + gamma * (0.0 if s2 == n + 1 else V[s2])
+
+    W, H = 1100, 275
+    out = svg_open(W, H)
+    out.append(text(24, 30, 'Сквозной пример: робот в коридоре. Награда +10 за вход в цель, иначе 0; γ = 0.9', 18, INK, weight=700))
+    x0, y0, cw, ch = 60, 70, 190, 130
+    for i in range(1, n + 2):
+        x = x0 + (i - 1) * (cw + 10)
+        goal = i == n + 1
+        out.append(rect(x, y0, cw, ch, '#ecfdf5' if goal else '#ffffff', GREEN if goal else LIGHT, 8, 2))
+        out.append(text(x + 10, y0 + 22, f'клетка {i}', 14, MUTED))
+        if goal:
+            out.append(text(x + cw / 2, y0 + 62, 'ЦЕЛЬ', 20, GREEN, 'middle', 700))
+            out.append(text(x + cw / 2, y0 + 90, 'эпизод завершается', 13, GREEN, 'middle'))
+            continue
+        out.append(text(x + cw / 2, y0 + 64, f'V* = {V[i]:.2f}', 20, BLUE, 'middle', 700))
+        out.append(text(x + 12, y0 + 112, f'← {Q[(i, "L")]:.2f}', 15, MUTED, 'start'))
+        out.append(text(x + cw - 12, y0 + 112, f'{Q[(i, "R")]:.2f} →', 15, GREEN, 'end', 700))
+    # робот в клетке 1
+    out.append(circle(x0 + cw - 30, y0 + 28, 11, AMBER, '#fff', 2))
+    out.append(text(x0 + cw - 30, y0 + 33, 'Р', 12, '#fff', 'middle', 700))
+    out.append(text(60, y0 + ch + 34, 'В каждой клетке: V* — ценность клетки; внизу Q*(s, ←) и Q*(s, →) — ценности двух действий.', 15, INK))
+    out.append(text(60, y0 + ch + 58, 'Оптимальное действие — с большей ценностью (зелёное): везде «вправо». У стены «влево» оставляет робота на месте.', 15, INK))
+    write(os.path.join(OUT06, 'corridor_values.svg'), out)
+    return hist, Q
 
 
 def l06_discount():
@@ -950,6 +1072,7 @@ def l06_cbf_filter():
 
 def main():
     print('Лекция 05:')
+    l05_cart_example()
     l05_hamiltonian_vs_u()
     info = l05_time_optimal_phase()
     for x10, x20, u1, ts, T, x1s, x2s in info:
@@ -958,9 +1081,11 @@ def main():
     l05_transcription_guesses()
     print('   ККТ (размер, ненули, полуширина):', l05_kkt_sparsity())
     print('   центральная траектория:', l05_barrier())
-    l05_mpc_receding()
+    print('   MPC: конец (MPC, без обратной связи):', l05_mpc_receding())
     print('Лекция 06:')
     l06_rl_loop()
+    hist, Q = l06_corridor()
+    print('   коридор, итерации по ценности:', [[round(v, 3) for v in h] for h in hist[:6]])
     l06_discount()
     l06_taxonomy()
     l06_actor_critic()

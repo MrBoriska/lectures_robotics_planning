@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 310" width="1100" height="310" font-family="Inter, 'Segoe UI', Roboto, Arial, sans-serif">
+<rect width="1100" height="310" fill="#ffffff"/>
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker><marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker><marker id="arrR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker><marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker><marker id="arrP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker><marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d97706"/></marker></defs>
+<text x="24.0" y="30.0" font-size="18" fill="#0f172a" text-anchor="start" font-weight="700">Сквозной пример: тележка (мобильный робот) должна остановиться точно у отметки x = 0</text>
+<line x1="93.7" y1="200.0" x2="613.8" y2="200.0" stroke="#0f172a" stroke-width="3"/>
+<line x1="175.0" y1="200.0" x2="175.0" y2="212.0" stroke="#0f172a" stroke-width="2"/>
+<text x="175.0" y="234.0" font-size="14" fill="#475569" text-anchor="middle" font-weight="400">−1 м</text>
+<line x1="337.5" y1="200.0" x2="337.5" y2="212.0" stroke="#0f172a" stroke-width="2"/>
+<text x="337.5" y="234.0" font-size="14" fill="#475569" text-anchor="middle" font-weight="400">−0.5 м</text>
+<line x1="500.0" y1="200.0" x2="500.0" y2="212.0" stroke="#0f172a" stroke-width="2"/>
+<text x="500.0" y="234.0" font-size="14" fill="#475569" text-anchor="middle" font-weight="400">0 м</text>
+<line x1="500.0" y1="110.0" x2="500.0" y2="200.0" stroke="#dc2626" stroke-width="3" stroke-dasharray="6 4"/>
+<text x="508.0" y="120.0" font-size="14" fill="#dc2626" text-anchor="start" font-weight="700">точка остановки</text>
+<rect x="125.0" y="148.0" width="100.0" height="40.0" rx="6" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+<circle cx="145.0" cy="192.0" r="8" fill="#0f172a" stroke="none" stroke-width="1.5"/>
+<circle cx="205.0" cy="192.0" r="8" fill="#0f172a" stroke="none" stroke-width="1.5"/>
+<line x1="175.0" y1="140.0" x2="175.0" y2="200.0" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="3 3"/>
+<line x1="227.0" y1="168.0" x2="305.0" y2="168.0" stroke="#d97706" stroke-width="3" marker-end="url(#arrA)"/>
+<text x="235.0" y="152.0" font-size="14" fill="#d97706" text-anchor="start" font-weight="700">u — ускорение, |u| ≤ 1 м/с²</text>
+<text x="175.0" y="136.0" font-size="14" fill="#2563eb" text-anchor="middle" font-weight="700">x₁ — положение</text>
+<text x="110.0" y="270.0" font-size="15" fill="#0f172a" text-anchor="start" font-weight="400">Состояние: x₁ — положение (м), x₂ = ẋ₁ — скорость (м/с).</text>
+<text x="110.0" y="294.0" font-size="15" fill="#0f172a" text-anchor="start" font-weight="400">Модель: ẋ₁ = x₂,  ẋ₂ = u. Старт: x = (−1; 0). Цель: x = (0; 0).</text>
+<rect x="760.0" y="70.0" width="290.0" height="190.0" rx="0" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="818.0" y1="70.0" x2="818.0" y2="260.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="818.0" y="278.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">-1</text>
+<line x1="963.0" y1="70.0" x2="963.0" y2="260.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="963.0" y="278.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">0</text>
+<line x1="760.0" y1="200.0" x2="1050.0" y2="200.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="752.0" y="204.0" font-size="13" fill="#475569" text-anchor="end" font-weight="400">0</text>
+<line x1="760.0" y1="100.0" x2="1050.0" y2="100.0" stroke="#e2e8f0" stroke-width="1"/>
+<text x="752.0" y="104.0" font-size="13" fill="#475569" text-anchor="end" font-weight="400">1</text>
+<line x1="760.0" y1="200.0" x2="1050.0" y2="200.0" stroke="#94a3b8" stroke-width="1.3"/>
+<line x1="963.0" y1="70.0" x2="963.0" y2="260.0" stroke="#94a3b8" stroke-width="1.3"/>
+<text x="1050.0" y="296.0" font-size="15" fill="#0f172a" text-anchor="end" font-weight="400" font-style="italic" font-family="'Times New Roman', 'STIX Two Text', serif">x₁</text>
+<text x="760.0" y="60.0" font-size="15" fill="#0f172a" text-anchor="start" font-weight="400" font-style="italic" font-family="'Times New Roman', 'STIX Two Text', serif">x₂ (фазовая плоскость)</text>
+<circle cx="818.0" cy="200.0" r="7" fill="#2563eb" stroke="#fff" stroke-width="2"/>
+<text x="822.0" y="224.0" font-size="14" fill="#2563eb" text-anchor="middle" font-weight="700">старт</text>
+<circle cx="963.0" cy="200.0" r="7" fill="#059669" stroke="#fff" stroke-width="2"/>
+<text x="973.0" y="224.0" font-size="14" fill="#059669" text-anchor="start" font-weight="700">цель</text>
+<polyline points="818.0,200.0 818.1,196.6 818.3,193.2 818.7,189.8 819.3,186.4 820.1,183.1 821.0,179.7 822.1,176.3 823.3,172.9 824.7,169.5 826.3,166.1 828.1,162.7 830.0,159.3 832.1,155.9 834.3,152.5 836.7,149.2 839.3,145.8 842.1,142.4 845.0,139.0 848.1,135.6 851.3,132.2 854.7,128.8 858.3,125.4 862.1,122.0 866.0,118.6 870.1,115.3 874.3,111.9 878.7,108.5 883.3,105.1 888.1,101.7 892.9,101.7 897.7,105.1 902.3,108.5 906.7,111.9 910.9,115.3 915.0,118.6 918.9,122.0 922.7,125.4 926.3,128.8 929.7,132.2 932.9,135.6 936.0,139.0 938.9,142.4 941.7,145.8 944.3,149.2 946.7,152.5 948.9,155.9 951.0,159.3 952.9,162.7 954.7,166.1 956.3,169.5 957.7,172.9 958.9,176.3 960.0,179.7 960.9,183.1 961.7,186.4 962.3,189.8 962.7,193.2 962.9,196.6 963.0,200.0" fill="none" stroke="#7c3aed" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" opacity="1.0" stroke-dasharray="6 4"/>
+<text x="890.5" y="90.0" font-size="13" fill="#7c3aed" text-anchor="middle" font-weight="400">одно из движений</text>
+</svg>

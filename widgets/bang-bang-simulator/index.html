@@ -1,800 +1,373 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Симулятор Bang-Bang vs LQR: Двойной интегратор</title>
-  <link rel="stylesheet" href="../common/widget-base.css">
-  <style>
-    .split-view {
-      display: flex;
-      flex: 1;
-      min-height: 0;
-      gap: 8px;
-      padding: 8px;
-      background: var(--bg-widget);
-    }
-    .panel-left {
-      flex: 1.2;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      min-width: 0;
-    }
-    .panel-right {
-      flex: 0.95;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      min-width: 0;
-    }
-    .card {
-      background: var(--bg-panel);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 8px 12px;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-    }
-    .card-title {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .canvas-box {
-      flex: 1;
-      min-height: 0;
-      position: relative;
-      background: #ffffff;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      overflow: hidden;
-      cursor: crosshair;
-    }
-    canvas {
-      display: block;
-      width: 100%;
-      height: 100%;
-    }
-    .badge-mode {
-      padding: 2px 7px;
-      border-radius: 4px;
-      font-size: 10px;
-      font-weight: 700;
-      font-family: var(--font-mono);
-    }
-    .badge-bang { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
-    .badge-lqr { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
-    .badge-both { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
-    
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-      font-family: var(--font-mono);
-      font-size: 11px;
-    }
-    .stat-item {
-      background: var(--bg-control);
-      padding: 4px 8px;
-      border-radius: 4px;
-      border: 1px solid var(--border-subtle);
-    }
-    .stat-label {
-      color: var(--text-muted);
-      font-size: 9.5px;
-      margin-bottom: 2px;
-    }
-    .stat-value {
-      font-weight: 700;
-      color: var(--text-main);
-    }
-    .control-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 11.5px;
-    }
-    .control-row label {
-      width: 130px;
-      color: var(--text-main);
-      font-weight: 500;
-      flex-shrink: 0;
-    }
-    .control-row input[type=range] {
-      flex: 1;
-    }
-    .control-row span.val {
-      width: 45px;
-      text-align: right;
-      font-family: var(--font-mono);
-      color: var(--accent-blue);
-      font-weight: 600;
-    }
-    .legend-row {
-      display: flex;
-      gap: 12px;
-      font-size: 10.5px;
-      color: var(--text-muted);
-      margin-top: 4px;
-    }
-    .legend-item {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .legend-color {
-      width: 12px;
-      height: 4px;
-      border-radius: 2px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Тележка: быстродействие, минимум энергии и LQR</title>
+<link rel="stylesheet" href="../common/widget-base.css">
+<style>
+  .main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 8px; padding: 8px; }
+  .panel { background: #fff; border: 1px solid var(--border-color); border-radius: 8px; padding: 6px 10px; display: flex; flex-direction: column; min-height: 0; }
+  .ptitle { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--text-muted); margin-bottom: 4px; display: flex; justify-content: space-between; }
+  .cv { flex: 1; min-height: 0; position: relative; }
+  .right { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+  table.res { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+  table.res th, table.res td { padding: 3px 6px; border-bottom: 1px solid #eef2f7; text-align: right; }
+  table.res th:first-child, table.res td:first-child { text-align: left; }
+  table.res th { color: var(--text-muted); font-weight: 600; }
+  .sw { display: inline-block; width: 18px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+  .bad { color: var(--accent-red); font-weight: 700; }
+  .ctrls { display: grid; grid-template-columns: auto 1fr auto; gap: 3px 8px; align-items: center; font-size: 11.5px; }
+  .ctrls input[type=range] { width: 100%; accent-color: #0284c7; }
+  .ctrls .v { font-family: var(--font-mono); color: var(--accent-blue); font-weight: 600; min-width: 46px; text-align: right; }
+  .note { font-size: 12px; line-height: 1.38; color: #1e293b; background: #f0f9ff; border-left: 3px solid #0284c7; padding: 6px 9px; border-radius: 4px; }
+  .note b { color: #0c4a6e; }
+  .checks { display: flex; gap: 12px; font-size: 11.5px; flex-wrap: wrap; }
+  .checks label { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+  select.select-control { max-width: 330px; }
+</style>
 </head>
 <body>
-  <div class="widget-layout">
-    <!-- Toolbar -->
-    <div class="toolbar">
-      <div style="font-weight: 700; font-size: 12.5px; color: var(--accent-blue); margin-right: 6px;">
-        ⚡ Двойной интегратор: Быстродействие (Bang-Bang, J=T) vs LQR (Энергия, J=∫(xᵀQx + uᵀRu)dt)
-      </div>
-
-      <button id="btnPlay" class="btn btn-primary">▶ Старт</button>
-      <button id="btnReset" class="btn">↺ Сброс в x₀</button>
-      <button id="btnRandom" class="btn">🎲 Случайное x₀</button>
-      
-      <div style="height: 18px; width: 1px; background: var(--border-color); margin: 0 4px;"></div>
-
-      <label style="font-size: 11px; font-weight: 600; color: var(--text-muted);">Режим:</label>
-      <select id="modeSelect" class="btn" style="padding: 3px 8px; font-weight: 600;">
-        <option value="both">Сравнение: Bang-Bang & LQR</option>
-        <option value="bang">Только Bang-Bang (Минимум времени T*)</option>
-        <option value="lqr">Только LQR (Квадратичный штраф энергии)</option>
-      </select>
-
-      <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
-        <span style="font-size: 11px; color: var(--text-muted);">Кликните на фазовую плоскость для выбора (x₀, ẋ₀)</span>
-      </div>
+<div class="widget-layout">
+  <div class="toolbar">
+    <b style="color: var(--accent-blue);">Сценарий:</b>
+    <select id="scenario" class="select-control"></select>
+    <button id="play" class="btn btn-primary">Пуск</button>
+    <button id="reset" class="btn">Сначала</button>
+    <div class="checks" style="margin-left: 8px;">
+      <label><input type="checkbox" id="showBB" checked><span class="sw" style="background:#dc2626"></span>быстродействие</label>
+      <label><input type="checkbox" id="showEN" checked><span class="sw" style="background:#2563eb"></span>минимум энергии</label>
+      <label><input type="checkbox" id="showLQ" checked><span class="sw" style="background:#059669"></span>LQR</label>
     </div>
-
-    <!-- Main Workspace -->
-    <div class="split-view">
-      <!-- Left: Physical Cart + Phase Plane -->
-      <div class="panel-left">
-        <!-- Physical Animation Box -->
-        <div class="card" style="flex: 0.65;">
-          <div class="card-title">
-            <span>Физическая модель тележки (ẍ = u)</span>
-            <span id="badgeStatus" class="badge-mode badge-both">Сравнение</span>
-          </div>
-          <div class="canvas-box" style="height: 120px;">
-            <canvas id="cartCanvas"></canvas>
-          </div>
-        </div>
-
-        <!-- Phase Plane Interactive Canvas -->
-        <div class="card" style="flex: 1.35;">
-          <div class="card-title">
-            <span>Фазовая плоскость (x, ẋ) — кликните для новой позы</span>
-            <span style="font-family: var(--font-mono); font-size: 10px; color: var(--accent-amber);">Г: x = -½·ẋ|ẋ|/u_max</span>
-          </div>
-          <div class="canvas-box">
-            <canvas id="phaseCanvas"></canvas>
-          </div>
-          <div class="legend-row">
-            <span class="legend-item"><span class="legend-color" style="background: #ea580c;"></span> Кривая переключения Г</span>
-            <span class="legend-item"><span class="legend-color" style="background: #dc2626;"></span> Bang-Bang траектория</span>
-            <span class="legend-item"><span class="legend-color" style="background: #059669;"></span> LQR траектория</span>
-            <span class="legend-item"><span class="legend-color" style="background: #2563eb;"></span> Начальное состояние x₀</span>
-          </div>
-        </div>
+  </div>
+  <div class="main">
+    <div class="panel">
+      <div class="ptitle"><span>Фазовая плоскость (щелчок — новый старт)</span><span id="tnow">t = 0.00 с</span></div>
+      <div class="cv"><canvas id="phase"></canvas></div>
+    </div>
+    <div class="right">
+      <div class="panel" style="flex: 1.25;">
+        <div class="ptitle"><span>Положение x₁(t) и управление u(t)</span><span style="color:#d97706">пунктир — предел |u| = 1</span></div>
+        <div class="cv"><canvas id="plots"></canvas></div>
       </div>
-
-      <!-- Right: Plots and Parameters -->
-      <div class="panel-right">
-        <!-- Telemetry Stats -->
-        <div class="card">
-          <div class="card-title">
-            <span>Телеметрия процесса</span>
-            <span id="timeVal" style="font-family: var(--font-mono); color: var(--accent-blue); font-weight: 700;">t = 0.00 с</span>
-          </div>
-          <div class="stats-grid">
-            <div class="stat-item">
-              <div class="stat-label">Время Bang-Bang</div>
-              <div id="statTimeBB" class="stat-value" style="color: #dc2626;">0.00 с</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-label">Время LQR</div>
-              <div id="statTimeLQR" class="stat-value" style="color: #059669;">0.00 с</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-label">Энергия ∫u²dt (BB)</div>
-              <div id="statEnergyBB" class="stat-value" style="color: #dc2626;">0.0</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-label">Энергия ∫u²dt (LQR)</div>
-              <div id="statEnergyLQR" class="stat-value" style="color: #059669;">0.0</div>
-            </div>
-          </div>
+      <div class="panel" style="flex: 0 0 auto;">
+        <table class="res">
+          <thead><tr><th>закон</th><th>время прихода, с</th><th>∫u²dt</th><th>max |u|</th><th>переключений</th></tr></thead>
+          <tbody id="resBody"></tbody>
+        </table>
+      </div>
+      <div class="panel" style="flex: 0 0 auto; gap: 6px;">
+        <div class="ctrls">
+          <span>Время T для закона минимума энергии</span><input type="range" id="T" min="1" max="8" step="0.1"><span class="v" id="Tv"></span>
+          <span>LQR: вес положения q₁ (q₂ = 1)</span><input type="range" id="q1" min="0.1" max="20" step="0.1"><span class="v" id="q1v"></span>
+          <span>LQR: вес усилия r</span><input type="range" id="r" min="0.1" max="10" step="0.1"><span class="v" id="rv"></span>
+          <span>Такт регулятора быстродействия</span><input type="range" id="dtc" min="0" max="0.2" step="0.01"><span class="v" id="dtcv"></span>
         </div>
-
-        <!-- History Plots: x(t) and u(t) -->
-        <div class="card" style="flex: 1;">
-          <div class="card-title">
-            <span>Временные графики: Положение x(t) и Управление u(t)</span>
-          </div>
-          <div class="canvas-box">
-            <canvas id="plotCanvas"></canvas>
-          </div>
-        </div>
-
-        <!-- Sliders & Configuration -->
-        <div class="card" style="gap: 8px;">
-          <div class="card-title">Параметры регуляторов</div>
-          
-          <div class="control-row">
-            <label>Предел силы |u| ≤ u_max:</label>
-            <input type="range" id="sliderUmax" min="0.5" max="3.0" step="0.1" value="1.0">
-            <span id="valUmax" class="val">1.0</span>
-          </div>
-
-          <div class="control-row">
-            <label>LQR вес позиции Q_x:</label>
-            <input type="range" id="sliderQ" min="1" max="50" step="1" value="10">
-            <span id="valQ" class="val">10.0</span>
-          </div>
-
-          <div class="control-row">
-            <label>LQR штраф силы R_u:</label>
-            <input type="range" id="sliderR" min="0.1" max="10.0" step="0.1" value="1.0">
-            <span id="valR" class="val">1.0</span>
-          </div>
-
-          <div class="control-row">
-            <label>Коэффициенты LQR K:</label>
-            <span id="valK" style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: #059669;">
-              K = [3.16, 2.51]
-            </span>
-          </div>
-        </div>
+        <label style="font-size: 11.5px; display: inline-flex; gap: 6px; align-items: center;"><input type="checkbox" id="hybrid"> у цели (|x| &lt; 0.3) заменить релейный закон на LQR</label>
+        <div class="note" id="note"></div>
       </div>
     </div>
   </div>
+</div>
+<script>
+// ---------------------------------------------------------------------------
+// Модель: двойной интегратор x1' = x2, x2' = u, |u| ≤ 1, цель — (0, 0).
+// Три закона управления:
+//  * быстродействие: обратная связь u = −sign(x1 + x2|x2|/2), вычисляется с
+//    тактом регулятора (0 — непрерывно), опционально у цели — LQR;
+//  * минимум энергии за время T: программное управление u(t) = c2 − c1 t
+//    (точное решение принципа максимума без учёта |u| ≤ 1);
+//  * LQR с обрезанием команды: u = −sat(k1 x1 + k2 x2).
+// ---------------------------------------------------------------------------
+const SCENARIOS = [
+  { name: '1. Разгон и торможение (старт −1 м)', x0: [-1, 0], T: 2.5, q1: 1, r: 1, dtc: 0, hybrid: false, show: [1, 1, 1],
+    view: [-1.4, 0.6, -0.6, 1.4],
+    note: '<b>Что наблюдать.</b> Быстродействие: разгон с u = +1 ровно 1 с, затем торможение с u = −1; одно переключение, T* = 2 с. Минимум энергии за 2.5 с: ускорение убывает линейно, затраты 0.77 против 2. LQR приходит плавно и без заданного времени.' },
+  { name: '2. Тележка едет от цели', x0: [2, 1], T: 5, q1: 1, r: 1, dtc: 0, hybrid: false, show: [1, 0, 1],
+    view: [-1, 3.6, -2.2, 1.6],
+    note: '<b>Что наблюдать.</b> Тележка за отметкой и удаляется от неё. Оптимально сразу тормозить (u = −1), развернуться и разгоняться к цели до кривой переключения Γ, затем тормозить: t_s = 2.58 с, T* = 4.16 с. Переключение по-прежнему одно.' },
+  { name: '3. Старт на кривой переключения', x0: [-0.5, 1], T: 2, q1: 1, r: 1, dtc: 0, hybrid: false, show: [1, 0, 0],
+    view: [-1, 0.5, -0.5, 1.4],
+    note: '<b>Что наблюдать.</b> Состояние (−0.5; 1) лежит на Γ: полное торможение останавливает тележку точно у отметки. Переключений нет, T* = 1 с. Щёлкните чуть левее или правее Γ: появится участок разгона или переход через цель.' },
+  { name: '4. Слишком мало времени для плавного закона', x0: [-1, 0], T: 2, q1: 1, r: 1, dtc: 0, hybrid: false, show: [1, 1, 0],
+    view: [-1.4, 0.6, -0.6, 1.6],
+    note: '<b>Что наблюдать.</b> За T = 2 с плавный закон требует ускорения 6/T² = 1.5 > 1 — он недопустим (красное значение в таблице). Уложиться в 2 с можно только релейным управлением. Плавный закон допустим при T ≥ √6 ≈ 2.45 с: подвиньте ползунок T.' },
+  { name: '5. Дальний старт: LQR упирается в предел', x0: [-4, 0], T: 5, q1: 10, r: 1, dtc: 0, hybrid: false, show: [1, 1, 1],
+    view: [-4.5, 0.8, -0.6, 2.4],
+    note: '<b>Что наблюдать.</b> При большом весе q₁ команда LQR вначале больше 1 и обрезается. Закон перестаёт быть оптимальным: тележка разгоняется слишком сильно, проскакивает отметку и возвращается, а затраты энергии оказываются больше, чем у быстродействия (T* = 4 с). Уменьшите q₁ до 1: перерегулирование исчезает.' },
+  { name: '6. Дребезг при дискретном такте', x0: [-1, 0], T: 2.5, q1: 1, r: 1, dtc: 0.1, hybrid: false, show: [1, 0, 0],
+    view: [-1.2, 0.3, -0.4, 1.2],
+    note: '<b>Что наблюдать.</b> Регулятор обновляет команду раз в 0.1 с. Около цели знак функции переключения постоянно меняется, и привод дёргается между +1 и −1 (десятки переключений). Включите флажок «у цели заменить релейный закон на LQR»: дребезг исчезает.' },
+];
 
-  <script>
-    // State variables
-    let uMax = 1.0;
-    let Q_val = 10.0;
-    let R_val = 1.0;
-    let mode = 'both'; // 'both', 'bang', 'lqr'
-    let isPlaying = false;
-    let animId = null;
+const COL = { BB: '#dc2626', EN: '#2563eb', LQ: '#059669' };
+const TEND = 10, DT = 0.001;
+let st = {};      // текущие параметры
+let traj = {};    // рассчитанные траектории
+let tCur = 0, playing = false, lastTs = null;
 
-    // Simulation states: [x, v]
-    let x0 = 3.0, v0 = 1.2;
-    let simTime = 0;
-    const dt = 0.015;
+const $ = id => document.getElementById(id);
+const sel = $('scenario');
+SCENARIOS.forEach((s, i) => { const o = document.createElement('option'); o.value = i; o.textContent = s.name; sel.appendChild(o); });
+const custom = document.createElement('option'); custom.value = 'custom'; custom.textContent = 'Свой старт (щелчок по плоскости)'; sel.appendChild(custom);
 
-    let stateBB = { x: x0, v: v0, u: 0, timeDone: null, energy: 0, history: [] };
-    let stateLQR = { x: x0, v: v0, u: 0, timeDone: null, energy: 0, history: [] };
+const sat = v => Math.max(-1, Math.min(1, v));
+const sigma = (x1, x2) => x1 + 0.5 * x2 * Math.abs(x2);
+function lqrGains(q1, r) { const k1 = Math.sqrt(q1 / r); return [k1, Math.sqrt(1 / r + 2 * k1)]; }
+function tStar(x1, x2) {
+  const s = sigma(x1, x2);
+  if (s > 0) return x2 + 2 * Math.sqrt(x1 + 0.5 * x2 * x2);
+  if (s < 0) return -x2 + 2 * Math.sqrt(-x1 + 0.5 * x2 * x2);
+  return Math.abs(x2);
+}
+function minEnergyCoef(x10, x20, T) {
+  const c1 = -(x10 + x20 * T / 2) * 12 / (T * T * T);
+  const c2 = (c1 * T * T / 2 - x20) / T;
+  return [c1, c2];
+}
 
-    // Canvas contexts
-    const cartCanvas = document.getElementById('cartCanvas');
-    const cartCtx = cartCanvas.getContext('2d');
-
-    const phaseCanvas = document.getElementById('phaseCanvas');
-    const phaseCtx = phaseCanvas.getContext('2d');
-
-    const plotCanvas = document.getElementById('plotCanvas');
-    const plotCtx = plotCanvas.getContext('2d');
-
-    // Resize handler
-    function resizeCanvases() {
-      [cartCanvas, phaseCanvas, plotCanvas].forEach(c => {
-        const rect = c.parentElement.getBoundingClientRect();
-        c.width = rect.width * window.devicePixelRatio;
-        c.height = rect.height * window.devicePixelRatio;
-      });
-      drawAll();
-    }
-    window.addEventListener('resize', resizeCanvases);
-
-    // Compute analytical LQR gains for double integrator
-    function computeLQR(q, r) {
-      // A = [0 1; 0 0], B = [0; 1]
-      // K = [sqrt(q/r), sqrt(2*sqrt(q/r) + q2/r)] where q2=1
-      const q1 = q;
-      const q2 = 1.0;
-      const k1 = Math.sqrt(q1 / r);
-      const k2 = Math.sqrt(2 * Math.sqrt(q1 * r) / r + q2 / r);
-      return [k1, k2];
-    }
-
-    function resetSimulation() {
-      simTime = 0;
-      stateBB = { x: x0, v: v0, u: 0, timeDone: null, energy: 0, history: [{ t: 0, x: x0, v: v0, u: 0 }] };
-      stateLQR = { x: x0, v: v0, u: 0, timeDone: null, energy: 0, history: [{ t: 0, x: x0, v: v0, u: 0 }] };
-      updateStats();
-      drawAll();
-    }
-
-    // Step simulation
-    function simStep() {
-      if (!isPlaying) return;
-
-      const [k1, k2] = computeLQR(Q_val, R_val);
-
-      // 1. Bang-Bang control law
-      if (stateBB.timeDone === null) {
-        const x = stateBB.x;
-        const v = stateBB.v;
-        // Switching curve: Gamma(x, v) = x + 0.5 * v * |v| / uMax
-        const sigma = x + 0.5 * v * Math.abs(v) / uMax;
-        
-        let u = 0;
-        const eps = 0.03;
-        if (Math.abs(x) < eps && Math.abs(v) < eps) {
-          u = 0;
-          stateBB.timeDone = simTime;
-        } else if (Math.abs(sigma) < 0.05) {
-          // On switching curve: ride down to origin
-          u = -uMax * Math.sign(v);
-        } else if (sigma > 0) {
-          u = -uMax; // Brake / accelerate left
+function simulate(kind) {
+  let x1 = st.x0[0], x2 = st.x0[1];
+  const [k1, k2] = lqrGains(st.q1, st.r);
+  const [c1, c2] = minEnergyCoef(st.x0[0], st.x0[1], st.T);
+  const out = { t: [], x1: [], x2: [], u: [] };
+  let uHold = 0, nextSample = 0;
+  const n = Math.round(TEND / DT);
+  for (let i = 0; i <= n; i++) {
+    const t = i * DT;
+    let u;
+    if (kind === 'EN') {
+      u = t < st.T ? c2 - c1 * t : 0;
+    } else if (kind === 'LQ') {
+      u = sat(-(k1 * x1 + k2 * x2));
+    } else {
+      if (t >= nextSample - 1e-9) {
+        const near = Math.hypot(x1, x2) < 0.3;
+        if (st.hybrid && near) {
+          const [h1, h2] = lqrGains(4, 1);
+          uHold = sat(-(h1 * x1 + h2 * x2));
+        } else if (Math.hypot(x1, x2) < 0.004 && st.dtc === 0) {
+          uHold = 0;
         } else {
-          u = +uMax; // Accelerate right
+          const s = sigma(x1, x2);
+          uHold = Math.abs(s) < (st.dtc === 0 ? 0.004 : 1e-4) ? -Math.sign(x2) : -Math.sign(s);
         }
-
-        // Integration (Symplectic Euler / RK2)
-        stateBB.u = u;
-        stateBB.v += u * dt;
-        stateBB.x += stateBB.v * dt;
-        stateBB.energy += u * u * dt;
-        stateBB.history.push({ t: simTime, x: stateBB.x, v: stateBB.v, u: u });
-
-        if (Math.abs(stateBB.x) < 0.03 && Math.abs(stateBB.v) < 0.03 && stateBB.timeDone === null) {
-          stateBB.timeDone = simTime;
-        }
+        nextSample = st.dtc > 0 ? nextSample + st.dtc : t + DT;
       }
-
-      // 2. LQR control law
-      if (stateLQR.timeDone === null) {
-        const x = stateLQR.x;
-        const v = stateLQR.v;
-        
-        let u = -(k1 * x + k2 * v);
-        // Saturation to uMax
-        u = Math.max(-uMax, Math.min(uMax, u));
-
-        stateLQR.u = u;
-        stateLQR.v += u * dt;
-        stateLQR.x += stateLQR.v * dt;
-        stateLQR.energy += u * u * dt;
-        stateLQR.history.push({ t: simTime, x: stateLQR.x, v: stateLQR.v, u: u });
-
-        if (Math.abs(stateLQR.x) < 0.03 && Math.abs(stateLQR.v) < 0.03 && stateLQR.timeDone === null) {
-          stateLQR.timeDone = simTime;
-        }
-      }
-
-      simTime += dt;
-      updateStats();
-      drawAll();
-
-      if ((mode === 'bang' && stateBB.timeDone !== null) ||
-          (mode === 'lqr' && stateLQR.timeDone !== null) ||
-          (mode === 'both' && stateBB.timeDone !== null && stateLQR.timeDone !== null) ||
-          simTime > 15.0) {
-        isPlaying = false;
-        document.getElementById('btnPlay').textContent = '▶ Старт';
-      } else {
-        animId = requestAnimationFrame(simStep);
-      }
+      u = uHold;
     }
+    out.t.push(t); out.x1.push(x1); out.x2.push(x2); out.u.push(u);
+    // точное интегрирование при постоянном u на шаге
+    x1 += x2 * DT + 0.5 * u * DT * DT;
+    x2 += u * DT;
+  }
+  // показатели
+  let arrive = null;
+  for (let i = n; i >= 0; i--) {
+    if (Math.abs(out.x1[i]) > 0.02 || Math.abs(out.x2[i]) > 0.02) { arrive = i < n ? out.t[i + 1] : null; break; }
+    if (i === 0) arrive = 0;
+  }
+  let energy = 0, umax = 0, sw = 0, prev = 0;
+  for (let i = 0; i <= n; i++) {
+    energy += out.u[i] * out.u[i] * DT;
+    umax = Math.max(umax, Math.abs(out.u[i]));
+    const sg = Math.abs(out.u[i]) > 0.5 ? Math.sign(out.u[i]) : 0;
+    if (sg !== 0) { if (prev !== 0 && sg !== prev) sw++; prev = sg; }
+  }
+  out.arrive = arrive; out.energy = energy; out.umax = umax; out.sw = kind === 'BB' ? sw : null;
+  return out;
+}
 
-    function updateStats() {
-      document.getElementById('timeVal').textContent = `t = ${simTime.toFixed(2)} с`;
-      document.getElementById('statTimeBB').textContent = stateBB.timeDone !== null ? `${stateBB.timeDone.toFixed(2)} с (ФИНИШ)` : `${simTime.toFixed(2)} с`;
-      document.getElementById('statTimeLQR').textContent = stateLQR.timeDone !== null ? `${stateLQR.timeDone.toFixed(2)} с (ФИНИШ)` : `${simTime.toFixed(2)} с`;
-      document.getElementById('statEnergyBB').textContent = stateBB.energy.toFixed(1);
-      document.getElementById('statEnergyLQR').textContent = stateLQR.energy.toFixed(1);
+function fullEnd() {
+  const show = ['BB', 'EN', 'LQ'].filter(k => $('show' + k).checked);
+  let tEnd = 1;
+  for (const k of show) tEnd = Math.max(tEnd, (traj[k].arrive ?? TEND) + 0.8, k === 'EN' ? st.T + 0.5 : 0);
+  return Math.min(TEND, tEnd);
+}
+function recompute() {
+  traj = { BB: simulate('BB'), EN: simulate('EN'), LQ: simulate('LQ') };
+  if (!playing) tCur = fullEnd();
+  renderTable(); draw();
+}
+
+function renderTable() {
+  const rows = [['BB', 'быстродействие'], ['EN', `минимум энергии, T = ${st.T.toFixed(1)}`], ['LQ', 'LQR с обрезанием']];
+  const show = { BB: $('showBB').checked, EN: $('showEN').checked, LQ: $('showLQ').checked };
+  let html = '';
+  for (const [k, name] of rows) {
+    if (!show[k]) continue;
+    const tr = traj[k];
+    const arr = tr.arrive === null ? '> 10' : tr.arrive.toFixed(2);
+    const um = tr.umax > 1.0001 ? `<span class="bad">${tr.umax.toFixed(2)}</span>` : tr.umax.toFixed(2);
+    html += `<tr><td><span class="sw" style="background:${COL[k]}"></span>${name}</td><td>${arr}</td><td>${tr.energy.toFixed(2)}</td><td>${um}</td><td>${tr.sw === null ? '—' : tr.sw}</td></tr>`;
+  }
+  const ts = tStar(st.x0[0], st.x0[1]);
+  html += `<tr><td colspan="5" style="text-align:left;color:#475569">Старт (${st.x0[0].toFixed(2)}; ${st.x0[1].toFixed(2)}). Теоретическое минимальное время T* = ${ts.toFixed(2)} с. Приход — вход в окрестность |x₁|, |x₂| &lt; 0.02 (поэтому чуть раньше T*).</td></tr>`;
+  $('resBody').innerHTML = html;
+}
+
+// ---------------------------------------------------------------- рисование
+function fit(cv) {
+  const r = cv.parentElement.getBoundingClientRect();
+  const d = window.devicePixelRatio || 1;
+  cv.width = Math.max(10, r.width * d); cv.height = Math.max(10, r.height * d);
+  cv.style.width = r.width + 'px'; cv.style.height = r.height + 'px';
+  const ctx = cv.getContext('2d'); ctx.setTransform(d, 0, 0, d, 0, 0);
+  return [ctx, r.width, r.height];
+}
+
+function niceTicks(a, b, n) {
+  const span = b - a, raw = span / n, p = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1, 2, 5, 10].map(m => m * p).find(s => s >= raw);
+  const out = []; for (let v = Math.ceil(a / step) * step; v <= b + 1e-9; v += step) out.push(+v.toFixed(6));
+  return out;
+}
+
+function axes(ctx, box, xr, yr, xlab, ylab) {
+  const [X0, Y0, W, H] = box;
+  const px = x => X0 + (x - xr[0]) / (xr[1] - xr[0]) * W;
+  const py = y => Y0 + H - (y - yr[0]) / (yr[1] - yr[0]) * H;
+  ctx.fillStyle = '#fff'; ctx.fillRect(X0, Y0, W, H);
+  ctx.strokeStyle = '#eef2f7'; ctx.lineWidth = 1; ctx.font = '10.5px Inter, sans-serif'; ctx.fillStyle = '#64748b';
+  ctx.textAlign = 'center';
+  for (const t of niceTicks(xr[0], xr[1], 6)) { ctx.beginPath(); ctx.moveTo(px(t), Y0); ctx.lineTo(px(t), Y0 + H); ctx.stroke(); ctx.fillText(t, px(t), Y0 + H + 12); }
+  ctx.textAlign = 'right';
+  for (const t of niceTicks(yr[0], yr[1], 4)) { ctx.beginPath(); ctx.moveTo(X0, py(t)); ctx.lineTo(X0 + W, py(t)); ctx.stroke(); ctx.fillText(t, X0 - 4, py(t) + 3); }
+  ctx.strokeStyle = '#94a3b8';
+  if (yr[0] < 0 && yr[1] > 0) { ctx.beginPath(); ctx.moveTo(X0, py(0)); ctx.lineTo(X0 + W, py(0)); ctx.stroke(); }
+  if (xr[0] < 0 && xr[1] > 0) { ctx.beginPath(); ctx.moveTo(px(0), Y0); ctx.lineTo(px(0), Y0 + H); ctx.stroke(); }
+  ctx.strokeStyle = '#cbd5e1'; ctx.strokeRect(X0, Y0, W, H);
+  ctx.fillStyle = '#334155'; ctx.font = 'italic 11px Inter, sans-serif';
+  ctx.textAlign = 'right'; ctx.fillText(xlab, X0 + W, Y0 + H + 24);
+  ctx.textAlign = 'left'; ctx.fillText(ylab, X0 + 4, Y0 + 12);
+  return [px, py];
+}
+
+function idxAt(t) { return Math.min(Math.round(t / DT), Math.round(TEND / DT)); }
+
+function drawPhase() {
+  const [ctx, W, H] = fit($('phase'));
+  ctx.clearRect(0, 0, W, H);
+  const v = st.view;
+  const box = [34, 6, W - 44, H - 34];
+  const [px, py] = axes(ctx, box, [v[0], v[1]], [v[2], v[3]], 'x₁, м', 'x₂, м/с');
+  ctx.save(); ctx.beginPath(); ctx.rect(box[0], box[1], box[2], box[3]); ctx.clip();
+  // области u = +1 (левее Γ) и u = −1 (правее Γ)
+  const ys = []; for (let i = 0; i <= 200; i++) ys.push(v[2] + (v[3] - v[2]) * i / 200);
+  ctx.beginPath(); ctx.moveTo(px(v[1]), py(v[2]));
+  for (const y of ys) ctx.lineTo(px(-0.5 * y * Math.abs(y)), py(y));
+  ctx.lineTo(px(v[1]), py(v[3])); ctx.closePath(); ctx.fillStyle = 'rgba(254,226,226,0.45)'; ctx.fill();
+  ctx.beginPath(); ctx.moveTo(px(v[0]), py(v[2]));
+  for (const y of ys) ctx.lineTo(px(-0.5 * y * Math.abs(y)), py(y));
+  ctx.lineTo(px(v[0]), py(v[3])); ctx.closePath(); ctx.fillStyle = 'rgba(219,234,254,0.45)'; ctx.fill();
+  // кривая Γ
+  ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2.5; ctx.beginPath();
+  ys.forEach((y, i) => { const x = -0.5 * y * Math.abs(y); i ? ctx.lineTo(px(x), py(y)) : ctx.moveTo(px(x), py(y)); });
+  ctx.stroke();
+  ctx.font = '600 11px Inter, sans-serif'; ctx.fillStyle = '#0f172a'; ctx.textAlign = 'left';
+  const yl = v[3] * 0.75; ctx.fillText('Γ', px(-0.5 * yl * Math.abs(yl)) + 6, py(yl));
+  ctx.fillStyle = '#1d4ed8'; ctx.fillText('левее Γ: u* = +1', box[0] + 6, box[1] + box[3] - 8);
+  ctx.fillStyle = '#b91c1c'; ctx.textAlign = 'right'; ctx.fillText('правее Γ: u* = −1', box[0] + box[2] - 6, box[1] + 14);
+  // траектории
+  const i1 = idxAt(tCur);
+  for (const k of ['LQ', 'EN', 'BB']) {
+    if (!$('show' + k).checked) continue;
+    const tr = traj[k];
+    ctx.strokeStyle = COL[k]; ctx.lineWidth = 2.4; ctx.setLineDash(k === 'EN' ? [7, 4] : k === 'LQ' ? [2, 3] : []);
+    ctx.beginPath();
+    for (let i = 0; i <= i1; i += 5) { i ? ctx.lineTo(px(tr.x1[i]), py(tr.x2[i])) : ctx.moveTo(px(tr.x1[i]), py(tr.x2[i])); }
+    ctx.lineTo(px(tr.x1[i1]), py(tr.x2[i1])); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = COL[k]; ctx.beginPath(); ctx.arc(px(tr.x1[i1]), py(tr.x2[i1]), 5, 0, 7); ctx.fill();
+  }
+  // старт и цель
+  ctx.fillStyle = '#fff'; ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(px(st.x0[0]), py(st.x0[1]), 6, 0, 7); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#059669'; ctx.beginPath(); ctx.arc(px(0), py(0), 6, 0, 7); ctx.fill();
+  ctx.restore();
+  $('tnow').textContent = `t = ${tCur.toFixed(2)} с`;
+  phaseMap = { box, inv: (X, Y) => [v[0] + (X - box[0]) / box[2] * (v[1] - v[0]), v[3] - (Y - box[1]) / box[3] * (v[3] - v[2])] };
+}
+let phaseMap = null;
+
+function drawPlots() {
+  const [ctx, W, H] = fit($('plots'));
+  ctx.clearRect(0, 0, W, H);
+  const show = ['BB', 'EN', 'LQ'].filter(k => $('show' + k).checked);
+  const tEnd = fullEnd();
+  let lo = Math.min(0, st.x0[0]), hi = Math.max(0, st.x0[0]);
+  for (const k of show) for (let i = 0; i < traj[k].x1.length && traj[k].t[i] <= tEnd; i += 20) { lo = Math.min(lo, traj[k].x1[i]); hi = Math.max(hi, traj[k].x1[i]); }
+  const pad = (hi - lo) * 0.1 + 0.05;
+  const hTop = (H - 50) * 0.55, hBot = (H - 50) * 0.45;
+  const A = axes(ctx, [40, 6, W - 50, hTop], [0, tEnd], [lo - pad, hi + pad], '', 'x₁(t), м');
+  let umax = 1.2; for (const k of show) umax = Math.max(umax, Math.min(3, traj[k].umax * 1.1));
+  const B = axes(ctx, [40, hTop + 26, W - 50, hBot], [0, tEnd], [-umax, umax], 't, с', 'u(t)');
+  ctx.strokeStyle = '#d97706'; ctx.setLineDash([4, 3]); ctx.lineWidth = 1.2;
+  for (const s of [1, -1]) { ctx.beginPath(); ctx.moveTo(B[0](0), B[1](s)); ctx.lineTo(B[0](tEnd), B[1](s)); ctx.stroke(); }
+  ctx.setLineDash([]);
+  const i1 = idxAt(Math.min(tCur, tEnd));
+  for (const k of show) {
+    const tr = traj[k];
+    ctx.strokeStyle = COL[k]; ctx.lineWidth = 2; ctx.setLineDash(k === 'EN' ? [7, 4] : k === 'LQ' ? [2, 3] : []);
+    for (const [P, arr] of [[A, tr.x1], [B, tr.u]]) {
+      ctx.beginPath();
+      for (let i = 0; i <= i1; i += (P === B ? 1 : 10)) { const X = P[0](tr.t[i]), Y = P[1](arr[i]); i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); }
+      ctx.stroke();
     }
+    ctx.setLineDash([]);
+  }
+  ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1;
+  const xc = A[0](Math.min(tCur, tEnd)); ctx.beginPath(); ctx.moveTo(xc, 6); ctx.lineTo(xc, H - 24); ctx.stroke();
+}
 
-    // -------------------------------------------------------------
-    // Drawing Functions
-    // -------------------------------------------------------------
-    function drawAll() {
-      drawCart();
-      drawPhasePlane();
-      drawPlots();
-    }
+function draw() { drawPhase(); drawPlots(); }
 
-    // 1. Draw Cart Animation
-    function drawCart() {
-      const w = cartCanvas.width;
-      const h = cartCanvas.height;
-      cartCtx.clearRect(0, 0, w, h);
+// ---------------------------------------------------------------- управление
+function setSliders() {
+  $('T').value = st.T; $('q1').value = st.q1; $('r').value = st.r; $('dtc').value = st.dtc; $('hybrid').checked = st.hybrid;
+  $('Tv').textContent = st.T.toFixed(1) + ' с'; $('q1v').textContent = (+st.q1).toFixed(1); $('rv').textContent = (+st.r).toFixed(1);
+  $('dtcv').textContent = st.dtc > 0 ? st.dtc.toFixed(2) + ' с' : 'непр.';
+}
+function loadScenario(i) {
+  const s = SCENARIOS[i];
+  st = { x0: s.x0.slice(), T: s.T, q1: s.q1, r: s.r, dtc: s.dtc, hybrid: s.hybrid, view: s.view.slice() };
+  $('showBB').checked = !!s.show[0]; $('showEN').checked = !!s.show[1]; $('showLQ').checked = !!s.show[2];
+  $('note').innerHTML = s.note;
+  setSliders(); playing = false; $('play').textContent = 'Пуск';
+  recompute();
+}
+for (const id of ['T', 'q1', 'r', 'dtc']) $(id).addEventListener('input', () => { st[id] = +$(id).value; setSliders(); recompute(); });
+$('hybrid').addEventListener('change', () => { st.hybrid = $('hybrid').checked; recompute(); });
+for (const k of ['BB', 'EN', 'LQ']) $('show' + k).addEventListener('change', () => { if (!playing) tCur = fullEnd(); renderTable(); draw(); });
+sel.addEventListener('change', () => { if (sel.value !== 'custom') loadScenario(+sel.value); });
+$('reset').addEventListener('click', () => { tCur = 0; playing = false; $('play').textContent = 'Пуск'; draw(); });
+$('play').addEventListener('click', () => {
+  if (playing) { playing = false; $('play').textContent = 'Пуск'; return; }
+  if (tCur >= fullEnd() - 1e-6) tCur = 0;
+  playing = true; $('play').textContent = 'Пауза'; lastTs = null; requestAnimationFrame(tick);
+});
+function tick(ts) {
+  if (!playing) return;
+  if (lastTs !== null) tCur += (ts - lastTs) / 1000;
+  lastTs = ts;
+  const tEnd = fullEnd();
+  if (tCur >= tEnd) { tCur = tEnd; playing = false; $('play').textContent = 'Пуск'; }
+  draw();
+  if (playing) requestAnimationFrame(tick);
+}
+$('phase').addEventListener('click', e => {
+  if (!phaseMap) return;
+  const r = $('phase').getBoundingClientRect();
+  const [x, y] = phaseMap.inv(e.clientX - r.left, e.clientY - r.top);
+  st.x0 = [+x.toFixed(2), +y.toFixed(2)];
+  sel.value = 'custom';
+  $('note').innerHTML = '<b>Свой старт.</b> Сравните: сколько переключений у релейного закона, где оно происходит (на кривой Γ) и насколько дольше и экономнее LQR. Время T* в таблице вычислено по формуле из лекции.';
+  recompute();
+});
+window.addEventListener('resize', draw);
 
-      // Coordinate mapping: x in [-5, 5] -> px in [50, w-50]
-      const scaleX = (w - 100) / 10;
-      const toPx = x => w / 2 + x * scaleX;
-      const cy = h / 2 + 10;
-
-      // Track rail
-      cartCtx.strokeStyle = '#cbd5e1';
-      cartCtx.lineWidth = 3;
-      cartCtx.beginPath();
-      cartCtx.moveTo(30, cy + 18);
-      cartCtx.lineTo(w - 30, cy + 18);
-      cartCtx.stroke();
-
-      // Rail tick marks
-      for (let x = -4; x <= 4; x += 1) {
-        const px = toPx(x);
-        cartCtx.beginPath();
-        cartCtx.moveTo(px, cy + 18);
-        cartCtx.lineTo(px, cy + 24);
-        cartCtx.strokeStyle = '#94a3b8';
-        cartCtx.lineWidth = 1;
-        cartCtx.stroke();
-        cartCtx.fillStyle = '#64748b';
-        cartCtx.font = `${9 * window.devicePixelRatio}px var(--font-mono)`;
-        cartCtx.textAlign = 'center';
-        cartCtx.fillText(x.toString(), px, cy + 35);
-      }
-
-      // Origin Goal Target Marker
-      const ox = toPx(0);
-      cartCtx.strokeStyle = '#059669';
-      cartCtx.lineWidth = 2;
-      cartCtx.setLineDash([4, 4]);
-      cartCtx.beginPath();
-      cartCtx.moveTo(ox, cy - 40);
-      cartCtx.lineTo(ox, cy + 20);
-      cartCtx.stroke();
-      cartCtx.setLineDash([]);
-      cartCtx.fillStyle = '#059669';
-      cartCtx.beginPath();
-      cartCtx.arc(ox, cy + 18, 5, 0, Math.PI * 2);
-      cartCtx.fill();
-
-      // Draw Carts
-      const drawSingleCart = (state, color, label, yOffset) => {
-        const px = toPx(state.x);
-        const cw = 44 * (window.devicePixelRatio / 1.5);
-        const ch = 24 * (window.devicePixelRatio / 1.5);
-
-        // Cart body
-        cartCtx.fillStyle = color;
-        cartCtx.strokeStyle = '#0f172a';
-        cartCtx.lineWidth = 1.5;
-        cartCtx.beginPath();
-        cartCtx.roundRect(px - cw / 2, cy - ch + yOffset, cw, ch, 4);
-        cartCtx.fill();
-        cartCtx.stroke();
-
-        // Wheels
-        cartCtx.fillStyle = '#334155';
-        cartCtx.beginPath();
-        cartCtx.arc(px - cw / 3, cy + yOffset, 5 * (window.devicePixelRatio / 1.5), 0, Math.PI * 2);
-        cartCtx.arc(px + cw / 3, cy + yOffset, 5 * (window.devicePixelRatio / 1.5), 0, Math.PI * 2);
-        cartCtx.fill();
-
-        // Label
-        cartCtx.fillStyle = '#ffffff';
-        cartCtx.font = `bold ${8 * window.devicePixelRatio}px var(--font-sans)`;
-        cartCtx.textAlign = 'center';
-        cartCtx.fillText(label, px, cy - ch / 2 + yOffset + 3);
-
-        // Force arrow u
-        if (Math.abs(state.u) > 0.05) {
-          const arrowLen = (state.u / uMax) * 35;
-          cartCtx.strokeStyle = color;
-          cartCtx.lineWidth = 3;
-          cartCtx.beginPath();
-          cartCtx.moveTo(px, cy - ch - 8 + yOffset);
-          cartCtx.lineTo(px + arrowLen, cy - ch - 8 + yOffset);
-          cartCtx.stroke();
-          // Arrow head
-          cartCtx.fillStyle = color;
-          cartCtx.beginPath();
-          const sign = Math.sign(arrowLen);
-          cartCtx.moveTo(px + arrowLen + sign * 6, cy - ch - 8 + yOffset);
-          cartCtx.lineTo(px + arrowLen, cy - ch - 12 + yOffset);
-          cartCtx.lineTo(px + arrowLen, cy - ch - 4 + yOffset);
-          cartCtx.fill();
-        }
-      };
-
-      if (mode === 'both') {
-        drawSingleCart(stateBB, '#dc2626', 'BB', -12);
-        drawSingleCart(stateLQR, '#059669', 'LQR', 8);
-      } else if (mode === 'bang') {
-        drawSingleCart(stateBB, '#dc2626', 'Bang-Bang', 0);
-      } else {
-        drawSingleCart(stateLQR, '#059669', 'LQR', 0);
-      }
-    }
-
-    // 2. Draw Phase Plane
-    function drawPhasePlane() {
-      const w = phaseCanvas.width;
-      const h = phaseCanvas.height;
-      phaseCtx.clearRect(0, 0, w, h);
-
-      // Coordinate limits: x in [-4.5, 4.5], v in [-3.5, 3.5]
-      const minX = -4.5, maxX = 4.5;
-      const minV = -3.5, maxV = 3.5;
-
-      const toPx = x => ((x - minX) / (maxX - minX)) * w;
-      const toPy = v => h - ((v - minV) / (maxV - minV)) * h;
-
-      // Coordinate axes
-      const ox = toPx(0);
-      const oy = toPy(0);
-
-      phaseCtx.strokeStyle = '#94a3b8';
-      phaseCtx.lineWidth = 1.2;
-      phaseCtx.beginPath();
-      // X axis
-      phaseCtx.moveTo(0, oy);
-      phaseCtx.lineTo(w, oy);
-      // V axis
-      phaseCtx.moveTo(ox, 0);
-      phaseCtx.lineTo(ox, h);
-      phaseCtx.stroke();
-
-      // Axis labels
-      phaseCtx.fillStyle = '#475569';
-      phaseCtx.font = `bold ${10 * window.devicePixelRatio}px var(--font-sans)`;
-      phaseCtx.textAlign = 'right';
-      phaseCtx.fillText('x (положение)', w - 10, oy - 6);
-      phaseCtx.fillText('ẋ (скорость)', ox - 8, 15 * window.devicePixelRatio);
-
-      // Background parabolas for u = +uMax (blue dotted) and u = -uMax (red dotted)
-      phaseCtx.lineWidth = 1;
-      phaseCtx.setLineDash([2, 3]);
-
-      // u = +1: x = 0.5*v^2 / uMax + C
-      phaseCtx.strokeStyle = '#bfdbfe';
-      for (let c = -4; c <= 4; c += 1.5) {
-        phaseCtx.beginPath();
-        for (let v = minV; v <= maxV; v += 0.1) {
-          const x = 0.5 * v * Math.abs(v) / uMax + c;
-          const px = toPx(x);
-          const py = toPy(v);
-          if (v === minV) phaseCtx.moveTo(px, py);
-          else phaseCtx.lineTo(px, py);
-        }
-        phaseCtx.stroke();
-      }
-
-      // Switching curve Gamma: x = -0.5 * v * |v| / uMax (bold orange)
-      phaseCtx.setLineDash([]);
-      phaseCtx.strokeStyle = '#ea580c';
-      phaseCtx.lineWidth = 3;
-      phaseCtx.beginPath();
-      for (let v = minV; v <= maxV; v += 0.05) {
-        const x = -0.5 * v * Math.abs(v) / uMax;
-        const px = toPx(x);
-        const py = toPy(v);
-        if (v === minV) phaseCtx.moveTo(px, py);
-        else phaseCtx.lineTo(px, py);
-      }
-      phaseCtx.stroke();
-
-      // Origin point
-      phaseCtx.fillStyle = '#059669';
-      phaseCtx.beginPath();
-      phaseCtx.arc(ox, oy, 6, 0, Math.PI * 2);
-      phaseCtx.fill();
-
-      // Trajectories
-      const drawTraj = (hist, color) => {
-        if (!hist || hist.length < 2) return;
-        phaseCtx.strokeStyle = color;
-        phaseCtx.lineWidth = 2.5;
-        phaseCtx.beginPath();
-        hist.forEach((pt, i) => {
-          const px = toPx(pt.x);
-          const py = toPy(pt.v);
-          if (i === 0) phaseCtx.moveTo(px, py);
-          else phaseCtx.lineTo(px, py);
-        });
-        phaseCtx.stroke();
-      };
-
-      if (mode === 'both' || mode === 'bang') {
-        drawTraj(stateBB.history, '#dc2626');
-      }
-      if (mode === 'both' || mode === 'lqr') {
-        drawTraj(stateLQR.history, '#059669');
-      }
-
-      // Initial point marker
-      const px0 = toPx(x0);
-      const py0 = toPy(v0);
-      phaseCtx.fillStyle = '#2563eb';
-      phaseCtx.beginPath();
-      phaseCtx.arc(px0, py0, 6, 0, Math.PI * 2);
-      phaseCtx.fill();
-      phaseCtx.strokeStyle = '#ffffff';
-      phaseCtx.lineWidth = 2;
-      phaseCtx.stroke();
-
-      // Current positions
-      if (mode === 'both' || mode === 'bang') {
-        const cx = toPx(stateBB.x);
-        const cy = toPy(stateBB.v);
-        phaseCtx.fillStyle = '#dc2626';
-        phaseCtx.beginPath();
-        phaseCtx.arc(cx, cy, 5, 0, Math.PI * 2);
-        phaseCtx.fill();
-      }
-      if (mode === 'both' || mode === 'lqr') {
-        const cx = toPx(stateLQR.x);
-        const cy = toPy(stateLQR.v);
-        phaseCtx.fillStyle = '#059669';
-        phaseCtx.beginPath();
-        phaseCtx.arc(cx, cy, 5, 0, Math.PI * 2);
-        phaseCtx.fill();
-      }
-    }
-
-    // 3. Draw Plot History
-    function drawPlots() {
-      const w = plotCanvas.width;
-      const h = plotCanvas.height;
-      plotCtx.clearRect(0, 0, w, h);
-
-      // Split height into two charts: x(t) [top half] and u(t) [bottom half]
-      const hHalf = h / 2 - 10;
-      const maxT = Math.max(8.0, simTime + 1.0);
-
-      const toPx = t => (t / maxT) * (w - 40) + 30;
-
-      // Top chart: x(t) in [-4, 4]
-      const cy1 = hHalf / 2 + 5;
-      const toPy1 = x => cy1 - (x / 4) * (hHalf / 2 - 12);
-
-      // Bottom chart: u(t) in [-uMax*1.2, uMax*1.2]
-      const cy2 = hHalf + 10 + hHalf / 2;
-      const toPy2 = u => cy2 - (u / (uMax * 1.3)) * (hHalf / 2 - 12);
-
-      // Zero axes
-      plotCtx.strokeStyle = '#e2e8f0';
-      plotCtx.lineWidth = 1;
-      plotCtx.beginPath();
-      plotCtx.moveTo(30, cy1);
-      plotCtx.lineTo(w - 10, cy1);
-      plotCtx.moveTo(30, cy2);
-      plotCtx.lineTo(w - 10, cy2);
-      plotCtx.stroke();
-
-      // Labels
-      plotCtx.fillStyle = '#64748b';
-      plotCtx.font = `bold ${8.5 * window.devicePixelRatio}px var(--font-sans)`;
-      plotCtx.textAlign = 'left';
-      plotCtx.fillText('Положение x(t)', 32, 14 * window.devicePixelRatio);
-      plotCtx.fillText('Управление u(t)', 32, hHalf + 22 * window.devicePixelRatio);
-
-      // Draw curve helper
-      const drawCurve = (hist, valGetter, toPyFunc, color, isDashed = false) => {
-        if (!hist || hist.length < 2) return;
-        plotCtx.strokeStyle = color;
-        plotCtx.lineWidth = 2;
-        if (isDashed) plotCtx.setLineDash([3, 3]);
-        else plotCtx.setLineDash([]);
-
-        plotCtx.beginPath();
-        hist.forEach((pt, i) => {
-          const px = toPx(pt.t);
-          const py = toPyFunc(valGetter(pt));
-          if (i === 0) plotCtx.moveTo(px, py);
-          else plotCtx.lineTo(px, py);
-        });
-        plotCtx.stroke();
-        plotCtx.setLineDash([]);
-      };
-
-      if (mode === 'both' || mode === 'bang') {
-        drawCurve(stateBB.history, pt => pt.x, toPy1, '#dc2626');
-        drawCurve(stateBB.history, pt => pt.u, toPy2, '#dc2626');
-      }
-      if (mode === 'both' || mode === 'lqr') {
-        drawCurve(stateLQR.history, pt => pt.x, toPy1, '#059669');
-        drawCurve(stateLQR.history, pt => pt.u, toPy2, '#059669');
-      }
-    }
-
-    // -------------------------------------------------------------
-    // Event Listeners & Interaction
-    // -------------------------------------------------------------
-    // Click on phase plane to select new (x0, v0)
-    phaseCanvas.addEventListener('click', e => {
-      const rect = phaseCanvas.getBoundingClientRect();
-      const clickX = (e.clientX - rect.left) / rect.width;
-      const clickY = (e.clientY - rect.top) / rect.height;
-
-      const minX = -4.5, maxX = 4.5;
-      const minV = -3.5, maxV = 3.5;
-
-      x0 = minX + clickX * (maxX - minX);
-      v0 = maxV - clickY * (maxV - minV);
-
-      resetSimulation();
-    });
-
-    document.getElementById('btnPlay').addEventListener('click', () => {
-      isPlaying = !isPlaying;
-      document.getElementById('btnPlay').textContent = isPlaying ? '⏸ Пауза' : '▶ Старт';
-      if (isPlaying) simStep();
-    });
-
-    document.getElementById('btnReset').addEventListener('click', () => {
-      isPlaying = false;
-      document.getElementById('btnPlay').textContent = '▶ Старт';
-      resetSimulation();
-    });
-
-    document.getElementById('btnRandom').addEventListener('click', () => {
-      isPlaying = false;
-      document.getElementById('btnPlay').textContent = '▶ Старт';
-      x0 = (Math.random() - 0.5) * 6.0;
-      v0 = (Math.random() - 0.5) * 4.0;
-      resetSimulation();
-    });
-
-    document.getElementById('modeSelect').addEventListener('change', e => {
-      mode = e.target.value;
-      const badge = document.getElementById('badgeStatus');
-      if (mode === 'both') {
-        badge.className = 'badge-mode badge-both';
-        badge.textContent = 'Сравнение (BB vs LQR)';
-      } else if (mode === 'bang') {
-        badge.className = 'badge-mode badge-bang';
-        badge.textContent = 'Только Bang-Bang';
-      } else {
-        badge.className = 'badge-mode badge-lqr';
-        badge.textContent = 'Только LQR';
-      }
-      resetSimulation();
-    });
-
-    // Sliders
-    document.getElementById('sliderUmax').addEventListener('input', e => {
-      uMax = parseFloat(e.target.value);
-      document.getElementById('valUmax').textContent = uMax.toFixed(1);
-      resetSimulation();
-    });
-
-    document.getElementById('sliderQ').addEventListener('input', e => {
-      Q_val = parseFloat(e.target.value);
-      document.getElementById('valQ').textContent = Q_val.toFixed(1);
-      const [k1, k2] = computeLQR(Q_val, R_val);
-      document.getElementById('valK').textContent = `K = [${k1.toFixed(2)}, ${k2.toFixed(2)}]`;
-      resetSimulation();
-    });
-
-    document.getElementById('sliderR').addEventListener('input', e => {
-      R_val = parseFloat(e.target.value);
-      document.getElementById('valR').textContent = R_val.toFixed(1);
-      const [k1, k2] = computeLQR(Q_val, R_val);
-      document.getElementById('valK').textContent = `K = [${k1.toFixed(2)}, ${k2.toFixed(2)}]`;
-      resetSimulation();
-    });
-
-    // Initial setup
-    const [k1Init, k2Init] = computeLQR(Q_val, R_val);
-    document.getElementById('valK').textContent = `K = [${k1Init.toFixed(2)}, ${k2Init.toFixed(2)}]`;
-    setTimeout(resizeCanvases, 50);
-    resetSimulation();
-  </script>
+const params = new URLSearchParams(location.search);
+const sc = Math.max(0, Math.min(SCENARIOS.length - 1, (+params.get('scenario') || 1) - 1));
+sel.value = sc; loadScenario(sc);
+</script>
 </body>
 </html>

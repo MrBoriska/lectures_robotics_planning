@@ -1,866 +1,412 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Интерактивный симулятор: Синтез политики RL и Reward Shaping</title>
-  <link rel="stylesheet" href="../common/widget-base.css">
-  <link rel="stylesheet" href="../common/katex/katex.min.css">
-  <script defer src="../common/katex/katex.min.js"></script>
-  <script defer src="../common/katex/contrib/auto-render.min.js"
-    onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}], throwOnError: false});"></script>
-  <style>
-    .katex {
-      font-size: 1.0em !important;
-      line-height: 1 !important;
-      white-space: nowrap !important;
-    }
-    .katex-display {
-      margin: 2px 0 !important;
-    }
-    .formula-box {
-      font-size: 11px;
-      color: var(--text-main);
-      background: var(--bg-control);
-      border: 1px solid var(--border-subtle);
-      border-radius: 4px;
-      padding: 4px 6px;
-      margin-bottom: 6px;
-      text-align: center;
-      overflow-x: auto;
-      white-space: nowrap;
-    }
-    .split-view {
-      display: flex;
-      flex: 1;
-      min-height: 0;
-      gap: 8px;
-      padding: 8px;
-      background: var(--bg-widget);
-    }
-    .panel-arena {
-      flex: 1.45;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      min-width: 0;
-    }
-    .panel-side {
-      flex: 0.95;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      min-width: 0;
-      overflow-y: auto;
-    }
-    .card {
-      background: var(--bg-panel);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 6px 10px;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-    }
-    .card-title {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .canvas-box {
-      flex: 1.3;
-      min-height: 220px;
-      position: relative;
-      background: #ffffff;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      overflow: hidden;
-      cursor: crosshair;
-    }
-    .plots-box {
-      flex: 0.75;
-      min-height: 120px;
-      position: relative;
-      background: #ffffff;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      overflow: hidden;
-    }
-    canvas {
-      display: block;
-      width: 100%;
-      height: 100%;
-    }
-    .control-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 11px;
-      margin-bottom: 4px;
-    }
-    .control-row label {
-      width: 145px;
-      color: var(--text-main);
-      font-weight: 500;
-      flex-shrink: 0;
-      white-space: nowrap;
-    }
-    .control-row input[type=range] {
-      flex: 1;
-      min-width: 0;
-    }
-    .control-row span.val {
-      width: 40px;
-      text-align: right;
-      font-family: var(--font-mono);
-      color: var(--accent-blue);
-      font-weight: 600;
-      font-size: 10.5px;
-    }
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 6px;
-      font-family: var(--font-mono);
-      font-size: 11px;
-    }
-    .stat-item {
-      background: var(--bg-control);
-      padding: 6px 8px;
-      border-radius: 4px;
-      border: 1px solid var(--border-subtle);
-    }
-    .stat-label {
-      color: var(--text-muted);
-      font-size: 9.5px;
-      margin-bottom: 2px;
-    }
-    .stat-value {
-      font-weight: 700;
-      color: var(--text-main);
-    }
-    .legend-row {
-      display: flex;
-      gap: 12px;
-      font-size: 10.5px;
-      color: var(--text-muted);
-      margin-top: 4px;
-    }
-    .legend-item {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .legend-color {
-      width: 12px;
-      height: 4px;
-      border-radius: 2px;
-    }
-    .badge-mode {
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 10px;
-      font-weight: 700;
-      font-family: var(--font-mono);
-    }
-    .badge-rl { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
-    .badge-oc { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
-    .badge-sparse { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Q-learning на клеточном поле и форма награды</title>
+<link rel="stylesheet" href="../common/widget-base.css">
+<style>
+  .main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 8px; padding: 8px; }
+  .left, .right { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+  .panel { background: #fff; border: 1px solid var(--border-color); border-radius: 8px; padding: 6px 10px; display: flex; flex-direction: column; min-height: 0; }
+  .ptitle { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--text-muted); margin-bottom: 4px; display: flex; justify-content: space-between; gap: 8px; }
+  .cv { flex: 1; min-height: 0; position: relative; }
+  .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex: 1; min-height: 0; }
+  .charts > div { display: flex; flex-direction: column; min-height: 0; }
+  .ctitle { font-size: 10.5px; color: #475569; margin-bottom: 2px; }
+  .ctrls { display: grid; grid-template-columns: auto 1fr auto; gap: 3px 8px; align-items: center; font-size: 11.5px; }
+  .ctrls input[type=range] { width: 100%; accent-color: #0284c7; }
+  .ctrls select { font-size: 11.5px; padding: 2px 4px; border: 1px solid #cbd5e1; border-radius: 4px; background: #fff; }
+  .ctrls .v { font-family: var(--font-mono); color: var(--accent-blue); font-weight: 600; min-width: 44px; text-align: right; }
+  .note { font-size: 12px; line-height: 1.38; color: #1e293b; background: #f0f9ff; border-left: 3px solid #0284c7; padding: 6px 9px; border-radius: 4px; }
+  .note b { color: #0c4a6e; }
+  .stats { font-size: 11.5px; line-height: 1.5; }
+  .stats span { font-family: var(--font-mono); font-weight: 700; color: #0f172a; }
+  .stats .bad { color: #b91c1c; } .stats .good { color: #047857; }
+  .formula { font-size: 11.5px; font-family: var(--font-mono); background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 3px 6px; color: #0f172a; }
+</style>
 </head>
 <body>
-  <div class="widget-layout">
-    <!-- Toolbar -->
-    <div class="toolbar">
-      <div style="font-weight: 700; font-size: 12.5px; color: var(--accent-blue); margin-right: 6px;">
-        🤖 RL Reward Shaping: Синтез политики локомоции и балансировки
+<div class="widget-layout">
+  <div class="toolbar">
+    <b style="color: var(--accent-blue);">Сценарий:</b>
+    <select id="scenario" class="select-control"></select>
+    <button id="play" class="btn btn-primary">Пуск</button>
+    <button id="ep1" class="btn">Один эпизод</button>
+    <button id="reset" class="btn">Сначала</button>
+    <span>скорость:</span>
+    <select id="speed" class="select-control">
+      <option value="step">по шагам</option>
+      <option value="1">1 эпизод/кадр</option>
+      <option value="10" selected>10 эпизодов/кадр</option>
+      <option value="50">50 эпизодов/кадр</option>
+    </select>
+    <span>на поле:</span>
+    <select id="view" class="select-control">
+      <option value="q">Q-learning</option>
+      <option value="vi">точное решение</option>
+    </select>
+    <label style="display: inline-flex; gap: 4px; align-items: center;"><input type="checkbox" id="nums" checked> числа V</label>
+  </div>
+  <div class="main">
+    <div class="left">
+      <div class="panel" style="flex: 1;">
+        <div class="ptitle"><span id="gridTitle"></span><span id="epc"></span></div>
+        <div class="cv"><canvas id="grid"></canvas></div>
       </div>
-
-      <button id="btnPlay" class="btn btn-primary">▶ Старт</button>
-      <button id="btnStep" class="btn">⏭ Шаг (10 мс)</button>
-      <button id="btnReset" class="btn">↺ Сброс</button>
-      <button id="btnKick" class="btn btn-danger">⚡ Внешний толчок (Kick)</button>
-
-      <span style="color: var(--text-muted); font-size: 11px; margin-left: 6px;">Метод:</span>
-      <select id="selectMode" class="select-control">
-        <option value="rl_dense">RL: Dense Reward (Shaped Actor-Critic)</option>
-        <option value="rl_sparse">RL: Sparse Reward (Только цель / падение)</option>
-        <option value="optimal_lqr">Optimal Control: Линейный регулятор (LQR)</option>
-      </select>
+      <div class="panel" style="flex: 0 0 128px;">
+        <div class="charts">
+          <div><div class="ctitle">Сумма наград жадной политики — то, что максимизирует агент</div><div class="cv"><canvas id="chR"></canvas></div></div>
+          <div><div class="ctitle">Доля приходов жадной политики в цель +10 — то, что нужно нам</div><div class="cv"><canvas id="chS"></canvas></div></div>
+        </div>
+      </div>
     </div>
-
-    <!-- Main Workspace -->
-    <div class="split-view">
-      <!-- Arena & Plots -->
-      <div class="panel-arena">
-        <div class="card" style="flex: 1.35; padding: 6px 10px;">
-          <div class="card-title">
-            <span>Физическая модель: Балансирующая тележка с маятником (Inverted Pendulum)</span>
-            <span id="modeBadge" class="badge-mode badge-rl">RL DENSE</span>
-          </div>
-          <div class="canvas-box" id="arenaBox">
-            <canvas id="arenaCanvas"></canvas>
-            <div class="overlay-hint">Кликните по рельсу, чтобы переместить целевую позицию $x_{\text{target}}$</div>
-          </div>
-        </div>
-
-        <div class="card" style="flex: 0.95; padding: 6px 10px;">
-          <div class="card-title">
-            <span>Динамика контура: Управление $u(t)$ и составляющие функции награды $R_t$</span>
-            <div class="legend-row">
-              <span class="legend-item"><span class="legend-color" style="background:#2563eb;"></span> $u(t)$ Момент/Сила</span>
-              <span class="legend-item"><span class="legend-color" style="background:#059669;"></span> $R_{\text{pos}}$</span>
-              <span class="legend-item"><span class="legend-color" style="background:#dc2626;"></span> $R_{\text{energy}}$</span>
-            </div>
-          </div>
-          <div class="plots-box">
-            <canvas id="plotsCanvas"></canvas>
-          </div>
+    <div class="right">
+      <div class="panel" style="flex: 0 0 auto; gap: 5px;">
+        <div class="formula">Q(s,a) ← Q(s,a) + α·[ r + γ·max Q(s′,·) − Q(s,a) ]</div>
+        <div class="ctrls">
+          <span>Скорость обучения α</span><input type="range" id="alpha" min="0.05" max="1" step="0.05"><span class="v" id="alphav"></span>
+          <span>Исследование ε</span><input type="range" id="eps" min="0" max="0.6" step="0.05"><span class="v" id="epsv"></span>
+          <span></span><label style="grid-column: span 2; display: inline-flex; gap: 5px; align-items: center;"><input type="checkbox" id="decay"> начать с ε = 1 и снижать до ε за 200 эпизодов</label>
+          <span>Дисконт γ</span><input type="range" id="gamma" min="0.3" max="0.99" step="0.01"><span class="v" id="gammav"></span>
+          <span>Скольжение (случайный шаг)</span><input type="range" id="slip" min="0" max="0.4" step="0.05"><span class="v" id="slipv"></span>
+          <span>Штраф за каждый шаг</span><input type="range" id="tcost" min="0" max="2" step="0.1"><span class="v" id="tcostv"></span>
+          <span>Штраф за движение</span><input type="range" id="mcost" min="0" max="3" step="0.1"><span class="v" id="mcostv"></span>
+          <span>Штраф за падение в яму</span><input type="range" id="pit" min="0" max="30" step="1"><span class="v" id="pitv"></span>
+          <span>Добавка к награде</span>
+          <select id="shaping" style="grid-column: span 2;">
+            <option value="none">нет (разреженная награда)</option>
+            <option value="near">+1 за каждый шаг рядом с целью</option>
+            <option value="approach">+1 за шаг, приблизивший к цели</option>
+            <option value="potential">потенциальная γΦ(s′) − Φ(s), Φ = −длина пути с учётом стен</option>
+            <option value="potline">потенциальная γΦ(s′) − Φ(s), Φ = −расстояние сквозь стены</option>
+          </select>
         </div>
       </div>
-
-      <!-- Side Controls -->
-      <div class="panel-side">
-        <!-- Reward Shaping -->
-        <div class="card">
-          <div class="card-title">Настройка функции награды (Reward Shaping)</div>
-          <div class="formula-box">
-            $R_t = - w_p (x - x^*)^2 - w_\theta \theta^2 - w_u u^2 - w_{\Delta u} (\Delta u)^2$
-          </div>
-
-          <div class="control-row">
-            <label for="slWPos">Вес позиции $w_p$:</label>
-            <input type="range" id="slWPos" min="0.1" max="10.0" step="0.1" value="2.5">
-            <span class="val" id="valWPos">2.5</span>
-          </div>
-
-          <div class="control-row">
-            <label for="slWAngle">Вес угла $w_\theta$ (баланс):</label>
-            <input type="range" id="slWAngle" min="1.0" max="40.0" step="1.0" value="18.0">
-            <span class="val" id="valWAngle">18.0</span>
-          </div>
-
-          <div class="control-row">
-            <label for="slWEffort">Штраф энергии $w_u$:</label>
-            <input type="range" id="slWEffort" min="0.01" max="3.0" step="0.05" value="0.25">
-            <span class="val" id="valWEffort">0.25</span>
-          </div>
-
-          <div class="control-row">
-            <label for="slWSmooth">Штраф рывков $w_{\Delta u}$:</label>
-            <input type="range" id="slWSmooth" min="0.0" max="2.0" step="0.1" value="0.4">
-            <span class="val" id="valWSmooth">0.4</span>
-          </div>
-        </div>
-
-        <!-- Environment Disturbance -->
-        <div class="card">
-          <div class="card-title">Параметры среды и возмущения (Sim-to-Real)</div>
-          <div class="control-row">
-            <label for="slFriction">Трение в шарнирах $\mu$:</label>
-            <input type="range" id="slFriction" min="0.0" max="1.0" step="0.05" value="0.15">
-            <span class="val" id="valFriction">0.15</span>
-          </div>
-
-          <div class="control-row">
-            <label for="slNoise">Шум сенсоров $\sigma_{\text{obs}}$:</label>
-            <input type="range" id="slNoise" min="0.0" max="0.1" step="0.005" value="0.01">
-            <span class="val" id="valNoise">0.01</span>
-          </div>
-
-          <div class="control-row">
-            <label for="slMass">Масса маятника $m$ (кг):</label>
-            <input type="range" id="slMass" min="0.2" max="2.5" step="0.1" value="0.8">
-            <span class="val" id="valMass">0.8</span>
-          </div>
-        </div>
-
-        <!-- Telemetry Stats -->
-        <div class="card">
-          <div class="card-title">Телеметрия контура управления</div>
-          <div class="stats-grid">
-            <div class="stat-item">
-              <div class="stat-label">Накопленная награда $J = \sum \gamma^t R$</div>
-              <div class="stat-value" id="statReturn">0.0</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-label">Текущая награда $R_t$</div>
-              <div class="stat-value" id="statReward">0.00</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-label">Инференс / Шаг расчета</div>
-              <div class="stat-value" id="statLatency">~0.15 мс</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-label">Затраченная энергия $\int u^2 dt$</div>
-              <div class="stat-value" id="statEnergy">0.00 Дж</div>
-            </div>
-          </div>
-        </div>
-
-
-        <!-- Pedagogical Takeaway -->
-        <div class="card" style="background: #f8fafc; border-left: 3px solid var(--accent-blue);">
-          <div style="font-weight: 700; font-size: 11px; color: var(--text-main); margin-bottom: 4px;">
-            💡 Инженерный анализ динамики:
-          </div>
-          <div id="takeawayText" style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">
-            <strong>Плотная награда (Dense Reward)</strong> позволяет нейросети мгновенно стабилизировать робота при сильных возмущениях. Высокий вес энергии $w_u$ делает движения плавными, но увеличивает время установления. При <strong>Sparse Reward</strong> агент не получает промежуточных сигналов и теряет равновесие.
-          </div>
-        </div>
+      <div class="panel" style="flex: 0 0 auto;">
+        <div class="stats" id="stats"></div>
       </div>
+      <div class="note" id="note"></div>
     </div>
   </div>
+</div>
+<script>
+// ---------------------------------------------------------------------------
+// Табличный Q-learning на клеточном поле.
+// Состояние — клетка; действия — шаг вверх/вправо/вниз/влево (и «стоять»,
+// если сценарий его разрешает). Со «скольжением» p вместо выбранного шага
+// выполняется случайный из четырёх. Упёрся в стену — остался на месте.
+// Клетки: '#' стена, 'S' старт, 'G' цель +10, 'g' малая награда +2,
+// 'X' яма (−штраф). G, g, X завершают эпизод. Эпизод обрывается через
+// 100 шагов (обрыв — не конец задачи, поэтому в обновлении берётся max Q(s′)).
+// Награда за переход s → s′:
+//   r = [+10 | +2 | −штраф] − штраф за шаг − штраф за движение + добавка.
+// «Точное решение» — итерация по ценности для той же награды и того же γ.
+// ---------------------------------------------------------------------------
+const MAPS = {
+  wall: ['..........', '..........', '....#.....', 'S...#....G', '....#.....', '....#.....', '..........'],
+  decoy: ['.........', '.........', '.g.S....G', '.........', '.........'],
+  cliff: ['..........', '..........', '..........', 'SXXXXXXXXG'],
+  big: ['............', '............', '......#.....', 'S.....#....G', '......#.....', '............', '............'],
+  open: ['..........', '..........', '..........', 'S........G', '..........', '..........', '..........'],
+  pit: ['.........G', '..........', '..........', '..........', '..........', '..........', 'SX........'],
+};
+const BASE = { alpha: 0.5, eps: 0.2, gamma: 0.9, slip: 0, tcost: 0, mcost: 0, pit: 10, shaping: 'none', stay: false, decay: false };
+const SCENARIOS = [
+  { key: 'basics', name: '1. Q-learning находит путь', map: 'wall',
+    note: '<b>Что наблюдать.</b> Нажмите «Пуск». Пока все Q равны нулю, робот бродит случайно. Когда он впервые попадает в цель, ценность получает только соседняя клетка; затем от эпизода к эпизоду она «растекается» назад к старту. Стрелки — жадная политика argmax Q. Переключите «на поле» на точное решение: Q-learning приходит к тем же числам (10, 9, 8.1, …), не зная модели среды.' },
+  { key: 'explore', name: '2. Без исследования: застрял на малой награде', map: 'decoy', eps: 0,
+    note: '<b>Что наблюдать.</b> Слева от старта малая награда +2, справа цель +10. При ε = 0 робот, случайно найдя +2, дальше всегда идёт туда: другие действия он больше не пробует, и правый график стоит на нуле. Постоянное ε = 0.2 почти не помогает: случайный шаг редко уводит далеко от +2. Включите «начать с ε = 1…», поставьте ε = 0.05 и нажмите «Сначала»: в начале робот исследует много, находит +10, и политика переключается на большую награду.' },
+  { key: 'gamma', name: '3. Дисконт γ: близкая или большая награда', map: 'decoy', gamma: 0.5, view: 'vi',
+    note: '<b>Что наблюдать.</b> На поле точное решение. При γ = 0.5 цель +10 в 5 шагах стоит сегодня 10·0.5⁴ ≈ 0.6, а +2 в 2 шагах — 2·0.5 = 1. Поэтому оптимально идти к малой награде. Это не ошибка обучения, а свойство постановки задачи. Сдвиньте γ к 0.9: стрелки развернутся к +10.' },
+  { key: 'cliff', name: '4. Скользкий пол вдоль обрыва', map: 'cliff', slip: 0.2, gamma: 0.95, eps: 0.1, view: 'vi',
+    note: '<b>Что наблюдать.</b> Нижний ряд — яма (−10). На поле точное решение. При скольжении 0.2 оптимальный путь уходит от края: каждый шаг рядом с ямой рискован. Поставьте скольжение 0: оптимальным становится кратчайший путь по самому краю. Неопределённость меняет оптимальную политику, как запас до препятствия в планировании.' },
+  { key: 'shaping', name: '5. Разреженная награда: долгий поиск', map: 'big', gamma: 0.99,
+    note: '<b>Что наблюдать.</b> Награда только в цели за стеной. Нажмите «Пуск»: около сотни эпизодов жадная политика не доходит до цели (правый график на нуле), потому что случайный поиск редко доходит так далеко. Запомните номер эпизода, где график поднялся, и сравните со сценарием 8.' },
+  { key: 'near', name: '6. Взлом: бонус рядом с целью', map: 'open', gamma: 0.95, shaping: 'near',
+    note: '<b>Что наблюдать.</b> Добавлено +1 за каждый шаг на расстоянии ≤ 2 от цели. Сумма наград (левый график) растёт, а в цель робот не приходит (правый на нуле): выгоднее топтаться рядом, получая +1, чем войти и закончить эпизод. Точное решение показывает то же: это оптимум неудачной награды, а не сбой обучения.' },
+  { key: 'approach', name: '7. Взлом: бонус за приближение', map: 'big', gamma: 0.99, shaping: 'approach',
+    note: '<b>Что наблюдать.</b> +1 за шаг, уменьшивший расстояние до цели, и 0 за шаг назад. Цикл «шаг назад — шаг вперёд» приносит +1 каждые два шага без конца, и это выгоднее, чем войти в цель. Робот ходит туда-сюда. Исправление в сценарии 8: шаг назад должен стоить ровно столько, чтобы любой цикл давал ноль.' },
+  { key: 'potential', name: '8. Потенциальная награда: быстрее и без подвоха', map: 'big', gamma: 0.99, shaping: 'potential',
+    note: '<b>Что наблюдать.</b> Добавка γΦ(s′) − Φ(s), Φ = −(длина пути до цели). На замкнутом цикле она в сумме почти ноль, поэтому оптимальная политика та же, что в сценарии 5 (проверьте точным решением), но цель находится за несколько эпизодов. Выберите Φ «сквозь стены»: подсказка хуже, обучение медленнее, но оптимум по-прежнему не меняется.' },
+  { key: 'pit', name: '9. Взлом: выгоднее упасть сразу', map: 'pit', gamma: 0.99, tcost: 1, pit: 2,
+    note: '<b>Что наблюдать.</b> Штраф −1 за каждый шаг, рядом со стартом яма, штраф за падение всего 2. Дойти до цели: 15 шагов, итог −15 + 10 = −5. Упасть сразу: −1 − 2 = −3, это лучше, и робот прыгает в яму. Поднимите штраф за падение до 20 и нажмите «Сначала»: падать станет невыгодно.' },
+  { key: 'energy', name: '10. Взлом: выгоднее не двигаться', map: 'open', gamma: 0.99, mcost: 2, stay: true, decay: true, eps: 0.05,
+    note: '<b>Что наблюдать.</b> Робот может стоять (кружок вместо стрелки), каждый шаг движения стоит −2. Путь к цели: 9 шагов, итог −18 + 10 = −8; стоять на месте: 0. Оптимально не двигаться. Поставьте штраф за движение 0.5 и нажмите «Сначала»: путь даёт −4.5 + 10 > 0, и робот идёт к цели.' },
+];
+const MAXSTEP = 100, GOAL_R = 10, DECOY_R = 2;
+const DIRS = [[-1, 0], [0, 1], [1, 0], [0, -1], [0, 0]]; // вверх, вправо, вниз, влево, стоять
+const $ = id => document.getElementById(id);
+SCENARIOS.forEach((s, i) => { const o = document.createElement('option'); o.value = i; o.textContent = s.name; $('scenario').appendChild(o); });
 
-  <script>
-    // --- Physics & Simulation State ---
-    const sim = {
-      // Cart & Pole parameters
-      mc: 1.2,        // cart mass
-      mp: 0.8,        // pole mass
-      len: 0.7,       // pole length to CoM
-      g: 9.81,        // gravity
-      dt: 0.015,      // physics timestep
-      
-      // State: [x, x_dot, theta, theta_dot]
-      x: 0.0,
-      x_dot: 0.0,
-      theta: 0.08,    // slight initial angle
-      theta_dot: 0.0,
-      
-      targetX: 0.0,
-      u: 0.0,
-      prevU: 0.0,
-      uMax: 24.0,     // maximum actuator force (N)
-      
-      // Cumulative metrics
-      time: 0,
-      totalReturn: 0,
-      totalEnergy: 0,
-      gamma: 0.99,
-      
-      // History for plots
-      history: [],
-      maxHistory: 200,
-      
-      running: false,
-      mode: 'rl_dense',
-      
-      // Weights
-      wPos: 2.5,
-      wAngle: 18.0,
-      wEffort: 0.25,
-      wSmooth: 0.4,
-      friction: 0.15,
-      noise: 0.01
-    };
+let S, P, grid, rows, cols, start, goal, nA, Q, hist, episodes, totalSteps, vi, playing = false, agent = null, seed = 1;
+// воспроизводимый генератор случайных чисел
+let rs = 1;
+function rnd() { rs |= 0; rs = rs + 0x6D2B79F5 | 0; let t = Math.imul(rs ^ rs >>> 15, 1 | rs); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }
 
-    // --- DOM Elements ---
-    const arenaCanvas = document.getElementById('arenaCanvas');
-    const arenaCtx = arenaCanvas.getContext('2d');
-    const plotsCanvas = document.getElementById('plotsCanvas');
-    const plotsCtx = plotsCanvas.getContext('2d');
+const idx = (r, c) => r * cols + c;
+const cell = s => grid[Math.floor(s / cols)][s % cols];
+const isTerm = s => 'GgX'.includes(cell(s));
+const manh = s => Math.abs(Math.floor(s / cols) - goal[0]) + Math.abs(s % cols - goal[1]);
+let distG = null;
+// потенциал Φ(s) = −расстояние до цели: по пути с учётом стен или по прямой (сквозь стены)
+function phi(s, line) { return isTerm(s) ? 0 : -(line ? manh(s) : distG[s]); }
 
-    const btnPlay = document.getElementById('btnPlay');
-    const btnStep = document.getElementById('btnStep');
-    const btnReset = document.getElementById('btnReset');
-    const btnKick = document.getElementById('btnKick');
-    const selectMode = document.getElementById('selectMode');
-    const modeBadge = document.getElementById('modeBadge');
+function move(s, d) {
+  const r = Math.floor(s / cols) + DIRS[d][0], c = s % cols + DIRS[d][1];
+  if (r < 0 || r >= rows || c < 0 || c >= cols || grid[r][c] === '#') return s;
+  return idx(r, c);
+}
+function reward(s, a, s2) {
+  let r = -P.tcost - (a < 4 ? P.mcost : 0);
+  const k = cell(s2);
+  if (k === 'G') r += GOAL_R; else if (k === 'g') r += DECOY_R; else if (k === 'X') r -= P.pit;
+  if (P.shaping === 'near' && !isTerm(s2) && manh(s2) <= 2) r += 1;
+  if (P.shaping === 'approach' && manh(s2) < manh(s)) r += 1;
+  if (P.shaping === 'potential' || P.shaping === 'potline') { const l = P.shaping === 'potline'; r += P.gamma * phi(s2, l) - phi(s, l); }
+  return r;
+}
+// распределение следующего состояния: [[s2, вероятность, d]]
+function outcomes(s, a) {
+  if (a === 4 || P.slip === 0) return [[move(s, a), 1, a]];
+  const out = [[move(s, a), 1 - P.slip, a]];
+  for (let d = 0; d < 4; d++) out.push([move(s, d), P.slip / 4, d]);
+  return out;
+}
+function sampleNext(s, a) {
+  if (a === 4 || rnd() >= P.slip) return move(s, a);
+  return move(s, Math.floor(rnd() * 4));
+}
+function argmaxRand(q) {
+  let best = -Infinity, list = [];
+  for (let a = 0; a < nA; a++) { if (q[a] > best + 1e-9) { best = q[a]; list = [a]; } else if (Math.abs(q[a] - best) <= 1e-9) list.push(a); }
+  return list[Math.floor(rnd() * list.length)];
+}
+function argmaxDet(q) { let b = 0; for (let a = 1; a < nA; a++) if (q[a] > q[b] + 1e-9) b = a; return b; }
+const maxQ = q => Math.max(...q.slice(0, nA));
 
-    const slWPos = document.getElementById('slWPos');
-    const slWAngle = document.getElementById('slWAngle');
-    const slWEffort = document.getElementById('slWEffort');
-    const slWSmooth = document.getElementById('slWSmooth');
-    const slFriction = document.getElementById('slFriction');
-    const slNoise = document.getElementById('slNoise');
-    const slMass = document.getElementById('slMass');
+// ---------------------------------------------------------------- обучение
+function newEpisode() { return { s: start, t: 0, ret: 0 }; }
+const DECAY_EP = 200;
+function curEps() { return P.decay ? Math.max(P.eps, 1 - (1 - P.eps) * episodes / DECAY_EP) : P.eps; }
+// один шаг Q-learning; возвращает true, если эпизод закончился
+function qStep(ep) {
+  const s = ep.s;
+  const a = rnd() < curEps() ? Math.floor(rnd() * nA) : argmaxRand(Q[s]);
+  const s2 = sampleNext(s, a), r = reward(s, a, s2);
+  const target = r + (isTerm(s2) ? 0 : P.gamma * maxQ(Q[s2]));
+  Q[s][a] += P.alpha * (target - Q[s][a]);
+  ep.s = s2; ep.t++; ep.ret += r; totalSteps++;
+  if (isTerm(s2) || ep.t >= MAXSTEP) { episodes++; hist.push(evalGreedy()); return true; }
+  return false;
+}
+// проверка после эпизода: жадная политика (без ε) проходит один эпизод от старта
+function evalGreedy() {
+  let s = start, ret = 0;
+  for (let t = 0; t < MAXSTEP; t++) {
+    const a = argmaxDet(Q[s]), s2 = sampleNext(s, a);
+    ret += reward(s, a, s2); s = s2;
+    if (isTerm(s)) break;
+  }
+  return { ret, ok: cell(s) === 'G' };
+}
+function runEpisode() { const ep = newEpisode(); while (!qStep(ep)); }
 
-    const valWPos = document.getElementById('valWPos');
-    const valWAngle = document.getElementById('valWAngle');
-    const valWEffort = document.getElementById('valWEffort');
-    const valWSmooth = document.getElementById('valWSmooth');
-    const valFriction = document.getElementById('valFriction');
-    const valNoise = document.getElementById('valNoise');
-    const valMass = document.getElementById('valMass');
+// ---------------------------------------------------------------- точное решение
+function valueIteration() {
+  const n = rows * cols, V = new Array(n).fill(0), QV = [];
+  for (let s = 0; s < n; s++) QV.push(new Array(5).fill(0));
+  for (let it = 0; it < 5000; it++) {
+    let delta = 0;
+    for (let s = 0; s < n; s++) {
+      if (cell(s) === '#' || isTerm(s)) continue;
+      for (let a = 0; a < nA; a++) {
+        let q = 0;
+        for (const [s2, p] of outcomes(s, a)) q += p * (reward(s, a, s2) + (isTerm(s2) ? 0 : P.gamma * V[s2]));
+        QV[s][a] = q;
+      }
+      const v = maxQ(QV[s]); delta = Math.max(delta, Math.abs(v - V[s])); V[s] = v;
+    }
+    if (delta < 1e-7) break;
+  }
+  return { V, Q: QV };
+}
 
-    const statReturn = document.getElementById('statReturn');
-    const statReward = document.getElementById('statReward');
-    const statLatency = document.getElementById('statLatency');
-    const statEnergy = document.getElementById('statEnergy');
-    const takeawayText = document.getElementById('takeawayText');
+// жадный проход без скольжения: путь и чем он закончился
+function greedyPath(QT) {
+  let s = start; const path = [s], seen = new Set([s]);
+  for (let t = 0; t < MAXSTEP; t++) {
+    const a = argmaxDet(QT[s]); const s2 = move(s, a);
+    path.push(s2);
+    if (isTerm(s2)) return { path, end: cell(s2), steps: t + 1 };
+    if (s2 === s) return { path, end: a === 4 ? 'stay' : 'stuck', steps: t + 1 };
+    if (seen.has(s2)) return { path, end: 'loop', steps: t + 1 };
+    seen.add(s2); s = s2;
+  }
+  return { path, end: 'long', steps: MAXSTEP };
+}
+// доля успехов жадной политики со скольжением (оценка по 200 проходам)
+function greedySuccess(QT) {
+  if (P.slip === 0) return greedyPath(QT).end === 'G' ? 1 : 0;
+  const save = rs; rs = 12345; let ok = 0;
+  for (let k = 0; k < 200; k++) {
+    let s = start;
+    for (let t = 0; t < MAXSTEP; t++) { s = sampleNext(s, argmaxDet(QT[s])); if (isTerm(s)) { if (cell(s) === 'G') ok++; break; } }
+  }
+  rs = save; return ok / 200;
+}
+function bfsAll() {
+  const d = new Array(rows * cols).fill(99), g = idx(goal[0], goal[1]), q = [g]; d[g] = 0;
+  while (q.length) { const s = q.shift(); for (let k = 0; k < 4; k++) { const s2 = move(s, k); if (d[s2] > d[s] + 1) { d[s2] = d[s] + 1; q.push(s2); } } }
+  return d;
+}
+function bfsLen() {
+  const dist = new Map([[start, 0]]), q = [start];
+  while (q.length) { const s = q.shift(); if (cell(s) === 'G') return dist.get(s); if (isTerm(s)) continue;
+    for (let d = 0; d < 4; d++) { const s2 = move(s, d); if (!dist.has(s2)) { dist.set(s2, dist.get(s) + 1); q.push(s2); } } }
+  return null;
+}
 
-    // --- Control Laws & Solvers ---
-        function computeControl() {
-      // Add sensor noise
-      const obsX = sim.x + (Math.random() - 0.5) * sim.noise * 2;
-      const obsXDot = sim.x_dot + (Math.random() - 0.5) * sim.noise * 2;
-      const obsTheta = sim.theta + (Math.random() - 0.5) * sim.noise;
-      const obsThetaDot = sim.theta_dot + (Math.random() - 0.5) * sim.noise * 2;
-      
-      const errX = obsX - sim.targetX;
-      let rawU = 0;
+// ---------------------------------------------------------------- интерфейс
+const SL = ['alpha', 'eps', 'gamma', 'slip', 'tcost', 'mcost', 'pit'];
+const FMT = { alpha: v => v.toFixed(2), eps: v => v.toFixed(2), gamma: v => v.toFixed(2), slip: v => v.toFixed(2), tcost: v => v.toFixed(1), mcost: v => v.toFixed(1), pit: v => v.toFixed(0) };
+function readParams() {
+  for (const k of SL) { P[k] = +$(k).value; $(k + 'v').textContent = FMT[k](P[k]); }
+  P.shaping = $('shaping').value; P.decay = $('decay').checked;
+}
+function load(i) {
+  S = SCENARIOS[i]; P = Object.assign({}, BASE, S);
+  for (const k of SL) $(k).value = P[k];
+  $('shaping').value = P.shaping; $('decay').checked = P.decay; $('view').value = P.view || 'q';
+  $('note').innerHTML = S.note;
+  seed = 1; reset();
+}
+function reset() {
+  readParams();
+  grid = MAPS[S.map]; rows = grid.length; cols = grid[0].length; nA = P.stay ? 5 : 4;
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) { if (grid[r][c] === 'S') start = idx(r, c); if (grid[r][c] === 'G') goal = [r, c]; }
+  Q = []; for (let s = 0; s < rows * cols; s++) Q.push(new Array(5).fill(0));
+  hist = []; episodes = 0; totalSteps = 0; agent = null; rs = seed * 7919;
+  distG = bfsAll();
+  vi = valueIteration(); draw();
+}
+function onParam() { readParams(); vi = valueIteration(); draw(); }
 
-      if (sim.mode === 'rl_dense') {
-        const kPos = 0.05 * Math.sqrt(sim.wPos) / (1.0 + sim.wEffort * 0.3);
-        const kVel = 0.07 * Math.sqrt(sim.wPos) / (1.0 + sim.wEffort * 0.3);
-        const kAng = 2.4 * sim.wAngle / (1.0 + sim.wEffort * 0.2);
-        const kAngVel = 2.8 * Math.sqrt(sim.wAngle) / (1.0 + sim.wEffort * 0.2);
-
-        const sinTh = Math.sin(obsTheta);
-        const cosTh = Math.cos(obsTheta);
-        
-        // Upright balancing mode
-        if (Math.abs(obsTheta) < 0.95) {
-          // Cascaded control: reference tilt angle is clamped to +/- 14 deg
-          let thetaRef = - (kPos * errX + kVel * obsXDot);
-          thetaRef = Math.max(-0.25, Math.min(0.25, thetaRef));
-          rawU = kAng * (obsTheta - thetaRef) + kAngVel * obsThetaDot;
-          // Smoothness term (penalty on Delta u)
-          rawU = (rawU + sim.wSmooth * sim.prevU) / (1.0 + sim.wSmooth);
-        } else {
-          // Swing-up or recovery attempt: pump energy into cart
-          rawU = Math.sign(obsThetaDot * cosTh) * sim.uMax * 0.85;
+function fit(cv) {
+  const r = cv.parentElement.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  cv.width = r.width * dpr; cv.height = r.height * dpr; cv.style.width = r.width + 'px'; cv.style.height = r.height + 'px';
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); return [ctx, r.width, r.height];
+}
+function valColor(v, m) {
+  const x = Math.max(-1, Math.min(1, v / (m || 1)));
+  return x >= 0 ? `rgba(5,150,105,${0.08 + 0.55 * x})` : `rgba(220,38,38,${0.08 + 0.55 * -x})`;
+}
+function drawGrid() {
+  const [ctx, W, H] = fit($('grid'));
+  const useVI = $('view').value === 'vi', QT = useVI ? vi.Q : Q;
+  const cs = Math.min(W / cols, H / rows), ox = (W - cs * cols) / 2, oy = (H - cs * rows) / 2;
+  const V = s => maxQ(QT[s]);
+  let m = 0; for (let s = 0; s < rows * cols; s++) if (cell(s) !== '#' && !isTerm(s)) m = Math.max(m, Math.abs(V(s)));
+  ctx.font = `${Math.max(9, Math.min(13, cs * 0.24))}px ${getComputedStyle(document.body).fontFamily}`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+    const s = idx(r, c), k = grid[r][c], x = ox + c * cs, y = oy + r * cs;
+    ctx.fillStyle = '#fff'; ctx.fillRect(x, y, cs, cs);
+    if (k === '#') { ctx.fillStyle = '#475569'; ctx.fillRect(x, y, cs, cs); continue; }
+    if (k === 'G' || k === 'g') { ctx.fillStyle = k === 'G' ? '#059669' : '#6ee7b7'; ctx.fillRect(x + 2, y + 2, cs - 4, cs - 4);
+      ctx.fillStyle = k === 'G' ? '#fff' : '#064e3b'; ctx.font = `bold ${Math.max(10, cs * 0.3)}px sans-serif`; ctx.fillText(k === 'G' ? '+10' : '+2', x + cs / 2, y + cs / 2); }
+    else if (k === 'X') { ctx.fillStyle = '#7f1d1d'; ctx.fillRect(x + 2, y + 2, cs - 4, cs - 4);
+      ctx.fillStyle = '#fff'; ctx.font = `bold ${Math.max(9, cs * 0.24)}px sans-serif`; ctx.fillText('−' + P.pit, x + cs / 2, y + cs / 2); }
+    else {
+      const known = useVI || QT[s].some(q => q !== 0);
+      if (known) { ctx.fillStyle = valColor(V(s), m); ctx.fillRect(x, y, cs, cs); }
+      if (k === 'S') { ctx.fillStyle = '#1d4ed8'; ctx.font = `bold ${Math.max(9, cs * 0.22)}px sans-serif`; ctx.fillText('S', x + cs * 0.16, y + cs * 0.17); }
+      if (known) {
+        const a = argmaxDet(QT[s]), cx = x + cs / 2, cy = y + cs * ($('nums').checked ? 0.4 : 0.5);
+        ctx.strokeStyle = '#0f172a'; ctx.fillStyle = '#0f172a'; ctx.lineWidth = 1.6;
+        if (a === 4) { ctx.beginPath(); ctx.arc(cx, cy, cs * 0.12, 0, 7); ctx.stroke(); }
+        else {
+          const [dy, dx] = DIRS[a], L = cs * 0.2;
+          ctx.beginPath(); ctx.moveTo(cx - dx * L, cy - dy * L); ctx.lineTo(cx + dx * L, cy + dy * L); ctx.stroke();
+          const hx = cx + dx * L, hy = cy + dy * L, w = cs * 0.09;
+          ctx.beginPath(); ctx.moveTo(hx + dx * w, hy + dy * w); ctx.lineTo(hx - dx * w + dy * w, hy - dy * w + dx * w); ctx.lineTo(hx - dx * w - dy * w, hy - dy * w - dx * w); ctx.closePath(); ctx.fill();
         }
-
-      } else if (sim.mode === 'rl_sparse') {
-        // Sparse policy: only gets reward when near target and upright
-        const kPos = 1.2;
-        const kAng = 14.0;
-        if (Math.abs(obsTheta) < 0.6) {
-          rawU = kPos * errX + kAng * obsTheta;
-          // High chattering due to lack of derivative / smoothness reward shaping
-          rawU += (Math.random() - 0.5) * 6.0;
-        } else {
-          rawU = Math.sign(obsTheta) * sim.uMax;
-        }
-
-      } else if (sim.mode === 'optimal_lqr') {
-        // Classical LQR feedback matrix K computed for linearized double inverted pendulum
-        const rNorm = Math.max(0.05, sim.wEffort);
-        const qPos = Math.max(0.1, sim.wPos);
-        const qAng = Math.max(1.0, sim.wAngle);
-
-        const k1 = Math.sqrt(qPos / rNorm) * 1.2;
-        const k2 = Math.sqrt(k1) * 1.4;
-        const k3 = (qAng / rNorm) * 0.9 + 18.0;
-        const k4 = Math.sqrt(k3) * 2.8;
-
-        // Correct LQR sign convention for stabilization!
-        rawU = k1 * errX + k2 * obsXDot + k3 * obsTheta + k4 * obsThetaDot;
-        
-        // If angle is large, linear assumption fails catastrophically
-        if (Math.abs(obsTheta) > 0.7) {
-          rawU *= 0.5;
-        }
-      }
-
-      // Actuator saturation
-      sim.u = Math.max(-sim.uMax, Math.min(sim.uMax, rawU));
-    }
-
-    // --- Physics Integration (Nonlinear Cart-Pole) ---
-    function stepPhysics() {
-      computeControl();
-
-      const { mc, mp, len, g, dt, friction } = sim;
-      const sinTh = Math.sin(sim.theta);
-      const cosTh = Math.cos(sim.theta);
-
-      // Equations of motion:
-      // (mc + mp) * x_ddot + mp * len * theta_ddot * cos(theta) - mp * len * theta_dot^2 * sin(theta) = u - b_c * x_dot
-      // mp * len * x_ddot * cos(theta) + mp * len^2 * theta_ddot - mp * g * len * sin(theta) = - b_p * theta_dot
-      
-      const bCart = friction * 1.5;
-      const bPole = friction * 0.2;
-
-      const totalM = mc + mp;
-      const ml = mp * len;
-
-      const temp = (sim.u - bCart * sim.x_dot + ml * sim.theta_dot * sim.theta_dot * sinTh) / totalM;
-      
-      const num = g * sinTh - cosTh * temp - (bPole * sim.theta_dot) / ml;
-      const den = len * (4.0 / 3.0 - (mp * cosTh * cosTh) / totalM);
-      
-      const theta_ddot = num / den;
-      const x_ddot = temp - (ml * theta_ddot * cosTh) / totalM;
-
-      // Semi-implicit Euler integration
-      sim.x_dot += x_ddot * dt;
-      sim.x += sim.x_dot * dt;
-      sim.theta_dot += theta_ddot * dt;
-      sim.theta += sim.theta_dot * dt;
-
-      // Wrap theta to [-PI, PI]
-      while (sim.theta > Math.PI) sim.theta -= 2 * Math.PI;
-      while (sim.theta < -Math.PI) sim.theta += 2 * Math.PI;
-
-      // Compute reward components
-      const errX = sim.x - sim.targetX;
-      const rPos = - sim.wPos * (errX * errX);
-      const rAngle = - sim.wAngle * (sim.theta * sim.theta);
-      const rEffort = - sim.wEffort * (sim.u * sim.u) * 0.02;
-      const rSmooth = - sim.wSmooth * Math.pow(sim.u - sim.prevU, 2) * 0.05;
-      
-      let stepReward = rPos + rAngle + rEffort + rSmooth;
-      if (sim.mode === 'rl_sparse') {
-        // Sparse: only 1.0 if within 0.15m and upright, else -1.0
-        stepReward = (Math.abs(errX) < 0.25 && Math.abs(sim.theta) < 0.15) ? 1.0 : -0.5;
-      }
-
-      sim.totalReturn = sim.totalReturn * sim.gamma + stepReward;
-      sim.totalEnergy += (sim.u * sim.u) * dt * 0.1;
-      sim.prevU = sim.u;
-      sim.time += dt;
-
-      // Save history for plots
-      sim.history.push({
-        time: sim.time,
-        u: sim.u,
-        rPos: rPos,
-        rAngle: rAngle,
-        rEffort: rEffort,
-        reward: stepReward
-      });
-      if (sim.history.length > sim.maxHistory) {
-        sim.history.shift();
-      }
-
-      // Boundary limits for rails
-      if (Math.abs(sim.x) > 2.6) {
-        sim.x = Math.sign(sim.x) * 2.6;
-        sim.x_dot = - sim.x_dot * 0.2;
+        if ($('nums').checked) { ctx.fillStyle = '#334155'; ctx.font = `${Math.max(8, Math.min(12, cs * 0.21))}px monospace`; ctx.fillText(V(s).toFixed(1), cx, y + cs * 0.78); }
       }
     }
+  }
+  ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1;
+  for (let r = 0; r <= rows; r++) { ctx.beginPath(); ctx.moveTo(ox, oy + r * cs); ctx.lineTo(ox + cols * cs, oy + r * cs); ctx.stroke(); }
+  for (let c = 0; c <= cols; c++) { ctx.beginPath(); ctx.moveTo(ox + c * cs, oy); ctx.lineTo(ox + c * cs, oy + rows * cs); ctx.stroke(); }
+  // жадный путь от старта
+  const g = greedyPath(QT);
+  if (useVI || episodes > 0) {
+    ctx.strokeStyle = 'rgba(37,99,235,0.75)'; ctx.lineWidth = 3; ctx.beginPath();
+    g.path.forEach((s, i) => { const x = ox + (s % cols + 0.5) * cs, y = oy + (Math.floor(s / cols) + 0.5) * cs; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+    ctx.stroke();
+  }
+  if (agent) { const x = ox + (agent.s % cols + 0.5) * cs, y = oy + (Math.floor(agent.s / cols) + 0.5) * cs;
+    ctx.fillStyle = '#f59e0b'; ctx.strokeStyle = '#78350f'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(x, y, cs * 0.2, 0, 7); ctx.fill(); ctx.stroke(); }
+  return g;
+}
+function drawChart(cv, vals, lo, hi, color) {
+  const [ctx, W, H] = fit(cv);
+  const L = 30, R = 4, T = 4, B = 14, n = vals.length;
+  if (n > 0) { lo = Math.min(lo, ...vals); hi = Math.max(hi, ...vals); }
+  if (hi - lo < 1e-9) hi = lo + 1;
+  const X = i => L + (W - L - R) * (n > 1 ? i / (n - 1) : 0), Y = v => T + (H - T - B) * (1 - (v - lo) / (hi - lo));
+  ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1; ctx.strokeRect(L, T, W - L - R, H - T - B);
+  ctx.fillStyle = '#64748b'; ctx.font = '9.5px sans-serif'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  ctx.fillText(hi.toFixed(hi - lo < 3 ? 1 : 0), L - 3, T + 4); ctx.fillText(lo.toFixed(hi - lo < 3 ? 1 : 0), L - 3, H - B - 2);
+  if (lo < 0 && hi > 0) { ctx.strokeStyle = '#e2e8f0'; ctx.beginPath(); ctx.moveTo(L, Y(0)); ctx.lineTo(W - R, Y(0)); ctx.stroke(); }
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillText(n ? `эпизод ${n}` : 'эпизоды', (L + W) / 2, H - B + 2);
+  if (n < 2) return;
+  ctx.strokeStyle = color; ctx.lineWidth = 1.8; ctx.beginPath();
+  vals.forEach((v, i) => i ? ctx.lineTo(X(i), Y(v)) : ctx.moveTo(X(i), Y(v))); ctx.stroke();
+}
+function movAvg(f) { const out = []; let sum = 0; for (let i = 0; i < hist.length; i++) { sum += f(hist[i]); if (i >= 20) sum -= f(hist[i - 20]); out.push(sum / Math.min(i + 1, 20)); } return out; }
+const END = { G: ['дошёл до цели +10', 'good'], g: ['берёт малую награду +2', 'bad'], X: ['прыгает в яму', 'bad'], stay: ['стоит на месте', 'bad'],
+  stuck: ['упирается в стену', 'bad'], loop: ['ходит по кругу и не доходит', 'bad'], long: ['не доходит за 100 шагов', 'bad'] };
+function draw() {
+  const useVI = $('view').value === 'vi';
+  $('gridTitle').textContent = useVI ? 'Точное решение (итерация по ценности, модель известна): V*(s) и стрелки' : 'Q-learning (модель неизвестна): V(s) = max Q(s,a) и жадные стрелки';
+  $('epc').textContent = `эпизодов: ${episodes}`;
+  const g = drawGrid();
+  drawChart($('chR'), movAvg(h => h.ret), 0, 0, '#7c3aed');
+  drawChart($('chS'), movAvg(h => h.ok ? 1 : 0), 0, 1, '#059669');
+  const gq = greedyPath(Q), gv = greedyPath(vi.Q), sl = bfsLen();
+  const fmt = (gg, QT) => { const [t, c] = END[gg.end]; const extra = gg.end === 'G' ? ` за ${gg.steps} шагов` : '';
+    const succ = P.slip > 0 ? `, успех со скольжением ${Math.round(100 * greedySuccess(QT))} %` : ''; return `<span class="${c}">${t}${extra}</span>${succ}`; };
+  const vS = q => maxQ(q[start]).toFixed(2);
+  $('stats').innerHTML =
+    `Q-learning, жадная политика: ${episodes ? fmt(gq, Q) : '<span>ещё не обучен</span>'}<br>` +
+    `Точное решение: ${fmt(gv, vi.Q)}<br>` +
+    `V(старт): Q-learning <span>${vS(Q)}</span>, точно <span>${vS(vi.Q)}</span>; кратчайший путь до +10: <span>${sl ?? '—'}</span> шагов<br>` +
+    `шагов опыта всего: <span>${totalSteps}</span>` + (hist.length ? `; эпизодов с успехом: <span>${hist.filter(h => h.ok).length}</span>` : '');
+  return g;
+}
 
-    // --- Rendering ---
-    function renderArena() {
-      const w = arenaCanvas.width = arenaCanvas.clientWidth;
-      const h = arenaCanvas.height = arenaCanvas.clientHeight;
-      arenaCtx.clearRect(0, 0, w, h);
+let frame = 0;
+function loop() {
+  if (playing) {
+    const sp = $('speed').value;
+    if (sp === 'step') { if (++frame % 4 === 0) { if (!agent) agent = newEpisode(); if (qStep(agent)) agent = null; draw(); } }
+    else { agent = null; for (let k = 0; k < +sp; k++) runEpisode(); draw(); }
+  }
+  requestAnimationFrame(loop);
+}
+$('play').onclick = () => { playing = !playing; $('play').textContent = playing ? 'Пауза' : 'Пуск'; };
+$('ep1').onclick = () => { if (agent) { while (!qStep(agent)); agent = null; } else runEpisode(); draw(); };
+$('reset').onclick = () => { seed++; reset(); };
+$('scenario').onchange = () => load(+$('scenario').value);
+for (const k of SL) $(k).addEventListener('input', onParam);
+$('shaping').onchange = onParam; $('decay').onchange = onParam; $('view').onchange = draw; $('nums').onchange = draw;
+window.addEventListener('resize', draw);
 
-      // Coordinate transforms: world x in [-3, 3] maps to screen
-      const scaleX = w / 5.5;
-      const originX = w / 2;
-      const originY = h * 0.68;
-
-      // Draw floor / rail
-      arenaCtx.strokeStyle = '#cbd5e1';
-      arenaCtx.lineWidth = 4;
-      arenaCtx.beginPath();
-      arenaCtx.moveTo(w * 0.05, originY);
-      arenaCtx.lineTo(w * 0.95, originY);
-      arenaCtx.stroke();
-
-      // Rail markings
-      arenaCtx.fillStyle = '#94a3b8';
-      for (let markX = -2.5; markX <= 2.5; markX += 0.5) {
-        const sx = originX + markX * scaleX;
-        arenaCtx.fillRect(sx - 1, originY - 3, 2, 6);
-      }
-
-      // Draw Target Marker
-      const targetScreenX = originX + sim.targetX * scaleX;
-      arenaCtx.strokeStyle = '#059669';
-      arenaCtx.lineWidth = 2;
-      arenaCtx.setLineDash([4, 4]);
-      arenaCtx.beginPath();
-      arenaCtx.moveTo(targetScreenX, originY - 100);
-      arenaCtx.lineTo(targetScreenX, originY + 20);
-      arenaCtx.stroke();
-      arenaCtx.setLineDash([]);
-
-      // Target Flag
-      arenaCtx.fillStyle = '#10b981';
-      arenaCtx.beginPath();
-      arenaCtx.moveTo(targetScreenX, originY - 100);
-      arenaCtx.lineTo(targetScreenX + 16, originY - 90);
-      arenaCtx.lineTo(targetScreenX, originY - 80);
-      arenaCtx.closePath();
-      arenaCtx.fill();
-      arenaCtx.fillStyle = '#047857';
-      arenaCtx.font = '10px JetBrains Mono, monospace';
-      arenaCtx.fillText('x*=' + sim.targetX.toFixed(1) + 'm', targetScreenX + 5, originY - 108);
-
-      // Cart coordinates
-      const cartScreenX = originX + sim.x * scaleX;
-      const cartW = 68;
-      const cartH = 34;
-      const cartY = originY - cartH;
-
-      // Draw Cart body
-      arenaCtx.fillStyle = '#1e293b';
-      arenaCtx.beginPath();
-      arenaCtx.roundRect(cartScreenX - cartW / 2, cartY, cartW, cartH, 6);
-      arenaCtx.fill();
-      arenaCtx.strokeStyle = '#475569';
-      arenaCtx.lineWidth = 2;
-      arenaCtx.stroke();
-
-      // Cart wheels
-      arenaCtx.fillStyle = '#0f172a';
-      arenaCtx.beginPath();
-      arenaCtx.arc(cartScreenX - 20, originY, 8, 0, Math.PI * 2);
-      arenaCtx.arc(cartScreenX + 20, originY, 8, 0, Math.PI * 2);
-      arenaCtx.fill();
-      arenaCtx.strokeStyle = '#64748b';
-      arenaCtx.stroke();
-
-      // Pole coordinates
-      const poleLenPx = sim.len * scaleX * 1.5;
-      const pivotX = cartScreenX;
-      const pivotY = cartY + 6;
-      const tipX = pivotX + poleLenPx * Math.sin(sim.theta);
-      const tipY = pivotY - poleLenPx * Math.cos(sim.theta);
-
-      // Pole rod
-      arenaCtx.strokeStyle = Math.abs(sim.theta) < 0.3 ? '#2563eb' : '#dc2626';
-      arenaCtx.lineWidth = 6;
-      arenaCtx.lineCap = 'round';
-      arenaCtx.beginPath();
-      arenaCtx.moveTo(pivotX, pivotY);
-      arenaCtx.lineTo(tipX, tipY);
-      arenaCtx.stroke();
-
-      // Pivot joint
-      arenaCtx.fillStyle = '#e2e8f0';
-      arenaCtx.beginPath();
-      arenaCtx.arc(pivotX, pivotY, 6, 0, Math.PI * 2);
-      arenaCtx.fill();
-      arenaCtx.stroke();
-
-      // Pole mass (tip)
-      arenaCtx.fillStyle = '#38bdf8';
-      arenaCtx.beginPath();
-      arenaCtx.arc(tipX, tipY, 12, 0, Math.PI * 2);
-      arenaCtx.fill();
-      arenaCtx.strokeStyle = '#0284c7';
-      arenaCtx.lineWidth = 2;
-      arenaCtx.stroke();
-
-      // Force Vector u(t)
-      if (Math.abs(sim.u) > 0.5) {
-        const arrowLen = (sim.u / sim.uMax) * 50;
-        const arrowY = cartY + cartH / 2;
-        arenaCtx.strokeStyle = '#d97706';
-        arenaCtx.fillStyle = '#d97706';
-        arenaCtx.lineWidth = 3;
-        arenaCtx.beginPath();
-        arenaCtx.moveTo(cartScreenX, arrowY);
-        arenaCtx.lineTo(cartScreenX + arrowLen, arrowY);
-        arenaCtx.stroke();
-        // Arrow head
-        const headDir = Math.sign(arrowLen);
-        arenaCtx.beginPath();
-        arenaCtx.moveTo(cartScreenX + arrowLen, arrowY);
-        arenaCtx.lineTo(cartScreenX + arrowLen - headDir * 7, arrowY - 4);
-        arenaCtx.lineTo(cartScreenX + arrowLen - headDir * 7, arrowY + 4);
-        arenaCtx.closePath();
-        arenaCtx.fill();
-      }
-
-      // Stability Angle Indicator
-      const deg = (sim.theta * 180 / Math.PI).toFixed(1);
-      arenaCtx.fillStyle = Math.abs(sim.theta) < 0.25 ? '#059669' : '#dc2626';
-      arenaCtx.font = '11px JetBrains Mono, monospace';
-      arenaCtx.fillText(`θ = ${deg}°`, cartScreenX - 20, cartY - 14);
-    }
-
-    function renderPlots() {
-      const w = plotsCanvas.width = plotsCanvas.clientWidth;
-      const h = plotsCanvas.height = plotsCanvas.clientHeight;
-      plotsCtx.clearRect(0, 0, w, h);
-
-      if (sim.history.length < 2) return;
-
-      const midY = h * 0.5;
-
-      // Draw zero axis
-      plotsCtx.strokeStyle = '#e2e8f0';
-      plotsCtx.lineWidth = 1;
-      plotsCtx.beginPath();
-      plotsCtx.moveTo(0, midY);
-      plotsCtx.lineTo(w, midY);
-      plotsCtx.stroke();
-
-      const n = sim.history.length;
-      const dx = w / (sim.maxHistory - 1);
-
-      // 1. Plot Control Effort u(t) (Blue)
-      plotsCtx.strokeStyle = '#2563eb';
-      plotsCtx.lineWidth = 2;
-      plotsCtx.beginPath();
-      for (let i = 0; i < n; i++) {
-        const pt = sim.history[i];
-        const px = i * dx;
-        const py = midY - (pt.u / sim.uMax) * (h * 0.42);
-        if (i === 0) plotsCtx.moveTo(px, py);
-        else plotsCtx.lineTo(px, py);
-      }
-      plotsCtx.stroke();
-
-      // 2. Plot Position Reward R_pos (Green)
-      plotsCtx.strokeStyle = '#059669';
-      plotsCtx.lineWidth = 1.5;
-      plotsCtx.beginPath();
-      for (let i = 0; i < n; i++) {
-        const pt = sim.history[i];
-        const px = i * dx;
-        // scaled reward
-        const py = midY - Math.max(-1, Math.min(1, pt.rPos * 0.2)) * (h * 0.38);
-        if (i === 0) plotsCtx.moveTo(px, py);
-        else plotsCtx.lineTo(px, py);
-      }
-      plotsCtx.stroke();
-
-      // 3. Plot Energy Penalty R_effort (Red)
-      plotsCtx.strokeStyle = '#dc2626';
-      plotsCtx.lineWidth = 1.2;
-      plotsCtx.beginPath();
-      for (let i = 0; i < n; i++) {
-        const pt = sim.history[i];
-        const px = i * dx;
-        const py = midY - Math.max(-1, Math.min(1, pt.rEffort * 0.5)) * (h * 0.38);
-        if (i === 0) plotsCtx.moveTo(px, py);
-        else plotsCtx.lineTo(px, py);
-      }
-      plotsCtx.stroke();
-    }
-
-    function updateTelemetry() {
-      statReturn.textContent = sim.totalReturn.toFixed(1);
-      const last = sim.history[sim.history.length - 1];
-      statReward.textContent = last ? last.reward.toFixed(2) : '0.00';
-      statEnergy.textContent = sim.totalEnergy.toFixed(1) + ' Дж';
-
-      if (sim.mode === 'rl_dense') {
-        statLatency.textContent = '~0.12 мс (MLP)';
-        modeBadge.className = 'badge-mode badge-rl';
-        modeBadge.textContent = 'RL DENSE';
-        takeawayText.innerHTML = '<strong>Плотная награда (Dense Reward)</strong>: Совместная оптимизация $w_p, w_\\theta, w_u$ дает устойчивую локомоцию с минимальными затратами тока на сервоприводах.';
-      } else if (sim.mode === 'rl_sparse') {
-        statLatency.textContent = '~0.10 мс (MLP)';
-        modeBadge.className = 'badge-mode badge-sparse';
-        modeBadge.textContent = 'RL SPARSE';
-        takeawayText.innerHTML = '<strong>Разреженная награда (Sparse Reward)</strong>: Агент получает сигнал только при успехе/падении. Результат: резкие удары приводов, дрейф позиции и потеря равновесия.';
-      } else {
-        statLatency.textContent = '~1.85 мс (LQR)';
-        modeBadge.className = 'badge-mode badge-oc';
-        modeBadge.textContent = 'OPTIMAL CONTROL';
-        takeawayText.innerHTML = '<strong>Классический LQR</strong>: Идеален вблизи $\\theta=0$. При сильном толчке (kick) нелинейные эффекты выводят систему за пределы линеаризации, вызывая срыв управления.';
-      }
-      if (window.renderMathInElement) {
-        window.renderMathInElement(takeawayText, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});
-      }
-    }
-
-    // --- Interactive Loop ---
-    function animate() {
-      if (sim.running) {
-        stepPhysics();
-      }
-      renderArena();
-      renderPlots();
-      updateTelemetry();
-      requestAnimationFrame(animate);
-    }
-
-    // --- Event Listeners ---
-    btnPlay.addEventListener('click', () => {
-      sim.running = !sim.running;
-      btnPlay.textContent = sim.running ? '⏸ Пауза' : '▶ Старт';
-      btnPlay.className = sim.running ? 'btn btn-success' : 'btn btn-primary';
-    });
-
-    btnStep.addEventListener('click', () => {
-      sim.running = false;
-      btnPlay.textContent = '▶ Старт';
-      btnPlay.className = 'btn btn-primary';
-      stepPhysics();
-      renderArena();
-      renderPlots();
-      updateTelemetry();
-    });
-
-    btnReset.addEventListener('click', () => {
-      sim.x = 0;
-      sim.x_dot = 0;
-      sim.theta = 0.08;
-      sim.theta_dot = 0;
-      sim.u = 0;
-      sim.prevU = 0;
-      sim.totalReturn = 0;
-      sim.totalEnergy = 0;
-      sim.history = [];
-      renderArena();
-      renderPlots();
-      updateTelemetry();
-    });
-
-    btnKick.addEventListener('click', () => {
-      // Inject physical disturbance
-      sim.theta_dot += (Math.random() > 0.5 ? 1 : -1) * (2.4 + Math.random() * 1.5);
-      sim.x_dot += (Math.random() - 0.5) * 1.8;
-    });
-
-
-    selectMode.addEventListener('change', (e) => {
-      sim.mode = e.target.value;
-      updateTelemetry();
-    });
-
-    // Slider inputs
-    slWPos.addEventListener('input', (e) => {
-      sim.wPos = parseFloat(e.target.value);
-      valWPos.textContent = sim.wPos.toFixed(1);
-    });
-    slWAngle.addEventListener('input', (e) => {
-      sim.wAngle = parseFloat(e.target.value);
-      valWAngle.textContent = sim.wAngle.toFixed(1);
-    });
-    slWEffort.addEventListener('input', (e) => {
-      sim.wEffort = parseFloat(e.target.value);
-      valWEffort.textContent = sim.wEffort.toFixed(2);
-    });
-    slWSmooth.addEventListener('input', (e) => {
-      sim.wSmooth = parseFloat(e.target.value);
-      valWSmooth.textContent = sim.wSmooth.toFixed(1);
-    });
-    slFriction.addEventListener('input', (e) => {
-      sim.friction = parseFloat(e.target.value);
-      valFriction.textContent = sim.friction.toFixed(2);
-    });
-    slNoise.addEventListener('input', (e) => {
-      sim.noise = parseFloat(e.target.value);
-      valNoise.textContent = sim.noise.toFixed(3);
-    });
-    slMass.addEventListener('input', (e) => {
-      sim.mp = parseFloat(e.target.value);
-      valMass.textContent = sim.mp.toFixed(1);
-    });
-
-    // Arena click to set target X
-    arenaCanvas.addEventListener('mousedown', (e) => {
-      const rect = arenaCanvas.getBoundingClientRect();
-      const clickX = e.clientX - rect.left;
-      const w = arenaCanvas.width;
-      const scaleX = w / 5.5;
-      const originX = w / 2;
-      const newX = (clickX - originX) / scaleX;
-      sim.targetX = Math.max(-2.3, Math.min(2.3, newX));
-    });
-
-    // Auto-start simulation
-    sim.running = true;
-    btnPlay.textContent = '⏸ Пауза';
-    btnPlay.className = 'btn btn-success';
-    animate();
-  </script>
+const qs = new URLSearchParams(location.search).get('scenario') || '1';
+let si = SCENARIOS.findIndex(s => s.key === qs); if (si < 0) si = Math.max(0, Math.min(SCENARIOS.length - 1, (+qs || 1) - 1));
+$('scenario').value = si; load(si);
+requestAnimationFrame(loop);
+</script>
 </body>
 </html>

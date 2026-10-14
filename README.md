@@ -41,9 +41,10 @@ Docker DevContainer, публикация — на GitHub Pages.
 | [`mppi-planner`](widgets/mppi-planner/index.html) | Model Predictive Path Integral (MPPI): стохастические rollouts траекторий на GPU | 04 |
 | [`hybrid-astar`](widgets/hybrid-astar/index.html) | Hybrid $A^*$: планирование для шасси с кинематикой Ридса–Шеппа / Дубинса | 04 |
 | [`kinodynamic-rrt`](widgets/kinodynamic-rrt/index.html) | Кинодинамический RRT: прямое интегрирование ODE с динамическими ограничениями | 04 |
-| [`bang-bang-simulator`](widgets/bang-bang-simulator/index.html) | Фазовая плоскость двойного интегратора: релейное Bang-Bang управление vs LQR | 05 |
-| [`shooting-collocation-simulator`](widgets/shooting-collocation-simulator/index.html) | Прямая дискретизация OCP: Single Shooting vs Multiple Shooting vs Direct Collocation | 05 |
-| [`mpc-interactive-solver`](widgets/mpc-interactive-solver/index.html) | Нелинейный MPC на рецессивном горизонте: обход препятствий, KKT и теплый старт | 05 |
+| [`bang-bang-simulator`](widgets/bang-bang-simulator/index.html) | Тележка на фазовой плоскости: релейное управление (быстродействие), минимум энергии и LQR на одной задаче; толчок, дребезг | 05 |
+| [`shooting-collocation-simulator`](widgets/shooting-collocation-simulator/index.html) | Одиночная и многократная стрельба, коллокация: настоящий SQP по шагам, дефекты и невязки; неустойчивая система | 05 |
+| [`mpc-interactive-solver`](widgets/mpc-interactive-solver/index.html) | MPC для робота на плоскости: скользящий горизонт, короткий горизонт, неточная модель и толчок, локальный минимум | 05 |
+| [`rl-policy-shaping`](widgets/rl-policy-shaping/index.html) | Табличный Q-learning на клеточном поле и точное решение; исследование, дисконт, скольжение; разреженная, потенциальная награда и взлом награды | 06 |
 
 ## Иллюстрации
 
