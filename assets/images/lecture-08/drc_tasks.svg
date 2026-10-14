@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 360" width="1100" height="360" font-family="Inter, 'Segoe UI', Roboto, Arial, sans-serif">
+<rect width="1100" height="360" fill="#ffffff"/>
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker><marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker><marker id="arrR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker><marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker><marker id="arrP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker><marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d97706"/></marker></defs>
+<text x="550.0" y="28.0" font-size="17" fill="#0f172a" text-anchor="middle" font-weight="700">DARPA Robotics Challenge, финал 2015: восемь заданий за один час, связь с оператором ухудшена</text>
+<rect x="38.0" y="52.0" width="124.0" height="150.0" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4"/>
+<circle cx="56.0" cy="70.0" r="12" fill="#2563eb" stroke="none" stroke-width="1.5"/>
+<text x="56.0" y="75.0" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="700">1</text>
+<path d="M60.0,144 v-18 l14,-16 h36 l16,16 h14 v18 z" fill="#dbeafe" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<circle cx="78.0" cy="146.0" r="9" fill="#475569" stroke="#334155" stroke-width="1.5"/>
+<circle cx="126.0" cy="146.0" r="9" fill="#475569" stroke="#334155" stroke-width="1.5"/>
+<text x="100.0" y="180.0" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="700">езда</text>
+<text x="100.0" y="197.0" font-size="12" fill="#475569" text-anchor="middle" font-weight="400">на автомобиле</text>
+<line x1="160.0" y1="127.0" x2="168.0" y2="127.0" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>
+<rect x="169.0" y="52.0" width="124.0" height="150.0" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4"/>
+<circle cx="187.0" cy="70.0" r="12" fill="#2563eb" stroke="none" stroke-width="1.5"/>
+<text x="187.0" y="75.0" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="700">2</text>
+<path d="M191.0,144 v-18 l14,-16 h36 l16,16 h14 v18 z" fill="#dbeafe" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<circle cx="209.0" cy="146.0" r="9" fill="#475569" stroke="#334155" stroke-width="1.5"/>
+<circle cx="257.0" cy="146.0" r="9" fill="#475569" stroke="#334155" stroke-width="1.5"/>
+<line x1="239.0" y1="116.0" x2="277.0" y2="90.0" stroke="#2563eb" stroke-width="2.2" marker-end="url(#arrB)"/>
+<text x="231.0" y="180.0" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="700">выход</text>
+<text x="231.0" y="197.0" font-size="12" fill="#475569" text-anchor="middle" font-weight="400">из машины</text>
+<line x1="291.0" y1="127.0" x2="299.0" y2="127.0" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>
+<rect x="300.0" y="52.0" width="124.0" height="150.0" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4"/>
+<circle cx="318.0" cy="70.0" r="12" fill="#2563eb" stroke="none" stroke-width="1.5"/>
+<text x="318.0" y="75.0" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="700">3</text>
+<path d="M340.0,158 v-62 h34 v62" fill="#fef3c7" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<circle cx="366.0" cy="130.0" r="3" fill="#334155" stroke="none" stroke-width="1.5"/>
+<path d="M374.0,158 A 34 34 0 0 0 396.0,126" fill="none" stroke="#2563eb" stroke-width="2" stroke-dasharray="4 3"/>
+<text x="362.0" y="180.0" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="700">дверь</text>
+<text x="362.0" y="197.0" font-size="12" fill="#475569" text-anchor="middle" font-weight="400">открыть, пройти</text>
+<line x1="422.0" y1="127.0" x2="430.0" y2="127.0" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>
+<rect x="431.0" y="52.0" width="124.0" height="150.0" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4"/>
+<circle cx="449.0" cy="70.0" r="12" fill="#2563eb" stroke="none" stroke-width="1.5"/>
+<text x="449.0" y="75.0" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="700">4</text>
+<circle cx="493.0" cy="130.0" r="26" fill="none" stroke="#334155" stroke-width="4"/>
+<line x1="467.0" y1="130.0" x2="519.0" y2="130.0" stroke="#334155" stroke-width="3"/>
+<line x1="480.0" y1="107.5" x2="506.0" y2="152.5" stroke="#334155" stroke-width="3"/>
+<line x1="506.0" y1="107.5" x2="480.0" y2="152.5" stroke="#334155" stroke-width="3"/>
+<path d="M459.0,116 A 36 36 0 0 1 505.0,94" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrB)"/>
+<text x="493.0" y="180.0" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="700">вентиль</text>
+<text x="493.0" y="197.0" font-size="12" fill="#475569" text-anchor="middle" font-weight="400">повернуть</text>
+<line x1="553.0" y1="127.0" x2="561.0" y2="127.0" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>
+<rect x="562.0" y="52.0" width="124.0" height="150.0" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4"/>
+<circle cx="580.0" cy="70.0" r="12" fill="#2563eb" stroke="none" stroke-width="1.5"/>
+<text x="580.0" y="75.0" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="700">5</text>
+<rect x="588.0" y="96.0" width="72.0" height="64.0" rx="2" fill="#e7e5e4" stroke="#334155" stroke-width="1.4"/>
+<circle cx="624.0" cy="128.0" r="16" fill="#ffffff" stroke="#dc2626" stroke-width="2"/>
+<line x1="640.0" y1="128.0" x2="662.0" y2="148.0" stroke="#334155" stroke-width="5"/>
+<text x="624.0" y="180.0" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="700">стена</text>
+<text x="624.0" y="197.0" font-size="12" fill="#475569" text-anchor="middle" font-weight="400">вырезать проём</text>
+<line x1="684.0" y1="127.0" x2="692.0" y2="127.0" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>
+<rect x="693.0" y="52.0" width="124.0" height="150.0" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4"/>
+<circle cx="711.0" cy="70.0" r="12" fill="#2563eb" stroke="none" stroke-width="1.5"/>
+<text x="711.0" y="75.0" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="700">6</text>
+<rect x="729.0" y="100.0" width="52.0" height="56.0" rx="6" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.6"/>
+<text x="755.0" y="142.0" font-size="36" fill="#7c3aed" text-anchor="middle" font-weight="700">?</text>
+<text x="755.0" y="180.0" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="700">сюрприз</text>
+<text x="755.0" y="197.0" font-size="12" fill="#475569" text-anchor="middle" font-weight="400">рубильник, вилка</text>
+<line x1="815.0" y1="127.0" x2="823.0" y2="127.0" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>
+<rect x="824.0" y="52.0" width="124.0" height="150.0" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4"/>
+<circle cx="842.0" cy="70.0" r="12" fill="#2563eb" stroke="none" stroke-width="1.5"/>
+<text x="842.0" y="75.0" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="700">7</text>
+<rect x="852.0" y="144.0" width="26" height="16" fill="#d6d3d1" stroke="#334155" stroke-width="1.3" transform="rotate(-12 865.0 152.0)"/>
+<rect x="880.0" y="148.0" width="30" height="12" fill="#d6d3d1" stroke="#334155" stroke-width="1.3" transform="rotate(8 895.0 154.0)"/>
+<rect x="904.0" y="138.0" width="22" height="20" fill="#d6d3d1" stroke="#334155" stroke-width="1.3" transform="rotate(-20 915.0 148.0)"/>
+<rect x="866.0" y="126.0" width="24" height="14" fill="#d6d3d1" stroke="#334155" stroke-width="1.3" transform="rotate(25 878.0 133.0)"/>
+<rect x="892.0" y="122.0" width="20" height="12" fill="#d6d3d1" stroke="#334155" stroke-width="1.3" transform="rotate(-5 902.0 128.0)"/>
+<text x="886.0" y="180.0" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="700">завал</text>
+<text x="886.0" y="197.0" font-size="12" fill="#475569" text-anchor="middle" font-weight="400">или неровный пол</text>
+<line x1="946.0" y1="127.0" x2="954.0" y2="127.0" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>
+<rect x="955.0" y="52.0" width="124.0" height="150.0" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4"/>
+<circle cx="973.0" cy="70.0" r="12" fill="#2563eb" stroke="none" stroke-width="1.5"/>
+<text x="973.0" y="75.0" font-size="13" fill="#ffffff" text-anchor="middle" font-weight="700">8</text>
+<polygon points="977.0,160.0 977.0,145.0 997.0,145.0 997.0,130.0 1017.0,130.0 1017.0,115.0 1037.0,115.0 1037.0,100.0 1057.0,100.0 1057.0,160.0" fill="#e2e8f0" fill-opacity="1" stroke="#334155"/>
+<text x="1017.0" y="180.0" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="700">лестница</text>
+<text x="1017.0" y="197.0" font-size="12" fill="#475569" text-anchor="middle" font-weight="400">подняться</text>
+<rect x="38.0" y="220.0" width="470.0" height="128.0" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="1.4"/>
+<text x="54.0" y="244.0" font-size="14" fill="#059669" text-anchor="start" font-weight="700">Победитель KAIST, робот DRC-HUBO</text>
+<text x="54.0" y="266.0" font-size="12.5" fill="#0f172a" text-anchor="start" font-weight="400">на ровном месте опускался на колени</text>
+<text x="54.0" y="284.0" font-size="12.5" fill="#0f172a" text-anchor="start" font-weight="400">и ехал на колёсах, по завалу и лестнице</text>
+<text x="54.0" y="302.0" font-size="12.5" fill="#0f172a" text-anchor="start" font-weight="400">шёл ногами; 8 из 8 заданий за 44 мин</text>
+<polyline points="364.4,280.0 363.6,303.0 363.6,326.5" fill="none" stroke="#334155" stroke-width="10.0" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="364.4,280.0 363.6,303.0 363.6,326.5" fill="none" stroke="#e2e8f0" stroke-width="7.000000000000001" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<path d="M359.1,330.0 h9.0 v-3.0 q-2.0,-1.2 -7.0,0 z" fill="#e2e8f0" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<polyline points="375.6,280.0 376.4,303.0 376.4,326.5" fill="none" stroke="#334155" stroke-width="10.0" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="375.6,280.0 376.4,303.0 376.4,326.5" fill="none" stroke="#e2e8f0" stroke-width="7.000000000000001" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<path d="M371.9,330.0 h9.0 v-3.0 q-2.0,-1.2 -7.0,0 z" fill="#e2e8f0" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<polyline points="357.2,252.0 355.1,267.0 355.8,283.0" fill="none" stroke="#334155" stroke-width="8.0" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="357.2,252.0 355.1,267.0 355.8,283.0" fill="none" stroke="#e2e8f0" stroke-width="5.0" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="382.8,252.0 384.9,267.0 384.2,283.0" fill="none" stroke="#334155" stroke-width="8.0" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="382.8,252.0 384.9,267.0 384.2,283.0" fill="none" stroke="#e2e8f0" stroke-width="5.0" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<path d="M362.5,283.0 L377.5,283.0 L377.9,272.0 L362.1,272.0 z" fill="#e2e8f0" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<path d="M356.5,250.0 Q370.0,247.0 383.5,250.0 L380.8,273.0 L359.2,273.0 z" fill="#e2e8f0" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<path d="M362.6,254.0 h14.9 v8.0 h-14.9 z" fill="#64748b" stroke="none" stroke-width="0" stroke-linejoin="round"/>
+<line x1="370.0" y1="250.0" x2="370.0" y2="247.5" stroke="#334155" stroke-width="3"/>
+<path d="M362.9,235.8 h14.3 v10.4 h-14.3 z" fill="#e2e8f0" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<circle cx="367.1" cy="241.0" r="1.43" fill="#1e293b" stroke="none" stroke-width="1.5"/>
+<circle cx="372.9" cy="241.0" r="1.43" fill="#1e293b" stroke="none" stroke-width="1.5"/>
+<line x1="400.0" y1="290.0" x2="430.0" y2="290.0" stroke="#059669" stroke-width="2" marker-end="url(#arrG)"/>
+<polyline points="460.8,295.0 459.6,321.6" fill="none" stroke="#334155" stroke-width="8.635" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="460.8,295.0 459.6,321.6" fill="none" stroke="#e2e8f0" stroke-width="5.635" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<circle cx="459.6" cy="325.1" r="4.9" fill="#475569" stroke="#334155" stroke-width="1.5"/>
+<polyline points="469.2,295.0 470.4,321.6" fill="none" stroke="#334155" stroke-width="8.635" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="469.2,295.0 470.4,321.6" fill="none" stroke="#e2e8f0" stroke-width="5.635" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<circle cx="470.4" cy="325.1" r="4.9" fill="#475569" stroke="#334155" stroke-width="1.5"/>
+<polyline points="454.7,275.4 453.0,285.9 453.6,297.1" fill="none" stroke="#334155" stroke-width="7.0249999999999995" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="454.7,275.4 453.0,285.9 453.6,297.1" fill="none" stroke="#e2e8f0" stroke-width="4.0249999999999995" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="475.3,275.4 477.0,285.9 476.4,297.1" fill="none" stroke="#334155" stroke-width="7.0249999999999995" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="475.3,275.4 477.0,285.9 476.4,297.1" fill="none" stroke="#e2e8f0" stroke-width="4.0249999999999995" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<path d="M459.0,297.1 L471.0,297.1 L471.3,289.4 L458.7,289.4 z" fill="#e2e8f0" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<path d="M454.1,274.0 Q465.0,271.9 475.9,274.0 L473.7,290.1 L456.3,290.1 z" fill="#e2e8f0" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<path d="M459.0,276.8 h12.0 v5.6 h-12.0 z" fill="#64748b" stroke="none" stroke-width="0" stroke-linejoin="round"/>
+<line x1="465.0" y1="274.0" x2="465.0" y2="272.2" stroke="#334155" stroke-width="3"/>
+<path d="M460.0,264.1 h10.0 v7.3 h-10.0 z" fill="#e2e8f0" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<circle cx="463.0" cy="267.7" r="1.001" fill="#1e293b" stroke="none" stroke-width="1.5"/>
+<circle cx="467.0" cy="267.7" r="1.001" fill="#1e293b" stroke="none" stroke-width="1.5"/>
+<rect x="526.0" y="220.0" width="536.0" height="128.0" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="1.4"/>
+<text x="542.0" y="244.0" font-size="14" fill="#dc2626" text-anchor="start" font-weight="700">Почему падали</text>
+<text x="542.0" y="266.0" font-size="12.5" fill="#0f172a" text-anchor="start" font-weight="400">выход из машины, шаг через порог, неожиданный контакт рукой:</text>
+<text x="542.0" y="284.0" font-size="12.5" fill="#0f172a" text-anchor="start" font-weight="400">модельный регулятор рассчитан на заданные контакты, а здесь</text>
+<text x="542.0" y="302.0" font-size="12.5" fill="#0f172a" text-anchor="start" font-weight="400">контакты появлялись там, где модель их не ждала.</text>
+<text x="542.0" y="320.0" font-size="12.5" fill="#0f172a" text-anchor="start" font-weight="400">Второе место — IHMC на Atlas, третье — CHIMP (Tartan Rescue).</text>
+</svg>

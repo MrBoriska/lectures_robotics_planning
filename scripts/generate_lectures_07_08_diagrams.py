@@ -15,7 +15,9 @@ generate_lectures_07_08_diagrams.py
 - смесь гауссиан демонстраций, прямой процесс зашумления и обратный процесс DDPM
   с точной функцией оценки (как в виджете diffusion-policy-interactive);
 - траектории согласования потоков и диффузии в одномерном примере;
-- LIPM: расходимость, полоса захвата, походка как последовательность маятников.
+- LIPM: расходимость, полоса захвата, походка как последовательность маятников;
+- D* Lite на сетке (сравнение с A* с нуля) и пример g/rhs;
+- условные силуэты роботов в одном масштабе (рост и масса по данным производителей).
 
 Примитивы SVG и палитра берутся из generate_lectures_05_06_diagrams.py.
 
@@ -129,7 +131,7 @@ def l07_course_place():
     out = svg_open(W, H)
     out.append(text(550, 30, 'Где применяются методы лекции 07 в системе управления мобильным роботом', 18, INK, 'middle', 700))
     blocks = [
-        ('Глобальный путь', ['A*, Hybrid A*, RRT*', 'лекции 02–04'], INK, PANEL),
+        ('Глобальный путь', ['A*, RRT*, лекции 02–04;', 'D* Lite при новой карте'], BLUE, '#eff6ff'),
         ('Траектория по пути', ['сглаживание и профиль', 'скорости, лекция 02'], INK, PANEL),
         ('Локальный план', ['DWA, MPPI, MPC,', 'решётка Френе'], BLUE, '#eff6ff'),
         ('Регуляторы приводов', ['скорости и моменты', '≈ 1 кГц'], INK, PANEL),
@@ -141,10 +143,11 @@ def l07_course_place():
             out.append(arrow(x + 230, 110, x + 262, 110, MUTED, 2.2))
         x += 265
     out.append(rect(30, 190, 1040, 90, '#faf5ff', PURPLE, 10, 1.6, '6 4'))
-    out.append(text(48, 216, 'Обучаемые политики (части 2–3 лекции)', 16, PURPLE, 'start', 700))
+    out.append(text(48, 216, 'Обучаемые политики (части 3–4 лекции)', 16, PURPLE, 'start', 700))
     out += wrap_lines(48, 242, ['Диффузионная политика или NoMaD заменяет блоки «траектория» и «локальный план»: по изображениям сразу выдаёт',
                                 'последовательность действий на ближайшие секунды. Классические блоки остаются как проверка безопасности.'], 14, INK)
-    out.append(text(610, 182, 'часть 1', 13, BLUE, 'middle', 700))
+    out.append(text(145, 52, 'часть 1', 13, BLUE, 'middle', 700))
+    out.append(text(675, 52, 'часть 2', 13, BLUE, 'middle', 700))
     write(os.path.join(OUT07, 'course_place.svg'), out)
 
 
@@ -852,6 +855,311 @@ def l07_topological_graph():
 # Лекция 08
 # ===========================================================================
 
+# ===========================================================================
+# Лекция 07. Часть 1: перепланирование при изменении карты (D* Lite)
+# ===========================================================================
+
+DW, DH = 26, 16
+D_START, D_GOAL = (2, 8), (23, 8)
+D_DIRS = [(1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1)]
+
+
+def d_inside(x, y):
+    return 0 <= x < DW and 0 <= y < DH
+
+
+def d_cost(m, a, b):
+    if (a in m) or (b in m):
+        return math.inf
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    if dx and dy and (((a[0] + dx, a[1]) in m) or ((a[0], a[1] + dy) in m)):
+        return math.inf
+    return math.sqrt(2) if dx and dy else 1.0
+
+
+def d_nbrs(c):
+    return [(c[0] + dx, c[1] + dy) for dx, dy in D_DIRS if d_inside(c[0] + dx, c[1] + dy)]
+
+
+def d_h(a, b):
+    dx, dy = abs(a[0] - b[0]), abs(a[1] - b[1])
+    return max(dx, dy) + (math.sqrt(2) - 1) * min(dx, dy)
+
+
+class DStarLite:
+    """D* Lite (Koenig, Likhachev, 2002) на 8-связной сетке, как в виджете dstar-lite."""
+
+    def __init__(self, known, start):
+        import heapq
+        self.hq = heapq
+        self.m = set(known)
+        self.start, self.last, self.km = start, start, 0.0
+        self.g, self.rhs, self.heap, self.inq = {}, {D_GOAL: 0.0}, [], {}
+        self.push(D_GOAL)
+
+    def G(self, c):
+        return self.g.get(c, math.inf)
+
+    def R(self, c):
+        return self.rhs.get(c, math.inf)
+
+    def key(self, c):
+        k = min(self.G(c), self.R(c))
+        return (k + d_h(self.start, c) + self.km, k)
+
+    def push(self, c):
+        k = self.key(c)
+        self.inq[c] = k
+        self.hq.heappush(self.heap, (k, c))
+
+    def top(self):
+        while self.heap and self.inq.get(self.heap[0][1]) != self.heap[0][0]:
+            self.hq.heappop(self.heap)
+        return self.heap[0][0] if self.heap else (math.inf, math.inf)
+
+    def update(self, u):
+        if u != D_GOAL:
+            self.rhs[u] = min((d_cost(self.m, u, n) + self.G(n) for n in d_nbrs(u)), default=math.inf)
+        self.inq.pop(u, None)
+        if self.G(u) != self.R(u):
+            self.push(u)
+
+    def compute(self):
+        expanded = []
+        while self.top() < self.key(self.start) or self.R(self.start) != self.G(self.start):
+            if not self.heap:
+                break
+            kold, u = self.hq.heappop(self.heap)
+            self.inq.pop(u, None)
+            if kold < self.key(u):
+                self.push(u)
+                continue
+            expanded.append(u)
+            if self.G(u) > self.R(u):
+                self.g[u] = self.R(u)
+                for n in d_nbrs(u):
+                    self.update(n)
+            else:
+                self.g[u] = math.inf
+                self.update(u)
+                for n in d_nbrs(u):
+                    self.update(n)
+        return expanded
+
+    def changed(self, cells, robot):
+        self.km += d_h(self.last, robot)
+        self.last = self.start = robot
+        touch = set()
+        for c in cells:
+            self.m.add(c)
+            touch.add(c)
+            touch.update(d_nbrs(c))
+        for c in touch:
+            self.update(c)
+
+    def plan(self):
+        p, c = [self.start], self.start
+        for _ in range(DW * DH):
+            if c == D_GOAL:
+                break
+            n = min(d_nbrs(c), key=lambda n: d_cost(self.m, c, n) + self.G(n))
+            if d_cost(self.m, c, n) + self.G(n) == math.inf:
+                break
+            c = n
+            p.append(c)
+        return p
+
+
+def d_astar(m, s):
+    import heapq
+    g, closed, op, exp = {s: 0.0}, set(), [(d_h(s, D_GOAL), s)], []
+    while op:
+        _, u = heapq.heappop(op)
+        if u in closed:
+            continue
+        closed.add(u)
+        exp.append(u)
+        if u == D_GOAL:
+            break
+        for n in d_nbrs(u):
+            c = d_cost(m, u, n)
+            if c == math.inf or n in closed:
+                continue
+            if g[u] + c < g.get(n, math.inf):
+                g[n] = g[u] + c
+                heapq.heappush(op, (g[n] + d_h(n, D_GOAL), n))
+    return exp
+
+
+def d_grid(ox, oy, cs, known, hidden, fill=None, path=None, trail=None, robot=None, sensor=None):
+    out = []
+    for y in range(DH):
+        for x in range(DW):
+            f = '#ffffff'
+            if fill and (x, y) in fill:
+                f = fill[(x, y)]
+            if (x, y) in known:
+                f = '#334155'
+            out.append(rect(ox + x * cs, oy + y * cs, cs, cs, f, '#e2e8f0', 0, 0.6))
+            if (x, y) in hidden and (x, y) not in known:
+                out.append(rect(ox + x * cs + 2, oy + y * cs + 2, cs - 4, cs - 4, '#e2e8f0', '#94a3b8', 0, 0.8, '3 2'))
+    P = lambda c: (ox + (c[0] + 0.5) * cs, oy + (c[1] + 0.5) * cs)
+    if sensor and robot:
+        X, Y = P(robot)
+        out.append(f'<circle cx="{X:.1f}" cy="{Y:.1f}" r="{(sensor + 0.5) * cs:.1f}" fill="none" stroke="{SKY}" stroke-width="1.3" stroke-dasharray="5 4"/>')
+    if path:
+        out.append(polyline([P(c) for c in path], GREEN, 2.6))
+    if trail:
+        out.append(polyline([P(c) for c in trail], BLUE, 2.4))
+    gx, gy = P(D_GOAL)
+    out.append(circle(gx, gy, cs * 0.42, GREEN))
+    if robot:
+        rx, ry = P(robot)
+        out.append(circle(rx, ry, cs * 0.45, BLUE))
+    return out
+
+
+def l07_dstar_replanning():
+    hidden = set((13, y) for y in range(0, 13))
+    known = set()
+    ds = DStarLite(known, D_START)
+    first = ds.compute()
+    robot, trail, sensor = D_START, [D_START], 2
+    seen, events = set(), []
+    while robot != D_GOAL and len(trail) < 200:
+        robot = ds.plan()[1]
+        ds.start = robot
+        trail.append(robot)
+        new = {c for c in hidden if c not in seen and (c[0] - robot[0]) ** 2 + (c[1] - robot[1]) ** 2 <= sensor * sensor + 0.5}
+        if new:
+            snap = dict(seen=set(seen), plan=ds.plan(), g=dict(ds.g), trail=list(trail), robot=robot, new=new)
+            seen |= new
+            ds.changed(new, robot)
+            snap['rep'] = ds.compute()
+            snap['exp_a'] = d_astar(seen, robot)
+            snap['after'] = ds.plan()
+            snap['seen_after'] = set(seen)
+            events.append(snap)
+    ev = max(events, key=lambda e: len(e['exp_a']) - len(e['rep']))
+    robot, trail, new = ev['robot'], ev['trail'], ev['new']
+    before_plan, g_before, rep, exp_a, seen = ev['plan'], ev['g'], ev['rep'], ev['exp_a'], ev['seen_after']
+    known_before = ev['seen']
+    tot_a, tot_d = sum(len(e['exp_a']) for e in events), sum(len(e['rep']) for e in events)
+    W, H = 1100, 352
+    out = svg_open(W, H)
+    cs = 13
+    panels = [
+        ('До: план по тому, что известно', 'датчик ещё не видит новые клетки стены'),
+        (f'A* с нуля: раскрыто {len(exp_a)} клеток', 'вся задача решается заново'),
+        (f'D* Lite: раскрыто {len(rep)} клеток', 'исправлены только изменившиеся g'),
+    ]
+    gmax = max(v for v in g_before.values() if v < math.inf)
+    for i, (t1, t2) in enumerate(panels):
+        ox, oy = 18 + i * 362, 62
+        out.append(text(ox + DW * cs / 2, 28, t1, 15, [INK, MUTED, AMBER][i], 'middle', 700))
+        out.append(text(ox + DW * cs / 2, 47, t2, 13, MUTED, 'middle'))
+        if i == 0:
+            fill = {c: f'rgb({int(239 - 80 * v / gmax)},{int(246 - 60 * v / gmax)},255)' for c, v in g_before.items() if v < math.inf}
+            out += d_grid(ox, oy, cs, known_before, hidden, fill, before_plan, trail, robot, sensor)
+        elif i == 1:
+            out += d_grid(ox, oy, cs, seen, hidden, {c: '#cbd5e1' for c in exp_a}, None, trail, robot, sensor)
+        else:
+            out += d_grid(ox, oy, cs, seen, hidden, {c: '#fdba74' for c in rep}, ev['after'], trail, robot, sensor)
+    out += legend(18, 292, [('пройдено', BLUE, None)], 13)
+    out += legend(140, 292, [('план', GREEN, None)], 13)
+    out.append(rect(240, 284, 12, 12, '#334155', '#334155', 0, 1))
+    out.append(text(258, 294, 'замеченная стена', 13, INK))
+    out.append(rect(390, 284, 12, 12, '#e2e8f0', '#94a3b8', 0, 1, '3 2'))
+    out.append(text(408, 294, 'ещё не замечена', 13, INK))
+    out.append(text(18, 320, f'Сценарий «неизвестная стена», шаг {len(trail) - 1}: датчик (радиус 2 клетки) заметил новые клетки стены: {len(new)}.', 13, MUTED))
+    out.append(text(18, 340, f'За весь проезд {len(events)} пересчётов: A* с нуля — {tot_a} раскрытий, D* Lite — {tot_d}.', 13, MUTED))
+    write(os.path.join(OUT07, 'dstar_replanning.svg'), out)
+    return len(first), len(exp_a), len(rep), tot_a, tot_d
+
+
+def l07_g_rhs():
+    """Маленький граф: значения g и rhs до изменения, сразу после и после пересчёта."""
+    pos = {'S': (0, 1), 'B': (1, 0), 'A': (2, 0), 'G': (3, 1), 'C': (1.5, 2)}
+    edges = {('S', 'B'): 1, ('B', 'A'): 1, ('A', 'G'): 1, ('S', 'C'): 2, ('C', 'G'): 3}
+
+    def dist(ed):
+        d = {n: math.inf for n in pos}
+        d['G'] = 0
+        for _ in range(10):
+            for (u, v), w in ed.items():
+                d[u] = min(d[u], d[v] + w)
+                d[v] = min(d[v], d[u] + w)
+        return d
+
+    g0 = dist(edges)
+    ed1 = dict(edges)
+    ed1[('A', 'G')] = math.inf
+    g1 = dist(ed1)
+
+    def rhs(gv, ed):
+        r = {}
+        for n in pos:
+            if n == 'G':
+                r[n] = 0
+                continue
+            best = math.inf
+            for (u, v), w in ed.items():
+                if u == n:
+                    best = min(best, w + gv[v])
+                if v == n:
+                    best = min(best, w + gv[u])
+            r[n] = best
+        return r
+    snaps = [('1. До изменения', g0, rhs(g0, edges), edges, 'все вершины согласованы: g = rhs'),
+             ('2. Ребро A–G перекрыто', g0, rhs(g0, ed1), ed1, 'у A теперь rhs ≠ g: вершина в очереди'),
+             ('3. После пересчёта', g1, rhs(g1, ed1), ed1, 'изменились только S, B, A; C и G не тронуты')]
+    W, H = 1100, 352
+    out = svg_open(W, H)
+    f = lambda v: '∞' if v == math.inf else f'{v:g}'
+    for i, (title, gv, rv, ed, cap) in enumerate(snaps):
+        ox = 20 + i * 362
+        out.append(text(ox + 165, 30, title, 15, INK, 'middle', 700))
+        P = lambda n: (ox + 40 + pos[n][0] * 90, 95 + pos[n][1] * 75)
+        for (u, v), w in ed.items():
+            (x1, y1), (x2, y2) = P(u), P(v)
+            blocked = w == math.inf
+            out.append(line(x1, y1, x2, y2, RED if blocked else LIGHT, 2.4, '6 4' if blocked else None))
+            out.append(text((x1 + x2) / 2, (y1 + y2) / 2 - 6, '∞' if blocked else f'{w:g}', 13, RED if blocked else MUTED, 'middle', 700))
+        for n in pos:
+            x, y = P(n)
+            bad = gv[n] != rv[n]
+            changed = i == 2 and g0[n] != g1[n]
+            col = AMBER if bad else (BLUE if changed else (GREEN if n == 'G' else INK))
+            out.append(circle(x, y, 17, '#fff7ed' if bad else ('#eff6ff' if changed else '#ffffff'), col, 2.2))
+            out.append(text(x, y + 5, n, 15, col, 'middle', 700))
+            ly = y - 26 if n in ('A', 'B') else y + 34
+            out.append(text(x, ly, f'g={f(gv[n])}, rhs={f(rv[n])}', 12, col, 'middle'))
+        out.append(text(ox + 165, 308, cap, 13, MUTED, 'middle'))
+    out.append(text(550, 338, 'g — сохранённая оценка расстояния до цели G; rhs(s) = min по соседям (c(s, s′) + g(s′)) — «что говорят соседи».', 13, INK, 'middle'))
+    write(os.path.join(OUT07, 'g_rhs_example.svg'), out)
+    return g1
+
+
+def l07_act_arch():
+    W, H = 1100, 372
+    out = svg_open(W, H)
+    out.append(text(550, 28, 'ACT: трансформер предсказывает пакет действий за один проход (Zhao и др., 2023)', 17, INK, 'middle', 700))
+    out += box(30, 60, 200, 110, 'Наблюдения', ['4 камеры (кисти, сверху,', 'спереди) + углы', 'суставов двух рук'], INK, PANEL, 15, 13)
+    out.append(arrow(230, 115, 280, 115))
+    out += box(284, 60, 210, 110, 'Кодировщик', ['ResNet-18 для кадров,', 'трансформер-', 'кодировщик'], BLUE, '#eff6ff', 15, 13)
+    out.append(arrow(494, 115, 544, 115))
+    out += box(548, 60, 230, 110, 'Декодер', ['трансформер: сразу', 'k = 100 будущих', 'действий (≈ 2 с при 50 Гц)'], GREEN, '#ecfdf5', 15, 13)
+    out.append(arrow(778, 115, 828, 115))
+    out += box(832, 60, 238, 110, 'Пакет действий', ['углы 14 суставов', 'на 100 тактов вперёд'], GREEN, '#ecfdf5', 15, 13)
+    out += box(284, 196, 210, 110, 'Стиль z (CVAE)', ['при обучении: сжатие', 'демонстрации; при работе', 'z = 0 (среднее)'], PURPLE, '#faf5ff', 15, 13)
+    out.append(arrow(389, 196, 600, 172, PURPLE, 2, '6 4'))
+    out.append(rect(548, 196, 522, 110, '#fffbeb', AMBER, 8, 1.4, '6 4'))
+    out += wrap_lines(564, 230, ['Сглаживание по времени (temporal ensembling): пакеты', 'пересчитываются каждый такт, и действие на текущий такт —', 'взвешенное среднее предсказаний из разных пакетов.'], 13, INK, dy=20)
+    out += wrap_lines(30, 332, ['Данные: около 50 демонстраций на задачу, собранных телеуправлением на дешёвом стенде ALOHA (две пары рук: ведущая и ведомая).',
+                                'Отличие от диффузии: один проход сети вместо K шагов очистки; многомодальность — через стиль z, а не через случайный шум.'], 13, MUTED, dy=20)
+    write(os.path.join(OUT07, 'act_arch.svg'), out)
+
+
 def l08_timeline():
     W, H = 1100, 470
     out = svg_open(W, H)
@@ -1209,6 +1517,395 @@ def l08_course_map():
     write(os.path.join(OUT08, 'course_map.svg'), out)
 
 
+# ===========================================================================
+# Лекция 08: условные силуэты роботов (рисунки, не фотографии)
+# ===========================================================================
+
+BODY, EDGE = '#e2e8f0', '#334155'
+
+
+def limb(pts, w, fill=BODY, edge=EDGE):
+    """Конечность: толстая ломаная с обводкой."""
+    return [polyline(pts, edge, w + 3), polyline(pts, fill, w)]
+
+
+def shape(d, fill=BODY, edge=EDGE, width=1.6):
+    return f'<path d="{d}" fill="{fill}" stroke="{edge}" stroke-width="{width}" stroke-linejoin="round"/>'
+
+
+def humanoid(cx, gy, H, head='round', bulk=1.0, fill=BODY, accent=None, legs='straight', pose='stand', edge=EDGE):
+    """Человекоподобный силуэт высотой H пикселей, стопы на линии gy.
+
+    head: round | visor | box | lamp | none; legs: straight | bird (колени назад, вид сбоку) | wheels;
+    pose: stand | tuck (прыжок с поджатыми ногами) | arms_up.
+    """
+    out = []
+    acc = accent or fill
+    y = lambda f: gy - f * H
+    sw, hw = 0.135 * H * bulk, 0.075 * H * bulk           # полуширина плеч и таза
+    sh, hip = y(0.80), y(0.50)
+    lw, aw = max(4, 0.07 * H * bulk), max(3, 0.05 * H * bulk)
+    # ноги
+    if pose == 'tuck':
+        for s in (-1, 1):
+            out += limb([(cx + s * hw * 0.8, hip), (cx + s * hw * 1.4, y(0.40)), (cx + s * hw * 0.9, y(0.28))], lw, fill, edge)
+    elif legs == 'bird':
+        for s, dx in ((-1, -0.02), (1, 0.02)):
+            out += limb([(cx + dx * H, hip), (cx + dx * H + 0.07 * H, y(0.30)), (cx + dx * H - 0.03 * H, y(0.14)),
+                         (cx + dx * H + 0.01 * H, y(0.02))], lw * 0.8, fill, edge)
+            out.append(shape(f'M{cx + dx * H - 0.04 * H:.1f},{gy:.1f} h{0.10 * H:.1f} l-0.0,-{0.025 * H:.1f} h-{0.10 * H:.1f} z', fill, edge))
+    elif legs == 'wheels':
+        for s in (-1, 1):
+            out += limb([(cx + s * hw * 0.7, hip), (cx + s * hw * 0.9, y(0.12))], lw, fill, edge)
+            out.append(circle(cx + s * hw * 0.9, gy - 0.07 * H, 0.07 * H, '#475569', edge))
+    else:
+        for s in (-1, 1):
+            out += limb([(cx + s * hw * 0.75, hip), (cx + s * hw * 0.85, y(0.27)), (cx + s * hw * 0.85, y(0.035))], lw, fill, edge)
+            out.append(shape(f'M{cx + s * hw * 0.85 - 0.045 * H:.1f},{gy:.1f} h{0.09 * H:.1f} v-{0.03 * H:.1f} '
+                             f'q-{0.02 * H:.1f},-{0.012 * H:.1f} -{0.07 * H:.1f},0 z', fill, edge))
+    # руки
+    for s in (-1, 1):
+        if pose in ('tuck', 'arms_up'):
+            pts = [(cx + s * sw * 0.9, sh + 0.02 * H), (cx + s * sw * 1.5, y(0.90)), (cx + s * sw * 1.7, y(1.02))]
+        else:
+            pts = [(cx + s * sw * 0.95, sh + 0.02 * H), (cx + s * sw * 1.1, y(0.63)), (cx + s * sw * 1.05, y(0.47))]
+        out += limb(pts, aw, fill, edge)
+    # таз и туловище
+    out.append(shape(f'M{cx - hw:.1f},{hip + 0.03 * H:.1f} L{cx + hw:.1f},{hip + 0.03 * H:.1f} L{cx + hw * 1.05:.1f},{y(0.58):.1f} '
+                     f'L{cx - hw * 1.05:.1f},{y(0.58):.1f} z', fill, edge))
+    out.append(shape(f'M{cx - sw:.1f},{sh:.1f} Q{cx:.1f},{sh - 0.03 * H:.1f} {cx + sw:.1f},{sh:.1f} L{cx + sw * 0.8:.1f},{y(0.57):.1f} '
+                     f'L{cx - sw * 0.8:.1f},{y(0.57):.1f} z', fill, edge))
+    if accent:
+        out.append(shape(f'M{cx - sw * 0.55:.1f},{y(0.76):.1f} h{sw * 1.1:.1f} v{0.08 * H:.1f} h-{sw * 1.1:.1f} z', acc, 'none', 0))
+    # голова
+    hr = 0.065 * H
+    hy = y(0.80) - 0.025 * H - hr
+    if head != 'none':
+        out.append(line(cx, sh, cx, hy + hr, edge, max(3, 0.03 * H)))
+    if head == 'round':
+        out.append(circle(cx, hy, hr, fill, edge, 1.6))
+    elif head == 'visor':
+        out.append(circle(cx, hy, hr, fill, edge, 1.6))
+        out.append(shape(f'M{cx - hr * 0.8:.1f},{hy - hr * 0.25:.1f} h{hr * 1.6:.1f} v{hr * 0.6:.1f} h-{hr * 1.6:.1f} z', '#1e293b', 'none', 0))
+    elif head == 'box':
+        out.append(shape(f'M{cx - hr * 1.1:.1f},{hy - hr * 0.8:.1f} h{hr * 2.2:.1f} v{hr * 1.6:.1f} h-{hr * 2.2:.1f} z', fill, edge))
+        out.append(circle(cx - hr * 0.45, hy, hr * 0.22, '#1e293b'))
+        out.append(circle(cx + hr * 0.45, hy, hr * 0.22, '#1e293b'))
+    elif head == 'lamp':
+        out.append(circle(cx, hy, hr, fill, edge, 1.6))
+        out.append(circle(cx, hy, hr * 0.55, accent or '#fde68a', '#1e293b', 1.2))
+    return out
+
+
+def quadruped(cx, gy, L, fill=BODY, edge=EDGE):
+    """Четвероногий робот вид сбоку (BigDog), длина корпуса L пикселей."""
+    out = []
+    by = gy - 0.62 * L
+    for x0, s in ((cx - 0.38 * L, 1), (cx - 0.25 * L, 1), (cx + 0.25 * L, -1), (cx + 0.38 * L, -1)):
+        out += limb([(x0, by + 0.12 * L), (x0 + s * 0.12 * L, by + 0.35 * L), (x0, gy - 0.02 * L)], 0.05 * L, fill, edge)
+    out.append(shape(f'M{cx - 0.5 * L:.1f},{by:.1f} h{L:.1f} v{0.18 * L:.1f} h-{L:.1f} z', fill, edge))
+    out.append(shape(f'M{cx - 0.3 * L:.1f},{by - 0.06 * L:.1f} h{0.45 * L:.1f} v{0.06 * L:.1f} h-{0.45 * L:.1f} z', '#94a3b8', edge))
+    return out
+
+
+def ground(x1, x2, gy):
+    return [line(x1, gy, x2, gy, '#94a3b8', 2), *[line(x, gy, x - 8, gy + 8, '#cbd5e1', 1) for x in range(int(x1) + 10, int(x2), 18)]]
+
+
+def l08_bd_path():
+    W, H = 1100, 410
+    out = svg_open(W, H)
+    out.append(text(550, 28, 'Путь Boston Dynamics: от четвероногого робота до электрического Atlas', 18, INK, 'middle', 700))
+    gy, px_m = 290, 100                      # пикселей на метр
+    out += ground(30, 1070, gy)
+    out.append(line(60, gy - 1.5 * px_m, 60, gy, MUTED, 1))
+    for m in (0.5, 1.0, 1.5):
+        out.append(line(55, gy - m * px_m, 1070, gy - m * px_m, GRID, 1, '3 4'))
+        out.append(text(50, gy - m * px_m + 4, f'{m:g} м', 11, MUTED, 'end'))
+    items = [
+        (150, '2005', 'BigDog', ['четыре ноги, гидравлика,', 'двигатель внутр. сгорания'], 'quad'),
+        (355, '2013', 'Atlas (DARPA)', ['гидравлика, кабель питания', '≈ 1.88 м, ≈ 150 кг'], 'atlas13'),
+        (560, '2016', 'новый Atlas', ['свой аккумулятор,', 'ходьба по снегу'], 'atlas16'),
+        (765, '2017–2021', 'Atlas: сальто, паркур', ['движения оптимизированы', 'заранее, MPC на борту'], 'tuck'),
+        (970, '2024', 'электрический Atlas', ['электроприводы,', 'обучение по движениям людей'], 'eatlas'),
+    ]
+    for cx, yr, name, cap, kind in items:
+        if kind == 'quad':
+            out += quadruped(cx, gy, 1.1 * px_m)
+        elif kind == 'atlas13':
+            out.append(polyline([(cx, gy - 1.95 * px_m), (cx + 30, gy - 2.25 * px_m), (cx + 70, gy - 2.25 * px_m)], '#475569', 2, '5 3'))
+            out.append(text(cx + 76, gy - 2.21 * px_m, 'страховочный трос', 11, MUTED))
+            out += humanoid(cx, gy, 1.88 * px_m, 'box', 1.35, '#cbd5e1', '#64748b')
+        elif kind == 'atlas16':
+            out += humanoid(cx, gy, 1.5 * px_m, 'box', 1.05, BODY, '#64748b')
+        elif kind == 'tuck':
+            sub = humanoid(cx, gy - 0.45 * px_m, 1.5 * px_m, 'box', 1.05, BODY, '#64748b', pose='tuck')
+            out += sub
+            out.append(f'<path d="M{cx - 70},{gy - 40} A 80 80 0 0 1 {cx + 70},{gy - 40}" fill="none" stroke="{BLUE}" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrB)"/>')
+        else:
+            out += humanoid(cx, gy, 1.5 * px_m, 'lamp', 0.95, '#f1f5f9', '#bfdbfe')
+        out.append(text(cx, gy + 30, yr, 15, BLUE, 'middle', 700))
+        out.append(text(cx, gy + 50, name, 14, INK, 'middle', 700))
+        out += wrap_lines(cx, gy + 70, cap, 12.5, MUTED, 'middle', 17)
+    for a, b in ((150, 355), (355, 560), (560, 765), (765, 970)):
+        out.append(arrow(a + 58, gy + 25, b - 58, gy + 25, LIGHT, 1.6))
+    out.append(text(1070, 400, 'Условные силуэты в одном масштабе; рост и масса — по данным компании и DARPA.', 12, MUTED, 'end'))
+    write(os.path.join(OUT08, 'bd_path.svg'), out)
+
+
+def l08_lineup():
+    W, H = 1100, 420
+    out = svg_open(W, H)
+    out.append(text(550, 28, 'Современные гуманоиды в одном масштабе (рост и масса — по данным производителей)', 17, INK, 'middle', 700))
+    gy, px_m = 300, 130
+    out += ground(40, 1080, gy)
+    for m in (0.5, 1.0, 1.5, 2.0):
+        out.append(line(70, gy - m * px_m, 1080, gy - m * px_m, GRID, 1, '3 4'))
+        out.append(text(62, gy - m * px_m + 4, f'{m:g} м', 11, MUTED, 'end'))
+    US, CN, JP, EU = BLUE, RED, MUTED, PURPLE
+    bots = [
+        ('человек', '', 1.75, None, 'ref', JP),
+        ('ASIMO', 'Honda, 2011', 1.30, 48, dict(head='visor', bulk=1.15, fill='#f8fafc'), JP),
+        ('Atlas', 'BD, 2013', 1.88, 150, dict(head='box', bulk=1.35, fill='#cbd5e1', accent='#64748b'), US),
+        ('Digit', 'Agility', 1.75, 65, dict(head='box', bulk=0.9, legs='bird', fill='#e2e8f0', accent='#a5b4fc'), US),
+        ('Figure 02', 'Figure AI, 2024', 1.68, 70, dict(head='visor', bulk=0.95, fill='#e5e7eb', accent='#334155'), US),
+        ('Optimus', 'Tesla, 2022', 1.73, 73, dict(head='visor', bulk=1.0, fill='#f8fafc', accent='#0f172a'), US),
+        ('Apollo', 'Apptronik', 1.73, 73, dict(head='visor', bulk=1.05, fill='#f1f5f9', accent='#38bdf8'), US),
+        ('NEO', '1X', 1.65, 30, dict(head='round', bulk=0.9, fill='#ede9e3', accent='#d6cfc4'), EU),
+        ('H1', 'Unitree, 2023', 1.80, 47, dict(head='box', bulk=0.95, fill='#e2e8f0', accent='#1e293b'), CN),
+        ('G1', 'Unitree, 2024', 1.32, 35, dict(head='visor', bulk=1.0, fill='#e2e8f0', accent='#1e293b'), CN),
+        ('R1', 'Unitree, 2025', 1.21, 25, dict(head='visor', bulk=1.0, fill='#e2e8f0', accent='#1e293b'), CN),
+    ]
+    step = 960 / len(bots)
+    for i, (name, who, h, m, kw, col) in enumerate(bots):
+        cx = 115 + i * step
+        if kw == 'ref':
+            for e in humanoid(cx, gy, h * px_m, 'round', 0.85, '#ffffff', None, edge='#94a3b8'):
+                out.append(e.replace('stroke="#334155"', 'stroke="#94a3b8"').replace('<path', '<path stroke-dasharray="4 3"'))
+        else:
+            out += humanoid(cx, gy, h * px_m, **kw)
+        out.append(text(cx, gy + 24, name, 14, col if kw != 'ref' else MUTED, 'middle', 700))
+        out.append(text(cx, gy + 42, who, 11.5, MUTED, 'middle'))
+        out.append(text(cx, gy + 60, f'{h:.2f} м' + (f' · {m} кг' if m else ''), 12, INK, 'middle'))
+    out += legend(70, 400, [('США', US, None)], 12)
+    out += legend(150, 400, [('Китай', CN, None)], 12)
+    out += legend(240, 400, [('Япония', JP, None)], 12)
+    out += legend(340, 400, [('Норвегия и США', EU, None)], 12)
+    out.append(text(1080, 400, 'Силуэты условные: показан рост и общий тип, не внешний вид.', 12, MUTED, 'end'))
+    write(os.path.join(OUT08, 'humanoid_lineup.svg'), out)
+
+
+def service_bot(cx, gy, H, fill='#f8fafc', edge=EDGE, accent=BLUE):
+    """Колёсный сервисный робот: корпус-колокол, экран, голова."""
+    out = [shape(f'M{cx - 0.22 * H:.1f},{gy - 0.04 * H:.1f} Q{cx - 0.2 * H:.1f},{gy - 0.55 * H:.1f} {cx - 0.12 * H:.1f},{gy - 0.62 * H:.1f} '
+                 f'L{cx + 0.12 * H:.1f},{gy - 0.62 * H:.1f} Q{cx + 0.2 * H:.1f},{gy - 0.55 * H:.1f} {cx + 0.22 * H:.1f},{gy - 0.04 * H:.1f} z', fill, edge)]
+    out.append(shape(f'M{cx - 0.09 * H:.1f},{gy - 0.45 * H:.1f} h{0.18 * H:.1f} v{0.13 * H:.1f} h-{0.18 * H:.1f} z', accent, edge, 1))
+    out.append(circle(cx, gy - 0.78 * H, 0.15 * H, fill, edge, 1.6))
+    out.append(circle(cx - 0.05 * H, gy - 0.79 * H, 0.025 * H, '#1e293b'))
+    out.append(circle(cx + 0.05 * H, gy - 0.79 * H, 0.025 * H, '#1e293b'))
+    out.append(shape(f'M{cx - 0.24 * H:.1f},{gy:.1f} h{0.48 * H:.1f} v-{0.05 * H:.1f} h-{0.48 * H:.1f} z', '#475569', edge, 1))
+    return out
+
+
+def bust(cx, gy, H, fill='#fde7d4', edge=EDGE):
+    """Андроид-бюст (сидячий робот с лицом)."""
+    out = [shape(f'M{cx - 0.4 * H:.1f},{gy:.1f} Q{cx - 0.38 * H:.1f},{gy - 0.42 * H:.1f} {cx:.1f},{gy - 0.45 * H:.1f} '
+                 f'Q{cx + 0.38 * H:.1f},{gy - 0.42 * H:.1f} {cx + 0.4 * H:.1f},{gy:.1f} z', '#94a3b8', edge)]
+    out.append(f'<ellipse cx="{cx:.1f}" cy="{gy - 0.7 * H:.1f}" rx="{0.17 * H:.1f}" ry="{0.22 * H:.1f}" fill="{fill}" stroke="{edge}" stroke-width="1.6"/>')
+    out.append(circle(cx - 0.06 * H, gy - 0.73 * H, 0.022 * H, '#1e293b'))
+    out.append(circle(cx + 0.06 * H, gy - 0.73 * H, 0.022 * H, '#1e293b'))
+    out.append(f'<path d="M{cx - 0.06 * H:.1f},{gy - 0.6 * H:.1f} q{0.06 * H:.1f},{0.04 * H:.1f} {0.12 * H:.1f},0" fill="none" stroke="{edge}" stroke-width="1.4"/>')
+    return out
+
+
+def hexapod(cx, gy, L, fill=BODY, edge=EDGE):
+    """Шестиногий шагающий аппарат, вид сбоку."""
+    out = []
+    by = gy - 0.45 * L
+    for k in range(3):
+        x0 = cx - 0.35 * L + k * 0.35 * L
+        out += limb([(x0, by + 0.05 * L), (x0 + 0.1 * L, by - 0.08 * L), (x0 + 0.16 * L, gy - 0.01 * L)], 0.035 * L, fill, edge)
+        out += limb([(x0, by + 0.05 * L), (x0 - 0.08 * L, by - 0.05 * L), (x0 - 0.12 * L, gy - 0.01 * L)], 0.035 * L, '#cbd5e1', edge)
+    out.append(shape(f'M{cx - 0.5 * L:.1f},{by:.1f} h{L:.1f} v{0.14 * L:.1f} h-{L:.1f} z', fill, edge))
+    return out
+
+
+def tilt(parts, cx, cy, deg):
+    return [f'<g transform="rotate({deg} {cx:.1f} {cy:.1f})">'] + parts + ['</g>']
+
+
+def l08_drc_tasks():
+    W, H = 1100, 360
+    out = svg_open(W, H)
+    out.append(text(550, 28, 'DARPA Robotics Challenge, финал 2015: восемь заданий за один час, связь с оператором ухудшена', 17, INK, 'middle', 700))
+    names = [('езда', 'на автомобиле'), ('выход', 'из машины'), ('дверь', 'открыть, пройти'), ('вентиль', 'повернуть'),
+             ('стена', 'вырезать проём'), ('сюрприз', 'рубильник, вилка'), ('завал', 'или неровный пол'), ('лестница', 'подняться')]
+    tw, x0, y0 = 124, 38, 52
+    for i, (a, b) in enumerate(names):
+        x = x0 + i * (tw + 7)
+        out.append(rect(x, y0, tw, 150, '#f8fafc', '#cbd5e1', 10, 1.4))
+        out.append(circle(x + 18, y0 + 18, 12, BLUE))
+        out.append(text(x + 18, y0 + 23, str(i + 1), 13, '#ffffff', 'middle', 700))
+        cx, cy = x + tw / 2, y0 + 78
+        if i in (0, 1):
+            out.append(shape(f'M{cx - 40},{cy + 14} v-18 l14,-16 h36 l16,16 h14 v18 z', '#dbeafe', EDGE))
+            out.append(circle(cx - 22, cy + 16, 9, '#475569', EDGE))
+            out.append(circle(cx + 26, cy + 16, 9, '#475569', EDGE))
+            if i == 1:
+                out.append(arrow(cx + 8, cy - 14, cx + 46, cy - 40, BLUE, 2.2))
+        elif i == 2:
+            out.append(shape(f'M{cx - 22},{cy + 28} v-62 h34 v62', '#fef3c7', EDGE))
+            out.append(circle(cx + 4, cy, 3, EDGE))
+            out.append(f'<path d="M{cx + 12},{cy + 28} A 34 34 0 0 0 {cx + 34},{cy - 4}" fill="none" stroke="{BLUE}" stroke-width="2" stroke-dasharray="4 3"/>')
+        elif i == 3:
+            out.append(circle(cx, cy, 26, 'none', EDGE, 4))
+            for k in range(3):
+                ang = k * math.pi / 3
+                out.append(line(cx - 26 * math.cos(ang), cy - 26 * math.sin(ang), cx + 26 * math.cos(ang), cy + 26 * math.sin(ang), EDGE, 3))
+            out.append(f'<path d="M{cx - 34},{cy - 14} A 36 36 0 0 1 {cx + 12},{cy - 36}" fill="none" stroke="{BLUE}" stroke-width="2" marker-end="url(#arrB)"/>')
+        elif i == 4:
+            out.append(rect(cx - 36, cy - 34, 72, 64, '#e7e5e4', EDGE, 2, 1.4))
+            out.append(circle(cx, cy - 2, 16, '#ffffff', RED, 2))
+            out.append(line(cx + 16, cy - 2, cx + 38, cy + 18, EDGE, 5))
+        elif i == 5:
+            out.append(rect(cx - 26, cy - 30, 52, 56, '#f5f3ff', PURPLE, 6, 1.6))
+            out.append(text(cx, cy + 12, '?', 36, PURPLE, 'middle', 700))
+        elif i == 6:
+            for dx, dy, w_, h_, rot in ((-34, 14, 26, 16, -12), (-6, 18, 30, 12, 8), (18, 8, 22, 20, -20), (-20, -4, 24, 14, 25), (6, -8, 20, 12, -5)):
+                out.append(f'<rect x="{cx + dx:.1f}" y="{cy + dy:.1f}" width="{w_}" height="{h_}" fill="#d6d3d1" stroke="{EDGE}" stroke-width="1.3" transform="rotate({rot} {cx + dx + w_ / 2:.1f} {cy + dy + h_ / 2:.1f})"/>')
+        else:
+            pts = [(cx - 40, cy + 30)]
+            for k in range(4):
+                pts += [(cx - 40 + k * 20, cy + 30 - (k + 1) * 15), (cx - 20 + k * 20, cy + 30 - (k + 1) * 15)]
+            pts += [(cx + 40, cy + 30)]
+            out.append(polygon(pts, '#e2e8f0', 1, EDGE))
+        out.append(text(cx, y0 + 128, a, 14, INK, 'middle', 700))
+        out.append(text(cx, y0 + 145, b, 12, MUTED, 'middle'))
+        if i < 7:
+            out.append(arrow(x + tw - 2, y0 + 75, x + tw + 6, y0 + 75, LIGHT, 1.5))
+    # DRC-HUBO: шагает и едет на коленях
+    gy = 330
+    out.append(rect(38, 220, 470, 128, '#ecfdf5', GREEN, 10, 1.4))
+    out.append(text(54, 244, 'Победитель KAIST, робот DRC-HUBO', 14, GREEN, 'start', 700))
+    out += wrap_lines(54, 266, ['на ровном месте опускался на колени', 'и ехал на колёсах, по завалу и лестнице', 'шёл ногами; 8 из 8 заданий за 44 мин'], 12.5, INK, dy=18)
+    out += humanoid(370, gy, 100, 'box', 1.0, BODY, '#64748b')
+    out.append(arrow(400, 290, 430, 290, GREEN, 2))
+    out += humanoid(465, gy, 70, 'box', 1.15, BODY, '#64748b', legs='wheels')
+    out.append(rect(526, 220, 536, 128, '#fef2f2', RED, 10, 1.4))
+    out.append(text(542, 244, 'Почему падали', 14, RED, 'start', 700))
+    out += wrap_lines(542, 266, ['выход из машины, шаг через порог, неожиданный контакт рукой:',
+                                 'модельный регулятор рассчитан на заданные контакты, а здесь',
+                                 'контакты появлялись там, где модель их не ждала.',
+                                 'Второе место — IHMC на Atlas, третье — CHIMP (Tartan Rescue).'], 12.5, INK, dy=18)
+    write(os.path.join(OUT08, 'drc_tasks.svg'), out)
+
+
+def l08_fedor_teleop():
+    W, H = 1100, 360
+    out = svg_open(W, H)
+    out.append(text(550, 28, 'ФЁДОР: копирующее управление и полёт на МКС (2019)', 18, INK, 'middle', 700))
+    gy = 290
+    out += ground(40, 620, gy)
+    op = humanoid(130, gy, 190, 'round', 0.9, '#fef3c7', None)
+    out += op
+    for (x1, y1, x2, y2) in ((95, gy - 150, 95, gy - 100), (165, gy - 150, 165, gy - 100), (112, gy - 90, 112, gy - 20), (148, gy - 90, 148, gy - 20)):
+        out.append(line(x1, y1, x2, y2, PURPLE, 4))
+    out.append(text(130, gy + 24, 'оператор', 14, INK, 'middle', 700))
+    out.append(text(130, gy + 42, 'в задающем костюме', 12.5, MUTED, 'middle'))
+    out += humanoid(520, gy, 190, 'visor', 1.05, '#e2e8f0', '#94a3b8')
+    out.append(text(520, gy + 24, 'робот ФЁДОР', 14, INK, 'middle', 700))
+    out.append(text(520, gy + 42, '(Skybot F-850)', 12.5, MUTED, 'middle'))
+    out.append(arrow(210, 150, 440, 150, BLUE, 2.4))
+    out.append(text(325, 140, 'углы суставов оператора', 13, BLUE, 'middle', 700))
+    out.append(arrow(440, 200, 210, 200, GREEN, 2.4))
+    out.append(text(325, 222, 'видео с камер, усилия', 13, GREEN, 'middle', 700))
+    out.append(text(325, 250, 'робот повторяет движения человека', 12.5, MUTED, 'middle'))
+    # хронология полёта
+    out.append(rect(660, 56, 410, 290, '#f8fafc', '#cbd5e1', 10, 1.4))
+    out.append(text(680, 82, 'Полёт «Союз МС-14», 2019 г.', 15, INK, 'start', 700))
+    ev = [('22 авг', 'запуск с Байконура; робот в кресле командира'), ('24 авг', 'первая стыковка не удалась'),
+          ('27 авг', 'стыковка после перестыковки корабля'), ('27 авг – 6 сен', 'опыты на станции'),
+          ('7 сен', 'возвращение на Землю')]
+    for k, (d, t) in enumerate(ev):
+        y = 118 + k * 46
+        out.append(circle(690, y - 5, 6, BLUE if k != 1 else RED))
+        if k < len(ev) - 1:
+            out.append(line(690, y + 1, 690, y + 35, LIGHT, 2))
+        out.append(text(706, y, d, 13.5, INK, 'start', 700))
+        out.append(text(706, y + 18, t, 12.5, MUTED))
+    write(os.path.join(OUT08, 'fedor_teleop.svg'), out)
+
+
+def l08_russia_timeline():
+    W, H = 1100, 380
+    out = svg_open(W, H)
+    out.append(text(550, 28, 'Российские шагающие и антропоморфные роботы на одной шкале', 18, INK, 'middle', 700))
+    ay = 286
+
+    def X(yr):
+        return 70 + (yr - 1970) / 15 * 120 if yr < 1990 else 290 + (yr - 2012) / (2026.5 - 2012) * 780
+    out.append(line(60, ay, 240, ay, MUTED, 2))
+    out.append(line(290, ay, 1080, ay, MUTED, 2))
+    out.append(text(265, ay + 5, '//', 16, MUTED, 'middle', 700))
+    for yr in (1970, 1980):
+        out.append(line(X(yr), ay, X(yr), ay + 7, MUTED, 1.4))
+        out.append(text(X(yr), ay + 24, str(yr), 12, MUTED, 'middle'))
+    for yr in range(2014, 2027, 2):
+        out.append(line(X(yr), ay, X(yr), ay + 7, MUTED, 1.4))
+        out.append(text(X(yr), ay + 24, str(yr), 12, MUTED, 'middle'))
+    gy = 196
+    ev = [
+        (1977, 'шагающий аппарат', 'ИПМ, 1970-е', 'hex', BLUE),
+        (2015, 'Промобот', 'колёсный, сервисный', 'service', BLUE),
+        (2017, 'ФЁДОР', 'для МЧС и ФПИ', 'fedor', BLUE),
+        (2019.65, 'ФЁДОР на МКС', 'август 2019', 'fedor_iss', BLUE),
+        (2019.9, 'Robo-C', 'лицо с мимикой', 'bust', BLUE),
+        (2025.85, 'Грин (Сбер)', 'GigaChat', 'green', GREEN),
+        (2025.88, 'AIDOL', 'упал на показе', 'aidol', RED),
+    ]
+    for k, (yr, name, sub, kind, col) in enumerate(ev):
+        x = 120 + k * 146
+        out.append(rect(x - 66, 50, 132, 186, '#f8fafc', '#e2e8f0', 10, 1.2))
+        if kind == 'hex':
+            out += hexapod(x, gy - 30, 100)
+        elif kind == 'service':
+            out += service_bot(x, gy, 110)
+        elif kind == 'fedor':
+            out += humanoid(x, gy, 125, 'visor', 1.0, '#e2e8f0', '#94a3b8')
+        elif kind == 'fedor_iss':
+            out.append(rect(x - 52, 58, 104, 146, '#eff6ff', '#bfdbfe', 8, 1.2))
+            out.append(text(x + 44, 76, 'МКС', 12, BLUE, 'end', 700))
+            out += humanoid(x, gy - 18, 100, 'visor', 1.0, '#e2e8f0', '#94a3b8', pose='arms_up')
+        elif kind == 'bust':
+            out += bust(x, gy, 120)
+        elif kind == 'green':
+            out += humanoid(x, gy, 125, 'visor', 0.95, '#f0fdf4', '#86efac')
+        else:
+            out += tilt(humanoid(x, gy, 125, 'visor', 0.95, '#f1f5f9', '#cbd5e1'), x + 10, gy, 24)
+        out.append(text(x, gy + 20, name, 13.5, col, 'middle', 700))
+        out.append(text(x, gy + 36, sub, 11.5, MUTED, 'middle'))
+        out.append(line(x, 236, X(yr), ay - 4, LIGHT, 1.2, '3 3'))
+        out.append(circle(X(yr), ay, 5, col))
+    out += wrap_lines(60, 340, ['Точки на шкале — примерный год показа или события; Грин и AIDOL показаны в ноябре 2025 г. Силуэты условные.'], 12.5, MUTED, dy=19)
+    write(os.path.join(OUT08, 'russia_timeline.svg'), out)
+
+
+def l08_unitree_prices():
+    W, H = 1100, 250
+    out = svg_open(W, H)
+    out.append(text(550, 26, 'Unitree: цена гуманоида при выходе на рынок (цены производителя, тыс. долларов США)', 16, INK, 'middle', 700))
+    rows = [('H1', 2023, 1.80, 90), ('G1', 2024, 1.32, 16), ('R1', 2025, 1.21, 5.9)]
+    x0, scale = 330, 8.0
+    for k, (name, yr, h, price) in enumerate(rows):
+        y = 70 + k * 62
+        out += humanoid(60 + k * 75, 232, h * 95, 'visor' if name != 'H1' else 'box', 1.0, '#e2e8f0', '#1e293b')
+        out.append(text(x0 - 14, y + 22, f'{name} ({yr})', 15, RED, 'end', 700))
+        out.append(rect(x0, y, price * scale, 32, '#fee2e2', RED, 4, 1.4))
+        out.append(text(x0 + price * scale + 10, y + 22, f'≈ {price:g}', 15, INK, 'start', 700))
+    out.append(text(1080, 240, 'H1 — по сообщениям при запуске продаж; G1 и R1 — объявленные стартовые цены.', 12, MUTED, 'end'))
+    write(os.path.join(OUT08, 'unitree_prices.svg'), out)
+
+
 def main():
     print('Лекция 07:')
     l07_course_place()
@@ -1216,6 +1913,8 @@ def main():
     print('   max κ сглаженной змейки:', round(l07_smoothing_curvature(), 3))
     l07_two_pass()
     print('   трапеция / S-профиль, с:', [round(x, 3) for x in l07_trapezoid_scurve()])
+    print('   D* Lite (исходно, A* с нуля, ремонт):', l07_dstar_replanning())
+    print('   g после перекрытия ребра:', l07_g_rhs())
     l07_frenet_frame()
     print('   интеграл рывка по T:', [(T, round(J, 2)) for T, J in l07_quintic_family()])
     print('   веер Френе:', l07_frenet_fan())
@@ -1226,6 +1925,7 @@ def main():
     l07_flow_vs_diffusion()
     l07_diffusion_policy_arch()
     l07_action_chunks()
+    l07_act_arch()
     l07_nomad_arch()
     l07_topological_graph()
     print('Лекция 08:')
@@ -1242,6 +1942,12 @@ def main():
     l08_vla_vs_wam()
     l08_frequency_hierarchy()
     l08_course_map()
+    l08_bd_path()
+    l08_lineup()
+    l08_drc_tasks()
+    l08_fedor_teleop()
+    l08_russia_timeline()
+    l08_unitree_prices()
 
 
 if __name__ == '__main__':

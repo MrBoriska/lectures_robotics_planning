@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 250" width="1100" height="250" font-family="Inter, 'Segoe UI', Roboto, Arial, sans-serif">
+<rect width="1100" height="250" fill="#ffffff"/>
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker><marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker><marker id="arrR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker><marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker><marker id="arrP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker><marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d97706"/></marker></defs>
+<text x="550.0" y="26.0" font-size="16" fill="#0f172a" text-anchor="middle" font-weight="700">Unitree: цена гуманоида при выходе на рынок (цены производителя, тыс. долларов США)</text>
+<polyline points="50.4,146.5 49.1,185.8 49.1,226.0" fill="none" stroke="#334155" stroke-width="14.97" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="50.4,146.5 49.1,185.8 49.1,226.0" fill="none" stroke="#e2e8f0" stroke-width="11.97" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<path d="M41.4,232.0 h15.4 v-5.1 q-3.4,-2.1 -12.0,0 z" fill="#e2e8f0" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<polyline points="69.6,146.5 70.9,185.8 70.9,226.0" fill="none" stroke="#334155" stroke-width="14.97" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="69.6,146.5 70.9,185.8 70.9,226.0" fill="none" stroke="#e2e8f0" stroke-width="11.97" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<path d="M63.2,232.0 h15.4 v-5.1 q-3.4,-2.1 -12.0,0 z" fill="#e2e8f0" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<polyline points="38.1,98.6 34.6,124.3 35.8,151.6" fill="none" stroke="#334155" stroke-width="11.55" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="38.1,98.6 34.6,124.3 35.8,151.6" fill="none" stroke="#e2e8f0" stroke-width="8.55" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="81.9,98.6 85.4,124.3 84.2,151.6" fill="none" stroke="#334155" stroke-width="11.55" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="81.9,98.6 85.4,124.3 84.2,151.6" fill="none" stroke="#e2e8f0" stroke-width="8.55" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<path d="M47.2,151.6 L72.8,151.6 L73.5,132.8 L46.5,132.8 z" fill="#e2e8f0" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<path d="M36.9,95.2 Q60.0,90.1 83.1,95.2 L78.5,134.5 L41.5,134.5 z" fill="#e2e8f0" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<path d="M47.3,102.0 h25.4 v13.7 h-25.4 z" fill="#1e293b" stroke="none" stroke-width="0" stroke-linejoin="round"/>
+<line x1="60.0" y1="95.2" x2="60.0" y2="90.9" stroke="#334155" stroke-width="5.13"/>
+<path d="M47.8,70.9 h24.5 v17.8 h-24.5 z" fill="#e2e8f0" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<circle cx="55.0" cy="79.8" r="2.4453" fill="#1e293b" stroke="none" stroke-width="1.5"/>
+<circle cx="65.0" cy="79.8" r="2.4453" fill="#1e293b" stroke="none" stroke-width="1.5"/>
+<text x="316.0" y="92.0" font-size="15" fill="#dc2626" text-anchor="end" font-weight="700">H1 (2023)</text>
+<rect x="330.0" y="70.0" width="720.0" height="32.0" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1.4"/>
+<text x="1060.0" y="92.0" font-size="15" fill="#0f172a" text-anchor="start" font-weight="700">≈ 90</text>
+<polyline points="127.9,169.3 127.0,198.1 127.0,227.6" fill="none" stroke="#334155" stroke-width="11.778" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="127.9,169.3 127.0,198.1 127.0,227.6" fill="none" stroke="#e2e8f0" stroke-width="8.778" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<path d="M121.4,232.0 h11.3 v-3.8 q-2.5,-1.5 -8.8,0 z" fill="#e2e8f0" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<polyline points="142.1,169.3 143.0,198.1 143.0,227.6" fill="none" stroke="#334155" stroke-width="11.778" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="142.1,169.3 143.0,198.1 143.0,227.6" fill="none" stroke="#e2e8f0" stroke-width="8.778" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<path d="M137.4,232.0 h11.3 v-3.8 q-2.5,-1.5 -8.8,0 z" fill="#e2e8f0" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<polyline points="118.9,134.2 116.4,153.0 117.2,173.1" fill="none" stroke="#334155" stroke-width="9.27" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="118.9,134.2 116.4,153.0 117.2,173.1" fill="none" stroke="#e2e8f0" stroke-width="6.2700000000000005" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="151.1,134.2 153.6,153.0 152.8,173.1" fill="none" stroke="#334155" stroke-width="9.27" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="151.1,134.2 153.6,153.0 152.8,173.1" fill="none" stroke="#e2e8f0" stroke-width="6.2700000000000005" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<path d="M125.6,173.1 L144.4,173.1 L144.9,159.3 L125.1,159.3 z" fill="#e2e8f0" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<path d="M118.1,131.7 Q135.0,127.9 151.9,131.7 L148.5,160.5 L121.5,160.5 z" fill="#e2e8f0" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<path d="M125.7,136.7 h18.6 v10.0 h-18.6 z" fill="#1e293b" stroke="none" stroke-width="0" stroke-linejoin="round"/>
+<line x1="135.0" y1="131.7" x2="135.0" y2="128.5" stroke="#334155" stroke-width="3.762"/>
+<circle cx="135.0" cy="120.4" r="8.151" fill="#e2e8f0" stroke="#334155" stroke-width="1.6"/>
+<path d="M128.5,118.4 h13.0 v4.9 h-13.0 z" fill="#1e293b" stroke="none" stroke-width="0" stroke-linejoin="round"/>
+<text x="316.0" y="154.0" font-size="15" fill="#dc2626" text-anchor="end" font-weight="700">G1 (2024)</text>
+<rect x="330.0" y="132.0" width="128.0" height="32.0" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1.4"/>
+<text x="468.0" y="154.0" font-size="15" fill="#0f172a" text-anchor="start" font-weight="700">≈ 16</text>
+<polyline points="203.5,174.5 202.7,201.0 202.7,228.0" fill="none" stroke="#334155" stroke-width="11.046500000000002" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="203.5,174.5 202.7,201.0 202.7,228.0" fill="none" stroke="#e2e8f0" stroke-width="8.046500000000002" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<path d="M197.5,232.0 h10.3 v-3.4 q-2.3,-1.4 -8.0,0 z" fill="#e2e8f0" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<polyline points="216.5,174.5 217.3,201.0 217.3,228.0" fill="none" stroke="#334155" stroke-width="11.046500000000002" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="216.5,174.5 217.3,201.0 217.3,228.0" fill="none" stroke="#e2e8f0" stroke-width="8.046500000000002" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<path d="M212.2,232.0 h10.3 v-3.4 q-2.3,-1.4 -8.0,0 z" fill="#e2e8f0" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<polyline points="195.3,142.3 192.9,159.6 193.7,178.0" fill="none" stroke="#334155" stroke-width="8.7475" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="195.3,142.3 192.9,159.6 193.7,178.0" fill="none" stroke="#e2e8f0" stroke-width="5.7475000000000005" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="224.7,142.3 227.1,159.6 226.3,178.0" fill="none" stroke="#334155" stroke-width="8.7475" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="224.7,142.3 227.1,159.6 226.3,178.0" fill="none" stroke="#e2e8f0" stroke-width="5.7475000000000005" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<path d="M201.4,178.0 L218.6,178.0 L219.1,165.3 L200.9,165.3 z" fill="#e2e8f0" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<path d="M194.5,140.0 Q210.0,136.6 225.5,140.0 L222.4,166.5 L197.6,166.5 z" fill="#e2e8f0" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<path d="M201.5,144.6 h17.1 v9.2 h-17.1 z" fill="#1e293b" stroke="none" stroke-width="0" stroke-linejoin="round"/>
+<line x1="210.0" y1="140.0" x2="210.0" y2="137.2" stroke="#334155" stroke-width="3.4485"/>
+<circle cx="210.0" cy="129.7" r="7.47175" fill="#e2e8f0" stroke="#334155" stroke-width="1.6"/>
+<path d="M204.0,127.8 h12.0 v4.5 h-12.0 z" fill="#1e293b" stroke="none" stroke-width="0" stroke-linejoin="round"/>
+<text x="316.0" y="216.0" font-size="15" fill="#dc2626" text-anchor="end" font-weight="700">R1 (2025)</text>
+<rect x="330.0" y="194.0" width="47.2" height="32.0" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1.4"/>
+<text x="387.2" y="216.0" font-size="15" fill="#0f172a" text-anchor="start" font-weight="700">≈ 5.9</text>
+<text x="1080.0" y="240.0" font-size="12" fill="#475569" text-anchor="end" font-weight="400">H1 — по сообщениям при запуске продаж; G1 и R1 — объявленные стартовые цены.</text>
+</svg>

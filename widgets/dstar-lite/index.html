@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>D* Lite: перепланирование при изменении карты</title>
+<link rel="stylesheet" href="../common/widget-base.css">
+<style>
+  .main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr); gap: 8px; padding: 8px; }
+  .panel { background: #fff; border: 1px solid var(--border-color); border-radius: 8px; padding: 6px 10px; display: flex; flex-direction: column; min-height: 0; }
+  .ptitle { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--text-muted); margin-bottom: 4px; display: flex; justify-content: space-between; gap: 8px; }
+  .cv { flex: 1; min-height: 0; position: relative; }
+  .cv canvas { position: absolute; left: 0; top: 0; }
+  .col { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+  table.res { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+  table.res th, table.res td { padding: 3px 6px; border-bottom: 1px solid #eef2f7; text-align: right; }
+  table.res th:first-child, table.res td:first-child { text-align: left; }
+  table.res th { color: var(--text-muted); font-weight: 600; }
+  .sw { display: inline-block; width: 12px; height: 12px; border-radius: 2px; vertical-align: middle; margin-right: 4px; }
+  .ctrls { display: grid; grid-template-columns: auto 1fr auto; gap: 3px 8px; align-items: center; font-size: 11.5px; }
+  .ctrls input[type=range] { width: 100%; accent-color: #0284c7; }
+  .ctrls .v { font-family: var(--font-mono); color: var(--accent-blue); font-weight: 600; min-width: 48px; text-align: right; }
+  .note { font-size: 12px; line-height: 1.38; color: #1e293b; background: #f0f9ff; border-left: 3px solid #0284c7; padding: 6px 9px; border-radius: 4px; }
+  .note b { color: #0c4a6e; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11px; color: #334155; }
+  .insp { font-family: var(--font-mono); font-size: 11.5px; color: #334155; min-height: 16px; }
+</style>
+</head>
+<body>
+<div class="widget-layout">
+  <div class="toolbar">
+    <b style="color: var(--accent-blue);">Сценарий:</b>
+    <select id="scenario" class="select-control"></select>
+    <button id="play" class="btn btn-primary">Пуск</button>
+    <button id="step" class="btn">Один шаг</button>
+    <button id="reset" class="btn">Сначала</button>
+    <span style="font-size: 11.5px; color: var(--text-muted); margin-left: 6px;">Щелчок по клетке — поставить или убрать препятствие (робот узнает о нём, только когда увидит)</span>
+  </div>
+  <div class="main">
+    <div class="col">
+      <div class="panel" style="flex: 1;">
+        <div class="ptitle"><span>Карта: что знает робот и что есть на самом деле</span><span id="status">шаг 0</span></div>
+        <div class="cv"><canvas id="grid"></canvas></div>
+        <div class="legend" style="margin-top: 4px;">
+          <span><i class="sw" style="background:#334155"></i>известное препятствие</span>
+          <span><i class="sw" style="background:#e2e8f0; border:1px dashed #94a3b8"></i>препятствие, ещё не замеченное</span>
+          <span><i class="sw" style="background:#fdba74"></i>раскрыто при последнем пересчёте</span>
+          <span><i class="sw" style="background:#bfdbfe"></i>g(s) — расстояние до цели (темнее — дальше)</span>
+          <span><i class="sw" style="background:#059669"></i>текущий план</span>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="panel" style="flex: 1.1;">
+        <div class="ptitle"><span>Раскрыто ячеек при каждом пересчёте</span></div>
+        <div class="cv"><canvas id="bars"></canvas></div>
+      </div>
+      <div class="panel" style="flex: 0 0 auto;">
+        <table class="res">
+          <thead><tr><th>метод</th><th>пересчётов</th><th>раскрыто всего</th></tr></thead>
+          <tbody id="resBody"></tbody>
+        </table>
+        <div class="insp" id="insp">наведите на клетку: g, rhs, h</div>
+      </div>
+      <div class="panel" style="flex: 0 0 auto; gap: 6px;">
+        <div class="ctrls">
+          <span>Радиус датчика</span><input type="range" id="sensor" min="1" max="5" step="1"><span class="v" id="sensorv"></span>
+          <span>Скорость показа</span><input type="range" id="speed" min="1" max="10" step="1"><span class="v" id="speedv"></span>
+        </div>
+        <div class="note" id="note"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+// ---------------------------------------------------------------------------
+// D* Lite (Koenig, Likhachev, 2002), оптимизированная версия.
+// Поиск идёт от цели к роботу; g(s) — оценка расстояния от s до цели,
+// rhs(s) — «расстояние через лучшего соседа». Вершина согласована, если g = rhs.
+// Робот считает неизвестные клетки свободными, видит препятствия в радиусе датчика,
+// и при каждом изменении карты обновляет только затронутые вершины.
+// Для сравнения на той же известной карте каждый раз запускается A* с нуля.
+// Сетка 8-связная, срезать угол между двумя препятствиями нельзя.
+// ---------------------------------------------------------------------------
+const W = 26, H = 16, SQ2 = Math.SQRT2;
+const $ = id => document.getElementById(id);
+
+function wall(cells, x0, y0, x1, y1) { for (let x = x0; x <= x1; x++) for (let y = y0; y <= y1; y++) cells.push([x, y]); }
+function scattered() {
+  const c = []; let s = 7;
+  const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  for (let k = 0; k < 70; k++) {
+    const x = 5 + Math.floor(rnd() * 17), y = Math.floor(rnd() * H);
+    if (Math.abs(y - 8) + Math.abs(x - 2) > 2 && Math.abs(y - 8) + Math.abs(x - 23) > 2) c.push([x, y]);
+  }
+  return c;
+}
+const SCENARIOS = [
+  { name: '1. Неизвестная стена', known: [], hidden: (() => { const c = []; wall(c, 13, 0, 13, 12); return c; })(),
+    note: '<b>Что наблюдать.</b> Сначала робот планирует прямо: о стене он не знает. Увидев стену, D* Lite пересчитывает только клетки, чьё расстояние до цели изменилось (оранжевые), и не трогает остальную карту. Сравните столбики: A* с нуля каждый раз раскрывает заметно больше клеток.' },
+  { name: '2. Тупик-ловушка', known: [], hidden: (() => { const c = []; wall(c, 16, 4, 16, 12); wall(c, 10, 4, 16, 4); wall(c, 10, 12, 16, 12); return c; })(),
+    note: '<b>Что наблюдать.</b> Робот заезжает в «мешок» и обнаруживает его стенки по частям. После каждого открытия план меняется: сначала вниз, потом вверх, потом выход назад. Пересчётов много, и здесь выигрыш D* Lite особенно заметен: большая часть дерева расстояний остаётся верной.' },
+  { name: '3. Разбросанные препятствия', known: [], hidden: scattered(),
+    note: '<b>Что наблюдать.</b> Препятствия мелкие, пересчётов много, но каждый затрагивает небольшой участок. Попробуйте уменьшить радиус датчика до 1: робот видит хуже, пересчётов больше. Увеличьте до 5: он замечает препятствия раньше и объезжает их плавнее.' },
+  { name: '4. Карта известна заранее', known: (() => { const c = []; wall(c, 13, 0, 13, 12); return c; })(), hidden: [],
+    note: '<b>Что наблюдать.</b> Если карта точна, пересчётов нет: и D* Lite, и A* решают задачу один раз. Первый поиск D* Lite идёт от цели и по объёму похож на A*. Выигрыш появляется только тогда, когда карта меняется в пути.' },
+  { name: '5. Закрытая дверь', known: (() => { const c = []; wall(c, 13, 0, 13, 7); wall(c, 13, 9, 13, 13); return c; })(), hidden: [[13, 8]],
+    note: '<b>Что наблюдать.</b> По карте дверь в стене открыта, робот едет к ней. У двери датчик видит, что она закрыта. Меняется одна клетка, но расстояния до цели меняются у всех клеток слева от стены: пересчёт большой. Здесь D* Lite раскрывает даже <b>больше</b> клеток, чем A* с нуля: ему приходится сначала «стереть» старые расстояния, а потом построить новые. D* Lite выгоден, когда изменение затрагивает мало путей.' },
+];
+
+let st;
+const key = (x, y) => y * W + x;
+const inside = (x, y) => x >= 0 && y >= 0 && x < W && y < H;
+const START = [2, 8], GOAL = [23, 8];
+
+function reset(sc) {
+  const S = SCENARIOS[sc];
+  const truth = new Uint8Array(W * H), known = new Uint8Array(W * H);
+  for (const [x, y] of S.known) { truth[key(x, y)] = 1; known[key(x, y)] = 1; }
+  for (const [x, y] of S.hidden) truth[key(x, y)] = 1;
+  truth[key(...START)] = 0; truth[key(...GOAL)] = 0; known[key(...START)] = 0; known[key(...GOAL)] = 0;
+  st = { sc, truth, known, robot: START.slice(), last: START.slice(), trail: [START.slice()], km: 0,
+         g: new Float64Array(W * H).fill(Infinity), rhs: new Float64Array(W * H).fill(Infinity),
+         heap: [], inq: new Map(), expanded: new Set(), steps: 0, done: false, stuck: false,
+         events: [], totD: 0, totA: 0, plan: [] };
+  st.rhs[key(...GOAL)] = 0;
+  pushQ(key(...GOAL), calcKey(key(...GOAL)));
+  sense();
+  replan(true);
+}
+
+// ---------------------------------------------------------------- граф
+const DIRS = [[1, 0, 1], [-1, 0, 1], [0, 1, 1], [0, -1, 1], [1, 1, SQ2], [1, -1, SQ2], [-1, 1, SQ2], [-1, -1, SQ2]];
+function cost(map, a, b) { // a, b — соседние клетки [x, y]
+  if (map[key(...a)] || map[key(...b)]) return Infinity;
+  const dx = b[0] - a[0], dy = b[1] - a[1];
+  if (dx && dy && (map[key(a[0] + dx, a[1])] || map[key(a[0], a[1] + dy)])) return Infinity;
+  return dx && dy ? SQ2 : 1;
+}
+function nbrs(x, y) { const o = []; for (const [dx, dy] of DIRS) if (inside(x + dx, y + dy)) o.push([x + dx, y + dy]); return o; }
+const xy = k => [k % W, Math.floor(k / W)];
+function hOct(a, b) { const dx = Math.abs(a[0] - b[0]), dy = Math.abs(a[1] - b[1]); return Math.max(dx, dy) + (SQ2 - 1) * Math.min(dx, dy); }
+
+// ---------------------------------------------------------------- очередь (куча с ленивым удалением)
+function less(a, b) { return a[0] < b[0] - 1e-9 || (Math.abs(a[0] - b[0]) <= 1e-9 && a[1] < b[1] - 1e-9); }
+function calcKey(k) { const m = Math.min(st.g[k], st.rhs[k]); return [m + hOct(st.robot, xy(k)) + st.km, m]; }
+function pushQ(k, kk) {
+  st.inq.set(k, kk); const h = st.heap; h.push([kk, k]); let i = h.length - 1;
+  while (i > 0) { const p = (i - 1) >> 1; if (less(h[i][0], h[p][0])) { [h[i], h[p]] = [h[p], h[i]]; i = p; } else break; }
+}
+function popRaw() {
+  const h = st.heap; const top = h[0]; const last = h.pop();
+  if (h.length) { h[0] = last; let i = 0; for (;;) { const l = 2 * i + 1, r = l + 1; let m = i;
+    if (l < h.length && less(h[l][0], h[m][0])) m = l; if (r < h.length && less(h[r][0], h[m][0])) m = r;
+    if (m === i) break; [h[i], h[m]] = [h[m], h[i]]; i = m; } }
+  return top;
+}
+function clean() { // убрать устаревшие записи с вершины кучи
+  while (st.heap.length) { const [kk, k] = st.heap[0]; const cur = st.inq.get(k);
+    if (cur && cur[0] === kk[0] && cur[1] === kk[1]) return; popRaw(); }
+}
+function topKey() { clean(); return st.heap.length ? st.heap[0][0] : [Infinity, Infinity]; }
+
+function updateVertex(k) {
+  const [x, y] = xy(k);
+  if (k !== key(...GOAL)) {
+    let best = Infinity;
+    for (const n of nbrs(x, y)) best = Math.min(best, cost(st.known, [x, y], n) + st.g[key(...n)]);
+    st.rhs[k] = best;
+  }
+  st.inq.delete(k);
+  if (st.g[k] !== st.rhs[k]) pushQ(k, calcKey(k));
+}
+function computeShortestPath() {
+  let count = 0; const ks = key(...st.robot);
+  while (less(topKey(), calcKey(ks)) || st.rhs[ks] !== st.g[ks]) {
+    if (!st.heap.length) break;
+    const [kold, u] = popRaw(); st.inq.delete(u);
+    const knew = calcKey(u);
+    if (less(kold, knew)) { pushQ(u, knew); continue; }
+    count++; st.expanded.add(u);
+    const [x, y] = xy(u);
+    if (st.g[u] > st.rhs[u]) { st.g[u] = st.rhs[u]; for (const n of nbrs(x, y)) updateVertex(key(...n)); }
+    else { st.g[u] = Infinity; updateVertex(u); for (const n of nbrs(x, y)) updateVertex(key(...n)); }
+    if (count > 20000) break;
+  }
+  return count;
+}
+
+// A* с нуля от робота к цели на известной карте — только для подсчёта раскрытий
+function astarCount() {
+  const g = new Float64Array(W * H).fill(Infinity), closed = new Uint8Array(W * H);
+  const s = key(...st.robot), t = key(...GOAL); g[s] = 0;
+  const open = [[hOct(st.robot, GOAL), s]]; let count = 0;
+  while (open.length) {
+    let bi = 0; for (let i = 1; i < open.length; i++) if (open[i][0] < open[bi][0]) bi = i;
+    const [, u] = open.splice(bi, 1)[0]; if (closed[u]) continue; closed[u] = 1; count++;
+    if (u === t) break;
+    const p = xy(u);
+    for (const n of nbrs(...p)) { const kn = key(...n); const c = cost(st.known, p, n); if (c === Infinity || closed[kn]) continue;
+      if (g[u] + c < g[kn]) { g[kn] = g[u] + c; open.push([g[kn] + hOct(n, GOAL), kn]); } }
+  }
+  return count;
+}
+
+function sense() { // открыть препятствия в радиусе датчика; вернуть изменившиеся клетки
+  const R = +$('sensor').value, changed = [];
+  for (let dx = -R; dx <= R; dx++) for (let dy = -R; dy <= R; dy++) {
+    const x = st.robot[0] + dx, y = st.robot[1] + dy; if (!inside(x, y) || dx * dx + dy * dy > R * R + 0.5) continue;
+    const k = key(x, y); if (st.known[k] !== st.truth[k]) { st.known[k] = st.truth[k]; changed.push(k); }
+  }
+  return changed;
+}
+function extractPlan() {
+  const p = [st.robot.slice()]; let c = st.robot.slice();
+  for (let i = 0; i < W * H; i++) { if (c[0] === GOAL[0] && c[1] === GOAL[1]) break;
+    let best = null, bv = Infinity;
+    for (const n of nbrs(...c)) { const v = cost(st.known, c, n) + st.g[key(...n)]; if (v < bv - 1e-9) { bv = v; best = n; } }
+    if (!best || bv === Infinity) break; c = best; p.push(c);
+  }
+  st.plan = p;
+}
+function replan(first) {
+  st.expanded = new Set();
+  const nD = computeShortestPath(), nA = astarCount();
+  st.events.push({ step: st.steps, d: nD, a: nA, first }); st.totD += nD; st.totA += nA;
+  extractPlan();
+  if (st.g[key(...st.robot)] === Infinity) st.stuck = true;
+}
+function stepOnce() {
+  if (st.done || st.stuck) return;
+  // шаг к соседу с наименьшим c + g
+  let best = null, bv = Infinity;
+  for (const n of nbrs(...st.robot)) { const v = cost(st.known, st.robot, n) + st.g[key(...n)]; if (v < bv - 1e-9) { bv = v; best = n; } }
+  if (!best) { st.stuck = true; return; }
+  st.robot = best; st.trail.push(best.slice()); st.steps++;
+  if (best[0] === GOAL[0] && best[1] === GOAL[1]) { st.done = true; st.plan = [best]; return; }
+  const changed = sense();
+  if (changed.length) {
+    st.km += hOct(st.last, st.robot); st.last = st.robot.slice();
+    const touch = new Set();
+    for (const k of changed) { const [x, y] = xy(k); touch.add(k); for (const n of nbrs(x, y)) touch.add(key(...n)); }
+    for (const k of touch) updateVertex(k);
+    replan(false);
+  } else { st.expanded = new Set(); extractPlan(); }
+}
+
+// ---------------------------------------------------------------- рисование
+function fit(cv) {
+  const r = cv.parentElement.getBoundingClientRect();
+  const d = window.devicePixelRatio || 1;
+  cv.width = Math.max(10, r.width * d); cv.height = Math.max(10, r.height * d);
+  cv.style.width = r.width + 'px'; cv.style.height = r.height + 'px';
+  const ctx = cv.getContext('2d'); ctx.setTransform(d, 0, 0, d, 0, 0);
+  return [ctx, r.width, r.height];
+}
+let geo = null;
+function drawGrid() {
+  const [ctx, Wd, Hd] = fit($('grid'));
+  ctx.clearRect(0, 0, Wd, Hd);
+  const c = Math.min((Wd - 4) / W, (Hd - 4) / H), ox = (Wd - c * W) / 2, oy = (Hd - c * H) / 2;
+  geo = { c, ox, oy };
+  let gmax = 1; for (let k = 0; k < W * H; k++) if (isFinite(st.g[k])) gmax = Math.max(gmax, st.g[k]);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const k = key(x, y), X = ox + x * c, Y = oy + y * c;
+    let fill = '#ffffff';
+    if (isFinite(st.g[k])) { const t = st.g[k] / gmax; fill = `rgb(${Math.round(239 - 80 * t)},${Math.round(246 - 60 * t)},255)`; }
+    if (st.expanded.has(k)) fill = '#fdba74';
+    if (st.known[k]) fill = '#334155';
+    ctx.fillStyle = fill; ctx.fillRect(X, Y, c, c);
+    if (!st.known[k] && st.truth[k]) {
+      ctx.fillStyle = 'rgba(148,163,184,0.35)'; ctx.fillRect(X + 2, Y + 2, c - 4, c - 4);
+      ctx.setLineDash([3, 2]); ctx.strokeStyle = '#94a3b8'; ctx.strokeRect(X + 2.5, Y + 2.5, c - 5, c - 5); ctx.setLineDash([]);
+    }
+    ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 0.6; ctx.strokeRect(X, Y, c, c);
+  }
+  const P = p => [ox + (p[0] + 0.5) * c, oy + (p[1] + 0.5) * c];
+  // датчик
+  const R = +$('sensor').value, [rx, ry] = P(st.robot);
+  ctx.strokeStyle = 'rgba(2,132,199,0.55)'; ctx.setLineDash([5, 4]); ctx.lineWidth = 1.4;
+  ctx.beginPath(); ctx.arc(rx, ry, (R + 0.5) * c, 0, 2 * Math.PI); ctx.stroke(); ctx.setLineDash([]);
+  // план
+  if (st.plan.length > 1) { ctx.strokeStyle = '#059669'; ctx.lineWidth = 3; ctx.beginPath();
+    st.plan.forEach((p, i) => { const [X, Y] = P(p); i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); }); ctx.stroke(); }
+  // пройденный путь
+  ctx.strokeStyle = '#2563eb'; ctx.lineWidth = 2.4; ctx.beginPath();
+  st.trail.forEach((p, i) => { const [X, Y] = P(p); i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); }); ctx.stroke();
+  // цель и робот
+  const [gx, gy] = P(GOAL); ctx.fillStyle = '#059669'; ctx.beginPath(); ctx.arc(gx, gy, c * 0.38, 0, 2 * Math.PI); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.font = `bold ${Math.round(c * 0.45)}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('G', gx, gy + 1);
+  ctx.fillStyle = '#2563eb'; ctx.beginPath(); ctx.arc(rx, ry, c * 0.4, 0, 2 * Math.PI); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.fillText('R', rx, ry + 1);
+  let s = `шаг ${st.steps} · k_m = ${st.km.toFixed(2)}`;
+  if (st.done) s += ' · цель достигнута'; if (st.stuck) s += ' · пути нет';
+  $('status').textContent = s;
+}
+function drawBars() {
+  const [ctx, Wd, Hd] = fit($('bars'));
+  ctx.clearRect(0, 0, Wd, Hd);
+  const ev = st.events, L = 34, B = Hd - 28, T = 18, Wp = Wd - L - 8;
+  let m = 10; for (const e of ev) m = Math.max(m, e.d, e.a);
+  ctx.strokeStyle = '#cbd5e1'; ctx.beginPath(); ctx.moveTo(L, T); ctx.lineTo(L, B); ctx.lineTo(L + Wp, B); ctx.stroke();
+  ctx.fillStyle = '#64748b'; ctx.font = '10px sans-serif'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  for (const v of [0, Math.round(m / 2), m]) { const Y = B - v / m * (B - T); ctx.fillText(v, L - 4, Y); ctx.strokeStyle = '#eef2f7'; ctx.beginPath(); ctx.moveTo(L, Y); ctx.lineTo(L + Wp, Y); ctx.stroke(); }
+  const n = Math.max(ev.length, 1), bw = Math.min(26, Wp / n * 0.8);
+  ev.forEach((e, i) => {
+    const X = L + (i + 0.5) * Wp / n;
+    ctx.fillStyle = '#94a3b8'; ctx.fillRect(X - bw / 2, B - e.a / m * (B - T), bw / 2 - 1, e.a / m * (B - T));
+    ctx.fillStyle = '#f97316'; ctx.fillRect(X, B - e.d / m * (B - T), bw / 2 - 1, e.d / m * (B - T));
+    ctx.fillStyle = '#64748b'; ctx.textAlign = 'center'; ctx.textBaseline = 'top'; if (n <= 16 || i % 2 === 0) ctx.fillText(e.first ? 'старт' : e.step, X, B + 3);
+  });
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.font = '11px sans-serif';
+  ctx.fillStyle = '#94a3b8'; ctx.fillRect(L + 4, 2, 10, 10); ctx.fillStyle = '#334155'; ctx.fillText('A* с нуля', L + 18, 1);
+  ctx.fillStyle = '#f97316'; ctx.fillRect(L + 92, 2, 10, 10); ctx.fillStyle = '#334155'; ctx.fillText('D* Lite', L + 106, 1);
+  ctx.fillStyle = '#64748b'; ctx.textAlign = 'right'; ctx.fillText('номер шага робота', L + Wp, B + 14);
+}
+function table() {
+  const nre = st.events.length;
+  $('resBody').innerHTML =
+    `<tr><td><i class="sw" style="background:#94a3b8"></i>A* с нуля при каждом изменении</td><td>${nre}</td><td>${st.totA}</td></tr>` +
+    `<tr><td><i class="sw" style="background:#f97316"></i>D* Lite (ремонт дерева)</td><td>${nre}</td><td>${st.totD}</td></tr>` +
+    `<tr><td colspan="3" style="text-align:left;color:#475569">D* Lite раскрыл ${st.totA ? Math.round(100 * st.totD / st.totA) : 0}% от объёма A*. Первый столбик — исходное планирование.</td></tr>`;
+}
+function draw() { drawGrid(); drawBars(); table(); }
+
+// ---------------------------------------------------------------- управление
+const sel = $('scenario');
+SCENARIOS.forEach((s, i) => { const o = document.createElement('option'); o.value = i; o.textContent = s.name; sel.appendChild(o); });
+let timer = null;
+function stop() { if (timer) clearInterval(timer); timer = null; $('play').textContent = 'Пуск'; }
+function load(i) { stop(); sel.value = i; $('note').innerHTML = SCENARIOS[i].note; reset(i); draw(); }
+sel.addEventListener('change', () => load(+sel.value));
+$('reset').addEventListener('click', () => load(st.sc));
+$('step').addEventListener('click', () => { stop(); stepOnce(); draw(); });
+$('play').addEventListener('click', () => {
+  if (timer) { stop(); return; }
+  if (st.done || st.stuck) reset(st.sc);
+  $('play').textContent = 'Пауза';
+  timer = setInterval(() => { stepOnce(); draw(); if (st.done || st.stuck) stop(); }, 1100 / +$('speed').value);
+});
+for (const [id, def, fmt] of [['sensor', 2, v => v + ' кл.'], ['speed', 5, v => v]]) {
+  const el = $(id); el.value = def; $(id + 'v').textContent = fmt(el.value);
+  el.addEventListener('input', () => { $(id + 'v').textContent = fmt(el.value); if (id === 'speed' && timer) { stop(); $('play').click(); } draw(); });
+}
+function cellAt(e) {
+  if (!geo) return null; const r = $('grid').getBoundingClientRect();
+  const x = Math.floor((e.clientX - r.left - geo.ox) / geo.c), y = Math.floor((e.clientY - r.top - geo.oy) / geo.c);
+  return inside(x, y) ? [x, y] : null;
+}
+$('grid').addEventListener('click', e => {
+  const p = cellAt(e); if (!p) return;
+  const k = key(...p);
+  if ((p[0] === st.robot[0] && p[1] === st.robot[1]) || (p[0] === GOAL[0] && p[1] === GOAL[1])) return;
+  st.truth[k] = st.truth[k] ? 0 : 1;
+  // если клетка в зоне видимости, робот замечает изменение сразу
+  const changed = sense();
+  if (changed.length && !st.done) {
+    st.km += hOct(st.last, st.robot); st.last = st.robot.slice();
+    const touch = new Set(); for (const c of changed) { const [x, y] = xy(c); touch.add(c); for (const n of nbrs(x, y)) touch.add(key(...n)); }
+    for (const c of touch) updateVertex(c);
+    st.stuck = false; replan(false);
+  }
+  draw();
+});
+$('grid').addEventListener('mousemove', e => {
+  const p = cellAt(e); if (!p) return; const k = key(...p);
+  const f = v => isFinite(v) ? v.toFixed(2) : '∞';
+  $('insp').textContent = `клетка (${p[0]}, ${p[1]}): g = ${f(st.g[k])}, rhs = ${f(st.rhs[k])}, h = ${hOct(st.robot, p).toFixed(2)}` + (st.g[k] !== st.rhs[k] ? ' — не согласована' : '');
+});
+window.addEventListener('resize', draw);
+if (window.ResizeObserver) new ResizeObserver(() => draw()).observe(document.body);
+const params = new URLSearchParams(location.search);
+load(Math.max(0, Math.min(SCENARIOS.length - 1, (+params.get('scenario') || 1) - 1)));
+if (params.get('run') === '1') { for (let i = 0; i < 200 && !st.done && !st.stuck; i++) stepOnce(); draw(); }
+</script>
+</body>
+</html>
