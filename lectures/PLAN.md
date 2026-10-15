@@ -238,7 +238,7 @@ Autonomous Mobile Robots» — кинематика шасси.
 
 Часть 2. Путь Boston Dynamics и модельное управление (27–40 мин):
 - Прыгающие роботы Raibert, динамическая устойчивость; BigDog, Atlas, электрический Atlas (рисунок `bd_path.svg`).
-- DARPA Robotics Challenge 2015: восемь заданий, DRC-HUBO, уроки падений (рисунок `drc_tasks.svg`).
+- DARPA Robotics Challenge 2015: DRC-HUBO, уроки падений.
 - Классическая иерархия управления; полнотельное управление (WBC) как QP, конус трения.
 
 Часть 3. Обучение и большие модели (40–60 мин):

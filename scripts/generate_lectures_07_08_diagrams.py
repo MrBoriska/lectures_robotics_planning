@@ -1734,72 +1734,6 @@ def tilt(parts, cx, cy, deg):
     return [f'<g transform="rotate({deg} {cx:.1f} {cy:.1f})">'] + parts + ['</g>']
 
 
-def l08_drc_tasks():
-    W, H = 1100, 360
-    out = svg_open(W, H)
-    out.append(text(550, 28, 'DARPA Robotics Challenge, финал 2015: восемь заданий за один час, связь с оператором ухудшена', 17, INK, 'middle', 700))
-    names = [('езда', 'на автомобиле'), ('выход', 'из машины'), ('дверь', 'открыть, пройти'), ('вентиль', 'повернуть'),
-             ('стена', 'вырезать проём'), ('сюрприз', 'рубильник, вилка'), ('завал', 'или неровный пол'), ('лестница', 'подняться')]
-    tw, x0, y0 = 124, 38, 52
-    for i, (a, b) in enumerate(names):
-        x = x0 + i * (tw + 7)
-        out.append(rect(x, y0, tw, 150, '#f8fafc', '#cbd5e1', 10, 1.4))
-        out.append(circle(x + 18, y0 + 18, 12, BLUE))
-        out.append(text(x + 18, y0 + 23, str(i + 1), 13, '#ffffff', 'middle', 700))
-        cx, cy = x + tw / 2, y0 + 78
-        if i in (0, 1):
-            out.append(shape(f'M{cx - 40},{cy + 14} v-18 l14,-16 h36 l16,16 h14 v18 z', '#dbeafe', EDGE))
-            out.append(circle(cx - 22, cy + 16, 9, '#475569', EDGE))
-            out.append(circle(cx + 26, cy + 16, 9, '#475569', EDGE))
-            if i == 1:
-                out.append(arrow(cx + 8, cy - 14, cx + 46, cy - 40, BLUE, 2.2))
-        elif i == 2:
-            out.append(shape(f'M{cx - 22},{cy + 28} v-62 h34 v62', '#fef3c7', EDGE))
-            out.append(circle(cx + 4, cy, 3, EDGE))
-            out.append(f'<path d="M{cx + 12},{cy + 28} A 34 34 0 0 0 {cx + 34},{cy - 4}" fill="none" stroke="{BLUE}" stroke-width="2" stroke-dasharray="4 3"/>')
-        elif i == 3:
-            out.append(circle(cx, cy, 26, 'none', EDGE, 4))
-            for k in range(3):
-                ang = k * math.pi / 3
-                out.append(line(cx - 26 * math.cos(ang), cy - 26 * math.sin(ang), cx + 26 * math.cos(ang), cy + 26 * math.sin(ang), EDGE, 3))
-            out.append(f'<path d="M{cx - 34},{cy - 14} A 36 36 0 0 1 {cx + 12},{cy - 36}" fill="none" stroke="{BLUE}" stroke-width="2" marker-end="url(#arrB)"/>')
-        elif i == 4:
-            out.append(rect(cx - 36, cy - 34, 72, 64, '#e7e5e4', EDGE, 2, 1.4))
-            out.append(circle(cx, cy - 2, 16, '#ffffff', RED, 2))
-            out.append(line(cx + 16, cy - 2, cx + 38, cy + 18, EDGE, 5))
-        elif i == 5:
-            out.append(rect(cx - 26, cy - 30, 52, 56, '#f5f3ff', PURPLE, 6, 1.6))
-            out.append(text(cx, cy + 12, '?', 36, PURPLE, 'middle', 700))
-        elif i == 6:
-            for dx, dy, w_, h_, rot in ((-34, 14, 26, 16, -12), (-6, 18, 30, 12, 8), (18, 8, 22, 20, -20), (-20, -4, 24, 14, 25), (6, -8, 20, 12, -5)):
-                out.append(f'<rect x="{cx + dx:.1f}" y="{cy + dy:.1f}" width="{w_}" height="{h_}" fill="#d6d3d1" stroke="{EDGE}" stroke-width="1.3" transform="rotate({rot} {cx + dx + w_ / 2:.1f} {cy + dy + h_ / 2:.1f})"/>')
-        else:
-            pts = [(cx - 40, cy + 30)]
-            for k in range(4):
-                pts += [(cx - 40 + k * 20, cy + 30 - (k + 1) * 15), (cx - 20 + k * 20, cy + 30 - (k + 1) * 15)]
-            pts += [(cx + 40, cy + 30)]
-            out.append(polygon(pts, '#e2e8f0', 1, EDGE))
-        out.append(text(cx, y0 + 128, a, 14, INK, 'middle', 700))
-        out.append(text(cx, y0 + 145, b, 12, MUTED, 'middle'))
-        if i < 7:
-            out.append(arrow(x + tw - 2, y0 + 75, x + tw + 6, y0 + 75, LIGHT, 1.5))
-    # DRC-HUBO: шагает и едет на коленях
-    gy = 330
-    out.append(rect(38, 220, 470, 128, '#ecfdf5', GREEN, 10, 1.4))
-    out.append(text(54, 244, 'Победитель KAIST, робот DRC-HUBO', 14, GREEN, 'start', 700))
-    out += wrap_lines(54, 266, ['на ровном месте опускался на колени', 'и ехал на колёсах, по завалу и лестнице', 'шёл ногами; 8 из 8 заданий за 44 мин'], 12.5, INK, dy=18)
-    out += humanoid(370, gy, 100, 'box', 1.0, BODY, '#64748b')
-    out.append(arrow(400, 290, 430, 290, GREEN, 2))
-    out += humanoid(465, gy, 70, 'box', 1.15, BODY, '#64748b', legs='wheels')
-    out.append(rect(526, 220, 536, 128, '#fef2f2', RED, 10, 1.4))
-    out.append(text(542, 244, 'Почему падали', 14, RED, 'start', 700))
-    out += wrap_lines(542, 266, ['выход из машины, шаг через порог, неожиданный контакт рукой:',
-                                 'модельный регулятор рассчитан на заданные контакты, а здесь',
-                                 'контакты появлялись там, где модель их не ждала.',
-                                 'Второе место — IHMC на Atlas, третье — CHIMP (Tartan Rescue).'], 12.5, INK, dy=18)
-    write(os.path.join(OUT08, 'drc_tasks.svg'), out)
-
-
 def l08_fedor_teleop():
     W, H = 1100, 360
     out = svg_open(W, H)
@@ -1890,22 +1824,6 @@ def l08_russia_timeline():
     write(os.path.join(OUT08, 'russia_timeline.svg'), out)
 
 
-def l08_unitree_prices():
-    W, H = 1100, 250
-    out = svg_open(W, H)
-    out.append(text(550, 26, 'Unitree: цена гуманоида при выходе на рынок (цены производителя, тыс. долларов США)', 16, INK, 'middle', 700))
-    rows = [('H1', 2023, 1.80, 90), ('G1', 2024, 1.32, 16), ('R1', 2025, 1.21, 5.9)]
-    x0, scale = 330, 8.0
-    for k, (name, yr, h, price) in enumerate(rows):
-        y = 70 + k * 62
-        out += humanoid(60 + k * 75, 232, h * 95, 'visor' if name != 'H1' else 'box', 1.0, '#e2e8f0', '#1e293b')
-        out.append(text(x0 - 14, y + 22, f'{name} ({yr})', 15, RED, 'end', 700))
-        out.append(rect(x0, y, price * scale, 32, '#fee2e2', RED, 4, 1.4))
-        out.append(text(x0 + price * scale + 10, y + 22, f'≈ {price:g}', 15, INK, 'start', 700))
-    out.append(text(1080, 240, 'H1 — по сообщениям при запуске продаж; G1 и R1 — объявленные стартовые цены.', 12, MUTED, 'end'))
-    write(os.path.join(OUT08, 'unitree_prices.svg'), out)
-
-
 def main():
     print('Лекция 07:')
     l07_course_place()
@@ -1944,10 +1862,8 @@ def main():
     l08_course_map()
     l08_bd_path()
     l08_lineup()
-    l08_drc_tasks()
     l08_fedor_teleop()
     l08_russia_timeline()
-    l08_unitree_prices()
 
 
 if __name__ == '__main__':
