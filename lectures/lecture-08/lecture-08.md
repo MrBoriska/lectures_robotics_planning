@@ -97,32 +97,38 @@ math: katex
 
 ## Зачем роботу человеческое тело <span class="badge badge-time">04–06 мин</span>
 
-<div class="grid-2">
-<div class="col">
+<!-- _class: compact -->
+
+<div class="grid-3 tight">
 <div class="card card-success">
 
 ### Доводы «за»
-- **Мир устроен под человека:** лестницы, двери, полки, инструменты, кабины машин. Колёсный робот там застревает.
-- **Данные:** миллионы часов видео, где люди что-то делают. Тело, похожее на человеческое, проще учить по этим примерам (часть 3).
-- **Одна платформа — много задач:** вместо отдельного станка для каждой операции.
+- **Среда под человека:** лестницы, пороги, двери, полки, инструменты, кабины машин.
+- **Данные для обучения:** миллионы часов видео человеческого труда пригодны для обучения политик (VLA).
+- **Универсальность:** одно антропоморфное шасси вместо сотен узкоспециализированных станков.
 
 </div>
+<div class="card" style="text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 6px;">
+
+<img src="../../assets/images/lecture-08/photo_tesla_optimus.jpg" alt="Tesla Optimus Gen 2" style="height: 240px; border-radius: 6px; object-fit: contain;" />
+<div style="font-size: 12px; font-weight: 600; color: var(--text-main); margin-top: 4px;">Tesla Optimus Gen 2</div>
+<div style="font-size: 11px; color: var(--text-muted);">28 DoF тело + 11 DoF кисти</div>
+
 </div>
-<div class="col">
 <div class="card card-alert">
 
 ### Доводы «против»
-- **Неустойчивость:** стоит выключить управление — робот падает. Колёсный робот просто остановится.
-- **Сложность:** десятки суставов, у каждого привод, датчики, нагрев.
-- **Цена и надёжность:** для одной операции на конвейере дешевле обычный манипулятор.
-
-</div>
-<div class="card">
-
-Где именно гуманоид окупится — главный открытый вопрос отрасли (часть 5).
+- **Неустойчивость:** потеря баланса = мгновенное падение (колёса устойчивы пассивно).
+- **Сложность:** десятки приводов, теплоотвод, износ волновых редукторов.
+- **Цена и окупаемость:** под конкретную операцию манипулятор надёжнее и в разы дешевле.
 
 </div>
 </div>
+
+<div class="card card-accent" style="margin-top: 6px; text-align: center; font-size: 13px; padding: 6px 12px;">
+
+**Главный открытый вопрос отрасли:** где универсальность окупит высокую себестоимость и сложность обслуживания (часть 5).
+
 </div>
 
 ---
@@ -271,26 +277,31 @@ math: katex
 
 ## Почему классические гуманоиды ходили «на полусогнутых» <span class="badge badge-time">25–27 мин</span>
 
-<div class="grid-2">
-<div class="col">
+<!-- _class: compact -->
+
+<div class="grid-3 tight">
 <div class="card card-alert">
 
 ### Цена простой модели
-- **Постоянная высота ЦМ** в LIPM: колени всегда согнуты, ходьба неестественная и энергозатратная.
-- **Плоская стопа и ровный пол:** ZMP требует полного касания стопой; ступенька, рыхлый грунт или скольжение ломают предпосылки модели.
-- **Жёсткие приводы с большим передаточным числом:** точно отрабатывают углы, но не «пружинят» при неожиданном ударе.
+- **Высота $z_c = \text{const}$:** колени вынужденно согнуты во всех фазах, походка неестественная и энергозатратная.
+- **Плоская стопа:** ZMP требует идеального контакта с ровным полом; малейшая ступенька ломает предпосылки.
+- **Жёсткие редукторы:** передаточное число $N > 100$ не амортизирует ударные нагрузки при шаге.
 
 </div>
+<div class="card" style="text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 6px;">
+
+<img src="../../assets/images/lecture-08/photo_honda_asimo.jpg" alt="Honda ASIMO" style="height: 240px; border-radius: 6px; object-fit: contain;" />
+<div style="font-size: 12px; font-weight: 600; color: var(--text-main); margin-top: 4px;">Honda ASIMO</div>
+<div style="font-size: 11px; color: var(--text-muted);">Икона LIPM: согнутые колени держат постоянную высоту ЦМ</div>
+
 </div>
-<div class="col">
 <div class="card card-success">
 
 ### Что сделали дальше
-- Учли высоту и вращение корпуса: **центроидная динамика** — модель движения ЦМ и момента импульса всего тела.
-- Обобщили точку захвата в 3D: **дивергентная компонента движения** (DCM, Englsberger и др., 2015).
-- Перешли к приводам с малым передаточным числом и измерением момента: удар отдаётся в мотор, а не ломает редуктор.
+- **Центроидная динамика:** переменная высота ЦМ и баланс момента импульса всего тела.
+- **3D-точка захвата:** дивергентная компонента движения (DCM, Englsberger, 2015).
+- **Квазипрямой привод (QDD):** малое передаточное число, прозрачность по моменту, мягкий контакт стопы.
 
-</div>
 </div>
 </div>
 
@@ -344,21 +355,34 @@ math: katex
 
 ## Урок DARPA Robotics Challenge 2015 <span class="badge badge-time">32–34 мин</span>
 
-<div class="diagram-box">
+<div class="grid-2">
+<div class="col">
 
-<img src="../../assets/images/lecture-08/drc_tasks.svg" alt="Восемь заданий финала DARPA Robotics Challenge и робот DRC-HUBO" />
+<div class="diagram-box" style="text-align: center; padding: 6px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+
+<img src="../../assets/images/lecture-08/photo_drc_hubo.jpg" alt="Победитель DARPA Robotics Challenge 2015 — робот DRC-HUBO (Team KAIST)" style="max-height: 230px; border-radius: 6px; object-fit: contain;" />
+<div style="font-size: 12px; font-weight: 600; color: var(--text-main); margin-top: 4px;">DRC-HUBO (Team KAIST, Южная Корея)</div>
+<div style="font-size: 11px; color: var(--text-muted);">Колёса на коленях позволили трансформироваться и исключить падения</div>
 
 </div>
 
-<div class="grid-2 tight">
+</div>
+<div class="col">
+
 <div class="card card-accent">
 
-**Зачем.** Соревнование устроили после аварии на АЭС «Фукусима» (2011): робот должен работать там, где опасно человеку. Операторы управляли почти каждым движением; подборка падений стала знаменитым видео.
+### Финал DRC 2015 (Помона, Калифорния)
+- Соревнование устроили после аварии на АЭС «Фукусима» (2011): ликвидация последствий в зоне, опасной для человека.
+- **Победитель — DRC-HUBO (Южная Корея, KAIST):** гибридная кинематика с колёсами на коленях. Трансформация в колёсный режим исключила риск падений на ровных участках.
+- Операторы управляли роботами через зашумлённый канал связи; задания выполнялись десятки минут.
 
 </div>
+
 <div class="card card-alert">
 
-**Вывод:** ходьба по ровному полу — решённая задача, а работа в неизвестной обстановке с контактами — нет. Модельные методы «ломаются» на неожиданностях.
+**Вывод:** ходьба по ровному полу в лаборатории — решённая задача, а работа в неизвестной обстановке с контактами — нет. Модельные методы «ломаются» на непредвиденных препятствиях.
+
+</div>
 
 </div>
 </div>
@@ -643,20 +667,53 @@ VLM, к которой добавлен выход **действий робот
 
 <!-- _class: compact -->
 
+<div class="grid-2">
+<div class="col">
+
 | Компания | Робот | Особенности |
 | :--- | :--- | :--- |
-| Boston Dynamics (принадлежит Hyundai) | электрический Atlas (2024) | пилотная работа на заводах Hyundai; обучение по движениям людей |
-| Figure AI | Figure 02 (2024), Figure 03 (2025) | собственная модель Helix; пилот на заводе BMW |
-| Tesla | Optimus (с 2022) | ставка на массовое производство и собственные приводы |
-| Agility Robotics | Digit | ноги «как у птицы»; работа на складах (перекладка контейнеров) |
-| Apptronik | Apollo | пилоты на автозаводах |
-| 1X (Норвегия и США) | NEO | домашний робот с мягким корпусом; на первых порах часть задач — с удалённым оператором |
-| NVIDIA | GR00T, Isaac | не делает роботов, а даёт модели, симуляторы и вычислители для всех |
+| Boston Dynamics | Atlas (электро, 2024) | пилоты на заводах Hyundai; RL по людям |
+| Figure AI | Figure 02 / 03 | модель Helix; пилоты на заводах BMW |
+| Tesla | Optimus (с 2022) | ставка на серию и свои электроприводы |
+| Agility Robotics | Digit | ноги «как у птицы»; логистика складов |
+| Apptronik | Apollo | автозаводы (Mercedes-Benz) |
+| 1X (США, Норвегия)| NEO | мягкий корпус, домашний ассистент |
+| NVIDIA | GR00T, Isaac | базовые модели, симуляторы и GPU |
 
-<div class="card card-alert">
+<div class="card card-alert" style="margin-top: 6px;">
 
-Большая часть данных — из сообщений компаний. Число роботов, реально работающих на производстве, исчисляется единицами–десятками на компанию.
+Большая часть сведений — из заявлений компаний. Реально работающих на производстве роботов — десятки на компанию.
 
+</div>
+
+</div>
+<div class="col">
+
+<div class="grid-3" style="gap: 6px;">
+<div class="card" style="padding: 4px; text-align: center;">
+<img src="../../assets/images/lecture-08/photo_bd_atlas.jpg" alt="Boston Dynamics Atlas" style="height: 175px; width: 100%; object-fit: cover; border-radius: 4px;" />
+<div style="font-size: 11px; font-weight: 600; margin-top: 2px; color: var(--text-main);">Atlas (Boston Dynamics)</div>
+<div style="font-size: 10px; color: var(--text-muted);">Hyundai пилот</div>
+</div>
+<div class="card" style="padding: 4px; text-align: center;">
+<img src="../../assets/images/lecture-08/photo_tesla_optimus.jpg" alt="Tesla Optimus" style="height: 175px; width: 100%; object-fit: cover; border-radius: 4px;" />
+<div style="font-size: 11px; font-weight: 600; margin-top: 2px; color: var(--text-main);">Optimus (Tesla)</div>
+<div style="font-size: 10px; color: var(--text-muted);">Серийные приводы</div>
+</div>
+<div class="card" style="padding: 4px; text-align: center;">
+<img src="../../assets/images/lecture-08/photo_agility_cassie.jpg" alt="Agility Cassie" style="height: 175px; width: 100%; object-fit: cover; border-radius: 4px;" />
+<div style="font-size: 11px; font-weight: 600; margin-top: 2px; color: var(--text-main);">Cassie (Agility)</div>
+<div style="font-size: 10px; color: var(--text-muted);">База робота Digit</div>
+</div>
+</div>
+
+<div class="card card-accent" style="margin-top: 6px; font-size: 13px; padding: 6px 10px;">
+
+**Тренд индустрии:** отказ от дорогой гидравлики в пользу электроприводов и обучение по демонстрациям людей.
+
+</div>
+
+</div>
 </div>
 
 ---
@@ -691,64 +748,94 @@ VLM, к которой добавлен выход **действий робот
 
 ## Компании: Китай и другие страны <span class="badge badge-time">64–66 мин</span>
 
+<!-- _class: compact -->
+
 <div class="grid-2">
 <div class="col">
+
 <div class="card card-accent">
 
-### Китай
-- **Unitree:** H1 (2023), G1 (2024, от ~16 тыс. долларов), R1 (2025, от ~6 тыс.). Самые массовые исследовательские гуманоиды в мире.
+### Китай: массовость и полная цепочка
+- **Unitree:** H1 (2023), G1 (2024, от ~16 тыс. долларов), R1 (2025, от ~6 тыс.). Самые массовые исследовательские гуманоиды в университетах мира.
 - **UBTech** (Walker S), **AgiBot**, **Fourier**, **XPeng**, **Xiaomi** и десятки стартапов.
-- Государственная поддержка, своя цепочка поставок приводов, редукторов, аккумуляторов. Публичные соревнования: полумарафон гуманоидов в Пекине (апрель 2025).
+- Государственная поддержка, собственная цепочка поставок бесколлекторных приводов, волновых редукторов и аккумуляторов.
 
 </div>
+
+<div class="card" style="margin-top: 6px;">
+
+### Другие страны
+- **Япония:** Honda (ASIMO, проект 2000–2018), Toyota, Kawasaki.
+- **Южная Корея:** Rainbow Robotics (наследник HUBO), Hyundai (владелец Boston Dynamics).
+- **Европа:** PAL Robotics (Испания), Neura (Германия), лаборатории (IIT, DLR, ETH).
+
+</div>
+
 </div>
 <div class="col">
-<div class="card">
 
-### Другие
-- **Япония:** Honda (ASIMO, проект закрыт в 2018), Toyota, Kawasaki.
-- **Южная Корея:** Rainbow Robotics (наследник HUBO), Hyundai как владелец Boston Dynamics.
-- **Европа:** PAL Robotics (Испания), Neura Robotics (Германия), исследовательские центры (IIT, DLR, ETH).
-
+<div class="grid-2" style="gap: 8px;">
+<div class="card" style="padding: 6px; text-align: center;">
+<img src="../../assets/images/lecture-08/photo_unitree_g1.jpg" alt="Unitree G1" style="height: 230px; width: 100%; object-fit: cover; border-radius: 4px;" />
+<div style="font-size: 13px; font-weight: 600; margin-top: 4px; color: var(--text-main);">Unitree G1 (Китай)</div>
+<div style="font-size: 11px; color: var(--text-muted);">Массовый робот от $16k</div>
 </div>
-<div class="card card-success">
-
-**Тенденция:** цена исследовательского гуманоида упала примерно в десять раз за три года, и обучение стало доступно университетам.
-
-</div>
+<div class="card" style="padding: 6px; text-align: center;">
+<img src="../../assets/images/lecture-08/photo_honda_asimo.jpg" alt="Honda ASIMO" style="height: 230px; width: 100%; object-fit: cover; border-radius: 4px;" />
+<div style="font-size: 13px; font-weight: 600; margin-top: 4px; color: var(--text-main);">ASIMO (Honda, Япония)</div>
+<div style="font-size: 11px; color: var(--text-muted);">Икона классической школы ZMP</div>
 </div>
 </div>
 
-<div class="diagram-box">
+<div class="card card-success" style="margin-top: 6px; font-size: 13px; padding: 6px 10px;">
 
-<img src="../../assets/images/lecture-08/unitree_prices.svg" alt="Цены гуманоидов Unitree H1, G1, R1" />
+**Тенденция:** стоимость исследовательского робота упала в 10 раз за 3 года (с $150k+ до $16k за G1), сделав обучение ходьбе доступным сотням лабораторий.
 
+</div>
+
+</div>
 </div>
 
 ---
 
 ## Россия: ФЁДОР — гуманоид в космосе <span class="badge badge-time">66–69 мин</span>
 
-<div class="diagram-box">
+<div class="grid-2">
+<div class="col">
+
+<div class="diagram-box" style="height: 250px;">
 
 <img src="../../assets/images/lecture-08/fedor_teleop.svg" alt="Копирующее управление ФЁДОРОМ и хронология полёта на МКС" />
 
 </div>
 
-<div class="grid-3 tight">
-<div class="card card-accent">
+<div class="card card-term" style="margin-top: 6px;">
 
-**Проект.** FEDOR (Final Experimental Demonstration Object Research), позднее Skybot F-850. НПО «Андроидная техника» по заказу Фонда перспективных исследований; первоначально — для МЧС.
-
-</div>
-<div class="card card-term">
-
-**Термин: телеуправление (копирующее управление).** Оператор в задающем костюме двигается, робот повторяет. Плюс — сложные действия без автономии; минус — нужен человек и быстрая связь.
+**Термин: телеуправление (копирующее управление).** Оператор в задающем экзоскелете двигается, а робот повторяет. Плюс — сложные манипуляции без бортового ИИ; минус — требуется человек-оператор и высокоскоростной канал связи без задержек.
 
 </div>
-<div class="card card-success">
 
-**Чему научил проект.** Работа гуманоида в невесомости и копирующее управление. Серийного продолжения и самостоятельной ходьбы уровня зарубежных роботов не последовало.
+</div>
+<div class="col">
+
+<div class="diagram-box" style="height: 250px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+
+<img src="../../assets/images/lecture-08/photo_fedor_stamp.jpg" alt="Робот FEDOR (Skybot F-850)" style="max-height: 215px; border-radius: 4px; object-fit: contain;" />
+<div style="font-size: 12px; font-weight: 600; color: var(--text-main); margin-top: 4px;">FEDOR (Skybot F-850) на орбите МКС (2019)</div>
+
+</div>
+
+<div class="card card-accent" style="margin-top: 6px;">
+
+**Проект.** FEDOR (Skybot F-850), НПО «Андроидная техника» и ФПИ. В августе 2019 г. совершил полёт на МКС на беспилотном корабле «Союз МС-14», выполнил серию научных задач и вернулся на Землю.
+
+</div>
+
+<div class="card card-success" style="margin-top: 6px;">
+
+**Чему научил проект:** отработка работы антропоморфного шасси в невесомости. Однако автономной динамической походки и промышленного тиражирования за проектом не последовало.
+
+</div>
 
 </div>
 </div>
@@ -780,16 +867,26 @@ VLM, к которой добавлен выход **действий робот
 
 ## Россия: Промобот, Сбер, AIDOL <span class="badge badge-time">71–74 мин</span>
 
+<!-- _class: compact -->
+
 <div class="grid-3 tight">
 <div class="card card-accent">
 
-### Промобот (Пермь, с 2015 г.)
-- Сервисные колёсные роботы для приёма посетителей; по данным компании, поставлены в десятки стран.
-- Андроид **Robo-C** (2019): реалистичное лицо, мимика; сидячий, без ходьбы.
-- Сильная сторона — взаимодействие с людьми и серийное производство сервисных роботов.
+<div style="text-align: center; margin-bottom: 6px;">
+<img src="../../assets/images/lecture-08/photo_promobot.jpg" alt="Сервисный робот Promobot V.4" style="height: 175px; object-fit: contain; border-radius: 4px;" />
+</div>
+
+### Промобот (Пермь, с 2015)
+- Сервисные колёсные роботы для приёма посетителей (поставки в десятки стран).
+- Андроид **Robo-C** (2019): гиперреалистичное лицо, мимика; сидячий, без ног.
+- Сильная сторона — социальное взаимодействие и серийный выпуск.
 
 </div>
 <div class="card card-accent">
+
+<div style="text-align: center; margin-bottom: 6px;">
+<img src="../../assets/images/lecture-08/photo_sber_grin.jpg" alt="Робот Грин (Сбер)" style="height: 175px; object-fit: contain; border-radius: 4px;" />
+</div>
 
 ### Сбер: Грин (ноябрь 2025)
 - Показан на конференции AI Journey.
@@ -799,6 +896,10 @@ VLM, к которой добавлен выход **действий робот
 
 </div>
 <div class="card card-accent">
+
+<div style="text-align: center; margin-bottom: 6px;">
+<img src="../../assets/images/lecture-08/photo_aidol.jpg" alt="Гуманоидный робот AIDOL" style="height: 175px; object-fit: contain; border-radius: 4px;" />
+</div>
 
 ### AIDOL (ноябрь 2025)
 - Шагающий вариант: около 95 кг, переносит до 10 кг; настольный вариант с 19 приводами лица.
@@ -880,31 +981,38 @@ VLM, к которой добавлен выход **действий робот
 
 ## Часть 5. Как отличить автономию от телеуправления <span class="badge badge-time">80–82 мин</span>
 
-<div class="grid-2">
-<div class="col">
+<!-- _class: compact -->
+
+<div class="grid-3 tight">
 <div class="card card-alert">
 
-### Признаки, требующие проверки
+### Признаки проверки
 - Подпись к видео не говорит **«автономно»** или говорит «под управлением».
-- Видео **ускорено** (2×, 4×, 10×) — часто указано мелким шрифтом.
-- Монтажные склейки: сколько попыток было до удачной?
-- Рядом человек в костюме, с пультом или VR-шлемом.
-- Робот «разговаривает» слишком естественно и без задержек.
+- Видео **ускорено** (2×, 4×, 10×) — часто мелким шрифтом в углу.
+- Монтажные склейки: сколько скрыто неудачных дублей?
+- Рядом человек в mo-cap костюме, с пультом или в VR-шлеме.
+- Диалог робота слишком плавный и без сетевых задержек.
 
 </div>
+<div class="card" style="text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 6px;">
+
+<img src="../../assets/images/lecture-08/photo_ameca.jpg" alt="Ameca" style="height: 250px; object-fit: contain; border-radius: 6px;" />
+<div style="font-size: 12px; font-weight: 600; color: var(--text-main); margin-top: 4px;">Ameca (Engineered Arts)</div>
+<div style="font-size: 11px; color: var(--text-muted);">Мимика и жесты: телеприсутствие vs автономный агент</div>
+
 </div>
 <div class="col">
 <div class="card card-term">
 
 ### Термины
-- **Автономия:** решения принимает программа робота.
-- **Телеуправление:** решения принимает человек на расстоянии.
-- **Общая автономия:** робот делает простое сам, человек помогает в трудном.
+- **Автономия:** программа принимает решения на борту.
+- **Телеуправление:** человек управляет дистанционно.
+- **Shared autonomy:** робот держит баланс, человек даёт цели.
 
 </div>
-<div class="card card-accent">
+<div class="card card-accent" style="margin-top: 6px;">
 
-**Пример.** По сообщениям СМИ, роботы Optimus, общавшиеся с гостями на презентации Tesla в октябре 2024 г., частично управлялись операторами. Для сбора данных телеуправление нормально — плохо выдавать его за автономию.
+**В индустрии.** Для сбора датасетов телеуправление необходимо; критично не выдавать его за автономию на публичных демо.
 
 </div>
 </div>
