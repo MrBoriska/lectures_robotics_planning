@@ -26,6 +26,8 @@ math: katex
 
 ---
 
+<!-- _class: fs-2 -->
+
 <!-- _header: "Лекция 03 | Введение и мотивация" -->
 
 ## Предмет лекции и результаты обучения <span class="badge badge-blue">Концепт-карта</span>
@@ -60,6 +62,8 @@ math: katex
 </div>
 
 ---
+
+<!-- _class: fs-2 -->
 
 <!-- _header: "Лекция 03 | Фундаментальный кризис сеток" -->
 
@@ -110,6 +114,8 @@ $$\mathcal{O}(|V| \log |V| + |E|)$$
 </div>
 
 ---
+
+<!-- _class: fs-3 -->
 
 <!-- _header: "Лекция 03 | Фундаментальный кризис сеток" -->
 
@@ -172,6 +178,8 @@ $$\|q_A - q_B\|_{\text{Octile}} \neq \|q_A - q_B\|_2$$
 
 ---
 
+<!-- _class: fs-4 -->
+
 <!-- _header: "Лекция 03 | Сдвиг парадигмы" -->
 
 ## Невозможность построения $\mathcal{C}_{obs}$ и парадигма Black-Box <span class="badge badge-time">09–12 мин</span>
@@ -219,6 +227,8 @@ $$\operatorname{Clear}(q) = \begin{cases} 1, & q \in \mathcal{C}_{free} \\ 0, & 
 
 ---
 
+<!-- _class: fs-4 -->
+
 <!-- _header: "Лекция 03 | Геометрия C-пространства" -->
 
 ## Метрики расстояния в $\mathcal{C}$-пространстве <span class="badge badge-time">12–15 мин</span>
@@ -263,6 +273,8 @@ $$\operatorname{dist}_{SE(2)}(q_1, q_2) = \sqrt{w_p \|p_1 - p_2\|^2 + w_\theta \
 </div>
 
 ---
+
+<!-- _class: fs-4 -->
 
 <!-- _header: "Лекция 03 | Вероятностные дорожные карты" -->
 
@@ -384,6 +396,8 @@ $$\forall \tau \in [0, 1]: \operatorname{Clear}((1 - \tau)q + \tau u) == 1$$
 
 ---
 
+<!-- _class: fs-3 -->
+
 <!-- _header: "Лекция 03 | Оптимизация дорожных карт" -->
 
 ## Lazy PRM: Отложенная валидация коллизий <span class="badge badge-time">25–28 мин</span>
@@ -440,6 +454,8 @@ return FAILURE  # Путь не существует
 
 ---
 
+<!-- _class: fs-4 -->
+
 <!-- _header: "Лекция 03 | Сравнение PRM и Lazy PRM" -->
 
 ## PRM против Lazy PRM: Инженерный компромисс <span class="badge badge-time">28–30 мин</span>
@@ -477,6 +493,8 @@ return FAILURE  # Путь не существует
 </div>
 
 ---
+
+<!-- _class: fs-3 -->
 
 <!-- _header: "Лекция 03 | Однократные запросы и RRT" -->
 
@@ -519,6 +537,8 @@ return FAILURE  # Путь не существует
 </div>
 
 ---
+
+<!-- _class: fs-3 -->
 
 <!-- _header: "Лекция 03 | Быстро растущие случайные деревья" -->
 
@@ -572,6 +592,8 @@ $$P(u = q_{near}) = \frac{\mu(\operatorname{Vor}(u))}{\mu(\mathcal{C})}$$
 </div>
 
 ---
+
+<!-- _class: fs-3 -->
 
 <!-- _header: "Лекция 03 | Двунаправленный поиск" -->
 
@@ -658,6 +680,8 @@ def RRT_Connect(q_start, q_goal):
 -->
 
 ---
+
+<!-- _class: fs-4 -->
 
 <!-- _header: "Лекция 03 | Проблема неоптимальности" -->
 
@@ -792,6 +816,8 @@ $$\operatorname{cost}(q_{new}) + \|q_{new} - v\| < \operatorname{cost}(v)$$
 
 ---
 
+<!-- _class: fs-2 -->
+
 <!-- _header: "Лекция 03 | Асимптотически оптимальный поиск" -->
 
 ## Математика радиуса окрестности в RRT* <span class="badge badge-time">52–56 мин</span>
@@ -906,6 +932,8 @@ $$\mathcal{C}_{\text{inf}} = \{ q \in \mathcal{C} \mid \|q - q_{\text{start}}\| 
 
 ---
 
+<!-- _class: fs-4 -->
+
 <!-- _header: "Лекция 03 | Интуиция Informed RRT*" -->
 
 ## Интуиция сэмплирования гиперэллипсоида <span class="badge badge-time">63–66 мин</span>
@@ -978,6 +1006,8 @@ $$\mathcal{C}_{\text{inf}} = \{ q \in \mathcal{C} \mid \|q - q_{\text{start}}\| 
 
 ---
 
+<!-- _class: fs-4 -->
+
 <!-- _header: "Лекция 03 | Вычислительная оптимизация" -->
 
 ## 5. Вычислительные структуры: $k$-d Tree и Continuous Collision Detection <span class="badge badge-time">69–72 мин</span>
@@ -1018,6 +1048,8 @@ $$\mathcal{C}_{\text{inf}} = \{ q \in \mathcal{C} \mid \|q - q_{\text{start}}\| 
 </div>
 
 ---
+
+<!-- _class: fs-4 -->
 
 <!-- _header: "Лекция 03 | Полнота и неразрешимость" -->
 
@@ -1062,7 +1094,7 @@ $$\lim_{N \to \infty} P(\text{путь найден}) = 1$$
 
 ---
 
-<!-- _class: compact -->
+<!-- _class: compact fs-3 -->
 <!-- _header: "Лекция 03 | Гибридное планирование" -->
 
 ## 6. Алгоритм BIT* (Batch Informed Trees): Синтез $A^*$ и случайной выборки <span class="badge badge-time">75–78 мин</span>
@@ -1133,6 +1165,8 @@ $$\lim_{N \to \infty} P(\text{путь найден}) = 1$$
 
 ---
 
+<!-- _class: fs-2 -->
+
 <!-- _header: "Лекция 03 | Программные стандарты" -->
 
 ## 7. Программные библиотеки выборочного планирования: OMPL и cuRobo <span class="badge badge-time">82–85 мин</span>
@@ -1176,6 +1210,8 @@ $$\lim_{N \to \infty} P(\text{путь найден}) = 1$$
 
 ---
 
+<!-- _class: fs-2 -->
+
 <!-- _header: "Лекция 03 | Сравнительный анализ" -->
 
 ## Сводная инженерная матрица алгоритмов на основе выборки <span class="badge badge-time">85–88 мин</span>
@@ -1196,7 +1232,7 @@ $$\lim_{N \to \infty} P(\text{путь найден}) = 1$$
 
 ---
 
-<!-- _class: accent -->
+<!-- _class: accent fs-1 -->
 <!-- _header: "Лекция 03 | Итоги и вопросы" -->
 
 ## Резюме лекции и контрольные вопросы <span class="badge badge-time">88–90 мин</span>

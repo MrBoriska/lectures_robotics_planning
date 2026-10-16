@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 300" width="1100" height="300" font-family="Inter, 'Segoe UI', Roboto, Arial, sans-serif">
+<rect width="1100" height="300" fill="#ffffff"/>
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker><marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker><marker id="arrR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker><marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker><marker id="arrP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker><marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d97706"/></marker></defs>
+<text x="20.0" y="30.0" font-size="16" fill="#7c3aed" text-anchor="start" font-weight="700">Поведенческое клонирование: сигнал обучения — действие человека</text>
+<rect x="20.0" y="48.0" width="220.0" height="84.0" rx="10" fill="#f8fafc" stroke="#0f172a" stroke-width="2"/>
+<text x="130.0" y="74.0" font-size="15" fill="#0f172a" text-anchor="middle" font-weight="700">Человек управляет</text>
+<text x="130.0" y="98.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">пульт, VR, мокап</text>
+<rect x="300.0" y="48.0" width="240.0" height="84.0" rx="10" fill="#faf5ff" stroke="#7c3aed" stroke-width="2"/>
+<text x="420.0" y="74.0" font-size="15" fill="#7c3aed" text-anchor="middle" font-weight="700">Демонстрации</text>
+<text x="420.0" y="98.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">пары (o<tspan baseline-shift="sub" font-size="72%">i</tspan>, a<tspan baseline-shift="sub" font-size="72%">i</tspan>) на каждом</text>
+<text x="420.0" y="119.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">такте записи</text>
+<rect x="600.0" y="48.0" width="230.0" height="84.0" rx="10" fill="#faf5ff" stroke="#7c3aed" stroke-width="2"/>
+<text x="715.0" y="74.0" font-size="15" fill="#7c3aed" text-anchor="middle" font-weight="700">Регрессия</text>
+<text x="715.0" y="98.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">min Σ ‖a<tspan baseline-shift="sub" font-size="72%">i</tspan> − π<tspan baseline-shift="sub" font-size="72%">θ</tspan>(o<tspan baseline-shift="sub" font-size="72%">i</tspan>)‖²</text>
+<text x="715.0" y="119.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">по весам θ</text>
+<rect x="890.0" y="48.0" width="190.0" height="84.0" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+<text x="985.0" y="74.0" font-size="15" fill="#2563eb" text-anchor="middle" font-weight="700">Политика π<tspan baseline-shift="sub" font-size="72%">θ</tspan></text>
+<text x="985.0" y="98.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">робот: o → a</text>
+<line x1="240.0" y1="90.0" x2="296.0" y2="90.0" stroke="#7c3aed" stroke-width="2.2" marker-end="url(#arrP)"/>
+<line x1="540.0" y1="90.0" x2="596.0" y2="90.0" stroke="#7c3aed" stroke-width="2.2" marker-end="url(#arrP)"/>
+<line x1="830.0" y1="90.0" x2="886.0" y2="90.0" stroke="#7c3aed" stroke-width="2.2" marker-end="url(#arrP)"/>
+<text x="20.0" y="172.0" font-size="16" fill="#059669" text-anchor="start" font-weight="700">RL (лекция 06): сигнал обучения — награда за собственные пробы</text>
+<rect x="20.0" y="190.0" width="220.0" height="84.0" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+<text x="130.0" y="216.0" font-size="15" fill="#2563eb" text-anchor="middle" font-weight="700">Политика π<tspan baseline-shift="sub" font-size="72%">θ</tspan></text>
+<text x="130.0" y="240.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">выбирает действие</text>
+<rect x="300.0" y="190.0" width="240.0" height="84.0" rx="10" fill="#f8fafc" stroke="#0f172a" stroke-width="2"/>
+<text x="420.0" y="216.0" font-size="15" fill="#0f172a" text-anchor="middle" font-weight="700">Среда / симулятор</text>
+<text x="420.0" y="240.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">новое состояние</text>
+<text x="420.0" y="261.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">и награда r</text>
+<rect x="600.0" y="190.0" width="230.0" height="84.0" rx="10" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
+<text x="715.0" y="216.0" font-size="15" fill="#059669" text-anchor="middle" font-weight="700">Оценка проб</text>
+<text x="715.0" y="240.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">какие действия дали</text>
+<text x="715.0" y="261.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">большую сумму наград</text>
+<line x1="240.0" y1="232.0" x2="296.0" y2="232.0" stroke="#059669" stroke-width="2.2" marker-end="url(#arrG)"/>
+<line x1="540.0" y1="232.0" x2="596.0" y2="232.0" stroke="#059669" stroke-width="2.2" marker-end="url(#arrG)"/>
+<polyline points="715.0,274.0 715.0,292.0 130.0,292.0 130.0,278.0" fill="none" stroke="#059669" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" opacity="1.0" marker-end="url(#arrG)"/>
+<text x="420.0" y="288.0" font-size="13" fill="#059669" text-anchor="middle" font-weight="400">обновление θ, новые пробы</text>
+<text x="870.0" y="212.0" font-size="14" fill="#475569" text-anchor="start" font-weight="400">Нужны: награда и</text>
+<text x="870.0" y="232.0" font-size="14" fill="#475569" text-anchor="start" font-weight="400">миллионы проб.</text>
+<text x="870.0" y="252.0" font-size="14" fill="#475569" text-anchor="start" font-weight="400">В BC — ни того,</text>
+<text x="870.0" y="272.0" font-size="14" fill="#475569" text-anchor="start" font-weight="400">ни другого.</text>
+</svg>
