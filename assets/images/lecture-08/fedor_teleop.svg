@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 360" width="1100" height="360" font-family="Inter, 'Segoe UI', Roboto, Arial, sans-serif">
+<rect width="1100" height="360" fill="#ffffff"/>
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker><marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker><marker id="arrR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker><marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker><marker id="arrP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker><marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d97706"/></marker></defs>
+<text x="550.0" y="28.0" font-size="18" fill="#0f172a" text-anchor="middle" font-weight="700">ФЁДОР: копирующее управление и полёт на МКС (2019)</text>
+<line x1="40.0" y1="290.0" x2="620.0" y2="290.0" stroke="#94a3b8" stroke-width="2"/>
+<line x1="50.0" y1="290.0" x2="42.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="68.0" y1="290.0" x2="60.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="86.0" y1="290.0" x2="78.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="104.0" y1="290.0" x2="96.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="122.0" y1="290.0" x2="114.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="140.0" y1="290.0" x2="132.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="158.0" y1="290.0" x2="150.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="176.0" y1="290.0" x2="168.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="194.0" y1="290.0" x2="186.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="212.0" y1="290.0" x2="204.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="230.0" y1="290.0" x2="222.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="248.0" y1="290.0" x2="240.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="266.0" y1="290.0" x2="258.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="284.0" y1="290.0" x2="276.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="302.0" y1="290.0" x2="294.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="320.0" y1="290.0" x2="312.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="338.0" y1="290.0" x2="330.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="356.0" y1="290.0" x2="348.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="374.0" y1="290.0" x2="366.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="392.0" y1="290.0" x2="384.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="410.0" y1="290.0" x2="402.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="428.0" y1="290.0" x2="420.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="446.0" y1="290.0" x2="438.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="464.0" y1="290.0" x2="456.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="482.0" y1="290.0" x2="474.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="500.0" y1="290.0" x2="492.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="518.0" y1="290.0" x2="510.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="536.0" y1="290.0" x2="528.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="554.0" y1="290.0" x2="546.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="572.0" y1="290.0" x2="564.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="590.0" y1="290.0" x2="582.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<line x1="608.0" y1="290.0" x2="600.0" y2="298.0" stroke="#cbd5e1" stroke-width="1"/>
+<polyline points="120.4,195.0 119.1,238.7 119.1,283.4" fill="none" stroke="#334155" stroke-width="14.97" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="120.4,195.0 119.1,238.7 119.1,283.4" fill="none" stroke="#fef3c7" stroke-width="11.97" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<path d="M110.5,290.0 h17.1 v-5.7 q-3.8,-2.3 -13.3,0 z" fill="#fef3c7" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<polyline points="139.6,195.0 140.9,238.7 140.9,283.4" fill="none" stroke="#334155" stroke-width="14.97" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="139.6,195.0 140.9,238.7 140.9,283.4" fill="none" stroke="#fef3c7" stroke-width="11.97" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<path d="M132.4,290.0 h17.1 v-5.7 q-3.8,-2.3 -13.3,0 z" fill="#fef3c7" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<polyline points="108.1,141.8 104.6,170.3 105.8,200.7" fill="none" stroke="#334155" stroke-width="11.55" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="108.1,141.8 104.6,170.3 105.8,200.7" fill="none" stroke="#fef3c7" stroke-width="8.55" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="151.9,141.8 155.4,170.3 154.2,200.7" fill="none" stroke="#334155" stroke-width="11.55" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="151.9,141.8 155.4,170.3 154.2,200.7" fill="none" stroke="#fef3c7" stroke-width="8.55" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<path d="M117.2,200.7 L142.8,200.7 L143.5,179.8 L116.5,179.8 z" fill="#fef3c7" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<path d="M106.9,138.0 Q130.0,132.3 153.1,138.0 L148.5,181.7 L111.5,181.7 z" fill="#fef3c7" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<line x1="130.0" y1="138.0" x2="130.0" y2="133.2" stroke="#334155" stroke-width="5.7"/>
+<circle cx="130.0" cy="120.9" r="12.35" fill="#fef3c7" stroke="#334155" stroke-width="1.6"/>
+<line x1="95.0" y1="140.0" x2="95.0" y2="190.0" stroke="#7c3aed" stroke-width="4"/>
+<line x1="165.0" y1="140.0" x2="165.0" y2="190.0" stroke="#7c3aed" stroke-width="4"/>
+<line x1="112.0" y1="200.0" x2="112.0" y2="270.0" stroke="#7c3aed" stroke-width="4"/>
+<line x1="148.0" y1="200.0" x2="148.0" y2="270.0" stroke="#7c3aed" stroke-width="4"/>
+<text x="130.0" y="314.0" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="700">оператор</text>
+<text x="130.0" y="332.0" font-size="12.5" fill="#475569" text-anchor="middle" font-weight="400">в задающем костюме</text>
+<polyline points="508.8,195.0 507.3,238.7 507.3,283.4" fill="none" stroke="#334155" stroke-width="16.965000000000003" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="508.8,195.0 507.3,238.7 507.3,283.4" fill="none" stroke="#e2e8f0" stroke-width="13.965000000000002" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<path d="M498.7,290.0 h17.1 v-5.7 q-3.8,-2.3 -13.3,0 z" fill="#e2e8f0" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<polyline points="531.2,195.0 532.7,238.7 532.7,283.4" fill="none" stroke="#334155" stroke-width="16.965000000000003" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="531.2,195.0 532.7,238.7 532.7,283.4" fill="none" stroke="#e2e8f0" stroke-width="13.965000000000002" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<path d="M524.2,290.0 h17.1 v-5.7 q-3.8,-2.3 -13.3,0 z" fill="#e2e8f0" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<polyline points="494.4,141.8 490.4,170.3 491.7,200.7" fill="none" stroke="#334155" stroke-width="12.975" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="494.4,141.8 490.4,170.3 491.7,200.7" fill="none" stroke="#e2e8f0" stroke-width="9.975" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="545.6,141.8 549.6,170.3 548.3,200.7" fill="none" stroke="#334155" stroke-width="12.975" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<polyline points="545.6,141.8 549.6,170.3 548.3,200.7" fill="none" stroke="#e2e8f0" stroke-width="9.975" stroke-linejoin="round" stroke-linecap="round" opacity="1.0"/>
+<path d="M505.0,200.7 L535.0,200.7 L535.7,179.8 L504.3,179.8 z" fill="#e2e8f0" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<path d="M493.1,138.0 Q520.0,132.3 546.9,138.0 L541.5,181.7 L498.5,181.7 z" fill="#e2e8f0" stroke="#334155" stroke-width="1.6" stroke-linejoin="round"/>
+<path d="M505.2,145.6 h29.6 v15.2 h-29.6 z" fill="#94a3b8" stroke="none" stroke-width="0" stroke-linejoin="round"/>
+<line x1="520.0" y1="138.0" x2="520.0" y2="133.2" stroke="#334155" stroke-width="5.7"/>
+<circle cx="520.0" cy="120.9" r="12.35" fill="#e2e8f0" stroke="#334155" stroke-width="1.6"/>
+<path d="M510.1,117.8 h19.8 v7.4 h-19.8 z" fill="#1e293b" stroke="none" stroke-width="0" stroke-linejoin="round"/>
+<text x="520.0" y="314.0" font-size="14" fill="#0f172a" text-anchor="middle" font-weight="700">робот ФЁДОР</text>
+<text x="520.0" y="332.0" font-size="12.5" fill="#475569" text-anchor="middle" font-weight="400">(Skybot F-850)</text>
+<line x1="210.0" y1="150.0" x2="440.0" y2="150.0" stroke="#2563eb" stroke-width="2.4" marker-end="url(#arrB)"/>
+<text x="325.0" y="140.0" font-size="13" fill="#2563eb" text-anchor="middle" font-weight="700">углы суставов оператора</text>
+<line x1="440.0" y1="200.0" x2="210.0" y2="200.0" stroke="#059669" stroke-width="2.4" marker-end="url(#arrG)"/>
+<text x="325.0" y="222.0" font-size="13" fill="#059669" text-anchor="middle" font-weight="700">видео с камер, усилия</text>
+<text x="325.0" y="250.0" font-size="12.5" fill="#475569" text-anchor="middle" font-weight="400">робот повторяет движения человека</text>
+<rect x="660.0" y="56.0" width="410.0" height="290.0" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4"/>
+<text x="680.0" y="82.0" font-size="15" fill="#0f172a" text-anchor="start" font-weight="700">Полёт «Союз МС-14», 2019 г.</text>
+<circle cx="690.0" cy="113.0" r="6" fill="#2563eb" stroke="none" stroke-width="1.5"/>
+<line x1="690.0" y1="119.0" x2="690.0" y2="153.0" stroke="#94a3b8" stroke-width="2"/>
+<text x="706.0" y="118.0" font-size="13.5" fill="#0f172a" text-anchor="start" font-weight="700">22 авг</text>
+<text x="706.0" y="136.0" font-size="12.5" fill="#475569" text-anchor="start" font-weight="400">запуск с Байконура; робот в кресле командира</text>
+<circle cx="690.0" cy="159.0" r="6" fill="#dc2626" stroke="none" stroke-width="1.5"/>
+<line x1="690.0" y1="165.0" x2="690.0" y2="199.0" stroke="#94a3b8" stroke-width="2"/>
+<text x="706.0" y="164.0" font-size="13.5" fill="#0f172a" text-anchor="start" font-weight="700">24 авг</text>
+<text x="706.0" y="182.0" font-size="12.5" fill="#475569" text-anchor="start" font-weight="400">первая стыковка не удалась</text>
+<circle cx="690.0" cy="205.0" r="6" fill="#2563eb" stroke="none" stroke-width="1.5"/>
+<line x1="690.0" y1="211.0" x2="690.0" y2="245.0" stroke="#94a3b8" stroke-width="2"/>
+<text x="706.0" y="210.0" font-size="13.5" fill="#0f172a" text-anchor="start" font-weight="700">27 авг</text>
+<text x="706.0" y="228.0" font-size="12.5" fill="#475569" text-anchor="start" font-weight="400">стыковка после перестыковки корабля</text>
+<circle cx="690.0" cy="251.0" r="6" fill="#2563eb" stroke="none" stroke-width="1.5"/>
+<line x1="690.0" y1="257.0" x2="690.0" y2="291.0" stroke="#94a3b8" stroke-width="2"/>
+<text x="706.0" y="256.0" font-size="13.5" fill="#0f172a" text-anchor="start" font-weight="700">27 авг – 6 сен</text>
+<text x="706.0" y="274.0" font-size="12.5" fill="#475569" text-anchor="start" font-weight="400">опыты на станции</text>
+<circle cx="690.0" cy="297.0" r="6" fill="#2563eb" stroke="none" stroke-width="1.5"/>
+<text x="706.0" y="302.0" font-size="13.5" fill="#0f172a" text-anchor="start" font-weight="700">7 сен</text>
+<text x="706.0" y="320.0" font-size="12.5" fill="#475569" text-anchor="start" font-weight="400">возвращение на Землю</text>
+</svg>

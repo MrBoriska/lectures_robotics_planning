@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Профиль скорости вдоль пути: прямой и обратный проходы</title>
+<link rel="stylesheet" href="../common/widget-base.css">
+<style>
+  .main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: 8px; padding: 8px; }
+  .panel { background: #fff; border: 1px solid var(--border-color); border-radius: 8px; padding: 6px 10px; display: flex; flex-direction: column; min-height: 0; }
+  .ptitle { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--text-muted); margin-bottom: 4px; display: flex; justify-content: space-between; gap: 8px; }
+  .cv { flex: 1; min-height: 0; position: relative; }
+  .col { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+  table.res { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+  table.res th, table.res td { padding: 3px 6px; border-bottom: 1px solid #eef2f7; text-align: right; }
+  table.res th:first-child, table.res td:first-child { text-align: left; }
+  table.res th { color: var(--text-muted); font-weight: 600; }
+  .sw { display: inline-block; width: 18px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+  .ctrls { display: grid; grid-template-columns: auto 1fr auto; gap: 3px 8px; align-items: center; font-size: 11.5px; }
+  .ctrls input[type=range] { width: 100%; accent-color: #0284c7; }
+  .ctrls .v { font-family: var(--font-mono); color: var(--accent-blue); font-weight: 600; min-width: 62px; text-align: right; }
+  .note { font-size: 12px; line-height: 1.38; color: #1e293b; background: #f0f9ff; border-left: 3px solid #0284c7; padding: 6px 9px; border-radius: 4px; }
+  .note b { color: #0c4a6e; }
+  .checks { display: flex; gap: 12px; font-size: 11.5px; flex-wrap: wrap; }
+  .checks label { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="widget-layout">
+  <div class="toolbar">
+    <b style="color: var(--accent-blue);">Сценарий:</b>
+    <select id="scenario" class="select-control"></select>
+    <b style="color: var(--accent-blue); margin-left: 6px;">Путь:</b>
+    <select id="pathMode" class="select-control">
+      <option value="spline">сглаженный (B-сплайн)</option>
+      <option value="poly">ломаная (как выдал A*)</option>
+    </select>
+    <button id="play" class="btn btn-primary">Пуск</button>
+    <button id="reset" class="btn">Сначала</button>
+    <div class="checks" style="margin-left: 6px;">
+      <label><input type="checkbox" id="showPasses" checked>прямой и обратный проходы</label>
+    </div>
+  </div>
+  <div class="main">
+    <div class="col">
+      <div class="panel" style="flex: 1;">
+        <div class="ptitle"><span>Путь робота (цвет — скорость)</span><span id="tnow">t = 0.00 с</span></div>
+        <div class="cv"><canvas id="plan"></canvas></div>
+      </div>
+      <div class="panel" style="flex: 0 0 auto; gap: 6px;">
+        <div class="ctrls">
+          <span>Наибольшая скорость v<sub>max</sub></span><input type="range" id="vmax" min="0.5" max="3" step="0.1"><span class="v" id="vmaxv"></span>
+          <span>Продольное ускорение a<sub>t,max</sub></span><input type="range" id="at" min="0.2" max="2" step="0.05"><span class="v" id="atv"></span>
+          <span>Боковое ускорение a<sub>n,max</sub></span><input type="range" id="an" min="0.1" max="2" step="0.05"><span class="v" id="anv"></span>
+        </div>
+        <div class="note" id="note"></div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="panel" style="flex: 1.15;">
+        <div class="ptitle"><span>Плоскость «путь s — скорость v»</span><span style="color:#d97706">оранжевая — предельная скорость v<sub>lim</sub>(s)</span></div>
+        <div class="cv"><canvas id="sv"></canvas></div>
+      </div>
+      <div class="panel" style="flex: 1;">
+        <div class="ptitle"><span>Скорость и ускорения во времени</span><span style="color:#64748b">пунктир — пределы</span></div>
+        <div class="cv"><canvas id="tplot"></canvas></div>
+      </div>
+      <div class="panel" style="flex: 0 0 auto;">
+        <table class="res">
+          <thead><tr><th>способ задать скорость</th><th>время, с</th><th>max a<sub>t</sub></th><th>max a<sub>n</sub></th></tr></thead>
+          <tbody id="resBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+// ---------------------------------------------------------------------------
+// Разделение «путь + профиль скорости».
+// Путь задан (ломаная из A* или B-сплайн по её вершинам), параметр — длина дуги s.
+// Ограничения точечной модели робота:
+//   0 ≤ v ≤ v_max,  |dv/dt| ≤ a_t,max,  v²·|κ(s)| ≤ a_n,max.
+// Из третьего ограничения — предельная скорость v_lim(s) = min(v_max, sqrt(a_n/|κ|)).
+// Профиль, оптимальный по времени, строится двумя проходами по сетке s:
+//   прямой:   v_f[i+1] = min(v_lim[i+1], sqrt(v_f[i]² + 2 a_t Δs)),  v_f[0] = 0;
+//   обратный: v_b[i]   = min(v_lim[i],   sqrt(v_b[i+1]² + 2 a_t Δs)), v_b[N] = 0;
+//   итог:     v[i] = min(v_f[i], v_b[i]).
+// Для этой модели ограничений результат точен: это частный случай алгоритма
+// Боброва–Шина (разгон с наибольшим ускорением, торможение с наибольшим).
+// Время прохождения: T = Σ 2Δs / (v_i + v_{i+1}).
+// Для ломаной в вершинах кривизна бесконечна: робот обязан остановиться и
+// повернуться на месте (угловая скорость ω_max = 1.5 рад/с), это время добавляется.
+// ---------------------------------------------------------------------------
+const SCENARIOS = [
+  { name: '1. Поворот на 90° в проходе', pts: [[0, 0], [7, 0], [7, 5]], vmax: 2, at: 0.8, an: 0.6,
+    note: '<b>Что наблюдать.</b> Оранжевая кривая — предельная скорость: на прямых она равна v<sub>max</sub>, в повороте падает как √(a<sub>n</sub>/κ). Прямой проход (синий) разгоняется, обратный (красный) заранее тормозит перед поворотом и целью. Итог (зелёный) — меньшая из трёх кривых. Переключите путь на «ломаную»: в вершине скорость обязана упасть до нуля.' },
+  { name: '2. Змейка между стеллажами', pts: [[0, 0], [3, 0], [3, 3], [6, 3], [6, 0], [9, 0], [9, 3]], vmax: 2, at: 0.8, an: 0.6,
+    note: '<b>Что наблюдать.</b> Повороты близко друг к другу: робот не успевает разогнаться до v<sub>max</sub> между ними, и профиль состоит из разгонов и торможений. Увеличьте a<sub>t,max</sub>: время сокращается. Увеличьте только v<sub>max</sub>: время почти не меняется — мешают повороты, а не предел скорости.' },
+  { name: '3. Длинная прямая и разворот', pts: [[0, 0], [10, 0], [10, 1.6], [0, 1.6]], vmax: 2.5, at: 0.6, an: 0.6,
+    note: '<b>Что наблюдать.</b> Разворот малого радиуса — самое медленное место пути. Обратный проход начинает торможение за несколько метров до него: это и есть «заранее сбросить скорость перед поворотом». Сравните в таблице с постоянной безопасной скоростью: она в разы медленнее.' },
+  { name: '4. Сравнение: ограничение только по скорости', pts: [[0, 0], [7, 0], [7, 5]], vmax: 2, at: 0.8, an: 2,
+    note: '<b>Что наблюдать.</b> При большом a<sub>n,max</sub> поворот почти не ограничивает скорость, и профиль превращается в трапецию: разгон, движение с v<sub>max</sub>, торможение. Именно такой трапецеидальный профиль задают промышленные контроллеры, когда путь прямолинейный.' },
+];
+const OMEGA_MAX = 1.5, DS = 0.02;
+const $ = id => document.getElementById(id);
+const sel = $('scenario');
+SCENARIOS.forEach((s, i) => { const o = document.createElement('option'); o.value = i; o.textContent = s.name; sel.appendChild(o); });
+
+let st = {}, P = null, tCur = 0, playing = false, lastTs = null;
+
+// ---------------------------------------------------------------- геометрия пути
+function bspline(ctrl) {
+  // равномерный кубический B-сплайн с повторёнными концевыми точками;
+  // кроме точек возвращает кривизну, вычисленную по производным:
+  // κ = |x'y'' − y'x''| / (x'² + y'²)^{3/2}
+  const c = [ctrl[0], ctrl[0], ...ctrl, ctrl[ctrl.length - 1], ctrl[ctrl.length - 1]];
+  const out = [], kap = [];
+  for (let i = 0; i + 3 < c.length; i++) {
+    for (let k = 0; k < 400; k++) {
+      const t = k / 400, t2 = t * t, t3 = t2 * t;
+      const B = [(1 - t) ** 3 / 6, (3 * t3 - 6 * t2 + 4) / 6, (-3 * t3 + 3 * t2 + 3 * t + 1) / 6, t3 / 6];
+      const D = [-((1 - t) ** 2) / 2, (3 * t2 - 4 * t) / 2, (-3 * t2 + 2 * t + 1) / 2, t2 / 2];
+      const DD = [1 - t, 3 * t - 2, -3 * t + 1, t];
+      const comb = (w, d) => w[0] * c[i][d] + w[1] * c[i + 1][d] + w[2] * c[i + 2][d] + w[3] * c[i + 3][d];
+      const x1 = comb(D, 0), y1 = comb(D, 1), x2 = comb(DD, 0), y2 = comb(DD, 1);
+      const sp = Math.hypot(x1, y1);
+      out.push([comb(B, 0), comb(B, 1)]);
+      kap.push(sp > 1e-9 ? Math.abs(x1 * y2 - y1 * x2) / sp ** 3 : 0);
+    }
+  }
+  out.push(ctrl[ctrl.length - 1].slice()); kap.push(0);
+  return { pts: out, kap };
+}
+function resample(pts, kap) {
+  // равномерная по длине дуги сетка с шагом DS; кривизна интерполируется
+  const cum = [0];
+  for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+  const L = cum[cum.length - 1], n = Math.max(2, Math.round(L / DS));
+  const out = [], kout = []; let j = 0;
+  for (let k = 0; k <= n; k++) {
+    const s = L * k / n;
+    while (j < cum.length - 2 && cum[j + 1] < s) j++;
+    const seg = cum[j + 1] - cum[j] || 1, a = Math.min(1, Math.max(0, (s - cum[j]) / seg));
+    out.push([pts[j][0] + a * (pts[j + 1][0] - pts[j][0]), pts[j][1] + a * (pts[j + 1][1] - pts[j][1])]);
+    kout.push(kap ? kap[j] + a * (kap[j + 1] - kap[j]) : 0);
+  }
+  return { xy: out, ds: L / n, L, kappa: kout };
+}
+function buildPath() {
+  const ctrl = SCENARIOS[st.sc].pts;
+  let xy, ds, L, kappa, corners = [];
+  if (st.mode === 'spline') {
+    const b = bspline(ctrl);
+    ({ xy, ds, L, kappa } = resample(b.pts, b.kap));
+  } else {
+    ({ xy, ds, L, kappa } = resample(ctrl, null));
+    // индексы вершин и углы поворота в них
+    let acc = 0;
+    for (let v = 1; v < ctrl.length - 1; v++) {
+      acc += Math.hypot(ctrl[v][0] - ctrl[v - 1][0], ctrl[v][1] - ctrl[v - 1][1]);
+      const a1 = Math.atan2(ctrl[v][1] - ctrl[v - 1][1], ctrl[v][0] - ctrl[v - 1][0]);
+      const a2 = Math.atan2(ctrl[v + 1][1] - ctrl[v][1], ctrl[v + 1][0] - ctrl[v][0]);
+      let d = a2 - a1; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI;
+      corners.push({ i: Math.round(acc / ds), turn: Math.abs(d) });
+    }
+  }
+  return { xy, ds, L, kappa, corners, ctrl };
+}
+
+// ---------------------------------------------------------------- профиль скорости
+function passes(path, vlim) {
+  const n = path.xy.length, { ds } = path;
+  const vf = new Array(n), vb = new Array(n), v = new Array(n);
+  vf[0] = 0;
+  for (let i = 0; i < n - 1; i++) vf[i + 1] = Math.min(vlim[i + 1], Math.sqrt(vf[i] ** 2 + 2 * st.at * ds));
+  vb[n - 1] = 0;
+  for (let i = n - 1; i > 0; i--) vb[i - 1] = Math.min(vlim[i - 1], Math.sqrt(vb[i] ** 2 + 2 * st.at * ds));
+  for (let i = 0; i < n; i++) v[i] = Math.min(vf[i], vb[i]);
+  // время вдоль пути (+ развороты на месте в вершинах ломаной)
+  const t = [0];
+  const pause = new Map(path.corners.map(c => [c.i, c.turn / OMEGA_MAX]));
+  for (let i = 0; i < n - 1; i++) {
+    const vm = v[i] + v[i + 1];
+    let dt = vm > 1e-9 ? 2 * ds / vm : 0;
+    if (pause.has(i)) dt += pause.get(i);
+    t.push(t[i] + dt);
+  }
+  const at = [], an = [];
+  for (let i = 0; i < n; i++) {
+    const j = Math.min(n - 1, i + 1), k = Math.max(0, i - 1);
+    at.push((v[j] ** 2 - v[k] ** 2) / (2 * ds * (j - k || 1)));
+    an.push(v[i] ** 2 * path.kappa[i]);
+  }
+  return { vf, vb, v, t, at, an, T: t[n - 1] };
+}
+function profile(path) {
+  const n = path.xy.length;
+  const vlim = path.kappa.map(k => Math.min(st.vmax, k > 1e-6 ? Math.sqrt(st.an / k) : Infinity));
+  const isCorner = new Set(path.corners.map(c => c.i));
+  for (const i of isCorner) vlim[i] = 0;
+  const res = passes(path, vlim);
+  // сравнение: одна постоянная «безопасная» скорость на всём пути (наименьшая v_lim),
+  // с разгоном и торможением на старте, финише и в вершинах ломаной
+  let vc = st.vmax;
+  for (let i = 0; i < n; i++) if (!isCorner.has(i)) vc = Math.min(vc, vlim[i]);
+  const vlimC = vlim.map((_, i) => isCorner.has(i) ? 0 : vc);
+  const cst = passes(path, vlimC);
+  return { ...res, vlim, vc, Tc: cst.T, cstAn: Math.max(...cst.an) };
+}
+
+function recompute() {
+  P = buildPath();
+  P.prof = profile(P);
+  if (!playing) tCur = P.prof.T;
+  renderTable(); draw();
+}
+
+function renderTable() {
+  const pr = P.prof;
+  const maxAt = Math.max(...pr.at.map(Math.abs)), maxAn = Math.max(...pr.an);
+  const rows = [
+    [`<span class="sw" style="background:#64748b"></span>постоянная безопасная v = ${pr.vc.toFixed(2)} м/с`, pr.Tc, st.at, pr.cstAn],
+    [`<span class="sw" style="background:#059669"></span>оптимальный профиль (два прохода)`, pr.T, maxAt, maxAn],
+  ];
+  let html = '';
+  for (const [name, T, a1, a2] of rows) html += `<tr><td>${name}</td><td>${T.toFixed(2)}</td><td>${a1.toFixed(2)}</td><td>${a2.toFixed(2)}</td></tr>`;
+  const extra = P.corners.length ? ` Развороты на месте в ${P.corners.length} вершинах ломаной добавляют ${P.corners.reduce((a, c) => a + c.turn / OMEGA_MAX, 0).toFixed(1)} с (ω<sub>max</sub> = ${OMEGA_MAX} рад/с).` : '';
+  html += `<tr><td colspan="4" style="text-align:left;color:#475569">Длина пути ${P.L.toFixed(2)} м.${extra}</td></tr>`;
+  $('resBody').innerHTML = html;
+}
+
+// ---------------------------------------------------------------- рисование
+function fit(cv) {
+  const r = cv.parentElement.getBoundingClientRect();
+  const d = window.devicePixelRatio || 1;
+  cv.width = Math.max(10, r.width * d); cv.height = Math.max(10, r.height * d);
+  cv.style.width = r.width + 'px'; cv.style.height = r.height + 'px';
+  const ctx = cv.getContext('2d'); ctx.setTransform(d, 0, 0, d, 0, 0);
+  return [ctx, r.width, r.height];
+}
+function niceTicks(a, b, n) {
+  const span = b - a, raw = span / n, p = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1, 2, 5, 10].map(m => m * p).find(s => s >= raw);
+  const out = []; for (let v = Math.ceil(a / step) * step; v <= b + 1e-9; v += step) out.push(+v.toFixed(6));
+  return out;
+}
+function axes(ctx, box, xr, yr, xlab, ylab) {
+  const [X0, Y0, W, H] = box;
+  const px = x => X0 + (x - xr[0]) / (xr[1] - xr[0]) * W;
+  const py = y => Y0 + H - (y - yr[0]) / (yr[1] - yr[0]) * H;
+  ctx.fillStyle = '#fff'; ctx.fillRect(X0, Y0, W, H);
+  ctx.strokeStyle = '#eef2f7'; ctx.lineWidth = 1; ctx.font = '10.5px Inter, sans-serif'; ctx.fillStyle = '#64748b';
+  ctx.textAlign = 'center';
+  for (const t of niceTicks(xr[0], xr[1], 6)) { ctx.beginPath(); ctx.moveTo(px(t), Y0); ctx.lineTo(px(t), Y0 + H); ctx.stroke(); ctx.fillText(t, px(t), Y0 + H + 12); }
+  ctx.textAlign = 'right';
+  for (const t of niceTicks(yr[0], yr[1], 4)) { ctx.beginPath(); ctx.moveTo(X0, py(t)); ctx.lineTo(X0 + W, py(t)); ctx.stroke(); ctx.fillText(t, X0 - 4, py(t) + 3); }
+  ctx.strokeStyle = '#94a3b8';
+  if (yr[0] < 0 && yr[1] > 0) { ctx.beginPath(); ctx.moveTo(X0, py(0)); ctx.lineTo(X0 + W, py(0)); ctx.stroke(); }
+  ctx.strokeStyle = '#cbd5e1'; ctx.strokeRect(X0, Y0, W, H);
+  ctx.fillStyle = '#334155'; ctx.font = 'italic 11px Inter, sans-serif';
+  ctx.textAlign = 'right'; ctx.fillText(xlab, X0 + W, Y0 + H + 24);
+  ctx.textAlign = 'left'; ctx.fillText(ylab, X0 + 4, Y0 + 12);
+  return [px, py];
+}
+function speedColor(v) {
+  const a = Math.max(0, Math.min(1, v / Math.max(0.01, st.vmax)));
+  // синий (медленно) → зелёный → оранжевый → красный (быстро)
+  const stops = [[37, 99, 235], [5, 150, 105], [217, 119, 6], [220, 38, 38]];
+  const x = a * (stops.length - 1), i = Math.min(stops.length - 2, Math.floor(x)), f = x - i;
+  const c = stops[i].map((c0, k) => Math.round(c0 + f * (stops[i + 1][k] - c0)));
+  return `rgb(${c[0]},${c[1]},${c[2]})`;
+}
+function idxAtTime(t) {
+  const T = P.prof.t; let lo = 0, hi = T.length - 1;
+  if (t >= T[hi]) return hi;
+  while (hi - lo > 1) { const m = (lo + hi) >> 1; if (T[m] <= t) lo = m; else hi = m; }
+  return lo;
+}
+
+function drawPlan() {
+  const [ctx, W, H] = fit($('plan'));
+  ctx.clearRect(0, 0, W, H);
+  const xs = P.ctrl.map(p => p[0]), ys = P.ctrl.map(p => p[1]);
+  let x0 = Math.min(...xs) - 1, x1 = Math.max(...xs) + 1, y0 = Math.min(...ys) - 1, y1 = Math.max(...ys) + 1;
+  const sc = Math.min((W - 20) / (x1 - x0), (H - 20) / (y1 - y0));
+  const ox = (W - sc * (x1 - x0)) / 2, oy = (H - sc * (y1 - y0)) / 2;
+  const px = x => ox + (x - x0) * sc, py = y => H - oy - (y - y0) * sc;
+  // сетка 1 м
+  ctx.strokeStyle = '#f1f5f9'; ctx.lineWidth = 1;
+  for (let x = Math.ceil(x0); x <= x1; x++) { ctx.beginPath(); ctx.moveTo(px(x), py(y0)); ctx.lineTo(px(x), py(y1)); ctx.stroke(); }
+  for (let y = Math.ceil(y0); y <= y1; y++) { ctx.beginPath(); ctx.moveTo(px(x0), py(y)); ctx.lineTo(px(x1), py(y)); ctx.stroke(); }
+  // исходная ломаная
+  ctx.strokeStyle = '#cbd5e1'; ctx.setLineDash([5, 4]); ctx.lineWidth = 1.5; ctx.beginPath();
+  P.ctrl.forEach((p, i) => i ? ctx.lineTo(px(p[0]), py(p[1])) : ctx.moveTo(px(p[0]), py(p[1]))); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = '#94a3b8'; P.ctrl.forEach(p => { ctx.beginPath(); ctx.arc(px(p[0]), py(p[1]), 3, 0, 7); ctx.fill(); });
+  // путь, раскрашенный по скорости
+  const v = P.prof.v;
+  ctx.lineWidth = 5; ctx.lineCap = 'round';
+  for (let i = 0; i < P.xy.length - 1; i += 2) {
+    const j = Math.min(P.xy.length - 1, i + 2);
+    ctx.strokeStyle = speedColor(v[i]); ctx.beginPath(); ctx.moveTo(px(P.xy[i][0]), py(P.xy[i][1])); ctx.lineTo(px(P.xy[j][0]), py(P.xy[j][1])); ctx.stroke();
+  }
+  // робот
+  const i = idxAtTime(tCur), p = P.xy[i], q = P.xy[Math.min(P.xy.length - 1, i + 3)], r = P.xy[Math.max(0, i - 3)];
+  const th = Math.atan2(q[1] - r[1], q[0] - r[0]);
+  ctx.save(); ctx.translate(px(p[0]), py(p[1])); ctx.rotate(-th);
+  ctx.fillStyle = '#0f172a'; ctx.fillRect(-0.3 * sc, -0.22 * sc, 0.6 * sc, 0.44 * sc);
+  ctx.fillStyle = '#fbbf24'; ctx.beginPath(); ctx.moveTo(0.3 * sc, 0); ctx.lineTo(0.12 * sc, 0.12 * sc); ctx.lineTo(0.12 * sc, -0.12 * sc); ctx.fill();
+  ctx.restore();
+  // старт и цель
+  ctx.fillStyle = '#059669'; ctx.beginPath(); ctx.arc(px(P.ctrl[P.ctrl.length - 1][0]), py(P.ctrl[P.ctrl.length - 1][1]), 6, 0, 7); ctx.fill();
+  // шкала
+  const gx = 12, gy = H - 18, gw = 120;
+  for (let k = 0; k < gw; k++) { ctx.fillStyle = speedColor(st.vmax * k / gw); ctx.fillRect(gx + k, gy, 1, 8); }
+  ctx.fillStyle = '#475569'; ctx.font = '10.5px Inter, sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText('0', gx, gy - 3); ctx.textAlign = 'right'; ctx.fillText(`${st.vmax.toFixed(1)} м/с`, gx + gw, gy - 3);
+  ctx.textAlign = 'right'; ctx.fillText(`v = ${v[i].toFixed(2)} м/с`, W - 10, 16);
+  $('tnow').textContent = `t = ${tCur.toFixed(2)} с`;
+}
+
+function drawSV() {
+  const [ctx, W, H] = fit($('sv'));
+  ctx.clearRect(0, 0, W, H);
+  const pr = P.prof, n = pr.v.length, ds = P.ds;
+  const box = [34, 6, W - 44, H - 34];
+  const [px, py] = axes(ctx, box, [0, P.L], [0, st.vmax * 1.15], 's, м', 'v, м/с');
+  ctx.save(); ctx.beginPath(); ctx.rect(box[0], box[1], box[2], box[3]); ctx.clip();
+  // недопустимая область над v_lim
+  ctx.beginPath(); ctx.moveTo(px(0), py(st.vmax * 1.15));
+  for (let i = 0; i < n; i++) ctx.lineTo(px(i * ds), py(Math.min(st.vmax * 1.15, pr.vlim[i])));
+  ctx.lineTo(px(P.L), py(st.vmax * 1.15)); ctx.closePath(); ctx.fillStyle = 'rgba(254,243,199,0.55)'; ctx.fill();
+  const curve = (arr, col, w, dash) => {
+    ctx.strokeStyle = col; ctx.lineWidth = w; ctx.setLineDash(dash); ctx.beginPath();
+    for (let i = 0; i < n; i++) { const y = py(Math.min(st.vmax * 1.15, arr[i])); i ? ctx.lineTo(px(i * ds), y) : ctx.moveTo(px(i * ds), y); }
+    ctx.stroke(); ctx.setLineDash([]);
+  };
+  curve(pr.vlim, '#d97706', 2, []);
+  if ($('showPasses').checked) { curve(pr.vf, '#2563eb', 1.8, [6, 4]); curve(pr.vb, '#dc2626', 1.8, [6, 4]); }
+  curve(pr.v, '#059669', 3, []);
+  ctx.strokeStyle = '#64748b'; ctx.setLineDash([2, 3]); ctx.lineWidth = 1.4; ctx.beginPath(); ctx.moveTo(px(0), py(pr.vc)); ctx.lineTo(px(P.L), py(pr.vc)); ctx.stroke(); ctx.setLineDash([]);
+  const i = idxAtTime(tCur);
+  ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.arc(px(i * ds), py(pr.v[i]), 5, 0, 7); ctx.fill();
+  ctx.restore();
+  // легенда
+  ctx.font = '10.5px Inter, sans-serif'; ctx.textAlign = 'left';
+  const leg = [['#d97706', 'v_lim(s)'], ['#059669', 'итог = min'], ['#64748b', 'постоянная v']];
+  if ($('showPasses').checked) leg.splice(1, 0, ['#2563eb', 'прямой'], ['#dc2626', 'обратный']);
+  const lw = 92, lx = box[0] + box[2] - leg.length * lw - 6, ly = box[1] + box[3] - 22;
+  ctx.fillStyle = 'rgba(255,255,255,0.92)'; ctx.fillRect(lx - 4, ly - 4, leg.length * lw + 6, 18);
+  leg.forEach(([c, t], k) => { const X = lx + k * lw; ctx.fillStyle = c; ctx.fillRect(X, ly + 3, 14, 3); ctx.fillStyle = '#334155'; ctx.fillText(t, X + 18, ly + 8); });
+}
+
+function drawT() {
+  const [ctx, W, H] = fit($('tplot'));
+  ctx.clearRect(0, 0, W, H);
+  const pr = P.prof, T = pr.T || 1;
+  const amax = Math.max(st.at, st.an) * 1.25;
+  const hTop = (H - 50) * 0.5, hBot = (H - 50) * 0.5;
+  const A = axes(ctx, [40, 6, W - 50, hTop], [0, T], [0, st.vmax * 1.15], '', 'v(t), м/с');
+  const B = axes(ctx, [40, hTop + 26, W - 50, hBot], [0, T], [-amax, amax], 't, с', 'a, м/с²:  продольное (синее), боковое (оранжевое)');
+  ctx.setLineDash([4, 3]); ctx.lineWidth = 1.1;
+  ctx.strokeStyle = '#2563eb'; for (const s of [st.at, -st.at]) { ctx.beginPath(); ctx.moveTo(B[0](0), B[1](s)); ctx.lineTo(B[0](T), B[1](s)); ctx.stroke(); }
+  ctx.strokeStyle = '#d97706'; ctx.beginPath(); ctx.moveTo(B[0](0), B[1](st.an)); ctx.lineTo(B[0](T), B[1](st.an)); ctx.stroke();
+  ctx.setLineDash([]);
+  const i1 = idxAtTime(tCur);
+  const plot = (Pp, arr, col) => { ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.beginPath(); for (let i = 0; i <= i1; i++) { const X = Pp[0](pr.t[i]), Y = Pp[1](arr[i]); i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); } ctx.stroke(); };
+  plot(A, pr.v, '#059669'); plot(B, pr.at, '#2563eb'); plot(B, pr.an, '#d97706');
+}
+
+function draw() { drawPlan(); drawSV(); drawT(); }
+
+// ---------------------------------------------------------------- управление
+function setSliders() {
+  for (const k of ['vmax', 'at', 'an']) $(k).value = st[k];
+  $('vmaxv').textContent = st.vmax.toFixed(1) + ' м/с'; $('atv').textContent = st.at.toFixed(2) + ' м/с²'; $('anv').textContent = st.an.toFixed(2) + ' м/с²';
+}
+function loadScenario(i) {
+  const s = SCENARIOS[i];
+  st = { sc: i, mode: $('pathMode').value, vmax: s.vmax, at: s.at, an: s.an };
+  $('note').innerHTML = s.note;
+  setSliders(); playing = false; $('play').textContent = 'Пуск';
+  recompute();
+}
+for (const id of ['vmax', 'at', 'an']) $(id).addEventListener('input', () => { st[id] = +$(id).value; setSliders(); recompute(); });
+$('pathMode').addEventListener('change', () => { st.mode = $('pathMode').value; recompute(); });
+$('showPasses').addEventListener('change', draw);
+sel.addEventListener('change', () => loadScenario(+sel.value));
+$('reset').addEventListener('click', () => { tCur = 0; playing = false; $('play').textContent = 'Пуск'; draw(); });
+$('play').addEventListener('click', () => {
+  if (playing) { playing = false; $('play').textContent = 'Пуск'; return; }
+  if (tCur >= P.prof.T - 1e-6) tCur = 0;
+  playing = true; $('play').textContent = 'Пауза'; lastTs = null; requestAnimationFrame(tick);
+});
+function tick(ts) {
+  if (!playing) return;
+  if (lastTs !== null) tCur += (ts - lastTs) / 1000;
+  lastTs = ts;
+  if (tCur >= P.prof.T) { tCur = P.prof.T; playing = false; $('play').textContent = 'Пуск'; }
+  draw();
+  if (playing) requestAnimationFrame(tick);
+}
+window.addEventListener('resize', draw);
+if (window.ResizeObserver) new ResizeObserver(() => draw()).observe(document.body);
+
+const params = new URLSearchParams(location.search);
+if (params.get('path') === 'poly') $('pathMode').value = 'poly';
+const sc = Math.max(0, Math.min(SCENARIOS.length - 1, (+params.get('scenario') || 1) - 1));
+sel.value = sc; loadScenario(sc);
+</script>
+</body>
+</html>

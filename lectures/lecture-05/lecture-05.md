@@ -25,6 +25,8 @@ math: katex
 
 ---
 
+<!-- _class: fs-4 -->
+
 ## Место лекции в курсе <span class="badge badge-time">01–03 мин</span>
 
 <div class="grid-2">
@@ -52,6 +54,8 @@ math: katex
 </div>
 
 ---
+
+<!-- _class: fs-4 -->
 
 ## План лекции <span class="badge badge-time">03–04 мин</span>
 
@@ -110,6 +114,8 @@ math: katex
 
 ---
 
+<!-- _class: fs-4 -->
+
 ## Состояние и модель движения <span class="badge badge-time">07–10 мин</span>
 
 <div class="grid-2">
@@ -149,6 +155,8 @@ $$\dot{x}_1 = x_2, \qquad \dot{x}_2 = u.$$
 </div>
 
 ---
+
+<!-- _class: fs-4 -->
 
 ## Критерий качества <span class="badge badge-time">10–13 мин</span>
 
@@ -191,6 +199,8 @@ $$\dot{x}_1 = x_2, \qquad \dot{x}_2 = u.$$
 </div>
 
 ---
+
+<!-- _class: fs-3 -->
 
 ## Общая постановка задачи оптимального управления <span class="badge badge-time">13–16 мин</span>
 
@@ -266,6 +276,8 @@ $$J = \varphi\big(x(T)\big) + \int_0^T L\big(x(t), u(t)\big)\,dt \;\to\; \min$$
 
 ---
 
+<!-- _class: fs-4 -->
+
 ## Часть 2. Идея принципа максимума <span class="badge badge-time">19–23 мин</span>
 
 <div class="grid-2">
@@ -298,6 +310,8 @@ $$\mathcal{H}(x, u, \lambda) = -L(x, u) + \lambda^\top f(x, u).$$
 </div>
 
 ---
+
+<!-- _class: fs-4 -->
 
 ## Принцип максимума: рецепт из четырёх шагов <span class="badge badge-time">23–27 мин</span>
 
@@ -335,6 +349,8 @@ $$\mathcal{H}(x, u, \lambda) = -L(x, u) + \lambda^\top f(x, u).$$
 
 ---
 
+<!-- _class: fs-4 -->
+
 ## Откуда берётся условие максимума <span class="badge badge-time">27–30 мин</span>
 
 <div class="grid-2">
@@ -371,6 +387,8 @@ $$\mathcal{H}(x, u, \lambda) = -L(x, u) + \lambda^\top f(x, u).$$
 
 ---
 
+<!-- _class: fs-4 -->
+
 ## Пример 1. Минимум энергии: шаги 1–3 <span class="badge badge-time">30–33 мин</span>
 
 <div class="grid-2">
@@ -405,6 +423,8 @@ $$\dot{\lambda}_2 = -\frac{\partial\mathcal{H}}{\partial x_2} = -\lambda_1 \;\Ri
 
 ---
 
+<!-- _class: fs-4 -->
+
 ## Пример 1. Шаг 4 и результат <span class="badge badge-time">33–36 мин</span>
 
 <div class="grid-2">
@@ -438,6 +458,8 @@ $$u^*(t) = \frac{6}{T^2}\Big(1 - \frac{2t}{T}\Big).$$
 </div>
 
 ---
+
+<!-- _class: fs-4 -->
 
 ## Пример 2. Быстродействие: шаги 1–2 <span class="badge badge-time">36–39 мин</span>
 
@@ -479,6 +501,8 @@ $$u^*(t) = \begin{cases} +1, & \lambda_2(t) > 0, \\ -1, & \lambda_2(t) < 0. \end
 </div>
 
 ---
+
+<!-- _class: fs-4 -->
 
 ## Пример 2. Шаг 3: сколько будет переключений <span class="badge badge-time">39–41 мин</span>
 
@@ -525,33 +549,28 @@ $$\lambda_1 = c_1, \qquad \lambda_2(t) = c_2 - c_1 t.$$
 
 ## Фазовые траектории при $u = \pm 1$ <span class="badge badge-time">41–43 мин</span>
 
-<div class="grid-2">
-<div class="col">
+<div class="diagram-box">
+
+<img src="../../assets/images/lecture-05/parabola_families.svg" alt="Семейства парабол при u = +1 и u = −1 и две половины, ведущие в начало координат" />
+
+</div>
+
+<div class="grid-2 tight">
 <div class="card">
 
-### Вывод уравнения траектории
-1. Разделим уравнения модели друг на друга, чтобы исключить время:
-   $$\frac{dx_1}{dx_2} = \frac{x_2}{u}.$$
-2. При постоянном $u$ проинтегрируем: $\;x_1 = \dfrac{x_2^2}{2u} + C$.
-3. Это парабола. При $u = +1$ она открыта вправо, при $u = -1$ — влево. Константа $C$ сдвигает параболу вдоль оси $x_1$.
+**Вывод уравнения.** Разделим уравнения модели друг на друга, чтобы исключить время: $\dfrac{dx_1}{dx_2} = \dfrac{x_2}{u}$. При постоянном $u$ проинтегрируем: $x_1 = \dfrac{x_2^2}{2u} + C$ — парабола, открытая вправо при $u = +1$ и влево при $u = -1$; $C$ сдвигает её вдоль $x_1$.
 
 </div>
-</div>
-<div class="col">
 <div class="card card-accent">
 
-### Какие параболы ведут в цель
-В начало координат $(0, 0)$ приходят ровно две половины парабол ($C = 0$):
-- $\Gamma_-$: $x_1 = -\tfrac12 x_2^2$ при $x_2 > 0$ — тележка едет вперёд и тормозит с $u = -1$;
-- $\Gamma_+$: $x_1 = \tfrac12 x_2^2$ при $x_2 < 0$ — едет назад и тормозит с $u = +1$.
+**Какие параболы ведут в цель.** В $(0, 0)$ приходят две половины с $C = 0$: $\Gamma_-$: $x_1 = -\tfrac12 x_2^2$, $x_2 > 0$ (едет вперёд, тормозит с $u = -1$) и $\Gamma_+$: $x_1 = \tfrac12 x_2^2$, $x_2 < 0$ (едет назад, тормозит с $u = +1$). Последний участок оптимального движения обязан лежать на одной из них.
 
-Последний участок оптимального движения обязан лежать на одной из них: иначе после торможения тележка не остановится в цели.
-
-</div>
 </div>
 </div>
 
 ---
+
+<!-- _class: fs-4 -->
 
 ## Кривая переключения и закон обратной связи <span class="badge badge-time">43–45 мин</span>
 
@@ -613,6 +632,8 @@ $$\Gamma:\; x_1 + \tfrac12 x_2 |x_2| = 0.$$
 </div>
 
 ---
+
+<!-- _class: fs-4 -->
 
 ## Пример 3. Линейно-квадратичный регулятор (LQR) <span class="badge badge-time">46–49 мин</span>
 
@@ -696,6 +717,8 @@ LQR не знает об ограничении $|u| \le 1$. Обрезание 
 
 ---
 
+<!-- _class: fs-4 -->
+
 ## Итоги части 2 и пределы аналитического решения <span class="badge badge-time">53–55 мин</span>
 
 <div class="grid-2">
@@ -729,6 +752,8 @@ LQR не знает об ограничении $|u| \le 1$. Обрезание 
 </div>
 
 ---
+
+<!-- _class: fs-4 -->
 
 ## Часть 3. Идея: заменить функцию набором чисел <span class="badge badge-time">55–58 мин</span>
 
@@ -773,6 +798,8 @@ $$x_{1,k+1} = x_{1,k} + h\,x_{2,k}, \qquad x_{2,k+1} = x_{2,k} + h\,u_k.$$
 
 ---
 
+<!-- _class: fs-4 -->
+
 ## Одиночная стрельба <span class="badge badge-time">58–60 мин</span>
 
 <div class="grid-2">
@@ -811,6 +838,8 @@ $$x_{1,k+1} = x_{1,k} + h\,x_{2,k}, \qquad x_{2,k+1} = x_{2,k} + h\,u_k.$$
 </div>
 
 ---
+
+<!-- _class: fs-4 -->
 
 ## Многократная стрельба <span class="badge badge-time">60–62 мин</span>
 
@@ -851,6 +880,8 @@ $$c_k = x_{k+1} - F(x_k, u_k).$$
 </div>
 
 ---
+
+<!-- _class: fs-3 -->
 
 ## Прямая коллокация <span class="badge badge-time">62–63 мин</span>
 
@@ -912,6 +943,8 @@ $$x_{k+1} - x_k - \tfrac{h}{2}\,\big(f(x_k, u_k) + f(x_{k+1}, u_{k+1})\big) = 0.
 </div>
 
 ---
+
+<!-- _class: fs-4 -->
 
 ## Как решатель находит минимум <span class="badge badge-time">67–70 мин</span>
 
@@ -990,7 +1023,7 @@ $$\mathcal{L}(w, \nu) = F(w) + \nu^\top G(w)$$
 
 ## Инструментарий: CasADi и IPOPT <span class="badge badge-time">72–74 мин</span>
 
-<!-- _class: compact -->
+<!-- _class: fs-3 -->
 
 <div class="grid-2">
 <div class="col">
@@ -1042,6 +1075,8 @@ CasADi сам вычисляет все производные (автомати
 </div>
 
 ---
+
+<!-- _class: fs-4 -->
 
 ## Часть 4. Почему одного плана недостаточно <span class="badge badge-time">74–76 мин</span>
 
@@ -1106,6 +1141,8 @@ CasADi сам вычисляет все производные (автомати
 
 ---
 
+<!-- _class: fs-4 -->
+
 ## Горизонт, терминальная стоимость и устойчивость <span class="badge badge-time">78–80 мин</span>
 
 <div class="grid-2">
@@ -1142,6 +1179,8 @@ CasADi сам вычисляет все производные (автомати
 </div>
 
 ---
+
+<!-- _class: fs-4 -->
 
 ## Препятствия и работа в реальном времени <span class="badge badge-time">80–82 мин</span>
 
@@ -1189,7 +1228,7 @@ CasADi сам вычисляет все производные (автомати
 
 ## Сравнение локальных методов и место MPC в системе управления <span class="badge badge-time">85–87 мин</span>
 
-<!-- _class: compact -->
+<!-- _class: compact fs-4 -->
 
 <div class="grid-2">
 <div class="col">
@@ -1219,6 +1258,8 @@ MPC — локальный метод: он не заменяет глобаль
 </div>
 
 ---
+
+<!-- _class: fs-3 -->
 
 ## Итоги лекции и контрольные вопросы <span class="badge badge-time">87–89 мин</span>
 
@@ -1253,7 +1294,7 @@ MPC — локальный метод: он не заменяет глобаль
 
 ## Словарь терминов лекции
 
-<!-- _class: compact -->
+<!-- _class: fs-3 -->
 
 <div class="grid-3">
 <div class="card card-term">
@@ -1292,6 +1333,8 @@ MPC — локальный метод: он не заменяет глобаль
 </div>
 
 ---
+
+<!-- _class: fs-2 -->
 
 ## Литература
 

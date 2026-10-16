@@ -33,7 +33,7 @@ if (existsSync(algoScript)) {
   }
 }
 
-const extraDiagramScripts = ['generate_lectures_05_06_diagrams.py'];
+const extraDiagramScripts = ['generate_lectures_05_06_diagrams.py', 'generate_lectures_07_08_diagrams.py', 'generate_slide_figures.py'];
 for (const name of extraDiagramScripts) {
   const script = join(ROOT_DIR, 'scripts', name);
   if (!existsSync(script)) continue;

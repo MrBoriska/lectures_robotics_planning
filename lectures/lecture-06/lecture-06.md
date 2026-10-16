@@ -25,6 +25,8 @@ footer: "Курс лекций • Лекция 06"
 
 ---
 
+<!-- _class: fs-4 -->
+
 ## Место лекции в курсе <span class="badge badge-time">01–03 мин</span>
 
 <div class="grid-2">
@@ -59,6 +61,8 @@ footer: "Курс лекций • Лекция 06"
 
 ---
 
+<!-- _class: fs-4 -->
+
 ## План лекции <span class="badge badge-time">03–04 мин</span>
 
 <div class="grid-2">
@@ -89,6 +93,8 @@ footer: "Курс лекций • Лекция 06"
 </div>
 
 ---
+
+<!-- _class: fs-4 -->
 
 ## Когда обучение с подкреплением уместно <span class="badge badge-time">04–06 мин</span>
 
@@ -170,6 +176,8 @@ footer: "Курс лекций • Лекция 06"
 </div>
 
 ---
+
+<!-- _class: fs-4 -->
 
 ## Политика и траектория <span class="badge badge-time">11–13 мин</span>
 
@@ -258,6 +266,8 @@ $$G_0 = 0 + 0.9 \cdot 0 + 0.9^2 \cdot 0 + 0.9^3 \cdot 10 = 7.29.$$
 
 ---
 
+<!-- _class: fs-4 -->
+
 ## Марковский процесс принятия решений (MDP) <span class="badge badge-time">16–19 мин</span>
 
 <div class="grid-2">
@@ -297,6 +307,8 @@ $$G_0 = 0 + 0.9 \cdot 0 + 0.9^2 \cdot 0 + 0.9^3 \cdot 10 = 7.29.$$
 </div>
 
 ---
+
+<!-- _class: fs-4 -->
 
 ## Функции ценности <span class="badge badge-time">19–22 мин</span>
 
@@ -339,6 +351,8 @@ $$A^\pi(s, a) = Q^\pi(s, a) - V^\pi(s).$$
 
 ---
 
+<!-- _class: fs-4 -->
+
 ## Уравнение Беллмана <span class="badge badge-time">22–25 мин</span>
 
 <div class="grid-2">
@@ -375,6 +389,8 @@ $$Q^*(s, a) = r(s, a) + \gamma \sum_{s'} P(s' \mid s, a)\,\max_{a'} Q^*(s', a').
 </div>
 
 ---
+
+<!-- _class: fs-4 -->
 
 ## Итерация по ценности: решение при известной модели <span class="badge badge-time">25–28 мин</span>
 
@@ -418,6 +434,8 @@ $$V_{k+1}(s) = \max_a \Big[r(s, a) + \gamma\,V_k(s')\Big].$$
 </div>
 
 ---
+
+<!-- _class: fs-4 -->
 
 ## Связь с оптимальным управлением <span class="badge badge-time">28–30 мин</span>
 
@@ -465,6 +483,8 @@ $$V_{k+1}(s) = \max_a \Big[r(s, a) + \gamma\,V_k(s')\Big].$$
 
 ---
 
+<!-- _class: fs-4 -->
+
 ## Оценка ценности по опыту: TD-ошибка <span class="badge badge-time">31–34 мин</span>
 
 <div class="grid-2">
@@ -508,6 +528,8 @@ $\delta = 0 + 0.9 \cdot 5 - 0 = 4.5$, $\;V(3) = 2.25$.
 </div>
 
 ---
+
+<!-- _class: fs-4 -->
 
 ## Q-learning и исследование <span class="badge badge-time">34–37 мин</span>
 
@@ -561,6 +583,8 @@ $Q(3, \rightarrow) = 0 + 0.5\,(0 + 0.9 \cdot 8 - 0) = 3.6$.
 
 ---
 
+<!-- _class: fs-3 -->
+
 ## От таблицы к нейронной сети: DQN <span class="badge badge-time">40–42 мин</span>
 
 <div class="grid-2">
@@ -601,6 +625,8 @@ DQN требует перебрать все действия для $\max$, п�
 
 ---
 
+<!-- _class: fs-4 -->
+
 ## Непрерывные действия и стохастическая политика <span class="badge badge-time">42–44 мин</span>
 
 <div class="grid-2">
@@ -634,6 +660,8 @@ $$a = \mu_\theta(s) + \sigma\,\xi, \qquad \xi \sim \mathcal{N}(0, 1).$$
 </div>
 
 ---
+
+<!-- _class: fs-4 -->
 
 ## Градиент политики: идея <span class="badge badge-time">44–47 мин</span>
 
@@ -672,6 +700,8 @@ $\nabla_\theta \ln\pi_\theta(a_t \mid s_t)$ — направление, в ко�
 </div>
 
 ---
+
+<!-- _class: fs-4 -->
 
 ## Базовая функция и преимущество <span class="badge badge-time">47–49 мин</span>
 
@@ -771,6 +801,8 @@ $$L = \mathbb{E}\big[\min\big(\rho\hat{A},\; \operatorname{clip}(\rho, 1{-}\vare
 
 ---
 
+<!-- _class: fs-4 -->
+
 ## PPO: алгоритм и параметры <span class="badge badge-time">55–57 мин</span>
 
 <div class="grid-2">
@@ -811,6 +843,8 @@ Rudin и др., 2021 (библиотека rsl_rl): $M = 4096$ копий роб
 </div>
 
 ---
+
+<!-- _class: fs-4 -->
 
 ## SAC и выбор алгоритма <span class="badge badge-time">57–60 мин</span>
 
@@ -854,6 +888,8 @@ SAC позволил обучить ходьбу четвероногого ро
 
 ---
 
+<!-- _class: fs-4 -->
+
 ## Часть 3. Постановка задачи ходьбы <span class="badge badge-time">60–64 мин</span>
 
 <div class="grid-2">
@@ -893,6 +929,8 @@ $$r = \underbrace{w_1 e^{-\lVert v^{\text{cmd}} - v\rVert^2/\sigma}}_{\text{ед
 </div>
 
 ---
+
+<!-- _class: fs-2 -->
 
 ## Конструирование награды <span class="badge badge-time">64–67 мин</span>
 
@@ -944,6 +982,8 @@ $$\tilde{r} = r + \gamma\,\Phi(s') - \Phi(s),$$
 </div>
 
 ---
+
+<!-- _class: fs-4 -->
 
 ## Перенос из симулятора на робота (sim-to-real) <span class="badge badge-time">70–74 мин</span>
 
@@ -1056,7 +1096,7 @@ $$u = \arg\min_u \lVert u - u_{\text{RL}}\rVert^2 \;\text{ при }\; \dot{h}(x,
 
 ## MPC и RL: сравнение и сочетание <span class="badge badge-time">81–86 мин</span>
 
-<!-- _class: compact -->
+<!-- _class: fs-3 -->
 
 <div class="grid-2">
 <div class="col">
@@ -1087,6 +1127,8 @@ $$u = \arg\min_u \lVert u - u_{\text{RL}}\rVert^2 \;\text{ при }\; \dot{h}(x,
 </div>
 
 ---
+
+<!-- _class: fs-3 -->
 
 ## Итоги лекции и контрольные вопросы <span class="badge badge-time">86–89 мин</span>
 
@@ -1122,7 +1164,7 @@ $$u = \arg\min_u \lVert u - u_{\text{RL}}\rVert^2 \;\text{ при }\; \dot{h}(x,
 
 ## Словарь терминов лекции
 
-<!-- _class: compact -->
+<!-- _class: fs-2 -->
 
 <div class="grid-3">
 <div class="card card-term">
@@ -1163,6 +1205,8 @@ $$u = \arg\min_u \lVert u - u_{\text{RL}}\rVert^2 \;\text{ при }\; \dot{h}(x,
 </div>
 
 ---
+
+<!-- _class: fs-3 -->
 
 ## Литература
 

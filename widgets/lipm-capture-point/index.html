@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Перевёрнутый маятник и точка захвата: удержание равновесия при толчке</title>
+<link rel="stylesheet" href="../common/widget-base.css">
+<style>
+  .main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 8px; padding: 8px; }
+  .panel { background: #fff; border: 1px solid var(--border-color); border-radius: 8px; padding: 6px 10px; display: flex; flex-direction: column; min-height: 0; }
+  .ptitle { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--text-muted); margin-bottom: 4px; display: flex; justify-content: space-between; gap: 8px; }
+  .cv { flex: 1; min-height: 0; position: relative; }
+  .col { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+  .ctrls { display: grid; grid-template-columns: auto 1fr auto; gap: 3px 8px; align-items: center; font-size: 11.5px; }
+  .ctrls input[type=range] { width: 100%; accent-color: #0284c7; }
+  .ctrls .v { font-family: var(--font-mono); color: var(--accent-blue); font-weight: 600; min-width: 62px; text-align: right; }
+  .note { font-size: 12px; line-height: 1.38; color: #1e293b; background: #f0f9ff; border-left: 3px solid #0284c7; padding: 6px 9px; border-radius: 4px; }
+  .note b { color: #0c4a6e; }
+  .verdict { font-size: 13px; font-weight: 700; padding: 4px 8px; border-radius: 6px; text-align: center; }
+  .sw { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: middle; margin-right: 4px; }
+</style>
+</head>
+<body>
+<div class="widget-layout">
+  <div class="toolbar">
+    <b style="color: var(--accent-blue);">Сценарий:</b>
+    <select id="scenario" class="select-control"></select>
+    <b style="color: var(--accent-blue); margin-left: 4px;">Стратегия:</b>
+    <select id="mode" class="select-control">
+      <option value="ankle">только голеностоп (ZMP внутри стопы)</option>
+      <option value="capture">шаг в точку захвата</option>
+      <option value="fixed">шаг фиксированной длины 0.3 м</option>
+    </select>
+    <button id="push" class="btn btn-primary">Толкнуть вперёд</button>
+    <button id="reset" class="btn">Сначала</button>
+    <span style="margin-left:auto; font-size:11.5px; color:#475569">
+      <span class="sw" style="background:#7c3aed"></span>точка захвата ξ
+      <span class="sw" style="background:#dc2626; margin-left:8px"></span>ZMP p
+      <span class="sw" style="background:#0f172a; margin-left:8px"></span>центр масс
+    </span>
+  </div>
+  <div class="main">
+    <div class="col">
+      <div class="panel" style="flex: 1;">
+        <div class="ptitle"><span>Вид сбоку: модель перевёрнутого маятника (LIPM)</span><span id="tnow">t = 0.00 с</span></div>
+        <div class="cv"><canvas id="side"></canvas></div>
+      </div>
+      <div class="panel" style="flex: 0 0 auto; gap: 6px;">
+        <div class="ctrls">
+          <span>Сила толчка Δv</span><input type="range" id="dv" min="0.05" max="1.6" step="0.05"><span class="v" id="dvv"></span>
+          <span>Высота центра масс z<sub>0</sub></span><input type="range" id="z0" min="0.5" max="1.2" step="0.05"><span class="v" id="z0v"></span>
+          <span>Длина стопы (носок)</span><input type="range" id="toe" min="0.05" max="0.25" step="0.01"><span class="v" id="toev"></span>
+        </div>
+        <div class="note" id="note"></div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="panel" style="flex: 1;">
+        <div class="ptitle"><span>Фазовая плоскость (от опорной стопы)</span><span style="color:#059669">полоса — устоит без шага</span></div>
+        <div class="cv"><canvas id="phase"></canvas></div>
+      </div>
+      <div class="panel" style="flex: 1;">
+        <div class="ptitle"><span>Положения во времени, м</span></div>
+        <div class="cv"><canvas id="tplot"></canvas></div>
+      </div>
+      <div class="panel" style="flex: 0 0 auto;"><div class="verdict" id="verdict"></div></div>
+    </div>
+  </div>
+</div>
+<script>
+// ---------------------------------------------------------------------------
+// Линейный перевёрнутый маятник (LIPM), сагиттальная плоскость:
+//   ẍ = ω² (x − p),  ω = √(g / z0),
+// x — горизонтальное положение центра масс (ЦМ), p — точка нулевого момента (ZMP),
+// которую голеностоп может ставить только внутри стопы: p ∈ [f − l_heel, f + l_toe].
+// Точка захвата (capture point, divergent component of motion):
+//   ξ = x + ẋ/ω,  ξ̇ = ω (ξ − p).
+// Если ξ лежит внутри стопы, голеностоп может остановить робота без шага;
+// иначе ξ убегает экспоненциально, и спасает только шаг.
+// Регулятор голеностопа: p = sat(ξ + (k/ω)(ξ − f)), тогда ξ̇ = −k(ξ − f) без насыщения.
+// Шаг: перенос ноги длится T_s = 0.3 с; пока нога в воздухе, ZMP остаётся на краю стопы,
+// поэтому ξ к моменту касания будет ξ_T = p + (ξ − p)e^{ωT_s}; новая стопа ставится
+// в ξ_T (стратегия «точка захвата») или на 0.3 м вперёд (фиксированный шаг).
+// Длина шага ограничена 0.6 м от текущей стопы.
+// ---------------------------------------------------------------------------
+const G = 9.81, HEEL = 0.06, TS = 0.3, LMAX = 0.6, KXI = 3, DT = 0.001, TEND = 5;
+const SCENARIOS = [
+  { name: '1. Слабый толчок: хватает голеностопа', dv: 0.12, z0: 0.9, toe: 0.16, mode: 'ankle',
+    note: '<b>Что наблюдать.</b> После толчка точка захвата ξ (фиолетовая) остаётся внутри стопы. Голеностоп сдвигает ZMP к носку, и маятник возвращается. На фазовой плоскости точка не выходит из зелёной полосы. Это и есть критерий: устойчивость без шага возможна, пока ξ внутри опоры.' },
+  { name: '2. Сильный толчок без шага: падение', dv: 0.7, z0: 0.9, toe: 0.16, mode: 'ankle',
+    note: '<b>Что наблюдать.</b> Сразу после толчка ξ оказывается за носком. ZMP упирается в край стопы и дальше двигаться не может; ξ убегает экспоненциально, робот падает. На фазовой плоскости точка сразу за зелёной полосой. Вывод: сам по себе алгоритм удержания ZMP в стопе не спасает от сильного толчка.' },
+  { name: '3. Тот же толчок: шаг в точку захвата', dv: 0.7, z0: 0.9, toe: 0.16, mode: 'capture',
+    note: '<b>Что наблюдать.</b> Робот видит, что ξ вне стопы, и шагает так, чтобы новая стопа накрыла ξ в момент касания. После одного шага ξ внутри новой стопы, и голеностоп завершает остановку. Так восстанавливает равновесие человек и так работали регуляторы Pratt (2006), Englsberger (2015).' },
+  { name: '4. Очень сильный толчок: несколько шагов', dv: 1.4, z0: 0.9, toe: 0.16, mode: 'capture',
+    note: '<b>Что наблюдать.</b> Нужный шаг длиннее 0.6 м, поэтому одного шага мало: робот делает серию шагов, каждый раз ставя ногу как можно ближе к ξ. Рост скорости гасится за 2–3 шага. Уменьшите z<sub>0</sub>: маятник «падает» быстрее (ω больше), и шагов нужно больше.' },
+  { name: '5. Фиксированный шаг вместо расчётного', dv: 1.2, z0: 0.9, toe: 0.16, mode: 'fixed',
+    note: '<b>Что наблюдать.</b> Робот шагает на 0.3 м, не глядя на ξ. Шаг слишком короткий: после касания ξ снова за носком, следующий шаг тоже короткий, и ошибка нарастает до падения. Переключите стратегию на «шаг в точку захвата» и толкните так же.' },
+];
+const $ = id => document.getElementById(id);
+const sel = $('scenario');
+SCENARIOS.forEach((s, i) => { const o = document.createElement('option'); o.value = i; o.textContent = s.name; sel.appendChild(o); });
+
+let st = {}, S = null, hist = [], playing = false, lastTs = null;
+const om = () => Math.sqrt(G / st.z0);
+
+function init() {
+  S = { t: 0, x: 0, v: 0, f: 0, p: 0, oldFeet: [], swing: null, fallen: false, steps: 0, pushed: false };
+  hist = [];
+  record();
+}
+function support(f) { return [f - HEEL, f + st.toe]; }
+function control() {
+  const w = om(), xi = S.x + S.v / w;
+  const [lo, hi] = support(S.f);
+  let p = xi + KXI / w * (xi - S.f);
+  p = Math.max(lo, Math.min(hi, p));
+  if (S.swing) p = S.swing.pHold;
+  // решение о шаге
+  if (!S.swing && st.mode !== 'ankle' && S.pushed && (xi > hi + 0.005 || xi < lo - 0.005)) {
+    const pEdge = xi > hi ? hi : lo;
+    const xiT = pEdge + (xi - pEdge) * Math.exp(w * TS);
+    let target = st.mode === 'capture' ? xiT + 0.03 * Math.sign(xi - S.f) : S.f + 0.3 * Math.sign(xi - S.f);
+    target = Math.max(S.f - LMAX, Math.min(S.f + LMAX, target));
+    S.swing = { from: S.oldFeet.length ? S.oldFeet[S.oldFeet.length - 1] : S.f - 0.2, to: target, t0: S.t, pHold: pEdge };
+    p = pEdge;
+  }
+  return p;
+}
+function stepSim() {
+  if (S.fallen) return;
+  const w = om();
+  S.p = control();
+  // точное решение на шаге при постоянном p
+  const c = Math.cosh(w * DT), sh = Math.sinh(w * DT), e = S.x - S.p;
+  S.x = S.p + e * c + S.v / w * sh;
+  S.v = e * w * sh + S.v * c;
+  S.t += DT;
+  if (S.swing && S.t - S.swing.t0 >= TS) {
+    S.oldFeet.push(S.f); if (S.oldFeet.length > 6) S.oldFeet.shift();
+    S.f = S.swing.to; S.swing = null; S.steps++;
+  }
+  if (Math.abs(S.x - S.p) > 0.55 * st.z0) S.fallen = true;
+  if (Math.round(S.t / DT) % 10 === 0) record();
+}
+function record() {
+  const w = om();
+  hist.push({ t: S.t, x: S.x, v: S.v, xi: S.x + S.v / w, p: S.p, f: S.f, rel: S.x - S.f });
+}
+function doPush(sign) {
+  if (S.fallen) return;
+  S.v += sign * st.dv; S.pushed = true; record();
+  if (!playing) { playing = true; lastTs = null; requestAnimationFrame(tick); }
+}
+
+// ---------------------------------------------------------------- рисование
+function fit(cv) {
+  const r = cv.parentElement.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = Math.max(10, r.width * dpr); cv.height = Math.max(10, r.height * dpr);
+  cv.style.width = r.width + 'px'; cv.style.height = r.height + 'px';
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return [ctx, r.width, r.height];
+}
+function drawSide() {
+  const [ctx, W, H] = fit($('side'));
+  ctx.clearRect(0, 0, W, H);
+  const sc = Math.min(W / 3.2, (H - 40) / (st.z0 + 0.45));
+  const camX = Math.max(0.6, S.x + 0.4);
+  const px = x => W * 0.35 + (x - camX + 0.6) * sc, gy = H - 34, py = z => gy - z * sc;
+  // земля
+  ctx.fillStyle = '#f1f5f9'; ctx.fillRect(0, gy, W, H - gy);
+  ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
+  ctx.fillStyle = '#64748b'; ctx.font = '10px Inter, sans-serif'; ctx.textAlign = 'center';
+  for (let m = Math.floor(camX - 3); m <= camX + 3; m += 0.5) { ctx.beginPath(); ctx.moveTo(px(m), gy); ctx.lineTo(px(m), gy + 5); ctx.stroke(); ctx.fillText(m.toFixed(1), px(m), gy + 16); }
+  // старые следы
+  ctx.fillStyle = '#cbd5e1';
+  for (const f of S.oldFeet) ctx.fillRect(px(f - HEEL), gy - 6, (HEEL + st.toe) * sc, 6);
+  // опорная стопа и область опоры
+  const [lo, hi] = support(S.f);
+  ctx.fillStyle = 'rgba(16,185,129,0.15)'; ctx.fillRect(px(lo), py(st.z0 + 0.3), (hi - lo) * sc, gy - py(st.z0 + 0.3));
+  ctx.fillStyle = '#2563eb'; ctx.fillRect(px(lo), gy - 8, (hi - lo) * sc, 8);
+  // ЦМ и ноги
+  const comX = px(S.x), comY = py(st.z0);
+  let ang = 0;
+  if (S.fallen) ang = Math.sign(S.x - S.p) * 1.1;
+  const cx = S.fallen ? px(S.p) + Math.sin(ang) * st.z0 * sc : comX, cy = S.fallen ? gy - Math.cos(ang) * st.z0 * sc : comY;
+  ctx.strokeStyle = '#334155'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(px(S.f), gy - 8); ctx.lineTo(cx, cy); ctx.stroke();
+  if (S.swing && !S.fallen) {
+    const a = Math.min(1, (S.t - S.swing.t0) / TS);
+    const fx = S.swing.from + (S.swing.to - S.swing.from) * a, fz = 0.12 * Math.sin(Math.PI * a);
+    ctx.strokeStyle = '#64748b'; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(px(fx), py(fz) - 6); ctx.stroke();
+    ctx.fillStyle = '#64748b'; ctx.fillRect(px(fx - HEEL), py(fz) - 6, (HEEL + st.toe) * sc, 6);
+    ctx.strokeStyle = 'rgba(37,99,235,0.6)'; ctx.setLineDash([4, 3]); ctx.lineWidth = 1.5;
+    ctx.strokeRect(px(S.swing.to - HEEL), gy - 8, (HEEL + st.toe) * sc, 8); ctx.setLineDash([]);
+  }
+  // линия маятника от ZMP к ЦМ
+  ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 1.5; ctx.setLineDash([6, 4]);
+  ctx.beginPath(); ctx.moveTo(px(S.p), gy); ctx.lineTo(cx, cy); ctx.stroke(); ctx.setLineDash([]);
+  // высота ЦМ
+  if (!S.fallen) { ctx.strokeStyle = '#cbd5e1'; ctx.setLineDash([2, 4]); ctx.beginPath(); ctx.moveTo(0, comY); ctx.lineTo(W, comY); ctx.stroke(); ctx.setLineDash([]); }
+  ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.arc(cx, cy, 11, 0, 7); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.font = '600 9px Inter, sans-serif'; ctx.fillText('ЦМ', cx, cy + 3);
+  // ZMP и точка захвата
+  ctx.fillStyle = '#dc2626'; ctx.beginPath(); ctx.arc(px(S.p), gy, 5, 0, 7); ctx.fill();
+  const xi = S.x + S.v / om();
+  if (!S.fallen) {
+    ctx.strokeStyle = '#7c3aed'; ctx.lineWidth = 1.5; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(px(xi), gy); ctx.lineTo(px(xi), gy - 0.25 * sc); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = '#7c3aed'; ctx.beginPath(); ctx.moveTo(px(xi), gy - 2); ctx.lineTo(px(xi) - 7, gy + 10); ctx.lineTo(px(xi) + 7, gy + 10); ctx.closePath(); ctx.fill();
+  }
+  // подписи
+  ctx.textAlign = 'left'; ctx.font = '11px Inter, sans-serif'; ctx.fillStyle = '#334155';
+  ctx.fillText(`ω = √(g/z₀) = ${om().toFixed(2)} 1/с`, 10, 16);
+  ctx.fillText(`скорость ЦМ ẋ = ${S.v.toFixed(2)} м/с`, 10, 32);
+  ctx.fillText(`ξ − f = ${(xi - S.f).toFixed(3)} м  (стопа: от −${HEEL.toFixed(2)} до +${st.toe.toFixed(2)})`, 10, 48);
+  ctx.fillText(`шагов: ${S.steps}`, 10, 64);
+  $('tnow').textContent = `t = ${S.t.toFixed(2)} с`;
+}
+function drawPhase() {
+  const [ctx, W, H] = fit($('phase'));
+  ctx.clearRect(0, 0, W, H);
+  const w = om(), X0 = 38, Y0 = 6, Wb = W - 48, Hb = H - 34, xr = [-0.5, 0.7], vr = [-0.8, 1.8];
+  const px = x => X0 + (x - xr[0]) / (xr[1] - xr[0]) * Wb, py = v => Y0 + Hb - (v - vr[0]) / (vr[1] - vr[0]) * Hb;
+  ctx.fillStyle = '#fff'; ctx.fillRect(X0, Y0, Wb, Hb);
+  ctx.save(); ctx.beginPath(); ctx.rect(X0, Y0, Wb, Hb); ctx.clip();
+  // полоса захвата: −heel ≤ x + v/ω ≤ toe  ⇔  ω(−heel − x) ≤ v ≤ ω(toe − x)
+  ctx.beginPath();
+  ctx.moveTo(px(xr[0]), py(w * (st.toe - xr[0]))); ctx.lineTo(px(xr[1]), py(w * (st.toe - xr[1])));
+  ctx.lineTo(px(xr[1]), py(w * (-HEEL - xr[1]))); ctx.lineTo(px(xr[0]), py(w * (-HEEL - xr[0]))); ctx.closePath();
+  ctx.fillStyle = 'rgba(16,185,129,0.18)'; ctx.fill();
+  ctx.strokeStyle = '#059669'; ctx.lineWidth = 1.2; ctx.stroke();
+  ctx.strokeStyle = '#eef2f7'; ctx.lineWidth = 1;
+  for (let x = -0.4; x <= 0.7; x += 0.2) { ctx.beginPath(); ctx.moveTo(px(x), Y0); ctx.lineTo(px(x), Y0 + Hb); ctx.stroke(); }
+  ctx.strokeStyle = '#94a3b8'; ctx.beginPath(); ctx.moveTo(px(0), Y0); ctx.lineTo(px(0), Y0 + Hb); ctx.stroke(); ctx.beginPath(); ctx.moveTo(X0, py(0)); ctx.lineTo(X0 + Wb, py(0)); ctx.stroke();
+  // траектория (относительно текущей опорной стопы на каждом участке)
+  ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 2;
+  let prevF = null; ctx.beginPath();
+  for (const h of hist) { const X = px(h.rel), Y = py(h.v); if (h.f !== prevF) { ctx.stroke(); ctx.beginPath(); ctx.moveTo(X, Y); prevF = h.f; } else ctx.lineTo(X, Y); }
+  ctx.stroke();
+  const last = hist[hist.length - 1];
+  ctx.fillStyle = S.fallen ? '#dc2626' : '#0f172a'; ctx.beginPath(); ctx.arc(px(last.rel), py(last.v), 5, 0, 7); ctx.fill();
+  ctx.restore();
+  ctx.strokeStyle = '#cbd5e1'; ctx.strokeRect(X0, Y0, Wb, Hb);
+  ctx.fillStyle = '#64748b'; ctx.font = '10.5px Inter, sans-serif'; ctx.textAlign = 'center';
+  for (const x of [-0.4, -0.2, 0, 0.2, 0.4, 0.6]) ctx.fillText(x.toFixed(1), px(x), Y0 + Hb + 12);
+  ctx.textAlign = 'right'; for (const v of [-0.5, 0, 0.5, 1, 1.5]) ctx.fillText(v, X0 - 4, py(v) + 3);
+  ctx.font = 'italic 11px Inter, sans-serif'; ctx.fillText('x − f, м', X0 + Wb, Y0 + Hb + 25);
+  ctx.textAlign = 'left'; ctx.fillText('ẋ, м/с', X0 + 4, Y0 + 12);
+}
+function drawT() {
+  const [ctx, W, H] = fit($('tplot'));
+  ctx.clearRect(0, 0, W, H);
+  const X0 = 38, Y0 = 6, Wb = W - 48, Hb = H - 30;
+  const tEnd = Math.max(2, S.t);
+  let lo = -0.2, hi = 0.6; for (const h of hist) { lo = Math.min(lo, h.x, h.f, h.p); hi = Math.max(hi, h.x, Math.min(h.xi, h.x + 1.5), h.f); }
+  const px = t => X0 + t / tEnd * Wb, py = v => Y0 + Hb - (v - lo) / (hi - lo) * Hb;
+  ctx.fillStyle = '#fff'; ctx.fillRect(X0, Y0, Wb, Hb); ctx.strokeStyle = '#cbd5e1'; ctx.strokeRect(X0, Y0, Wb, Hb);
+  const series = [['f', '#2563eb', 2.5], ['p', '#dc2626', 1.5], ['x', '#0f172a', 2], ['xi', '#7c3aed', 1.6]];
+  ctx.save(); ctx.beginPath(); ctx.rect(X0, Y0, Wb, Hb); ctx.clip();
+  for (const [k, c, w] of series) { ctx.strokeStyle = c; ctx.lineWidth = w; ctx.beginPath(); hist.forEach((h, i) => i ? ctx.lineTo(px(h.t), py(h[k])) : ctx.moveTo(px(h.t), py(h[k]))); ctx.stroke(); }
+  ctx.restore();
+  ctx.fillStyle = '#64748b'; ctx.font = '10.5px Inter, sans-serif'; ctx.textAlign = 'center';
+  const stepT = tEnd > 4 ? 1 : 0.5;
+  for (let t = 0; t <= tEnd + 1e-9; t += stepT) ctx.fillText(t.toFixed(1), px(t), Y0 + Hb + 12);
+  ctx.textAlign = 'right'; ctx.fillText(hi.toFixed(1), X0 - 4, Y0 + 10); ctx.fillText(lo.toFixed(1), X0 - 4, Y0 + Hb);
+  ctx.font = 'italic 11px Inter, sans-serif'; ctx.fillText('t, с', X0 + Wb, Y0 + Hb + 24);
+  ctx.textAlign = 'left'; ctx.font = '10.5px Inter, sans-serif';
+  [['f стопа', '#2563eb'], ['p ZMP', '#dc2626'], ['x ЦМ', '#0f172a'], ['ξ', '#7c3aed']].forEach(([t, c], i) => { ctx.fillStyle = c; ctx.fillText(t, X0 + 6 + i * 62, Y0 + 12); });
+}
+function renderVerdict() {
+  const v = $('verdict');
+  if (!S.pushed) { v.textContent = 'Нажмите «Толкнуть вперёд»'; v.style.background = '#f1f5f9'; v.style.color = '#475569'; return; }
+  if (S.fallen) { v.textContent = `Падение: точка захвата ушла за пределы опоры (шагов: ${S.steps})`; v.style.background = '#fee2e2'; v.style.color = '#b91c1c'; return; }
+  const rest = Math.abs(S.v) < 0.02 && !S.swing;
+  if (rest) { v.textContent = S.steps ? `Равновесие восстановлено за ${S.steps} шаг(а)` : 'Равновесие восстановлено без шага'; v.style.background = '#dcfce7'; v.style.color = '#047857'; }
+  else { v.textContent = S.swing ? 'Шаг…' : 'Гашение скорости…'; v.style.background = '#fef3c7'; v.style.color = '#92400e'; }
+}
+function draw() { drawSide(); drawPhase(); drawT(); renderVerdict(); }
+
+// ---------------------------------------------------------------- управление
+function setSliders() {
+  $('dv').value = st.dv; $('z0').value = st.z0; $('toe').value = st.toe; $('mode').value = st.mode;
+  $('dvv').textContent = st.dv.toFixed(2) + ' м/с'; $('z0v').textContent = st.z0.toFixed(2) + ' м'; $('toev').textContent = st.toe.toFixed(2) + ' м';
+}
+function loadScenario(i) {
+  const s = SCENARIOS[i];
+  st = { sc: i, dv: s.dv, z0: s.z0, toe: s.toe, mode: s.mode };
+  $('note').innerHTML = s.note;
+  setSliders(); playing = false; init(); draw();
+}
+for (const id of ['dv', 'z0', 'toe']) $(id).addEventListener('input', () => { st[id] = +$(id).value; setSliders(); if (!S.pushed) { init(); } draw(); });
+$('mode').addEventListener('change', () => { st.mode = $('mode').value; playing = false; init(); draw(); });
+sel.addEventListener('change', () => loadScenario(+sel.value));
+$('reset').addEventListener('click', () => { playing = false; init(); draw(); });
+$('push').addEventListener('click', () => { if (S.fallen || S.t > 0.01) { init(); } doPush(1); });
+function tick(ts) {
+  if (!playing) return;
+  const dtw = lastTs === null ? 0 : Math.min(0.05, (ts - lastTs) / 1000);
+  lastTs = ts;
+  const n = Math.round(dtw / DT);
+  for (let i = 0; i < n; i++) stepSim();
+  const settled = !S.swing && Math.abs(S.v) < 0.005 && S.t > 1;
+  if (S.fallen || S.t > TEND || settled) playing = false;
+  draw();
+  if (playing) requestAnimationFrame(tick);
+}
+window.addEventListener('resize', draw);
+if (window.ResizeObserver) new ResizeObserver(() => draw()).observe(document.body);
+
+const params = new URLSearchParams(location.search);
+const sc = Math.max(0, Math.min(SCENARIOS.length - 1, (+params.get('scenario') || 1) - 1));
+sel.value = sc; loadScenario(sc);
+if (params.get('run') === '1') { S.v += st.dv; S.pushed = true; for (let i = 0; i < 3000 && !S.fallen; i++) stepSim(); draw(); }
+</script>
+</body>
+</html>

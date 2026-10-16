@@ -645,6 +645,37 @@ section.compact .card ol {
   margin-bottom: 3px;
 }
 
+/* Larger type for slides whose content is short.
+   `zoom` scales the body of the slide and lets it reflow inside the same
+   width, so a slide with two short cards reads from the back row instead of
+   leaving half of the frame empty. The title row keeps its size so that the
+   headings stay consistent across the deck. Levels are picked per slide by
+   scripts/fit_slides.cjs: the largest one that still fits the frame. */
+section.fs-1 > :not(header, footer, h1, h2, .lead-in) { zoom: 1.1; }
+section.fs-2 > :not(header, footer, h1, h2, .lead-in) { zoom: 1.2; }
+section.fs-3 > :not(header, footer, h1, h2, .lead-in) { zoom: 1.3; }
+section.fs-4 > :not(header, footer, h1, h2, .lead-in) { zoom: 1.42; }
+
+/* Связка под заголовком: одна-две строки о том, откуда взялся вопрос слайда
+   и что на нём нужно понять. Слайд читается и без соседних. */
+.lead-in {
+  flex: 0 0 auto;
+  margin: -2px 0 8px 0;
+  padding: 3px 0 3px 12px;
+  border-left: 3px solid var(--accent-cyan);
+  color: var(--text-muted);
+  font-size: 17px;
+  line-height: 1.35;
+}
+
+.lead-in p {
+  margin: 0;
+}
+
+.lead-in strong {
+  color: var(--text-main);
+}
+
 /* Print & PDF Export Rules */
 @media print {
   section {

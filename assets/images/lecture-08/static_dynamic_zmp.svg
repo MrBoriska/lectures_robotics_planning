@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 335" width="1100" height="335" font-family="Inter, 'Segoe UI', Roboto, Arial, sans-serif">
+<rect width="1100" height="335" fill="#ffffff"/>
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker><marker id="arrB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2563eb"/></marker><marker id="arrR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/></marker><marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker><marker id="arrP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/></marker><marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d97706"/></marker></defs>
+<line x1="40.0" y1="260.0" x2="360.0" y2="260.0" stroke="#0f172a" stroke-width="2"/>
+<rect x="140.0" y="252.0" width="120.0" height="8.0" rx="2" fill="#2563eb" stroke="#2563eb" stroke-width="1"/>
+<rect x="140.0" y="258.0" width="120.0" height="24.0" rx="0" fill="#ecfdf5" stroke="none" stroke-width="0"/>
+<text x="200.0" y="276.0" font-size="12" fill="#059669" text-anchor="middle" font-weight="700">опора</text>
+<line x1="200.0" y1="252.0" x2="225.0" y2="130.0" stroke="#0f172a" stroke-width="5"/>
+<circle cx="225.0" cy="110.0" r="16" fill="#0f172a" stroke="none" stroke-width="1.5"/>
+<text x="225.0" y="115.0" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="700">ЦМ</text>
+<line x1="225.0" y1="126.0" x2="225.0" y2="260.0" stroke="#7c3aed" stroke-width="1.6" stroke-dasharray="5 4"/>
+<circle cx="225.0" cy="260.0" r="5" fill="#7c3aed" stroke="none" stroke-width="1.5"/>
+<text x="233.0" y="246.0" font-size="12" fill="#7c3aed" text-anchor="start" font-weight="400">проекция ЦМ</text>
+<text x="200.0" y="40.0" font-size="16" fill="#0f172a" text-anchor="middle" font-weight="700">Статическая устойчивость</text>
+<text x="200.0" y="64.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">проекция ЦМ внутри опоры</text>
+<text x="200.0" y="82.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">в любой момент</text>
+<text x="200.0" y="318.0" font-size="13" fill="#059669" text-anchor="middle" font-weight="700">устойчив даже при остановке</text>
+<line x1="390.0" y1="260.0" x2="710.0" y2="260.0" stroke="#0f172a" stroke-width="2"/>
+<rect x="490.0" y="252.0" width="120.0" height="8.0" rx="2" fill="#2563eb" stroke="#2563eb" stroke-width="1"/>
+<rect x="490.0" y="258.0" width="120.0" height="24.0" rx="0" fill="#ecfdf5" stroke="none" stroke-width="0"/>
+<text x="550.0" y="276.0" font-size="12" fill="#059669" text-anchor="middle" font-weight="700">опора</text>
+<line x1="550.0" y1="252.0" x2="660.0" y2="130.0" stroke="#0f172a" stroke-width="5"/>
+<circle cx="660.0" cy="110.0" r="16" fill="#0f172a" stroke="none" stroke-width="1.5"/>
+<text x="660.0" y="115.0" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="700">ЦМ</text>
+<line x1="660.0" y1="126.0" x2="660.0" y2="260.0" stroke="#7c3aed" stroke-width="1.6" stroke-dasharray="5 4"/>
+<circle cx="660.0" cy="260.0" r="5" fill="#7c3aed" stroke="none" stroke-width="1.5"/>
+<text x="668.0" y="246.0" font-size="12" fill="#7c3aed" text-anchor="start" font-weight="400">проекция ЦМ</text>
+<text x="550.0" y="40.0" font-size="16" fill="#0f172a" text-anchor="middle" font-weight="700">Динамическая ходьба</text>
+<text x="550.0" y="64.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">проекция ЦМ вне опоры,</text>
+<text x="550.0" y="82.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">робот «падает» вперёд</text>
+<text x="550.0" y="318.0" font-size="13" fill="#dc2626" text-anchor="middle" font-weight="700">держится за счёт ускорений</text>
+<line x1="740.0" y1="260.0" x2="1060.0" y2="260.0" stroke="#0f172a" stroke-width="2"/>
+<rect x="840.0" y="252.0" width="120.0" height="8.0" rx="2" fill="#2563eb" stroke="#2563eb" stroke-width="1"/>
+<line x1="845.0" y1="272.1" x2="845.0" y2="266.0" stroke="#d97706" stroke-width="1.6" marker-end="url(#arrA)"/>
+<line x1="858.5" y1="272.7" x2="858.5" y2="266.0" stroke="#d97706" stroke-width="1.6" marker-end="url(#arrA)"/>
+<line x1="872.0" y1="274.5" x2="872.0" y2="266.0" stroke="#d97706" stroke-width="1.6" marker-end="url(#arrA)"/>
+<line x1="885.5" y1="279.1" x2="885.5" y2="266.0" stroke="#d97706" stroke-width="1.6" marker-end="url(#arrA)"/>
+<line x1="899.0" y1="286.8" x2="899.0" y2="266.0" stroke="#d97706" stroke-width="1.6" marker-end="url(#arrA)"/>
+<line x1="912.5" y1="294.8" x2="912.5" y2="266.0" stroke="#d97706" stroke-width="1.6" marker-end="url(#arrA)"/>
+<line x1="926.0" y1="298.0" x2="926.0" y2="266.0" stroke="#d97706" stroke-width="1.6" marker-end="url(#arrA)"/>
+<line x1="939.5" y1="293.8" x2="939.5" y2="266.0" stroke="#d97706" stroke-width="1.6" marker-end="url(#arrA)"/>
+<line x1="953.0" y1="285.5" x2="953.0" y2="266.0" stroke="#d97706" stroke-width="1.6" marker-end="url(#arrA)"/>
+<circle cx="925.0" cy="256.0" r="6" fill="#dc2626" stroke="none" stroke-width="1.5"/>
+<text x="925.0" y="242.0" font-size="13" fill="#dc2626" text-anchor="middle" font-weight="700">ZMP</text>
+<text x="900.0" y="40.0" font-size="16" fill="#0f172a" text-anchor="middle" font-weight="700">Точка нулевого момента</text>
+<text x="900.0" y="64.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">точка, где равнодействующая</text>
+<text x="900.0" y="82.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">реакции опоры не создаёт</text>
+<text x="900.0" y="100.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">опрокидывающего момента</text>
+<text x="900.0" y="318.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="700">условие: ZMP строго внутри стопы</text>
+</svg>

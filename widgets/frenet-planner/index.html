@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Планирование в координатах Френе: веер кандидатов</title>
+<link rel="stylesheet" href="../common/widget-base.css">
+<style>
+  .main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 0.85fr); gap: 8px; padding: 8px; }
+  .panel { background: #fff; border: 1px solid var(--border-color); border-radius: 8px; padding: 6px 10px; display: flex; flex-direction: column; min-height: 0; }
+  .ptitle { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--text-muted); margin-bottom: 4px; display: flex; justify-content: space-between; gap: 8px; }
+  .cv { flex: 1; min-height: 0; position: relative; }
+  .col { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+  .ctrls { display: grid; grid-template-columns: auto 1fr auto; gap: 3px 8px; align-items: center; font-size: 11.5px; }
+  .ctrls input[type=range] { width: 100%; accent-color: #0284c7; }
+  .ctrls .v { font-family: var(--font-mono); color: var(--accent-blue); font-weight: 600; min-width: 54px; text-align: right; }
+  .note { font-size: 12px; line-height: 1.38; color: #1e293b; background: #f0f9ff; border-left: 3px solid #0284c7; padding: 6px 9px; border-radius: 4px; }
+  .note b { color: #0c4a6e; }
+  table.res { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+  table.res td { padding: 2px 6px; border-bottom: 1px solid #eef2f7; }
+  table.res td:last-child { text-align: right; font-family: var(--font-mono); color: #0f172a; }
+  .checks { display: flex; gap: 12px; font-size: 11.5px; flex-wrap: wrap; }
+  .checks label { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+  .sw { display: inline-block; width: 16px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 4px; }
+</style>
+</head>
+<body>
+<div class="widget-layout">
+  <div class="toolbar">
+    <b style="color: var(--accent-blue);">Сценарий:</b>
+    <select id="scenario" class="select-control"></select>
+    <button id="play" class="btn btn-primary">Пуск</button>
+    <button id="step" class="btn">Один такт</button>
+    <button id="reset" class="btn">Сначала</button>
+    <div class="checks" style="margin-left: 6px;">
+      <label><input type="checkbox" id="showAll" checked>все кандидаты</label>
+    </div>
+    <span style="margin-left:auto; font-size:11.5px; color:#475569">
+      <span class="sw" style="background:#059669"></span>выбранная
+      <span class="sw" style="background:#93c5fd; margin-left:8px"></span>допустимые
+      <span class="sw" style="background:#fca5a5; margin-left:8px"></span>столкновение
+      <span class="sw" style="background:#cbd5e1; margin-left:8px"></span>нарушен предел
+    </span>
+  </div>
+  <div class="main">
+    <div class="col">
+      <div class="panel" style="flex: 1;">
+        <div class="ptitle"><span>Дорога, вид сверху (щелчок по дороге — поставить препятствие)</span><span id="tnow">t = 0.0 с</span></div>
+        <div class="cv"><canvas id="road"></canvas></div>
+      </div>
+      <div class="panel" style="flex: 0 0 auto;"><div class="note" id="note"></div></div>
+    </div>
+    <div class="col">
+      <div class="panel" style="flex: 1;">
+        <div class="ptitle"><span>Смещение d(t) кандидатов, м</span><span>координаты Френе</span></div>
+        <div class="cv"><canvas id="dplot"></canvas></div>
+      </div>
+      <div class="panel" style="flex: 0 0 auto; gap: 6px;">
+        <div class="ctrls">
+          <span>Желаемая скорость</span><input type="range" id="vdes" min="5" max="20" step="0.5"><span class="v" id="vdesv"></span>
+          <span>Вес рывка k<sub>j</sub></span><input type="range" id="kj" min="0.01" max="1" step="0.01"><span class="v" id="kjv"></span>
+          <span>Вес времени манёвра k<sub>t</sub></span><input type="range" id="kt" min="0" max="20" step="0.5"><span class="v" id="ktv"></span>
+        </div>
+        <table class="res"><tbody id="stats"></tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+// ---------------------------------------------------------------------------
+// Метод Werling, Ziegler, Kammel, Thrun (ICRA 2010) в упрощённом виде.
+// Опорная линия r(s) — середина правой полосы; d — смещение влево от неё.
+// Каждый такт (0.1 с) строится набор кандидатов:
+//   поперечное движение: полином 5-й степени d(t) от текущих (d, ḋ, d̈)
+//     к (d_T, 0, 0) за время T;
+//   продольное движение: полином 4-й степени s(t) от (s, ṡ, s̈) к скорости
+//     ṡ(T) = v_T с s̈(T) = 0 (режим поддержания скорости).
+// Перебор: d_T ∈ 7 значений, T ∈ {2, 3, 4, 5} с, v_T ∈ {v_des, v_des − 3, v_des − 6}.
+// Стоимость: J = k_j(∫d⃛² + ∫s⃛²) + k_t·T + k_d·(d_T − ближайший центр полосы)²
+//            + k_lane·[конец в левой полосе] + k_v·(v_des − v_T)².
+// Проверки: скорость, продольное ускорение, кривизна в декартовых координатах,
+// границы дороги, столкновения с препятствиями (с учётом их движения).
+// Робот выполняет выбранный кандидат 0.1 с и планирует заново.
+// ---------------------------------------------------------------------------
+const LANE = 3.5, D_MIN = -LANE / 2, D_MAX = LANE * 1.5;
+const D_SET = [-0.6, 0, 0.6, 1.75, 2.9, 3.5, 4.1];
+const T_SET = [2, 3, 4, 5];
+const HOR = 5, DT = 0.1, A_MAX = 4, K_MAX = 0.2, V_MAX = 25, R_CAR = 1.3;
+const K_D = 1.0, K_LANE = 3.0, K_V = 0.5;
+
+const ROAD_PTS = [[-20, 0], [0, 0], [40, 0], [75, 10], [110, 12], [150, -2], [190, -6], [230, 0], [270, 4], [320, 4]];
+
+const SCENARIOS = [
+  { name: '1. Стоящая машина в полосе', ego: { s: 10, v: 10 }, vdes: 12, kj: 0.1, kt: 5,
+    obs: [{ s: 55, d: 0, v: 0 }],
+    note: '<b>Что наблюдать.</b> Пока препятствие далеко, побеждает кандидат «остаться в полосе». Когда кандидаты с d<sub>T</sub> ≈ 0 начинают пересекать машину (красные), выбор переходит к объезду по левой полосе. После объезда робот возвращается вправо: конец в левой полосе штрафуется слагаемым k<sub>lane</sub>. Нажимайте «Один такт», чтобы видеть каждый выбор.' },
+  { name: '2. Медленная машина впереди: обгон', ego: { s: 10, v: 12 }, vdes: 14, kj: 0.1, kt: 5,
+    obs: [{ s: 40, d: 0, v: 6 }],
+    note: '<b>Что наблюдать.</b> Препятствие движется, и проверка столкновений идёт по времени: точка кандидата в момент t сравнивается с положением машины в тот же момент t. Поэтому робот начинает перестроение заранее и возвращается, когда обогнал. Уменьшите k<sub>j</sub>: манёвры станут резче.' },
+  { name: '3. Обгон закрыт: левая полоса занята', ego: { s: 10, v: 12 }, vdes: 14, kj: 0.1, kt: 5,
+    obs: [{ s: 45, d: 0, v: 6 }, { s: 2, d: 3.5, v: 15 }, { s: -26, d: 3.5, v: 15 }],
+    note: '<b>Что наблюдать.</b> Слева робота обгоняют быстрые машины. Кандидаты перестроения пересекают их в будущем и отбраковываются; остаются варианты с меньшей конечной скоростью v<sub>T</sub>: робот притормаживает за медленной машиной и перестраивается, когда левая полоса освобождается. Перебор по скорости — второе измерение веера.' },
+  { name: '4. Слалом между препятствиями', ego: { s: 10, v: 10 }, vdes: 11, kj: 0.05, kt: 3,
+    obs: [{ s: 45, d: 0, v: 0 }, { s: 80, d: 3.5, v: 0 }, { s: 115, d: 0, v: 0 }, { s: 150, d: 3.5, v: 0 }],
+    note: '<b>Что наблюдать.</b> Каждый такт — новый веер от текущего состояния; план длиной 5 с пересчитывается 10 раз в секунду. Поэтому робот проходит слалом, хотя ни один кандидат не видит больше двух препятствий. Увеличьте k<sub>j</sub> до 0.5: плавные кандидаты перестают успевать, и робот вынужден снижать скорость.' },
+];
+
+const $ = id => document.getElementById(id);
+const sel = $('scenario');
+SCENARIOS.forEach((s, i) => { const o = document.createElement('option'); o.value = i; o.textContent = s.name; sel.appendChild(o); });
+
+// ---------------------------------------------------------------- опорная линия
+let REF = null;
+function buildRef() {
+  // Catmull–Rom по точкам, затем равномерная сетка по длине дуги
+  const dense = [];
+  const P = ROAD_PTS;
+  for (let i = 0; i < P.length - 1; i++) {
+    const p0 = P[Math.max(0, i - 1)], p1 = P[i], p2 = P[i + 1], p3 = P[Math.min(P.length - 1, i + 2)];
+    for (let k = 0; k < 80; k++) {
+      const t = k / 80, t2 = t * t, t3 = t2 * t;
+      const f = (a, b, c, d) => 0.5 * (2 * b + (-a + c) * t + (2 * a - 5 * b + 4 * c - d) * t2 + (-a + 3 * b - 3 * c + d) * t3);
+      dense.push([f(p0[0], p1[0], p2[0], p3[0]), f(p0[1], p1[1], p2[1], p3[1])]);
+    }
+  }
+  dense.push(P[P.length - 1]);
+  const cum = [0];
+  for (let i = 1; i < dense.length; i++) cum.push(cum[i - 1] + Math.hypot(dense[i][0] - dense[i - 1][0], dense[i][1] - dense[i - 1][1]));
+  const ds = 0.25, L = cum[cum.length - 1], n = Math.floor(L / ds);
+  const x = [], y = [];
+  let j = 0;
+  for (let k = 0; k <= n; k++) {
+    const s = k * ds;
+    while (j < cum.length - 2 && cum[j + 1] < s) j++;
+    const a = (s - cum[j]) / (cum[j + 1] - cum[j]);
+    x.push(dense[j][0] + a * (dense[j + 1][0] - dense[j][0])); y.push(dense[j][1] + a * (dense[j + 1][1] - dense[j][1]));
+  }
+  const th = x.map((_, i) => { const a = Math.max(0, i - 1), b = Math.min(x.length - 1, i + 1); return Math.atan2(y[b] - y[a], x[b] - x[a]); });
+  // s отсчитывается от точки (0, 0)
+  const s0 = cum[80];
+  REF = { x, y, th, ds, L, s0 };
+}
+function refAt(s) {
+  const u = (s + REF.s0) / REF.ds, i = Math.max(0, Math.min(REF.x.length - 2, Math.floor(u))), a = Math.max(0, Math.min(1, u - i));
+  let dth = REF.th[i + 1] - REF.th[i]; while (dth > Math.PI) dth -= 2 * Math.PI; while (dth < -Math.PI) dth += 2 * Math.PI;
+  return { x: REF.x[i] + a * (REF.x[i + 1] - REF.x[i]), y: REF.y[i] + a * (REF.y[i + 1] - REF.y[i]), th: REF.th[i] + a * dth };
+}
+function toXY(s, d) { const r = refAt(s); return [r.x - d * Math.sin(r.th), r.y + d * Math.cos(r.th)]; }
+function nearestS(px, py, guess) {
+  let best = 0, bd = 1e9;
+  for (let k = 0; k < REF.x.length; k += 2) { const dd = (REF.x[k] - px) ** 2 + (REF.y[k] - py) ** 2; if (dd < bd) { bd = dd; best = k; } }
+  const s = best * REF.ds - REF.s0, r = refAt(s);
+  const d = -(px - r.x) * Math.sin(r.th) + (py - r.y) * Math.cos(r.th);
+  return [s, d];
+}
+
+// ---------------------------------------------------------------- полиномы
+function quintic(x0, v0, a0, x1, v1, a1, T) {
+  const c0 = x0, c1 = v0, c2 = a0 / 2;
+  const T2 = T * T, T3 = T2 * T, T4 = T3 * T, T5 = T4 * T;
+  const b0 = x1 - (c0 + c1 * T + c2 * T2), b1 = v1 - (c1 + 2 * c2 * T), b2 = a1 - 2 * c2;
+  // решение 3×3 системы для c3, c4, c5
+  const c3 = (10 * b0 - 4 * b1 * T + 0.5 * b2 * T2) / T3;
+  const c4 = (-15 * b0 + 7 * b1 * T - b2 * T2) / T4;
+  const c5 = (6 * b0 - 3 * b1 * T + 0.5 * b2 * T2) / T5;
+  return [c0, c1, c2, c3, c4, c5];
+}
+function quartic(x0, v0, a0, v1, a1, T) {
+  const c0 = x0, c1 = v0, c2 = a0 / 2;
+  const T2 = T * T, T3 = T2 * T;
+  const b1 = v1 - (c1 + 2 * c2 * T), b2 = a1 - 2 * c2;
+  const c3 = (3 * b1 - b2 * T) / (3 * T2);
+  const c4 = (-2 * b1 + b2 * T) / (4 * T3);
+  return [c0, c1, c2, c3, c4, 0];
+}
+function ev(c, t) {
+  const p = c[0] + t * (c[1] + t * (c[2] + t * (c[3] + t * (c[4] + t * c[5]))));
+  const v = c[1] + t * (2 * c[2] + t * (3 * c[3] + t * (4 * c[4] + t * 5 * c[5])));
+  const a = 2 * c[2] + t * (6 * c[3] + t * (12 * c[4] + t * 20 * c[5]));
+  const j = 6 * c[3] + t * (24 * c[4] + t * 60 * c[5]);
+  return [p, v, a, j];
+}
+// значение полинома и производных с продолжением после T (постоянная скорость / смещение)
+function evExt(c, T, t, keepVel) {
+  if (t <= T) return ev(c, t);
+  const [p, v] = ev(c, T);
+  return keepVel ? [p + v * (t - T), v, 0, 0] : [p, 0, 0, 0];
+}
+
+// ---------------------------------------------------------------- состояние
+let st = {}, ego = null, obs = [], simT = 0, cands = [], best = null, playing = false, lastTs = null, trail = [];
+function obsAt(o, t) { return o.s + o.v * (simT + t); }
+
+function plan() {
+  const vdes = st.vdes;
+  const V_SET = [vdes, vdes - 3, vdes - 6].filter(v => v >= 0);
+  cands = [];
+  for (const dT of D_SET) for (const T of T_SET) for (const vT of V_SET) {
+    const cd = quintic(ego.d, ego.dd, ego.ddd, dT, 0, 0, T);
+    const cs = quartic(ego.s, ego.sd, ego.sdd, vT, 0, T);
+    const pts = [], dts = [];
+    let jd = 0, js = 0, why = '';
+    for (let t = 0; t <= HOR + 1e-9; t += DT) {
+      const D = evExt(cd, T, t, false), S = evExt(cs, T, t, true);
+      if (t <= T) { jd += D[3] * D[3] * DT; js += S[3] * S[3] * DT; }
+      pts.push(toXY(S[0], D[0])); dts.push([t, D[0], S[0], S[1], S[2]]);
+      if (!why) {
+        if (S[1] > V_MAX || S[1] < -0.1) why = 'limit';
+        else if (Math.abs(S[2]) > A_MAX) why = 'limit';
+        else if (D[0] < D_MIN || D[0] > D_MAX) why = 'limit';
+      }
+    }
+    // кривизна в декартовых координатах
+    if (!why) for (let i = 1; i < pts.length - 1; i++) {
+      const [ax, ay] = pts[i - 1], [bx, by] = pts[i], [cx, cy] = pts[i + 1];
+      const l1 = Math.hypot(bx - ax, by - ay), l2 = Math.hypot(cx - bx, cy - by);
+      if (l1 < 0.3 || l2 < 0.3) continue;
+      let dth = Math.atan2(cy - by, cx - bx) - Math.atan2(by - ay, bx - ax);
+      while (dth > Math.PI) dth -= 2 * Math.PI; while (dth < -Math.PI) dth += 2 * Math.PI;
+      if (Math.abs(dth) / (0.5 * (l1 + l2)) > K_MAX) { why = 'limit'; break; }
+    }
+    // столкновения: в момент t сравниваем с положением препятствий в тот же момент
+    if (!why) for (const [t, d, s] of dts) {
+      for (const o of obs) {
+        const so = obsAt(o, t);
+        if (Math.abs(so - s) < 4.5 + 0.5 && Math.abs(o.d - d) < 2.0 + 0.2) { why = 'collision'; break; }
+      }
+      if (why) break;
+    }
+    const off = Math.min(Math.abs(dT), Math.abs(dT - LANE));
+    const cost = st.kj * (jd + js) + st.kt * T + K_D * off * off + (dT > LANE / 2 ? K_LANE : 0) + K_V * (vdes - vT) ** 2;
+    cands.push({ dT, T, vT, cd, cs, pts, dts, cost, why });
+  }
+  best = null;
+  for (const c of cands) if (!c.why && (!best || c.cost < best.cost)) best = c;
+  if (!best) {
+    // аварийный режим: торможение в текущей полосе
+    let bc = null; for (const c of cands) if (c.vT === Math.min(...V_SET) && (!bc || Math.abs(c.dT - ego.d) < Math.abs(bc.dT - ego.d))) bc = c;
+    best = bc; best.emergency = true;
+  }
+}
+function advance() {
+  const D = ev(best.cd, DT), S = ev(best.cs, DT);
+  ego = { s: S[0], sd: S[1], sdd: S[2], d: D[0], dd: D[1], ddd: D[2] };
+  simT += DT;
+  trail.push(toXY(ego.s, ego.d)); if (trail.length > 400) trail.shift();
+  plan();
+}
+
+// ---------------------------------------------------------------- рисование
+function fit(cv) {
+  const r = cv.parentElement.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = Math.max(10, r.width * dpr); cv.height = Math.max(10, r.height * dpr);
+  cv.style.width = r.width + 'px'; cv.style.height = r.height + 'px';
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return [ctx, r.width, r.height];
+}
+let view = null;
+function drawRoad() {
+  const [ctx, W, H] = fit($('road'));
+  ctx.clearRect(0, 0, W, H);
+  const span = 75, sc = W / span;
+  const c = toXY(ego.s + 22, 1.75);
+  const px = x => W / 2 + (x - c[0]) * sc, py = y => H / 2 - (y - c[1]) * sc;
+  view = { W, H, sc, c };
+  // полотно дороги
+  const sA = ego.s - 40, sB = ego.s + 70;
+  const edge = d => { const a = []; for (let s = sA; s <= sB; s += 1) a.push(toXY(s, d)); return a; };
+  const L1 = edge(D_MIN), L2 = edge(D_MAX);
+  ctx.fillStyle = '#e2e8f0'; ctx.beginPath();
+  L1.forEach((p, i) => i ? ctx.lineTo(px(p[0]), py(p[1])) : ctx.moveTo(px(p[0]), py(p[1])));
+  for (let i = L2.length - 1; i >= 0; i--) ctx.lineTo(px(L2[i][0]), py(L2[i][1]));
+  ctx.closePath(); ctx.fill();
+  const stroke = (pts, col, w, dash) => { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.setLineDash(dash || []); ctx.beginPath(); pts.forEach((p, i) => i ? ctx.lineTo(px(p[0]), py(p[1])) : ctx.moveTo(px(p[0]), py(p[1]))); ctx.stroke(); ctx.setLineDash([]); };
+  stroke(L1, '#64748b', 2); stroke(L2, '#64748b', 2); stroke(edge(LANE / 2), '#ffffff', 2, [10, 10]);
+  stroke(edge(0), '#a78bfa', 1.2, [3, 4]);
+  // разметка s каждые 10 м
+  ctx.fillStyle = '#7c3aed'; ctx.font = '10px Inter, sans-serif'; ctx.textAlign = 'center';
+  for (let s = Math.ceil(sA / 10) * 10; s <= sB; s += 10) { const p = toXY(s, D_MIN - 1.2); ctx.fillText('s=' + s, px(p[0]), py(p[1]) + 3); }
+  // след
+  stroke(trail, '#0f172a', 1.5, [2, 3]);
+  // кандидаты
+  if ($('showAll').checked) for (const cd of cands) {
+    if (cd === best) continue;
+    const col = cd.why === 'collision' ? 'rgba(248,113,113,0.55)' : cd.why === 'limit' ? 'rgba(148,163,184,0.45)' : 'rgba(96,165,250,0.6)';
+    stroke(cd.pts, col, 1.2);
+  }
+  if (best) stroke(best.pts, best.emergency ? '#dc2626' : '#059669', 3.2);
+  // препятствия: положение сейчас и прогноз (полупрозрачно) через 2 с
+  const car = (s, d, fill, alpha) => {
+    const r = refAt(s), p = toXY(s, d);
+    ctx.save(); ctx.globalAlpha = alpha; ctx.translate(px(p[0]), py(p[1])); ctx.rotate(-r.th);
+    ctx.fillStyle = fill; ctx.fillRect(-2.25 * sc, -0.9 * sc, 4.5 * sc, 1.8 * sc);
+    ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.fillRect(0.9 * sc, -0.7 * sc, 0.8 * sc, 1.4 * sc);
+    ctx.restore();
+  };
+  for (const o of obs) {
+    if (o.v > 0) car(obsAt(o, 2), o.d, '#f59e0b', 0.25);
+    car(obsAt(o, 0), o.d, o.v > 0 ? '#d97706' : '#b91c1c', 1);
+  }
+  car(ego.s, ego.d, '#2563eb', 1);
+  $('tnow').textContent = `t = ${simT.toFixed(1)} с, скорость ${ego.sd.toFixed(1)} м/с`;
+}
+function drawD() {
+  const [ctx, W, H] = fit($('dplot'));
+  ctx.clearRect(0, 0, W, H);
+  const X0 = 34, Y0 = 6, Wb = W - 44, Hb = H - 30;
+  const px = t => X0 + t / HOR * Wb, py = d => Y0 + Hb - (d - (D_MIN - 0.5)) / (D_MAX + 0.5 - (D_MIN - 0.5)) * Hb;
+  ctx.fillStyle = '#f8fafc'; ctx.fillRect(X0, Y0, Wb, Hb);
+  // полосы
+  ctx.fillStyle = '#eef2ff'; ctx.fillRect(X0, py(LANE / 2), Wb, py(D_MIN) - py(LANE / 2));
+  ctx.fillStyle = '#f1f5f9'; ctx.fillRect(X0, py(D_MAX), Wb, py(LANE / 2) - py(D_MAX));
+  ctx.strokeStyle = '#cbd5e1'; ctx.strokeRect(X0, Y0, Wb, Hb);
+  ctx.fillStyle = '#64748b'; ctx.font = '10.5px Inter, sans-serif'; ctx.textAlign = 'right';
+  for (const d of [0, 1.75, 3.5]) { ctx.fillText(d.toFixed(2).replace(/\.?0+$/, ''), X0 - 4, py(d) + 3); }
+  ctx.textAlign = 'center'; for (let t = 0; t <= HOR; t++) ctx.fillText(t, px(t), Y0 + Hb + 12);
+  ctx.textAlign = 'left'; ctx.fillText('правая полоса', X0 + 4, py(-0.6)); ctx.fillText('левая полоса', X0 + 4, py(D_MAX - 0.4));
+  ctx.textAlign = 'right'; ctx.font = 'italic 11px Inter, sans-serif'; ctx.fillText('t, с', X0 + Wb, Y0 + Hb + 24);
+  const line = (cd, col, w) => { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); cd.dts.forEach(([t, d], i) => i ? ctx.lineTo(px(t), py(d)) : ctx.moveTo(px(t), py(d))); ctx.stroke(); };
+  // только кандидаты с v_T = v_des, чтобы веер читался
+  for (const cd of cands) if (cd !== best && cd.vT === st.vdes) line(cd, cd.why === 'collision' ? 'rgba(248,113,113,0.6)' : cd.why === 'limit' ? 'rgba(148,163,184,0.5)' : 'rgba(96,165,250,0.7)', 1.2);
+  if (best) line(best, best.emergency ? '#dc2626' : '#059669', 3);
+  ctx.fillStyle = '#475569'; ctx.font = '10.5px Inter, sans-serif'; ctx.textAlign = 'left';
+  ctx.fillText('показаны кандидаты с v_T = v_des', X0 + 4, Y0 + 12);
+}
+function renderStats() {
+  const n = cands.length, nc = cands.filter(c => c.why === 'collision').length, nl = cands.filter(c => c.why === 'limit').length;
+  const rows = [
+    ['кандидатов: 7 смещений × 4 времени × 3 скорости', n],
+    ['отброшено: столкновение / предел', `${nc} / ${nl}`],
+    ['выбрано: d_T, T, v_T', best ? `${best.dT.toFixed(2)} м, ${best.T} с, ${best.vT.toFixed(1)} м/с` : '—'],
+    ['стоимость выбранного J', best ? (best.emergency ? 'нет допустимых: торможение' : best.cost.toFixed(1)) : '—'],
+  ];
+  $('stats').innerHTML = rows.map(([a, b]) => `<tr><td>${a}</td><td>${b}</td></tr>`).join('');
+}
+function draw() { drawRoad(); drawD(); renderStats(); }
+
+// ---------------------------------------------------------------- управление
+function setSliders() {
+  $('vdes').value = st.vdes; $('kj').value = st.kj; $('kt').value = st.kt;
+  $('vdesv').textContent = st.vdes.toFixed(1) + ' м/с'; $('kjv').textContent = (+st.kj).toFixed(2); $('ktv').textContent = (+st.kt).toFixed(1);
+}
+function loadScenario(i) {
+  const s = SCENARIOS[i];
+  st = { sc: i, vdes: s.vdes, kj: s.kj, kt: s.kt };
+  ego = { s: s.ego.s, sd: s.ego.v, sdd: 0, d: 0, dd: 0, ddd: 0 };
+  obs = s.obs.map(o => ({ ...o }));
+  simT = 0; trail = [toXY(ego.s, ego.d)];
+  $('note').innerHTML = s.note;
+  setSliders(); playing = false; $('play').textContent = 'Пуск';
+  plan(); draw();
+}
+for (const id of ['vdes', 'kj', 'kt']) $(id).addEventListener('input', () => { st[id] = +$(id).value; setSliders(); plan(); draw(); });
+$('showAll').addEventListener('change', draw);
+sel.addEventListener('change', () => loadScenario(+sel.value));
+$('reset').addEventListener('click', () => loadScenario(st.sc));
+$('step').addEventListener('click', () => { playing = false; $('play').textContent = 'Пуск'; advance(); draw(); });
+$('play').addEventListener('click', () => {
+  if (playing) { playing = false; $('play').textContent = 'Пуск'; return; }
+  playing = true; $('play').textContent = 'Пауза'; lastTs = null; requestAnimationFrame(tick);
+});
+let acc = 0;
+function tick(ts) {
+  if (!playing) return;
+  if (lastTs !== null) acc += (ts - lastTs) / 1000;
+  lastTs = ts;
+  let k = 0;
+  while (acc >= DT && k < 3) { advance(); acc -= DT; k++; }
+  if (ego.s > 240) { playing = false; $('play').textContent = 'Пуск'; }
+  draw();
+  if (playing) requestAnimationFrame(tick);
+}
+$('road').addEventListener('click', e => {
+  if (!view) return;
+  const r = $('road').getBoundingClientRect();
+  const x = view.c[0] + (e.clientX - r.left - view.W / 2) / view.sc, y = view.c[1] - (e.clientY - r.top - view.H / 2) / view.sc;
+  const [s, d] = nearestS(x, y);
+  if (d < D_MIN || d > D_MAX) return;
+  obs.push({ s: s - simT * 0, d: d < LANE / 2 ? 0 : LANE, v: 0 });
+  plan(); draw();
+});
+window.addEventListener('resize', draw);
+if (window.ResizeObserver) new ResizeObserver(() => draw()).observe(document.body);
+
+buildRef();
+const params = new URLSearchParams(location.search);
+const sc = Math.max(0, Math.min(SCENARIOS.length - 1, (+params.get('scenario') || 1) - 1));
+sel.value = sc; loadScenario(sc);
+</script>
+</body>
+</html>

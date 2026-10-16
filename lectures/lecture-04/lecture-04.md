@@ -26,6 +26,8 @@ math: katex
 
 ---
 
+<!-- _class: fs-1 -->
+
 <!-- _header: "Лекция 04 | Введение и мотивация" -->
 
 ## Чему посвящена эта лекция? <span class="badge badge-blue">От геометрии к физике</span>
@@ -58,6 +60,8 @@ math: katex
 
 ---
 
+<!-- _class: fs-1 -->
+
 ## План лекции на 90 минут <span class="badge badge-time">⏱️ 90 минут</span>
 
 <div class="grid-2 mt-4">
@@ -89,6 +93,8 @@ math: katex
 </div>
 
 ---
+
+<!-- _class: fs-1 -->
 
 <!-- _header: "Лекция 04 | Часть 1: Кинодинамика" -->
 
@@ -148,6 +154,8 @@ $$a_n = \lim_{\Delta t \to 0} \frac{v \cdot \Delta \theta}{\Delta t} = \infty$$
 </div>
 
 ---
+
+<!-- _class: fs-1 -->
 
 <!-- _header: "Лекция 04 | Иерархия физических моделей" -->
 
@@ -241,6 +249,8 @@ $$M(q)\ddot{q} + C(q, \dot{q})\dot{q} = B(q)\tau + F_{\text{fric}}$$
 </div>
 
 ---
+
+<!-- _class: fs-3 -->
 
 <!-- _header: "Лекция 04 | Поиск на графе с кинематикой" -->
 
@@ -378,6 +388,8 @@ $$h(q) = \max \left( h_{\text{non-holonomic}}(q), h_{\text{holonomic}}(q) \right
 
 ---
 
+<!-- _class: fs-3 -->
+
 <!-- _header: "Лекция 04 | Выборка в пространстве состояний" -->
 
 ## 4. Kinodynamic RRT: Выборка в пространстве управлений <span class="badge badge-time">30–35 мин</span>
@@ -433,6 +445,8 @@ $$x_i(t + \Delta t) = x_{near} + \int_0^{\Delta t} f(x(\tau), u_i) d\tau$$
 </div>
 
 ---
+
+<!-- _class: compact fs-1 -->
 
 <!-- _header: "Лекция 04 | Метрика и свойства Kinodynamic RRT" -->
 
@@ -511,6 +525,8 @@ $$\sqrt{\Delta x^2 + \Delta y^2 + \Delta \theta^2 + \Delta v^2} \quad \text{— 
 
 ---
 
+<!-- _class: fs-1 -->
+
 <!-- _header: "Лекция 04 | Проблема краевой задачи" -->
 
 ## 5. Почему глобальная кинодинамика уступает место предиктивному управлению? <span class="badge badge-time">46–50 мин</span>
@@ -555,6 +571,8 @@ $$\min_{u(t)} \int_0^T L(x, u) dt \quad \text{при} \quad \dot{x} = f(x, u), \
 
 ---
 
+<!-- _class: fs-1 -->
+
 <!-- _header: "Лекция 04 | Часть 2: Локальное предиктивное планирование" -->
 
 ## 6. Принципы предиктивного управления (Model Predictive Control, MPC) <span class="badge badge-time">50–55 мин</span>
@@ -596,6 +614,8 @@ $$U = (u_0, u_1, \dots, u_{H-1})$$
 </div>
 
 ---
+
+<!-- _class: fs-4 -->
 
 <!-- _header: "Лекция 04 | Метод динамического окна" -->
 
@@ -643,6 +663,8 @@ $$V_r = V_s \cap V_d \cap V_a$$
 </div>
 
 ---
+
+<!-- _class: fs-4 -->
 
 <!-- _header: "Лекция 04 | Целевая функция DWA" -->
 
@@ -814,6 +836,8 @@ $$w_k = \frac{\exp\left(-\frac{1}{\lambda} (S(V^k) - S_{\min})\right)}{\sum_{j=1
 -->
 
 ---
+
+<!-- _class: fs-3 -->
 
 <!-- _header: "Лекция 04 | Сравнительный анализ" -->
 
