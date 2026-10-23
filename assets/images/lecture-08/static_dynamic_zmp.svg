@@ -46,5 +46,5 @@
 <text x="900.0" y="64.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">точка, где равнодействующая</text>
 <text x="900.0" y="82.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">реакции опоры не создаёт</text>
 <text x="900.0" y="100.0" font-size="13" fill="#475569" text-anchor="middle" font-weight="400">опрокидывающего момента</text>
-<text x="900.0" y="318.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="700">условие: ZMP строго внутри стопы</text>
+<text x="900.0" y="318.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="700">условие: ZMP внутри опорного многоугольника</text>
 </svg>

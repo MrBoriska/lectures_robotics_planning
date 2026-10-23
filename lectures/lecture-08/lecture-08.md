@@ -29,6 +29,12 @@ math: katex
 
 ## Место лекции в курсе <span class="badge badge-time">01–03 мин</span>
 
+<div class="lead-in">
+
+Лекции 02–07 учили планировать и управлять колёсным роботом. Что меняется, когда у робота две ноги?
+
+</div>
+
 <div class="grid-2">
 <div class="col">
 <div class="card card-accent">
@@ -68,14 +74,20 @@ math: katex
 
 ## План лекции <span class="badge badge-time">03–04 мин</span>
 
+<div class="lead-in">
+
+Пять частей идут по истории: от механики равновесия через модельное управление к обучению, затем — кто что делает сейчас и что не решено.
+
+</div>
+
 <div class="grid-2">
 <div class="col">
 <div class="card card-accent">
 
 ### Пять частей
-1. **Как научили ходить** (04–27 мин): устойчивость, ZMP, модель перевёрнутого маятника, точка захвата.
-2. **Путь Boston Dynamics и модельное управление** (27–40 мин): прыгающие роботы, DARPA, полнотельное управление.
-3. **Обучение** (40–60 мин): RL по движениям человека, Helix, VLA, модели мира.
+1. **Как научили ходить** (04–30 мин): устойчивость, ZMP, модель перевёрнутого маятника, точка захвата, задача у доски.
+2. **Путь Boston Dynamics и модельное управление** (30–41 мин): прыгающие роботы, DARPA, полнотельное управление.
+3. **Обучение** (41–60 мин): RL по движениям человека, Helix, VLA, модели мира.
 4. **Компании и Россия** (60–80 мин): кто что делает, честная оценка.
 5. **Открытые проблемы и итоги** (80–90 мин).
 
@@ -93,9 +105,15 @@ math: katex
 
 ---
 
-<!-- _class: fs-4 -->
+<!-- _class: fs-3 -->
 
 ## Зачем роботу человеческое тело <span class="badge badge-time">04–06 мин</span>
+
+<div class="lead-in">
+
+Прежде чем учить гуманоид ходить, стоит спросить, зачем ему ноги, если колёса проще и надёжнее.
+
+</div>
 
 <div class="grid-3 tight">
 <div class="card card-success">
@@ -127,6 +145,12 @@ math: katex
 
 ## Пять десятилетий гуманоидов <span class="badge badge-time">06–08 мин</span>
 
+<div class="lead-in">
+
+Три эпохи: от медленной статической ходьбы через модели и оптимизацию к обучению. Лекция идёт в том же порядке.
+
+</div>
+
 <div class="diagram-box">
 
 <img src="../../assets/images/lecture-08/humanoid_timeline.svg" alt="Хронология антропоморфных роботов" />
@@ -154,6 +178,12 @@ math: katex
 ---
 
 ## Часть 1. Статическая и динамическая устойчивость <span class="badge badge-time">08–12 мин</span>
+
+<div class="lead-in">
+
+**Вопрос части 1.** Когда шагающий робот не падает? Ответ даёт точка на полу, через которую проходит равнодействующая сил опоры.
+
+</div>
 
 <div class="diagram-box">
 
@@ -183,6 +213,12 @@ math: katex
 
 ## Модель перевёрнутого маятника (LIPM) <span class="badge badge-time">12–16 мин</span>
 
+<div class="lead-in">
+
+Условие ZMP говорит, можно ли так двигаться. Чтобы планировать движение, нужна модель, связывающая ЦМ и ZMP, — самая простая из возможных.
+
+</div>
+
 <div class="diagram-box">
 
 <img src="../../assets/images/lecture-08/lipm_model.svg" alt="Линейный перевёрнутый маятник" />
@@ -211,6 +247,12 @@ math: katex
 
 ## Ходьба как цепочка маятников <span class="badge badge-time">16–19 мин</span>
 
+<div class="lead-in">
+
+Один маятник описывает одну опору. Ходьба — смена опор: на каждом шаге ZMP переходит в новую стопу.
+
+</div>
+
 <div class="diagram-box">
 
 <img src="../../assets/images/lecture-08/lipm_walking.svg" alt="Ходьба LIPM: ZMP ступеньками, ЦМ плавно" />
@@ -232,7 +274,47 @@ math: katex
 
 ---
 
-## Точка захвата: куда шагнуть, чтобы остановиться <span class="badge badge-time">19–22 мин</span>
+## Задача у доски: где окажется ZMP? <span class="badge badge-time">19–22 мин</span>
+
+<div class="lead-in">
+
+Формула LIPM работает и в обратную сторону: по задуманному движению ЦМ сразу видно, выйдет ли ZMP из стопы.
+
+</div>
+
+<div class="diagram-box">
+
+<img src="../../assets/images/lecture-08/zmp_exercise.svg" alt="ZMP при сдвиге центра масс за разное время" />
+
+</div>
+
+<div class="grid-3 tight">
+<div class="card card-accent">
+
+**Условие.** Робот стоит на одной ноге, $z_0 = 0.9$ м. ЦМ нужно сдвинуть на 0.1 м вперёд за время $T$ плавно (полином 5-й степени, как перестроение в лекции 07). Стопа — от $-0.08$ (пятка) до $+0.16$ м (носок). При каком $T$ ступня не опрокинется?
+
+</div>
+<div class="card card-term">
+
+**Решение.** Из LIPM $p = x - \ddot x/\omega^2$, $\omega^2 = g/z_0 = 10.9$ 1/с². Пик ускорения полинома 5-й степени $|\ddot x| = 5.77\,D/T^2$. При $T = 0.6$ с ZMP уходит до $+0.24$ м — за носок. При $T = 1$ с $p \in [-0.05;\ 0.15]$ — в стопе.
+
+</div>
+<div class="card card-success">
+
+**Ответ:** $T \ge 0.9$ с; ограничивает носок, потому что в конце ЦМ тормозит и ZMP уходит вперёд. **Вывод:** быстро переносить вес на одной ноге нельзя — отсюда длинные двухопорные фазы у классических гуманоидов.
+
+</div>
+</div>
+
+---
+
+## Точка захвата: куда шагнуть, чтобы остановиться <span class="badge badge-time">22–25 мин</span>
+
+<div class="lead-in">
+
+Робота толкнули. Голеностоп двигает ZMP только внутри стопы. Когда этого хватает и куда шагнуть, если нет?
+
+</div>
 
 <div class="diagram-box">
 
@@ -255,7 +337,7 @@ math: katex
 
 ---
 
-## Интерактивная модель: толчок и шаг в точку захвата <span class="badge badge-time">22–25 мин</span>
+## Интерактивная модель: толчок и шаг в точку захвата <span class="badge badge-time">25–28 мин</span>
 
 <div class="interactive-container">
 <div class="interactive-header">
@@ -267,9 +349,15 @@ math: katex
 
 ---
 
-<!-- _class: fs-2 -->
+<!-- _class: fs-1 -->
 
-## Почему классические гуманоиды ходили «на полусогнутых» <span class="badge badge-time">25–27 мин</span>
+## Почему классические гуманоиды ходили «на полусогнутых» <span class="badge badge-time">28–30 мин</span>
+
+<div class="lead-in">
+
+LIPM дала работающую ходьбу, но упрощения модели видны в самой походке робота.
+
+</div>
 
 <div class="grid-3 tight">
 <div class="card card-alert">
@@ -299,7 +387,13 @@ math: katex
 
 ---
 
-## Часть 2. Raibert: прыжок вместо медленного шага <span class="badge badge-time">27–30 мин</span>
+## Часть 2. Raibert: прыжок вместо медленного шага <span class="badge badge-time">30–32 мин</span>
+
+<div class="lead-in">
+
+**Вопрос части 2.** Можно ли не держать ZMP в стопе каждый миг, а ловить себя ногой, как при беге? С этого начался Boston Dynamics.
+
+</div>
 
 <div class="diagram-box">
 
@@ -322,7 +416,13 @@ math: katex
 
 ---
 
-## Путь Boston Dynamics <span class="badge badge-time">30–32 мин</span>
+## Путь Boston Dynamics <span class="badge badge-time">32–34 мин</span>
+
+<div class="lead-in">
+
+От прыгающих роботов Рейберта — к самым сложным движениям, построенным на моделях и оптимизации.
+
+</div>
 
 <div class="diagram-box">
 
@@ -345,9 +445,15 @@ math: katex
 
 ---
 
-<!-- _class: fs-4 -->
+<!-- _class: fs-3 -->
 
-## Урок DARPA Robotics Challenge 2015 <span class="badge badge-time">32–34 мин</span>
+## Урок DARPA Robotics Challenge 2015 <span class="badge badge-time">34–36 мин</span>
+
+<div class="lead-in">
+
+Эффектные движения в лаборатории — ещё не работа в реальной обстановке. Соревнование DARPA проверило это на практике.
+
+</div>
 
 <div class="grid-2">
 <div class="col">
@@ -383,7 +489,13 @@ math: katex
 
 ---
 
-## Классическая модельная схема управления <span class="badge badge-time">34–37 мин</span>
+## Классическая модельная схема управления <span class="badge badge-time">36–38 мин</span>
+
+<div class="lead-in">
+
+Как устроено модельное управление гуманоидом целиком: от плана шагов до моментов в суставах.
+
+</div>
 
 <div class="diagram-box">
 
@@ -399,7 +511,13 @@ math: katex
 
 ---
 
-## Полнотельное управление (WBC) <span class="badge badge-time">37–40 мин</span>
+## Полнотельное управление (WBC) <span class="badge badge-time">38–41 мин</span>
+
+<div class="lead-in">
+
+Нижний уровень схемы: как одновременно устоять, переставить ногу и дотянуться рукой, если суставов десятки.
+
+</div>
 
 <div class="diagram-box">
 
@@ -420,7 +538,7 @@ math: katex
 </div>
 <div class="card card-term">
 
-**Термин: квадратичное программирование (QP).** Минимум квадратичной функции при линейных ограничениях. Решается за доли миллисекунды (лекция 05, SQP).
+**Как читать формулу на рисунке.** $\ddot q$ — ускорения суставов, $J_i$ — якобиан задачи $i$ (как ускорения суставов двигают стопу, руку, ЦМ), $w_i$ — вес = приоритет. $M\ddot q + h = S^\top\tau + J_c^\top F$ — уравнения динамики тела. Цель квадратичная, ограничения линейные: это **QP** (лекция 05), он решается за доли миллисекунды.
 
 </div>
 </div>
@@ -429,7 +547,13 @@ math: katex
 
 <!-- _class: fs-4 -->
 
-## Часть 3. Почему перешли к обучению <span class="badge badge-time">40–42 мин</span>
+## Часть 3. Почему перешли к обучению <span class="badge badge-time">41–43 мин</span>
+
+<div class="lead-in">
+
+**Вопрос части 3.** Модельное управление требует точной модели и ручной настройки каждого движения. Что изменилось, что обучение стало выгоднее?
+
+</div>
 
 <div class="grid-2">
 <div class="col">
@@ -459,7 +583,13 @@ math: katex
 
 ---
 
-## Обучение по движениям человека <span class="badge badge-time">42–45 мин</span>
+## Обучение по движениям человека <span class="badge badge-time">43–45 мин</span>
+
+<div class="lead-in">
+
+Награду для каждого движения подбирать долго. Проще дать роботу образец — движение человека — и учить его повторять.
+
+</div>
 
 <div class="diagram-box">
 
@@ -487,40 +617,47 @@ math: katex
 
 ---
 
-<!-- _class: fs-4 -->
-
 ## ZEST: один рецепт для разных роботов <span class="badge badge-time">45–47 мин</span>
 
-<div class="grid-2">
-<div class="col">
+<div class="lead-in">
+
+Пример 2026 г.: одна схема обучения по образцу переносит сложные движения на разных роботов. Два приёма обучения — на рисунке.
+
+</div>
+
+<div class="diagram-box">
+
+<img src="../../assets/images/lecture-08/zest_training.svg" alt="Адаптивная выборка и учебный план со вспомогательной силой" />
+
+</div>
+
+<div class="grid-3 tight">
 <div class="card card-accent">
 
-### Что предложили авторы (Sleiman и др., 2026)
-- Источник движения — мокап, **видео с одной камеры** или анимация; все три с ошибками и нарушениями физики.
-- Обучение только в симуляторе, затем **перенос без дообучения** на Atlas, Unitree G1 и четвероногий Spot.
-- Получены сложные движения всем телом, а не только ходьба.
-
-</div>
-</div>
-<div class="col">
-<div class="card card-term">
-
-### Термин: адаптивная выборка
-Фрагменты движения, на которых политика чаще ошибается, показываются в обучении чаще. Так трудный прыжок не теряется среди лёгкой ходьбы.
+**Что предложили авторы** (Sleiman и др., 2026). Источник движения — мокап, **видео с одной камеры** или анимация, все с ошибками физики. Обучение только в симуляторе, затем **перенос без дообучения** на Atlas, Unitree G1 и четвероногий Spot: ползание, брейк-данс, сальто.
 
 </div>
 <div class="card card-term">
 
-### Термин: учебный план (curriculum)
-Сначала задача облегчается: в симуляторе робота поддерживает **вспомогательная сила**. Затем её постепенно убирают.
+**Термин: адаптивная выборка.** Фрагменты движения, на которых политика чаще падает, показываются в обучении чаще (слева). Так трудный кувырок не теряется среди лёгкой ходьбы.
 
 </div>
+<div class="card card-term">
+
+**Термин: учебный план (curriculum).** Сначала в симуляторе робота поддерживает **вспомогательная сила**, рассчитанная по модели; по мере успехов её убирают (справа). Ограничение: пока ровный нескользкий пол.
+
 </div>
 </div>
 
 ---
 
 ## Большие модели: от языка к действию <span class="badge badge-time">47–50 мин</span>
+
+<div class="lead-in">
+
+Отслеживание движения учит тело двигаться. Понимать задачу «что сделать» робот учится у больших моделей, обученных на тексте и изображениях.
+
+</div>
 
 <div class="diagram-box">
 
@@ -550,6 +687,12 @@ math: katex
 
 ## Figure Helix: две системы и уровень тела <span class="badge badge-time">50–53 мин</span>
 
+<div class="lead-in">
+
+Как соединить медленную большую модель, понимающую команду, с быстрой политикой, управляющей руками.
+
+</div>
+
 <div class="diagram-box">
 
 <img src="../../assets/images/lecture-08/helix_architecture.svg" alt="Архитектура Figure Helix: S2, S1, S0" />
@@ -578,7 +721,13 @@ math: katex
 
 <!-- _class: fs-4 -->
 
-## Helix 02: обученный уровень всего тела <span class="badge badge-time">53–55 мин</span>
+## Helix 02: обученный уровень всего тела <span class="badge badge-time">53–55 мин</span> <span class="badge badge-amber">данные на октябрь 2026</span>
+
+<div class="lead-in">
+
+Следующий шаг той же компании: обученный уровень добавлен и под руками — для равновесия и ходьбы.
+
+</div>
 
 <div class="grid-2">
 <div class="col">
@@ -613,6 +762,12 @@ math: katex
 
 ## VLA и модель мира с действиями (WAM) <span class="badge badge-time">55–58 мин</span>
 
+<div class="lead-in">
+
+VLA сразу выдаёт действия. Другой путь — сначала предсказать, как изменится сцена, и действия к ней.
+
+</div>
+
 <div class="diagram-box">
 
 <img src="../../assets/images/lecture-08/vla_vs_wam.svg" alt="Сравнение VLA и WAM" />
@@ -636,6 +791,12 @@ math: katex
 
 ## Частоты уровней управления <span class="badge badge-time">58–60 мин</span>
 
+<div class="lead-in">
+
+Все современные схемы многоуровневые. Почему нельзя обойтись одной большой сетью?
+
+</div>
+
 <div class="diagram-box">
 
 <img src="../../assets/images/lecture-08/frequency_hierarchy.svg" alt="Частоты уровней управления гуманоида" />
@@ -657,48 +818,53 @@ math: katex
 
 ---
 
-## Часть 4. Компании: США <span class="badge badge-time">60–62 мин</span>
-
 <!-- _class: fs-1 -->
+
+## Часть 4. Компании: США, Китай и другие <span class="badge badge-time">60–63 мин</span> <span class="badge badge-amber">данные на октябрь 2026</span>
+
+<div class="lead-in">
+
+**Вопрос части 4.** Части 1–3 — как устроено управление. Кто сейчас делает гуманоиды и что из этого проверено?
+
+</div>
 
 <div class="grid-2">
 <div class="col">
 
 | Компания | Робот | Особенности |
 | :--- | :--- | :--- |
-| Boston Dynamics | Atlas (электро, 2024) | пилоты на заводах Hyundai; обучение по движениям людей |
-| Figure AI | Figure 02 / 03 | модель Helix; пилоты на заводах BMW |
-| Tesla | Optimus (с 2022) | ставка на серию и свои электроприводы |
-| Agility Robotics | Digit | ноги «как у птицы»; логистика складов |
-| Apptronik | Apollo | автозаводы (Mercedes-Benz) |
-| 1X (США, Норвегия)| NEO | мягкий корпус, домашний ассистент |
-| NVIDIA | GR00T, Isaac | базовые модели, симуляторы и GPU |
-
-<div class="card card-alert" style="margin-top: 6px;">
-
-Большая часть сведений — из заявлений компаний. Публично подтверждены пилотные проекты; сколько роботов работает постоянно, компании почти не раскрывают.
-
-</div>
+| Boston Dynamics (США) | Atlas, электро, 2024 | пилоты на заводах Hyundai; обучение по движениям людей |
+| Figure AI (США) | Figure 02 / 03 | модель Helix; пилоты на заводах BMW |
+| Tesla (США) | Optimus | ставка на серию и свои приводы |
+| Agility Robotics (США) | Digit | склады и логистика |
+| Apptronik (США) | Apollo | автозаводы Mercedes-Benz |
+| 1X (США, Норвегия) | NEO | домашний ассистент |
+| Unitree (Китай) | H1, G1, R1 | самые массовые в университетах |
+| UBTech, AgiBot, Fourier, XPeng (Китай) | Walker S и др. | заводы, госпрограммы |
 
 </div>
 <div class="col">
 
-<div class="grid-3" style="gap: 6px;">
+<div class="grid-2" style="gap: 6px;">
 <div class="card" style="padding: 4px; text-align: center;">
-<img src="../../assets/images/lecture-08/photo_bd_atlas.jpg" alt="Boston Dynamics Atlas" style="height: 175px; width: 100%; object-fit: cover; border-radius: 4px;" />
-<div style="font-size: 11px; font-weight: 600; margin-top: 2px; color: var(--text-main);">Atlas (Boston Dynamics)</div>
-<div style="font-size: 10px; color: var(--text-muted);">пилот на заводах Hyundai</div>
+<img src="../../assets/images/lecture-08/photo_bd_atlas.jpg" alt="Boston Dynamics Atlas" style="height: 170px; width: 100%; object-fit: cover; border-radius: 4px;" />
+<div style="font-size: 11px; font-weight: 600; margin-top: 2px; color: var(--text-main);">Atlas (Boston Dynamics, США)</div>
 </div>
 <div class="card" style="padding: 4px; text-align: center;">
-<img src="../../assets/images/lecture-08/photo_tesla_optimus.jpg" alt="Tesla Optimus" style="height: 175px; width: 100%; object-fit: cover; border-radius: 4px;" />
-<div style="font-size: 11px; font-weight: 600; margin-top: 2px; color: var(--text-main);">Optimus (Tesla)</div>
-<div style="font-size: 10px; color: var(--text-muted);">ставка на серию</div>
+<img src="../../assets/images/lecture-08/photo_unitree_g1.jpg" alt="Unitree G1" style="height: 170px; width: 100%; object-fit: cover; border-radius: 4px;" />
+<div style="font-size: 11px; font-weight: 600; margin-top: 2px; color: var(--text-main);">Unitree G1 (Китай)</div>
 </div>
-<div class="card" style="padding: 4px; text-align: center;">
-<img src="../../assets/images/lecture-08/photo_agility_cassie.jpg" alt="Agility Cassie" style="height: 175px; width: 100%; object-fit: cover; border-radius: 4px;" />
-<div style="font-size: 11px; font-weight: 600; margin-top: 2px; color: var(--text-main);">Cassie (Agility)</div>
-<div style="font-size: 10px; color: var(--text-muted);">предшественник Digit</div>
 </div>
+
+<div class="card card-success">
+
+**Китай:** своя цепочка поставок приводов, редукторов и аккумуляторов. Порог входа упал примерно в 15 раз за два года: Unitree H1 (2023, 1.8 м) ~90 тыс. долларов, G1 (2024, 1.3 м) ~16 тыс., R1 (2025, 1.2 м) ~6 тыс.
+
+</div>
+<div class="card card-alert">
+
+Сведения — в основном заявления компаний: подтверждены пилотные проекты, число постоянно работающих роботов почти не раскрывают. **Также:** Япония (Honda, Toyota, Kawasaki), Корея (Rainbow Robotics), Европа (PAL Robotics, Neura), NVIDIA (модели GR00T, симулятор Isaac).
+
 </div>
 
 </div>
@@ -706,7 +872,13 @@ math: katex
 
 ---
 
-## Гуманоиды в одном масштабе <span class="badge badge-time">62–64 мин</span>
+## Гуманоиды в одном масштабе <span class="badge badge-time">63–65 мин</span>
+
+<div class="lead-in">
+
+Роботы из таблицы рядом с человеком: рост и масса по данным производителей.
+
+</div>
 
 <div class="diagram-box">
 
@@ -734,59 +906,13 @@ math: katex
 
 ---
 
-<!-- _class: fs-2 -->
+## Россия: ФЁДОР — гуманоид в космосе <span class="badge badge-time">65–68 мин</span>
 
-## Компании: Китай и другие страны <span class="badge badge-time">64–66 мин</span>
+<div class="lead-in">
 
-<div class="grid-2">
-<div class="col">
-
-<div class="card card-accent">
-
-### Китай: массовость и полная цепочка
-- **Unitree:** H1 (2023), G1 (2024, от ~16 тыс. долларов), R1 (2025, от ~6 тыс.). Самые массовые исследовательские гуманоиды в университетах мира.
-- **UBTech** (Walker S), **AgiBot**, **Fourier**, **XPeng**, **Xiaomi** и десятки стартапов.
-- Государственная поддержка, собственная цепочка поставок бесколлекторных приводов, волновых редукторов и аккумуляторов.
+Российские проекты. Первый и самый известный — робот, слетавший на МКС.
 
 </div>
-
-<div class="card" style="margin-top: 6px;">
-
-### Другие страны
-- **Япония:** Honda (ASIMO, проект 2000–2018), Toyota, Kawasaki.
-- **Южная Корея:** Rainbow Robotics (наследник HUBO), Hyundai (владелец Boston Dynamics).
-- **Европа:** PAL Robotics (Испания), Neura (Германия), лаборатории (IIT, DLR, ETH).
-
-</div>
-
-</div>
-<div class="col">
-
-<div class="grid-2" style="gap: 8px;">
-<div class="card" style="padding: 6px; text-align: center;">
-<img src="../../assets/images/lecture-08/photo_unitree_g1.jpg" alt="Unitree G1" style="height: 230px; width: 100%; object-fit: cover; border-radius: 4px;" />
-<div style="font-size: 13px; font-weight: 600; margin-top: 4px; color: var(--text-main);">Unitree G1 (Китай)</div>
-<div style="font-size: 11px; color: var(--text-muted);">массовый, от ~16 тыс. долларов</div>
-</div>
-<div class="card" style="padding: 6px; text-align: center;">
-<img src="../../assets/images/lecture-08/photo_honda_p2.jpg" alt="Honda P2" style="height: 230px; width: 100%; object-fit: cover; border-radius: 4px;" />
-<div style="font-size: 13px; font-weight: 600; margin-top: 4px; color: var(--text-main);">P2 (Honda, Япония, 1996)</div>
-<div style="font-size: 11px; color: var(--text-muted);">первый гуманоид Honda с аккумулятором и компьютером на борту</div>
-</div>
-</div>
-
-<div class="card card-success" style="margin-top: 6px; font-size: 13px; padding: 6px 10px;">
-
-**Тенденция:** порог входа упал примерно в 15 раз за два года: ~90 тыс. долларов за H1 (2023, рост 1.8 м), ~16 тыс. за G1 (2024, 1.3 м), ~6 тыс. за R1 (2025, 1.2 м). Роботы разного класса, но ходьбу на настоящем гуманоиде теперь может обучать любая лаборатория.
-
-</div>
-
-</div>
-</div>
-
----
-
-## Россия: ФЁДОР — гуманоид в космосе <span class="badge badge-time">66–69 мин</span>
 
 <div class="diagram-box">
 
@@ -813,7 +939,13 @@ math: katex
 
 ---
 
-## Российские проекты на одной шкале <span class="badge badge-time">69–71 мин</span>
+## Российские проекты на одной шкале <span class="badge badge-time">68–70 мин</span>
+
+<div class="lead-in">
+
+ФЁДОР — не единственный проект. Все российские шагающие и антропоморфные роботы на одной оси времени.
+
+</div>
 
 <div class="diagram-box">
 
@@ -831,7 +963,13 @@ math: katex
 
 <!-- _class: fs-2 -->
 
-## Россия: Промобот, Сбер, AIDOL <span class="badge badge-time">71–74 мин</span>
+## Россия: Промобот, Сбер, AIDOL <span class="badge badge-time">70–73 мин</span> <span class="badge badge-amber">данные на октябрь 2026</span>
+
+<div class="lead-in">
+
+Три самых заметных проекта последних лет — по данным самих компаний.
+
+</div>
 
 <div class="grid-3 tight">
 <div class="card card-accent">
@@ -876,7 +1014,13 @@ math: katex
 
 <!-- _class: fs-4 -->
 
-## Разбор случая: падение на презентации <span class="badge badge-time">74–77 мин</span>
+## Разбор случая: падение на презентации <span class="badge badge-time">73–76 мин</span>
+
+<div class="lead-in">
+
+Падение AIDOL на показе — повод применить к реальному случаю схемы управления из частей 1–3.
+
+</div>
 
 <div class="grid-2">
 <div class="col">
@@ -913,7 +1057,13 @@ math: katex
 
 <!-- _class: fs-4 -->
 
-## Честная оценка: где Россия сейчас <span class="badge badge-time">77–80 мин</span>
+## Честная оценка: где Россия сейчас <span class="badge badge-time">76–80 мин</span> <span class="badge badge-amber">данные на октябрь 2026</span>
+
+<div class="lead-in">
+
+Итог части 4 для России: что есть и чего не хватает, по открытым данным.
+
+</div>
 
 <div class="grid-2">
 <div class="col">
@@ -944,6 +1094,12 @@ math: katex
 <!-- _class: fs-3 -->
 
 ## Часть 5. Как отличить автономию от телеуправления <span class="badge badge-time">80–82 мин</span>
+
+<div class="lead-in">
+
+**Вопрос части 5.** Почти все сведения о гуманоидах — видео компаний. Как понять, что робот делал сам?
+
+</div>
 
 <div class="grid-3 tight">
 <div class="card card-alert">
@@ -981,9 +1137,15 @@ math: katex
 
 ---
 
-<!-- _class: fs-4 -->
+<!-- _class: fs-3 -->
 
 ## Открытые проблемы <span class="badge badge-time">82–85 мин</span>
+
+<div class="lead-in">
+
+Что остаётся нерешённым, даже если верить всем демонстрациям.
+
+</div>
 
 <div class="grid-3 tight">
 <div class="card card-alert">
@@ -1029,6 +1191,12 @@ math: katex
 <!-- _class: fs-1 -->
 
 ## Гуманоид как сумма курса <span class="badge badge-time">85–87 мин</span>
+
+<div class="lead-in">
+
+Гуманоид использует почти всё, что было в курсе. Какая лекция стоит за каким уровнем?
+
+</div>
 
 <div class="diagram-box">
 

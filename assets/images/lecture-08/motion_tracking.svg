@@ -34,6 +34,6 @@
 <text x="964.0" y="151.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">Atlas, Unitree G1,</text>
 <text x="964.0" y="172.0" font-size="13" fill="#0f172a" text-anchor="middle" font-weight="400">четвероногий Spot</text>
 <rect x="30.0" y="268.0" width="1044.0" height="74.0" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.4" stroke-dasharray="6 4"/>
-<text x="46.0" y="294.0" font-size="14" fill="#0f172a" text-anchor="start" font-weight="400">Та же идея в Figure Helix 02 (2026): уровень S0 обучен по 1000+ часам движений людей, 200 000 сред</text>
-<text x="46.0" y="316.0" font-size="14" fill="#0f172a" text-anchor="start" font-weight="400">в симуляции, работает на 1 кГц и, по заявлению компании, заменил 109 504 строки ручного кода на C++.</text>
+<text x="46.0" y="294.0" font-size="14" fill="#0f172a" text-anchor="start" font-weight="400">Та же идея в Figure Helix 02 (2026): уровень S0 обучен по 1000+ часам движений людей и RL в симуляторе,</text>
+<text x="46.0" y="316.0" font-size="14" fill="#0f172a" text-anchor="start" font-weight="400">работает на 1 кГц и, по заявлению компании, заменил 109 504 строки ручного кода на C++.</text>
 </svg>
