@@ -539,70 +539,8 @@ def l08_llm_vlm_vla():
 
 
 # ---------------------------------------------------------------------------
-# Лекция 08: задача у доски и обучение ZEST
+# Лекция 08: обучение ZEST
 # ---------------------------------------------------------------------------
-
-Z0_EX, SHIFT, HEEL, TOE = 0.9, 0.1, -0.08, 0.16
-
-
-def zmp_range(T):
-    """ZMP p = x − ẍ/ω² при сдвиге ЦМ на SHIFT полиномом 5-й степени за T."""
-    w2 = 9.81 / Z0_EX
-    c = quintic(0, 0, 0, SHIFT, 0, 0, T)
-    ps = [pev(c, T * k / 400)[0] - pev(c, T * k / 400)[2] / w2 for k in range(401)]
-    return min(ps), max(ps)
-
-
-def zmp_min_time():
-    lo, hi = 0.3, 2.0
-    for _ in range(50):
-        mid = (lo + hi) / 2
-        a, b = zmp_range(mid)
-        if a >= HEEL and b <= TOE:
-            hi = mid
-        else:
-            lo = mid
-    return hi
-
-
-def l08_zmp_exercise():
-    w2 = 9.81 / Z0_EX
-    Tmin = zmp_min_time()
-    W, H = 1100, 355
-    out = svg_open(W, H)
-    out.append(text(550, 24, f'ЦМ сдвигается на {SHIFT:g} м за время T (полином 5-й степени), z₀ = {Z0_EX:g} м; ZMP: p = x − ẍ/ω²', 16, INK, 'middle', 700))
-    a = Axes(80, 56, 560, 230, (0, 1.05), (-0.25, 0.33))
-    out += a.frame(xticks=(0, 0.25, 0.5, 0.75, 1.0), yticks=(-0.2, -0.08, 0, 0.1, 0.16, 0.3), xlabel='доля времени t/T', ylabel='положение вдоль стопы, м', fmt='{:g}')
-    out.append(rect(a.x0, a.py(TOE), a.w, a.py(HEEL) - a.py(TOE), '#ecfdf5', 'none', 0, 0))
-    out.append(text(a.x0 + a.w - 6, a.py(HEEL) + 18, 'зелёная полоса — стопа: от пятки −0.08 до носка +0.16 м', 13, GREEN, 'end', 700))
-    out.append(a.clip_id('zex'))
-    out.append('<g clip-path="url(#zex)">')
-    cols = [RED, AMBER, BLUE]
-    res = []
-    for T, col in zip((0.6, 0.8, 1.0), cols):
-        c = quintic(0, 0, 0, SHIFT, 0, 0, T)
-        ts = [T * k / 200 for k in range(201)]
-        out.append(polyline([a.p(t / T, pev(c, t)[0] - pev(c, t)[2] / w2) for t in ts], col, 2.6))
-        res.append((T, *zmp_range(T)))
-    c = quintic(0, 0, 0, SHIFT, 0, 0, 1.0)
-    out.append(polyline([a.p(t / 200, pev(c, t / 200)[0]) for t in range(201)], INK, 2.2, '7 5'))
-    out.append('</g>')
-    out += legend(80, 346, [('ЦМ x(t)', INK, '7 5')], 13)
-    for k, ((T, lo, hi), col) in enumerate(zip(res, cols)):
-        ok = lo >= HEEL and hi <= TOE
-        out += legend(220 + k * 150, 346, [(f'p(t), T = {T:g} с', col, None)], 13)
-    x0 = 690
-    out += wrap_lines(x0, 70, ['Пределы ZMP:'], 15, INK, weight=700)
-    for k, ((T, lo, hi), col) in enumerate(zip(res, cols)):
-        ok = lo >= HEEL and hi <= TOE
-        out.append(text(x0, 98 + k * 24, f'T = {T:g} с: от {lo:+.3f} до {hi:+.3f} м — {"в стопе" if ok else "выходит из стопы"}', 14, col, 'start', 700))
-    out += wrap_lines(x0, 190, ['В начале ЦМ разгоняется вперёд — ZMP уходит',
-                                'назад, к пятке; в конце тормозит — ZMP уходит',
-                                'вперёд, за конечное положение ЦМ.',
-                                f'Минимальное время: T ≈ {Tmin:.2f} с (ограничивает носок).'], 14, INK, dy=21)
-    write(os.path.join(OUT08, 'zmp_exercise.svg'), out)
-    return Tmin, res
-
 
 def l08_zest_training():
     """Схема двух приёмов ZEST; числа условные, как в задаче, а не из статьи."""
@@ -648,7 +586,6 @@ def main():
     print('   генератор 1D, объездов слева:', l07_noise_to_modes())
     print('   наведение (λ, задели новое, задели старое, max|y|):', l07_guidance())
     l08_llm_vlm_vla()
-    print('   задача ZMP (T_min, пределы):', l08_zmp_exercise())
     l08_zest_training()
 
 
