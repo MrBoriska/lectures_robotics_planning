@@ -1238,7 +1238,7 @@ def l08_static_vs_dynamic():
     o.append(text(cx + 25, gy - 18, 'ZMP', 13, RED, 'middle', 700))
     o.append(text(cx, 40, 'Точка нулевого момента', 16, INK, 'middle', 700))
     o += wrap_lines(cx, 64, ['точка, где равнодействующая', 'реакции опоры не создаёт', 'опрокидывающего момента'], 13, MUTED, 'middle', 18)
-    o.append(text(cx, 318, 'условие: ZMP строго внутри стопы', 13, INK, 'middle', 700))
+    o.append(text(cx, 318, 'условие: ZMP внутри опорного многоугольника', 13, INK, 'middle', 700))
     out += o
     write(os.path.join(OUT08, 'static_dynamic_zmp.svg'), out)
 
@@ -1422,8 +1422,8 @@ def l08_motion_tracking():
     out.append(arrow(810, 150, 850, 150))
     out += box(854, 80, 220, 140, 'Робот', ['перенос без дообучения:', 'Atlas, Unitree G1,', 'четвероногий Spot'], INK, PANEL, 15, 13)
     out.append(rect(30, 268, 1044, 74, '#fffbeb', AMBER, 8, 1.4, '6 4'))
-    out += wrap_lines(46, 294, ['Та же идея в Figure Helix 02 (2026): уровень S0 обучен по 1000+ часам движений людей, 200 000 сред',
-                                'в симуляции, работает на 1 кГц и, по заявлению компании, заменил 109 504 строки ручного кода на C++.'], 14, INK, dy=22)
+    out += wrap_lines(46, 294, ['Та же идея в Figure Helix 02 (2026): уровень S0 обучен по 1000+ часам движений людей и RL в симуляторе,',
+                                'работает на 1 кГц и, по заявлению компании, заменил 109 504 строки ручного кода на C++.'], 14, INK, dy=22)
     write(os.path.join(OUT08, 'motion_tracking.svg'), out)
 
 

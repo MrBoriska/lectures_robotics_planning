@@ -538,6 +538,42 @@ def l08_llm_vlm_vla():
     write(os.path.join(OUT08, 'llm_vlm_vla.svg'), out)
 
 
+# ---------------------------------------------------------------------------
+# Лекция 08: обучение ZEST
+# ---------------------------------------------------------------------------
+
+def l08_zest_training():
+    """Схема двух приёмов ZEST; числа условные, как в задаче, а не из статьи."""
+    W, H = 1100, 350
+    out = svg_open(W, H)
+    out.append(text(275, 24, 'Адаптивная выборка: чаще там, где ошибается', 16, INK, 'middle', 700))
+    out.append(text(830, 24, 'Учебный план: вспомогательная сила убывает', 16, INK, 'middle', 700))
+    segs = ['ходьба', 'поворот', 'присед', 'ползком', 'кувырок']
+    err = [0.02, 0.04, 0.10, 0.25, 0.40]
+    tot = sum(err)
+    a = Axes(70, 56, 440, 200, (0, len(segs)), (0, 0.6))
+    out += a.frame(yticks=(0, 0.2, 0.4, 0.6), ylabel='доля', fmt='{:g}')
+    for i, (sname, e) in enumerate(zip(segs, err)):
+        x = a.px(i + 0.18)
+        wbar = (a.px(1) - a.px(0)) * 0.3
+        out.append(rect(x, a.py(1 / len(segs)), wbar, a.py(0) - a.py(1 / len(segs)), '#cbd5e1', 'none', 2, 0))
+        out.append(rect(x + wbar + 2, a.py(e / tot), wbar, a.py(0) - a.py(e / tot), PURPLE, 'none', 2, 0))
+        out.append(text(a.px(i + 0.5), a.py(0) + 18, sname, 13, INK, 'middle'))
+    out += legend(80, 312, [('поровну (без адаптации)', '#cbd5e1', None)], 13)
+    out += legend(300, 312, [('∝ доле падений на фрагменте', PURPLE, None)], 13)
+    b = Axes(630, 56, 420, 200, (0, 1), (0, 1.05))
+    out += b.frame(xticks=(0, 0.5, 1), yticks=(0, 0.5, 1), xlabel='ход обучения', ylabel='сила / успех', fmt='{:g}')
+    xs = linspace(0, 1, 100)
+    succ = [1 / (1 + math.exp(-12 * (x - 0.45))) for x in xs]
+    out.append(polyline([b.p(x, 1 - sv) for x, sv in zip(xs, succ)], AMBER, 2.8))
+    out.append(polyline([b.p(x, sv) for x, sv in zip(xs, succ)], GREEN, 2.6, '7 4'))
+    out.append(text(b.px(0.08), b.py(0.93), 'поддержка корпуса', 13, AMBER, 'start', 700))
+    out.append(text(b.px(0.97), b.py(0.88), 'успех без поддержки', 13, GREEN, 'end', 700))
+    out.append(text(840, 322, 'Силу уменьшают по мере того, как политика справляется сама', 13, MUTED, 'middle'))
+    out.append(text(550, 344, 'Схема принципа; числа условные', 12, LIGHT, 'middle'))
+    write(os.path.join(OUT08, 'zest_training.svg'), out)
+
+
 def main():
     print('Дополнительные схемы слайдов:')
     print('   лекция 01, время пути:', round(l01_path_vs_trajectory(), 2))
@@ -550,6 +586,7 @@ def main():
     print('   генератор 1D, объездов слева:', l07_noise_to_modes())
     print('   наведение (λ, задели новое, задели старое, max|y|):', l07_guidance())
     l08_llm_vlm_vla()
+    l08_zest_training()
 
 
 if __name__ == '__main__':
